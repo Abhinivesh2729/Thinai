@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +14,11 @@ import 'pages/chat_page.dart';
 import 'pages/models_page.dart';
 import 'pages/server_page.dart';
 import 'pages/splash_page.dart';
+import 'theme/app_theme.dart';
+import 'widgets/app_drawer.dart';
 import 'widgets/coach_mark_targets.dart';
 import 'widgets/spotlight_coach_marks.dart';
+import 'widgets/ui_kit.dart';
 
 class LocalLlmApp extends ConsumerWidget {
   const LocalLlmApp({super.key});
@@ -25,69 +29,12 @@ class LocalLlmApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Thinai',
       debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
       themeMode: themeMode,
-      home: WithForegroundTask(child: const _Shell()),
+      home: const _Shell(),
     );
   }
-}
-
-/// Builds the app theme for the given brightness. Light and dark share the
-/// same shape and component styling. Only the seeded [ColorScheme] differs,
-/// so every screen adapts automatically.
-ThemeData _buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF0E4B75),
-    brightness: brightness,
-  );
-  return ThemeData(
-    colorScheme: scheme,
-    useMaterial3: true,
-    brightness: brightness,
-    scaffoldBackgroundColor: scheme.surface,
-    appBarTheme: AppBarTheme(
-      backgroundColor: scheme.surface,
-      surfaceTintColor: scheme.surface,
-      elevation: 0,
-      centerTitle: false,
-      titleTextStyle: TextStyle(
-        color: scheme.onSurface,
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
-      ),
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      color: scheme.surfaceContainerLow,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
-      margin: EdgeInsets.zero,
-    ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      ),
-    ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: scheme.surface,
-      indicatorColor: scheme.primaryContainer,
-      labelTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSurface,
-        ),
-      ),
-      height: 72,
-    ),
-  );
 }
 
 class _Shell extends ConsumerStatefulWidget {
@@ -135,6 +82,15 @@ class _ShellState extends ConsumerState<_Shell> {
       // the app should still open rather than sit on the splash forever.
       ref
           .read(appBootstrapProvider.future)
+          .catchError((Object _) {})
+          .timeout(const Duration(seconds: 10), onTimeout: () {}),
+      // A launch lands on a new chat, not on whatever was open when the app
+      // was last closed. Done behind the splash so the old conversation never
+      // flashes up first. Resuming from the background keeps the open chat,
+      // since this only runs when the app starts.
+      ref
+          .read(chatSessionsProvider.notifier)
+          .startFreshSession()
           .catchError((Object _) {})
           .timeout(const Duration(seconds: 10), onTimeout: () {}),
     ]);
@@ -243,26 +199,14 @@ class _MainShellState extends ConsumerState<_MainShell> {
   Future<void> _installUpdate() async {
     if (_updateBusy) return;
     if (ref.read(downloadsProvider).isNotEmpty) {
-      final go = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Restart now?'),
-          content: const Text(
-            'A model is still downloading. Restarting cancels it.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Later'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restart'),
-            ),
-          ],
-        ),
+      final go = await confirmAction(
+        context,
+        title: 'Restart now?',
+        message: 'A model is still downloading. Restarting cancels it.',
+        confirmLabel: 'Restart',
+        cancelLabel: 'Later',
       );
-      if (go != true || !mounted) return;
+      if (!go || !mounted) return;
     }
     setState(() => _updateBusy = true);
     await ref.read(appUpdaterProvider).install();
@@ -300,23 +244,17 @@ class _MainShellState extends ConsumerState<_MainShell> {
   List<SpotlightCoachStep> _buildCoachSteps() {
     return [
       SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTab,
-        title: 'Step 1: Open Models',
+        targetKey: CoachMarkTargets.menuButton,
+        title: 'Your menu',
         message:
-            'Thinai runs models on your phone. Download one before you chat.',
+            'Models, Server, your chats and Settings live here. Thinai runs '
+            'models on your phone, so start by downloading one.',
         borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTourButton,
-        title: 'Settings and tools',
-        message: 'Open Settings here for import, downloads, and support.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
+        beforeShow: () => _switchTabAndWait(0),
       ),
       SpotlightCoachStep(
         targetKey: CoachMarkTargets.firstCatalogAction,
-        title: 'Step 2: Download a model',
+        title: 'Step 1: Download a model',
         // Names the smallest model and its size: this step stands in for the
         // first-run auto-download that used to happen, so it has to answer
         // "which one" and "how big" rather than leave someone staring at 22
@@ -335,30 +273,23 @@ class _MainShellState extends ConsumerState<_MainShell> {
         },
       ),
       SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatTab,
-        title: 'Step 3: Go to Chat',
-        message: 'With a model active, go to Chat to start talking.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatComposer,
-        title: 'Step 4: Type and send',
-        message: 'Type your prompt and send. Responses generate on-device.',
-        borderRadius: 22,
-        beforeShow: () => _switchTabAndWait(0),
-      ),
-      SpotlightCoachStep(
         targetKey: CoachMarkTargets.benchmarkButton,
         title: 'Measure your phone',
-        // Last, because it only means something once a model is running: the
-        // measurement it takes is also what replaces the estimated speeds on
-        // the Models page with real ones for this device.
+        // Only means something once a model is running: the measurement it
+        // takes is also what replaces the estimated speeds on the Models page
+        // with real ones for this device.
         message:
             'Tap Benchmark to measure real speed on your phone, replacing '
             'the estimates.',
         borderRadius: 24,
         beforeShow: () => _switchTabAndWait(1),
+      ),
+      SpotlightCoachStep(
+        targetKey: CoachMarkTargets.chatComposer,
+        title: 'Step 2: Ask anything',
+        message: 'Type your prompt and send. Responses generate on-device.',
+        borderRadius: 26,
+        beforeShow: () => _switchTabAndWait(0),
       ),
     ];
   }
@@ -397,50 +328,45 @@ class _MainShellState extends ConsumerState<_MainShell> {
     }
 
     final update = _update;
-    return Scaffold(
-      body: IndexedStack(index: index, children: _pages),
-      // The banner rides above the navigation bar rather than above the body:
-      // every page brings its own AppBar, and a notice pushed in over those
-      // would sit in the status bar. Hidden while the coach tour runs, because
-      // the spotlight measures its targets by where they are on screen.
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (update != null && !_tourRunning)
-            _UpdateBanner(
-              status: update,
-              busy: _updateBusy,
-              onAct: update.state == UpdateState.readyToInstall
-                  ? _installUpdate
-                  : _downloadUpdate,
-              onDismiss: () => setState(() => _update = null),
-            ),
-          NavigationBar(
-            selectedIndex: index,
-            onDestinationSelected: (i) {
-              ref.read(shellTabIndexProvider.notifier).state = i;
-            },
-            destinations: [
-              NavigationDestination(
-                key: CoachMarkTargets.chatTab,
-                icon: const Icon(Icons.chat_bubble_outline_rounded),
-                selectedIcon: const Icon(Icons.chat_bubble_rounded),
-                label: 'Chat',
-              ),
-              NavigationDestination(
-                key: CoachMarkTargets.modelsTab,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                selectedIcon: const Icon(Icons.auto_awesome_rounded),
-                label: 'Models',
-              ),
-              const NavigationDestination(
-                icon: Icon(Icons.cloud_outlined),
-                selectedIcon: Icon(Icons.cloud_rounded),
-                label: 'Server',
-              ),
-            ],
-          ),
-        ],
+    // Back from Models or Server returns to the conversation: Chat is home,
+    // the others are places visited from it. From Chat, back does what the
+    // foreground-service wrapper used to: minimise while the server is
+    // running, so the API keeps answering, and leave otherwise. Handled here
+    // in one place because that wrapper's handler ran first and would have
+    // minimised the app from any section.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (ref.read(shellTabIndexProvider) != 0) {
+          ref.read(shellTabIndexProvider.notifier).state = 0;
+          return;
+        }
+        if (await FlutterForegroundTask.isRunningService) {
+          FlutterForegroundTask.minimizeApp();
+          return;
+        }
+        await SystemNavigator.pop();
+      },
+      child: Scaffold(
+        key: shellScaffoldKey,
+        drawer: const AppDrawer(),
+        body: IndexedStack(index: index, children: _pages),
+        // Hidden while the coach tour runs, because the spotlight measures
+        // its targets by where they are on screen.
+        bottomNavigationBar: update != null && !_tourRunning
+            ? SafeArea(
+                top: false,
+                child: _UpdateBanner(
+                  status: update,
+                  busy: _updateBusy,
+                  onAct: update.state == UpdateState.readyToInstall
+                      ? _installUpdate
+                      : _downloadUpdate,
+                  onDismiss: () => setState(() => _update = null),
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -467,71 +393,87 @@ class _UpdateBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final ready = status.state == UpdateState.readyToInstall;
 
-    return Material(
-      color: scheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
-        child: Row(
-          children: [
-            Icon(
-              ready
-                  ? Icons.restart_alt_rounded
-                  : Icons.system_update_alt_rounded,
-              color: scheme.onPrimaryContainer,
-              size: 22,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ready ? 'Update ready' : 'Update available',
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    busy
-                        ? 'Downloading in the background…'
-                        : ready
-                        ? 'Restart Thinai to finish installing.'
-                        : 'A newer version of Thinai is on Play Store.',
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.sm),
+      child: Material(
+        color: scheme.inverseSurface,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.lg,
+            Space.md,
+            Space.xs,
+            Space.md,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                ready
+                    ? Icons.restart_alt_rounded
+                    : Icons.system_update_alt_rounded,
+                color: scheme.onInverseSurface,
+                size: 22,
               ),
-            ),
-            if (busy)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14),
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2.2),
+              const SizedBox(width: Space.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      ready ? 'Update ready' : 'Update available',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: scheme.onInverseSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      busy
+                          ? 'Downloading in the background…'
+                          : ready
+                          ? 'Restart Thinai to finish installing.'
+                          : 'A newer version of Thinai is on Play Store.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onInverseSurface.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
                 ),
-              )
-            else ...[
-              TextButton(
-                onPressed: onAct,
-                child: Text(ready ? 'Restart' : 'Download'),
               ),
-              IconButton(
-                tooltip: 'Dismiss',
-                icon: const Icon(Icons.close_rounded, size: 20),
-                color: scheme.onPrimaryContainer,
-                onPressed: onDismiss,
-              ),
+              if (busy)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: scheme.onInverseSurface,
+                    ),
+                  ),
+                )
+              else ...[
+                TextButton(
+                  onPressed: onAct,
+                  style: TextButton.styleFrom(
+                    foregroundColor: scheme.inversePrimary,
+                  ),
+                  child: Text(ready ? 'Restart' : 'Download'),
+                ),
+                IconButton(
+                  tooltip: 'Dismiss',
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  color: scheme.onInverseSurface.withValues(alpha: 0.7),
+                  onPressed: onDismiss,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

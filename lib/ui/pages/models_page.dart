@@ -8,8 +8,11 @@ import '../../models_repo/downloader.dart';
 import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../state/providers.dart';
+import '../theme/app_theme.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_advisor.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/ui_kit.dart';
 import 'benchmark_page.dart';
 import 'settings_page.dart';
 
@@ -67,35 +70,23 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   Future<void> _load(LocalModel m, {bool openChat = false}) async {
     await ref.read(activeModelIdProvider.notifier).set(m);
     if (!mounted) return;
-    _toast('Loaded ${m.displayName}');
+    _toast('Loaded ${_catalogFor(m)?.displayName ?? m.displayName}');
     if (openChat) {
       ref.read(shellTabIndexProvider.notifier).state = 0;
     }
   }
 
   Future<void> _delete(LocalModel m) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete model?'),
-        content: Text(m.displayName),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(c).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirm = await confirmAction(
+      context,
+      title: 'Delete model?',
+      message:
+          '${m.displayName} is removed from this phone. '
+          'You can download it again later.',
+      confirmLabel: 'Delete',
+      destructive: true,
     );
-    if (confirm != true) return;
+    if (!confirm) return;
     await ref.read(modelStoreProvider).delete(m);
     if (ref.read(activeModelIdProvider) == m.id) {
       await ref.read(activeModelIdProvider.notifier).set(null);
@@ -103,15 +94,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     ref.read(modelsRefreshProvider.notifier).state++;
   }
 
-  void _toast(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
+  void _toast(String text) => showToast(context, text);
 
   /// True when [model] should be listed for the current search text. Matches
   /// on everything a user might type: name, maker, size, and the description,
@@ -140,10 +123,11 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     final modelsAsync = ref.watch(modelListProvider);
     final activeId = ref.watch(activeModelIdProvider);
     final downloads = ref.watch(downloadsProvider);
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
+        leading: const MenuButton(),
+        titleSpacing: Space.xs,
         title: const Text('Models'),
         actions: [
           IconButton(
@@ -151,22 +135,22 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             tooltip: 'Benchmark',
             icon: const Icon(Icons.speed_rounded),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BenchmarkPage()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const BenchmarkPage()));
             },
           ),
           IconButton(
             key: CoachMarkTargets.modelsTourButton,
             tooltip: 'Settings',
-            icon: const Icon(Icons.settings_rounded),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () {
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
             },
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: Space.xs),
         ],
       ),
       body: Column(
@@ -179,10 +163,13 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           Expanded(
             child: modelsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => EmptyState(
+                icon: Icons.error_outline_rounded,
+                title: 'Could not read your models',
+                message: '$e',
+              ),
               data: (installed) => _buildList(
                 context: context,
-                scheme: scheme,
                 installed: installed,
                 activeId: activeId,
                 downloads: downloads,
@@ -196,7 +183,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
   Widget _buildList({
     required BuildContext context,
-    required ColorScheme scheme,
     required List<LocalModel> installed,
     required String? activeId,
     required Map<String, DownloadHandle> downloads,
@@ -212,13 +198,18 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     final embeddingModels = embeddingCatalog.where(_matchesCatalog).toList();
 
     if (yourModels.isEmpty && chatModels.isEmpty && embeddingModels.isEmpty) {
-      return _NoResults(query: _search.text.trim());
+      return EmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No models match "${_search.text.trim()}"',
+        message:
+            'Try a maker (Google, Alibaba), a size (1B, 4B), or a task '
+            'such as embedding.',
+      );
     }
 
-    final missingEncoders = ref.watch(missingProjectorsProvider).maybeWhen(
-          data: (ids) => ids,
-          orElse: () => const <String>{},
-        );
+    final missingEncoders = ref
+        .watch(missingProjectorsProvider)
+        .maybeWhen(data: (ids) => ids, orElse: () => const <String>{});
 
     final device = ref.watch(speedKnowledgeProvider).device;
 
@@ -250,7 +241,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
     return ListView(
       controller: CoachMarkTargets.modelsScroll,
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+      padding: const EdgeInsets.fromLTRB(
+        Space.lg,
+        Space.xs,
+        Space.lg,
+        Space.xxxl,
+      ),
       children: [
         // A transfer in progress is the thing the user most wants to see when
         // they open this page; the card that started it may be far down a
@@ -260,12 +256,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             downloads: downloads,
             onCancel: (id) => ref.read(downloadsProvider.notifier).cancel(id),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Space.md),
         ],
         // Hidden while searching: someone typing a model name has already
         // decided what they want, and the advisor would just push the results
         // off the screen.
-        if (_query.isEmpty) ...[
+        if (_query.isEmpty)
           ModelAdvisor(
             speed: ref.watch(speedKnowledgeProvider),
             installedCatalogIds: installedCatalogIds,
@@ -273,33 +269,35 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onDownload: (m) => ref.read(downloadsProvider.notifier).start(m),
             onCancel: (id) => ref.read(downloadsProvider.notifier).cancel(id),
           ),
-          const SizedBox(height: 18),
-        ],
         if (yourModels.isNotEmpty) ...[
-          const _SectionHeader(
-            icon: Icons.inventory_2_rounded,
+          SectionHeader(
             title: 'Your models',
             subtitle: 'Tap one to make it active',
+            trailing: _Count(yourModels.length),
           ),
-          const SizedBox(height: 12),
-          for (final m in yourModels) ...[
-            _InstalledCard(
-              model: m,
-              active: activeId == m.id,
-              onTap: () => _load(m),
-              onDelete: () => _delete(m),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (var i = 0; i < yourModels.length; i++) ...[
+                  if (i > 0) const Divider(height: 1, indent: 68),
+                  _InstalledRow(
+                    model: yourModels[i],
+                    active: activeId == yourModels[i].id,
+                    onTap: () => _load(yourModels[i]),
+                    onDelete: () => _delete(yourModels[i]),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 10),
-          ],
-          const SizedBox(height: 16),
+          ),
         ],
         if (chatModels.isNotEmpty) ...[
-          const _SectionHeader(
-            icon: Icons.explore_rounded,
+          SectionHeader(
             title: 'Browse catalog',
             subtitle: 'Curated GGUF models · one-tap download',
+            trailing: _Count(chatModels.length),
           ),
-          const SizedBox(height: 12),
           for (final m in chatModels) ...[
             catalogCard(
               m,
@@ -307,49 +305,26 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                   ? CoachMarkTargets.firstCatalogAction
                   : null,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: Space.md),
           ],
-          const SizedBox(height: 16),
         ],
         if (embeddingModels.isNotEmpty) ...[
-          const _SectionHeader(
-            icon: Icons.hub_rounded,
+          SectionHeader(
             title: 'Embedding models',
             subtitle: 'For search and RAG · /api/embed · /v1/embeddings',
+            trailing: _Count(embeddingModels.length),
           ),
-          const SizedBox(height: 12),
           for (final m in embeddingModels) ...[
             catalogCard(m),
-            const SizedBox(height: 10),
+            const SizedBox(height: Space.md),
           ],
         ],
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.info_outline_rounded,
-                color: scheme.onSurfaceVariant,
-                size: 18,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Downloads save to app storage and stay on-device. '
-                  'All models are open-weight GGUFs.',
-                  style: TextStyle(
-                    color: scheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: Space.sm),
+        const InlineNotice(
+          icon: Icons.lock_outline_rounded,
+          text:
+              'Downloads save to app storage and stay on-device. '
+              'All models are open-weight GGUFs.',
         ),
       ],
     );
@@ -357,6 +332,15 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 }
 
 // ─── widgets ───────────────────────────────────────────────────────────────
+
+class _Count extends StatelessWidget {
+  const _Count(this.count);
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Tag('$count', dense: true);
+}
 
 /// Search across installed models and the catalog. Sits above the list rather
 /// than inside it so it stays reachable while scrolling a long catalog.
@@ -373,19 +357,24 @@ class _SearchField extends StatefulWidget {
 class _SearchFieldState extends State<_SearchField> {
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final hasText = widget.controller.text.isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.fromLTRB(
+        Space.lg,
+        Space.xs,
+        Space.lg,
+        Space.md,
+      ),
       child: Container(
+        height: 48,
         decoration: BoxDecoration(
-          color: scheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: scheme.outlineVariant.withValues(alpha: 0.5),
-          ),
+          color: AppColors.of(context).card,
+          borderRadius: BorderRadius.circular(Radii.md + 2),
+          border: Border.all(color: scheme.outlineVariant),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.only(left: 14, right: Space.xs),
         child: Row(
           children: [
             Icon(
@@ -398,19 +387,16 @@ class _SearchFieldState extends State<_SearchField> {
               child: TextField(
                 controller: widget.controller,
                 textInputAction: TextInputAction.search,
+                style: theme.textTheme.bodyMedium,
                 onChanged: (value) {
                   setState(() {});
                   widget.onChanged(value);
                 },
-                decoration: InputDecoration(
+                decoration: bareInputDecoration(
                   hintText: 'Search models, makers, sizes',
-                  hintStyle: TextStyle(
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
-                    fontSize: 14,
                   ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
@@ -432,113 +418,21 @@ class _SearchFieldState extends State<_SearchField> {
   }
 }
 
-class _NoResults extends StatelessWidget {
-  const _NoResults({required this.query});
-
-  final String query;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 44,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'No models match "$query"',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Try a maker (Google, Alibaba), a size (1B, 4B), or a task '
-              'such as embedding.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-    );
+/// The catalogue entry a downloaded file came from, if it came from one.
+CatalogModel? _catalogFor(LocalModel model) {
+  for (final m in [...chatCatalog, ...embeddingCatalog]) {
+    if (m.servedId == model.id) return m;
   }
+  return null;
 }
 
-class _SectionHeader extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  const _SectionHeader({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InstalledCard extends StatelessWidget {
+class _InstalledRow extends StatelessWidget {
   final LocalModel model;
   final bool active;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  const _InstalledCard({
+  const _InstalledRow({
     required this.model,
     required this.active,
     required this.onTap,
@@ -547,70 +441,85 @@ class _InstalledCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: active ? scheme.primaryContainer : scheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: active ? scheme.primary : scheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  active ? Icons.check_rounded : Icons.memory_rounded,
-                  color: active ? scheme.onPrimary : scheme.onSurface,
-                ),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final entry = _catalogFor(model);
+    // A friendly name when the file came from the catalogue; the filename
+    // otherwise, since that is the only name an imported model has.
+    final title = entry?.displayName ?? model.displayName;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          Space.lg,
+          Space.md,
+          Space.xs,
+          Space.md,
+        ),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: Motion.base,
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: active ? scheme.primary : scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(Radii.md - 1),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      model.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+              alignment: Alignment.center,
+              child: active
+                  ? Icon(Icons.check_rounded, size: 20, color: scheme.onPrimary)
+                  : entry != null
+                  ? Text(entry.emoji, style: const TextStyle(fontSize: 18))
+                  : Icon(
+                      Icons.memory_rounded,
+                      size: 19,
+                      color: scheme.onSurface,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _Chip(
-                          label: _fmtSize(model.sizeBytes),
-                          icon: Icons.storage_rounded,
-                        ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(fontSize: 14.5),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (active) ...[
+                        const Tag('Active', tone: TagTone.success, dense: true),
                         const SizedBox(width: 6),
-                        if (active)
-                          const _Chip(
-                            label: 'Active',
-                            icon: Icons.bolt_rounded,
-                            tone: _ChipTone.accent,
-                          ),
                       ],
-                    ),
-                  ],
-                ),
+                      Flexible(
+                        child: Text(
+                          entry == null
+                              ? _fmtSize(model.sizeBytes)
+                              : '${_fmtSize(model.sizeBytes)} · ${model.displayName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded),
-                onPressed: onDelete,
-                color: scheme.onSurfaceVariant,
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              tooltip: 'Delete model',
+              icon: const Icon(Icons.delete_outline_rounded, size: 20),
+              onPressed: onDelete,
+              color: scheme.onSurfaceVariant,
+            ),
+          ],
         ),
       ),
     );
@@ -659,40 +568,26 @@ class _CatalogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      padding: const EdgeInsets.all(14),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(Space.lg, 14, Space.md, Space.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      model.accent,
-                      Color.alphaBlend(
-                        Colors.white.withValues(alpha: 0.2),
-                        model.accent,
-                      ),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
+                  color: model.accent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
-                child: Text(model.emoji, style: const TextStyle(fontSize: 24)),
+                child: Text(model.emoji, style: const TextStyle(fontSize: 22)),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: Space.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,68 +597,62 @@ class _CatalogCard extends StatelessWidget {
                       model.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(fontSize: 15),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       model.author,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: Space.sm),
               _buildAction(context),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Space.md),
           Text(
             model.description,
-            style: TextStyle(
+            style: theme.textTheme.bodySmall?.copyWith(
               fontSize: 13,
+              height: 1.45,
               color: scheme.onSurfaceVariant,
-              height: 1.35,
             ),
           ),
+          const SizedBox(height: Space.md),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              Tag(model.parameters, icon: Icons.tune_rounded, dense: true),
+              Tag(model.approxSize, icon: Icons.download_rounded, dense: true),
+              // Context window, not quantisation: how much text the model can
+              // hold is what a user chooses between, and every entry here is
+              // a small quant anyway.
+              Tag(
+                '${model.contextLabel} context',
+                icon: Icons.notes_rounded,
+                dense: true,
+              ),
+              if (model.dimensions != null)
+                Tag(
+                  '${model.dimensions} dims',
+                  icon: Icons.scatter_plot_outlined,
+                  dense: true,
+                ),
+            ],
+          ),
           if (blocked || (!installed && fit == RamFit.tight)) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: Space.md),
             _FitWarning(
               blocked: blocked,
               needs: runtimeBytes,
               budget: budgetBytes,
             ),
           ],
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _Chip(label: model.parameters, icon: Icons.tune_rounded),
-              _Chip(
-                label: model.approxSize,
-                icon: Icons.cloud_download_outlined,
-              ),
-              // Context window, not quantisation: how much text the model can
-              // hold is what a user chooses between, and every entry here is
-              // a small quant anyway.
-              _Chip(
-                label: '${model.contextLabel} context',
-                icon: Icons.article_rounded,
-              ),
-              if (model.dimensions != null)
-                _Chip(
-                  label: '${model.dimensions} dims',
-                  icon: Icons.scatter_plot_rounded,
-                ),
-            ],
-          ),
           if (download != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             _DownloadProgressRow(handle: download!),
           ],
         ],
@@ -781,75 +670,28 @@ class _CatalogCard extends StatelessWidget {
         onPressed: onAddVision,
         icon: const Icon(Icons.image_outlined, size: 16),
         label: Text('Add vision · ${model.mmprojSize}'),
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
+        style: _compact,
       );
     }
     if (installed) {
-      final scheme = Theme.of(context).colorScheme;
-      return Container(
+      return Tag(
+        'Installed',
         key: actionKey,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: scheme.primaryContainer,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_rounded,
-              size: 16,
-              color: scheme.onPrimaryContainer,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Installed',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: scheme.onPrimaryContainer,
-              ),
-            ),
-          ],
-        ),
+        icon: Icons.check_rounded,
+        tone: TagTone.success,
       );
     }
     if (blocked) {
-      final scheme = Theme.of(context).colorScheme;
-      return Container(
-        key: actionKey,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.block_rounded, size: 15, color: scheme.onSurfaceVariant),
-            const SizedBox(width: 4),
-            Text(
-              'Too big',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
+      return Tag('Too big', key: actionKey, icon: Icons.block_rounded);
     }
     if (download != null) {
       return IconButton(
         key: actionKey,
-        icon: const Icon(Icons.close_rounded),
+        tooltip: 'Cancel download',
+        icon: const Icon(Icons.close_rounded, size: 20),
         onPressed: onCancel,
         style: IconButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         ),
       );
     }
@@ -858,11 +700,15 @@ class _CatalogCard extends StatelessWidget {
       icon: const Icon(Icons.download_rounded, size: 18),
       label: const Text('Get'),
       onPressed: onDownload,
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      ),
+      style: _compact,
     );
   }
+
+  static final _compact = FilledButton.styleFrom(
+    minimumSize: const Size(0, 38),
+    padding: const EdgeInsets.symmetric(horizontal: 14),
+    shape: const StadiumBorder(),
+  );
 }
 
 class _DownloadProgressRow extends StatelessWidget {
@@ -871,7 +717,8 @@ class _DownloadProgressRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return StreamBuilder<DownloadProgress>(
       stream: handle.progress,
       builder: (context, snap) {
@@ -886,9 +733,8 @@ class _DownloadProgressRow extends StatelessWidget {
                   fraction != null
                       ? '${(fraction * 100).toStringAsFixed(0)}%'
                       : 'Starting…',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: scheme.primary,
                   ),
                 ),
@@ -896,71 +742,18 @@ class _DownloadProgressRow extends StatelessWidget {
                 if (p != null)
                   Text(
                     _fmtSize(p.received),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: scheme.onSurfaceVariant,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                   ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: Space.sm),
             ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: fraction,
-                minHeight: 6,
-                backgroundColor: scheme.surfaceContainerHigh,
-              ),
+              borderRadius: BorderRadius.circular(Radii.xs),
+              child: LinearProgressIndicator(value: fraction, minHeight: 6),
             ),
           ],
         );
       },
-    );
-  }
-}
-
-enum _ChipTone { neutral, accent }
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final _ChipTone tone;
-  const _Chip({
-    required this.label,
-    required this.icon,
-    this.tone = _ChipTone.neutral,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final bg = tone == _ChipTone.accent
-        ? scheme.primary.withValues(alpha: 0.1)
-        : scheme.surfaceContainerHigh;
-    final fg = tone == _ChipTone.accent
-        ? scheme.primary
-        : scheme.onSurfaceVariant;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1005,39 +798,16 @@ class _FitWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final available = budget;
-    final color = blocked ? scheme.error : Colors.orange.shade800;
-
     final text = blocked
         ? available == null
-            ? 'Too large for this phone.'
-            : 'Needs ${_gb(needs)}, this phone has ${_gb(available)} to spare.'
+              ? 'Too large for this phone.'
+              : 'Needs ${_gb(needs)}, this phone has ${_gb(available)} to spare.'
         : 'A tight fit. Other apps may close while this runs.';
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            blocked ? Icons.block_rounded : Icons.warning_amber_rounded,
-            size: 15,
-            color: color,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 11.5, color: color, height: 1.3),
-            ),
-          ),
-        ],
-      ),
+    return InlineNotice(
+      text: text,
+      icon: blocked ? Icons.block_rounded : Icons.warning_amber_rounded,
+      tone: blocked ? TagTone.danger : TagTone.warning,
     );
   }
 }
@@ -1051,16 +821,13 @@ class _ActiveDownloads extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final entries = downloads.entries.toList();
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.30),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.20)),
-      ),
+    return AppCard(
+      borderColor: scheme.primary.withValues(alpha: 0.35),
+      padding: const EdgeInsets.fromLTRB(Space.lg, 14, Space.sm, Space.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1079,15 +846,11 @@ class _ActiveDownloads extends StatelessWidget {
                 entries.length == 1
                     ? 'Downloading'
                     : 'Downloading ${entries.length} models',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onSurface,
-                ),
+                style: theme.textTheme.titleSmall,
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Space.md),
           for (final entry in entries)
             _ActiveDownloadRow(
               handle: entry.value,
@@ -1107,60 +870,62 @@ class _ActiveDownloadRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return StreamBuilder<DownloadProgress>(
       stream: handle.progress,
       builder: (context, snapshot) {
         final progress = snapshot.data;
         final fraction = progress?.fraction;
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.only(bottom: Space.sm),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      handle.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            handle.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: Space.sm),
+                        Text(
+                          fraction == null
+                              ? 'Starting…'
+                              : '${(fraction * 100).toStringAsFixed(0)}%',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: scheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(Radii.xs),
+                      child: LinearProgressIndicator(
+                        value: fraction,
+                        minHeight: 5,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    fraction == null
-                        ? 'Starting...'
-                        : '${(fraction * 100).toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  IconButton(
-                    iconSize: 16,
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.only(left: 8),
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Cancel download',
-                    onPressed: onCancel,
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: fraction,
-                  minHeight: 5,
-                  backgroundColor: scheme.surfaceContainerHighest,
+                  ],
                 ),
+              ),
+              IconButton(
+                iconSize: 18,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Cancel download',
+                onPressed: onCancel,
+                icon: const Icon(Icons.close_rounded),
               ),
             ],
           ),

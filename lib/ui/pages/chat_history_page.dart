@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/providers.dart';
+import '../theme/app_theme.dart';
+import '../widgets/ui_kit.dart';
 
 /// The list of saved conversations, reached from the Chat tab.
 ///
@@ -15,7 +17,7 @@ class ChatHistoryPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(chatSessionsProvider);
     final controller = ref.read(chatSessionsProvider.notifier);
-    final scheme = Theme.of(context).colorScheme;
+    final groups = _groupByRecency(sessions.conversations);
 
     return Scaffold(
       appBar: AppBar(
@@ -26,22 +28,23 @@ class ChatHistoryPage extends ConsumerWidget {
               tooltip: 'Delete all chats',
               icon: const Icon(Icons.delete_sweep_rounded),
               onPressed: () async {
-                final ok = await _confirm(
+                final ok = await confirmAction(
                   context,
                   title: 'Delete all chats?',
-                  body:
+                  message:
                       'Every saved conversation is removed. This cannot be '
                       'undone.',
-                  action: 'Delete all',
+                  confirmLabel: 'Delete all',
+                  destructive: true,
                 );
                 if (ok) await controller.deleteAll();
               },
             ),
-          const SizedBox(width: 4),
+          const SizedBox(width: Space.xs),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add_comment_rounded),
+        icon: const Icon(Icons.add_comment_outlined),
         label: const Text('New chat'),
         onPressed: () {
           controller.startNewChat();
@@ -49,69 +52,93 @@ class ChatHistoryPage extends ConsumerWidget {
         },
       ),
       body: sessions.conversations.isEmpty
-          ? const _EmptyHistory()
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-              itemCount: sessions.conversations.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final conversation = sessions.conversations[i];
-                return _ConversationCard(
-                  conversation: conversation,
-                  current: conversation.id == sessions.activeId,
-                  onOpen: () {
-                    controller.open(conversation.id);
-                    Navigator.of(context).pop();
-                  },
-                  onDelete: () async {
-                    final ok = await _confirm(
-                      context,
-                      title: 'Delete this chat?',
-                      body: conversation.title,
-                      action: 'Delete',
-                    );
-                    if (ok) await controller.delete(conversation.id);
-                  },
-                );
-              },
+          ? const EmptyState(
+              icon: Icons.forum_outlined,
+              title: 'No saved chats yet',
+              message: 'Conversations are saved on this device.',
+            )
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, 112),
+              children: [
+                for (final group in groups) ...[
+                  SectionLabel(
+                    group.label,
+                    padding: EdgeInsets.fromLTRB(
+                      Space.xs,
+                      identical(group, groups.first) ? Space.sm : Space.xxl,
+                      Space.xs,
+                      Space.sm,
+                    ),
+                  ),
+                  AppCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < group.items.length; i++) ...[
+                          if (i > 0) const Divider(height: 1, indent: Space.lg),
+                          _ConversationRow(
+                            conversation: group.items[i],
+                            current: group.items[i].id == sessions.activeId,
+                            onOpen: () {
+                              controller.open(group.items[i].id);
+                              Navigator.of(context).pop();
+                            },
+                            onDelete: () async {
+                              final conversation = group.items[i];
+                              final ok = await confirmAction(
+                                context,
+                                title: 'Delete this chat?',
+                                message: conversation.title,
+                                confirmLabel: 'Delete',
+                                destructive: true,
+                              );
+                              if (ok) await controller.delete(conversation.id);
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ],
             ),
-      backgroundColor: scheme.surface,
     );
   }
 }
 
-Future<bool> _confirm(
-  BuildContext context, {
-  required String title,
-  required String body,
-  required String action,
-}) async {
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (c) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(title),
-      content: Text(body),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(c, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(c).colorScheme.error,
-          ),
-          onPressed: () => Navigator.pop(c, true),
-          child: Text(action),
-        ),
-      ],
-    ),
-  );
-  return result ?? false;
+class _Group {
+  _Group(this.label);
+
+  final String label;
+  final List<ChatConversation> items = [];
 }
 
-class _ConversationCard extends StatelessWidget {
-  const _ConversationCard({
+/// Buckets conversations the way people remember them: today, this week, and
+/// everything before. Order within each bucket is kept as given.
+List<_Group> _groupByRecency(
+  List<ChatConversation> conversations, {
+  DateTime? now,
+}) {
+  final reference = now ?? DateTime.now();
+  final today = DateTime(reference.year, reference.month, reference.day);
+  final weekAgo = today.subtract(const Duration(days: 7));
+  final groups = <String, _Group>{};
+  for (final c in conversations) {
+    final label = !c.updatedAt.isBefore(today)
+        ? 'Today'
+        : !c.updatedAt.isBefore(weekAgo)
+        ? 'Previous 7 days'
+        : 'Older';
+    groups.putIfAbsent(label, () => _Group(label)).items.add(c);
+  }
+  return [
+    for (final label in const ['Today', 'Previous 7 days', 'Older'])
+      if (groups[label] != null) groups[label]!,
+  ];
+}
+
+class _ConversationRow extends StatelessWidget {
+  const _ConversationRow({
     required this.conversation,
     required this.current,
     required this.onOpen,
@@ -127,148 +154,62 @@ class _ConversationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: current ? scheme.primaryContainer : scheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onOpen,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: current
-                      ? scheme.primary
-                      : scheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.forum_rounded,
-                  size: 19,
-                  color: current ? scheme.onPrimary : scheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      conversation.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      conversation.preview,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.3,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formatChatTimestamp(conversation.updatedAt),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          size: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${conversation.turns.length}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        if (current) ...[
-                          const SizedBox(width: 10),
-                          Text(
-                            'OPEN',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
-                              color: scheme.primary,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'Delete chat',
-                icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                color: scheme.onSurfaceVariant,
-                onPressed: onDelete,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyHistory extends StatelessWidget {
-  const _EmptyHistory();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final meta = theme.textTheme.bodySmall?.copyWith(fontSize: 11.5);
+    return InkWell(
+      onTap: onOpen,
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.fromLTRB(Space.lg, 14, Space.xs, 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.forum_outlined,
-              size: 44,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    conversation.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(fontSize: 14.5),
+                  ),
+                  const SizedBox(height: Space.xs),
+                  Text(
+                    conversation.preview,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
+                  ),
+                  const SizedBox(height: Space.sm),
+                  Row(
+                    children: [
+                      Text(
+                        formatChatTimestamp(conversation.updatedAt),
+                        style: meta,
+                      ),
+                      Text('  ·  ', style: meta),
+                      Text(
+                        conversation.turns.length == 1
+                            ? '1 message'
+                            : '${conversation.turns.length} messages',
+                        style: meta,
+                      ),
+                      if (current) ...[
+                        const SizedBox(width: Space.sm),
+                        const Tag('OPEN', tone: TagTone.accent, dense: true),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Delete chat',
+              icon: const Icon(Icons.delete_outline_rounded, size: 20),
               color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'No saved chats yet',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Conversations are saved on this device.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              onPressed: onDelete,
             ),
           ],
         ),

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 class CoachMarkTargets {
   CoachMarkTargets._();
 
-  static final chatTab = GlobalKey(debugLabel: 'coach_chat_tab');
-  static final modelsTab = GlobalKey(debugLabel: 'coach_models_tab');
+  /// The menu button on the Chat header: the way to Models, Server, chats
+  /// and Settings.
+  static final menuButton = GlobalKey(debugLabel: 'coach_menu_button');
   static final modelsTourButton = GlobalKey(
     debugLabel: 'coach_models_tour_button',
   );
@@ -57,8 +58,10 @@ Future<void> revealCoachTarget(
     final position = controller.position;
     if (position.pixels >= position.maxScrollExtent) return;
 
-    final next = (position.pixels + position.viewportDimension * 0.85)
-        .clamp(0.0, position.maxScrollExtent);
+    final next = (position.pixels + position.viewportDimension * 0.85).clamp(
+      0.0,
+      position.maxScrollExtent,
+    );
     await controller.animateTo(
       next,
       duration: const Duration(milliseconds: 180),

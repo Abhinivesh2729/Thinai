@@ -185,12 +185,11 @@ class StopWordFilter {
   var _hit = false;
 
   StopWordFilter(List<String> stops)
-      : _stops = [
-          for (final s in stops)
-            if (s.isNotEmpty) s
-        ],
-        _holdBack =
-            stops.fold<int>(0, (m, s) => math.max(m, s.length)) - 1;
+    : _stops = [
+        for (final s in stops)
+          if (s.isNotEmpty) s,
+      ],
+      _holdBack = stops.fold<int>(0, (m, s) => math.max(m, s.length)) - 1;
 
   /// The reply as the client has seen it: everything before the stop word.
   String get visible => _visible;
@@ -224,8 +223,9 @@ class StopWordFilter {
       }
     }
 
-    final delta =
-        visible.length > _visible.length ? visible.substring(_visible.length) : '';
+    final delta = visible.length > _visible.length
+        ? visible.substring(_visible.length)
+        : '';
     _visible = visible;
     return delta;
   }
@@ -351,6 +351,30 @@ class LlmEngine {
     fllamaCancelInference(id);
   }
 
+  /// Cancels the one request behind [stream], wherever it is: dropped if it
+  /// is still queued, stopped natively if it is running.
+  ///
+  /// Unlike [cancelCurrent], this never touches anyone else's request. The
+  /// engine is shared with the API server, and a background request (chat's
+  /// follow-up suggestions) being withdrawn must not stop whatever happens to
+  /// be running at that moment instead.
+  void cancelStream(Stream<LlmToken> stream) {
+    for (final job in _queue) {
+      if (job.controller.stream != stream) continue;
+      _queue.remove(job);
+      if (!job.controller.isClosed) unawaited(job.controller.close());
+      return;
+    }
+    final running = _running;
+    if (running == null || running.controller.stream != stream) return;
+    running.cancelled = true;
+    final id = _currentRequestId;
+    if (id != null) fllamaCancelInference(id);
+  }
+
+  /// The job being generated right now, if any.
+  _QueuedJob? _running;
+
   /// Embeds [inputs], returning one vector per input in the same order.
   ///
   /// [modelPath] must point at an embedding model (ex. nomic-embed-text).
@@ -404,6 +428,7 @@ class LlmEngine {
     _busy = true;
     while (_queue.isNotEmpty) {
       final job = _queue.removeAt(0);
+      _running = job;
       try {
         await _run(job);
       } catch (e, st) {
@@ -411,22 +436,27 @@ class LlmEngine {
           job.controller.addError(e, st);
           await job.controller.close();
         }
+      } finally {
+        _running = null;
       }
     }
     _busy = false;
   }
 
   Future<void> _run(_QueuedJob job) async {
-    final onGpu = job.options.gpuBackend != GpuBackend.none &&
+    final onGpu =
+        job.options.gpuBackend != GpuBackend.none &&
         job.options.numGpuLayers > 0;
     final request = OpenAiRequest(
       messages: job.messages
-          .map((m) => Message(
-                _roleFromString(m.role),
-                m.content,
-                toolCalls: m.toolCalls,
-                toolResponseName: m.toolName,
-              ))
+          .map(
+            (m) => Message(
+              _roleFromString(m.role),
+              m.content,
+              toolCalls: m.toolCalls,
+              toolResponseName: m.toolName,
+            ),
+          )
           .toList(),
       tools: [
         for (final t in job.tools)
@@ -572,7 +602,7 @@ class LlmEngine {
       }
     });
 
-    if (_cancelPending) {
+    if (_cancelPending || job.cancelled) {
       _cancelPending = false;
       fllamaCancelInference(_currentRequestId!);
     }
@@ -636,6 +666,9 @@ class _QueuedJob {
   final List<ToolSpec> tools;
   final String? toolChoice;
   final String? mmprojPath;
+
+  /// Withdrawn by [LlmEngine.cancelStream] while running.
+  bool cancelled = false;
 
   _QueuedJob({
     required this.messages,

@@ -63,7 +63,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
         child: limit == null
             ? const SizedBox(
                 height: 160,
@@ -84,17 +84,23 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                   Text(
                     'Used by chat and the API server. Requests can override '
                     'these, up to the maximum.',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  _contextSection(theme, limit),
+                  const Divider(height: 1),
                   const SizedBox(height: 20),
+                  _contextSection(theme, limit),
+                  const SizedBox(height: 24),
                   _temperatureSection(theme),
                   const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: scheme.onSurfaceVariant,
+                      ),
                       onPressed: _reset,
                       icon: const Icon(Icons.restart_alt_rounded),
                       label: const Text('Reset to defaults'),
@@ -121,8 +127,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               '${_tokens(_context)} tokens',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -139,14 +146,16 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           ),
         Text(
           _capExplanation(limit),
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           'Longer windows remember more but use more RAM and run slower.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -164,8 +173,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               _temperature.toStringAsFixed(2),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -176,21 +186,22 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           divisions: (kMaxTemperature / 0.05).round(),
           label: _temperature.toStringAsFixed(2),
           onChanged: (v) => setState(() => _temperature = v),
-          onChangeEnd: (v) =>
-              _store.update(widget.model.id, temperature: v),
+          onChangeEnd: (v) => _store.update(widget.model.id, temperature: v),
         ),
         Row(
           children: [
             Text(
               'Precise',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
             const Spacer(),
             Text(
               'Creative',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

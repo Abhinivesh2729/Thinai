@@ -12,7 +12,9 @@ import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
 import '../../state/providers.dart';
+import '../theme/app_theme.dart';
 import '../widgets/markdown_text.dart';
+import '../widgets/ui_kit.dart';
 
 /// Prompt every benchmark run uses.
 ///
@@ -66,9 +68,8 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
 
   final List<_Run> _history = [];
 
-  double get _peak => _samples.isEmpty
-      ? 0
-      : _samples.reduce((a, b) => a > b ? a : b);
+  double get _peak =>
+      _samples.isEmpty ? 0 : _samples.reduce((a, b) => a > b ? a : b);
 
   Future<void> _run() async {
     final model = _model;
@@ -94,11 +95,7 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
       );
       final stream = ref
           .read(llmEngineProvider)
-          .generate(
-            _kBenchmarkPrompt,
-            modelPath: model.path,
-            options: options,
-          );
+          .generate(_kBenchmarkPrompt, modelPath: model.path, options: options);
 
       await for (final token in stream) {
         if (!mounted) return;
@@ -203,7 +200,12 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
             orElse: () => models.first,
           );
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+            padding: const EdgeInsets.fromLTRB(
+              Space.lg,
+              Space.xs,
+              Space.lg,
+              Space.xxxl,
+            ),
             children: [
               _ModelPicker(
                 models: models,
@@ -236,7 +238,7 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
                 ),
                 label: Text(_running ? 'Running…' : 'Run benchmark'),
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  minimumSize: const Size.fromHeight(52),
                 ),
                 onPressed: _running ? null : _run,
               ),
@@ -297,24 +299,9 @@ class _Gauge extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.alphaBlend(
-                  scheme.primaryContainer.withValues(alpha: 0.72),
-                  scheme.surface,
-                ),
-                Color.alphaBlend(
-                  scheme.tertiaryContainer.withValues(alpha: 0.70),
-                  scheme.surface,
-                ),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.55),
-            ),
+            color: AppColors.of(context).card,
+            borderRadius: BorderRadius.circular(Radii.xl),
+            border: Border.all(color: scheme.outlineVariant),
           ),
           child: Column(
             children: [
@@ -475,12 +462,10 @@ class _RunningPillState extends State<_RunningPill>
   // an indicator nobody is looking at.
   AnimationController? _controller;
 
-  AnimationController get _c =>
-      _controller ??=
-          AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 1400),
-          )..repeat(reverse: true);
+  AnimationController get _c => _controller ??= AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat(reverse: true);
 
   @override
   void dispose() {
@@ -513,9 +498,7 @@ class _RunningPillState extends State<_RunningPill>
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: scheme.primary.withValues(
-                  alpha: 0.35 + 0.65 * _c.value,
-                ),
+                color: scheme.primary.withValues(alpha: 0.35 + 0.65 * _c.value),
               ),
             ),
             const SizedBox(width: 8),
@@ -552,9 +535,9 @@ class _ThroughputGraph extends StatelessWidget {
       height: 116,
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,9 +715,9 @@ class _StatTile extends StatelessWidget {
       duration: const Duration(milliseconds: 220),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -783,15 +766,15 @@ class _ModelPicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selected.id,
           isExpanded: true,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.lg),
           icon: const Icon(Icons.expand_more_rounded),
           items: [
             for (final m in models)
@@ -843,9 +826,9 @@ class _OutputCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -887,9 +870,9 @@ class _HistoryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -974,68 +957,22 @@ class _ErrorCard extends StatelessWidget {
   final String message;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 18,
-            color: scheme.onErrorContainer,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onErrorContainer,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => InlineNotice(
+    text: message,
+    icon: Icons.error_outline_rounded,
+    tone: TagTone.danger,
+  );
 }
 
 class _EmptyBenchmark extends StatelessWidget {
   const _EmptyBenchmark();
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.speed_rounded, size: 44, color: scheme.onSurfaceVariant),
-            const SizedBox(height: 14),
-            const Text(
-              'No models to measure',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Download a model to measure its speed.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const EmptyState(
+    icon: Icons.speed_rounded,
+    title: 'No models to measure',
+    message: 'Download a model to measure its speed.',
+  );
 }
 
 String _fmtSeconds(Duration d) {
@@ -1079,8 +1016,9 @@ class _HardwareAdvice extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1105,12 +1043,12 @@ class _HardwareAdvice extends StatelessWidget {
           Text(
             speed.calibrated
                 ? '${device.known ? '${device.summary} · ' : ''}'
-                    'measured ${speed.bandwidthGBps.toStringAsFixed(1)} GB/s '
-                    'effective'
+                      'measured ${speed.bandwidthGBps.toStringAsFixed(1)} GB/s '
+                      'effective'
                 : device.known
-                    ? '${device.summary} · run a benchmark to replace the '
-                        'estimates below with measurements'
-                    : 'Run a benchmark to calibrate these',
+                ? '${device.summary} · run a benchmark to replace the '
+                      'estimates below with measurements'
+                : 'Run a benchmark to calibrate these',
             style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),

@@ -1,87 +1,81 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
 import '../widgets/made_in_erode.dart';
+import '../widgets/ui_kit.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About Thinai')),
+      appBar: AppBar(title: const Text('About')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(
+          Space.lg,
+          Space.sm,
+          Space.lg,
+          Space.xxxl,
+        ),
         children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.alphaBlend(scheme.primaryContainer, scheme.surface),
-                  Color.alphaBlend(scheme.tertiaryContainer, scheme.surface),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.6),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          AppCard(
+            padding: const EdgeInsets.all(Space.xl),
+            child: Row(
               children: [
-                Text(
-                  'Thinai',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: scheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'On-device LLM for Android, with a local API for other apps.',
-                  style: TextStyle(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.35,
+                const ThinaiMark(size: 56),
+                const SizedBox(width: Space.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Thinai', style: theme.textTheme.headlineSmall),
+                      const SizedBox(height: Space.xs),
+                      Text(
+                        'On-device LLM for Android, with a local API for '
+                        'other apps.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          _AboutSection(
+          const _AboutSection(
             title: 'What Thinai does',
-            lines: const [
+            icon: Icons.bolt_rounded,
+            lines: [
               'Runs local GGUF models on your device.',
               'Lets you download, import, and switch models quickly.',
               'Provides a local endpoint for agentic Android apps.',
               'Searches the web when enabled, for up-to-date answers.',
             ],
           ),
-          _AboutSection(
+          const _AboutSection(
             title: 'Design principles',
-            lines: const [
+            icon: Icons.architecture_rounded,
+            lines: [
               'Minimal UI that stays out of the way.',
               'On-device by default for privacy and speed.',
               'Simple controls for model lifecycle management.',
             ],
           ),
-          _AboutSection(
+          const _AboutSection(
             title: 'Positioning',
-            lines: const [
+            icon: Icons.layers_outlined,
+            lines: [
               'An Android-first local LLM runtime layer.',
               'Serves intelligence to tools, assistants, and automations.',
             ],
           ),
-          const SizedBox(height: 10),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: MadeInErode(),
-          ),
+          const SizedBox(height: Space.xxxl),
+          const MadeInErode(),
         ],
       ),
     );
@@ -89,60 +83,59 @@ class AboutPage extends StatelessWidget {
 }
 
 class _AboutSection extends StatelessWidget {
-  const _AboutSection({required this.title, required this.lines});
+  const _AboutSection({
+    required this.title,
+    required this.icon,
+    required this.lines,
+  });
 
   final String title;
+  final IconData icon;
   final List<String> lines;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-            ),
-            const SizedBox(height: 8),
-            for (final line in lines)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Container(
-                        width: 5,
-                        height: 5,
-                        decoration: BoxDecoration(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionLabel(title),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < lines.length; i++)
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i == lines.length - 1 ? 0 : Space.md,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 17,
                           color: scheme.primary,
-                          shape: BoxShape.circle,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        line,
-                        style: TextStyle(
-                          color: scheme.onSurfaceVariant,
-                          height: 1.3,
+                      const SizedBox(width: Space.md),
+                      Expanded(
+                        child: Text(
+                          lines[i],
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

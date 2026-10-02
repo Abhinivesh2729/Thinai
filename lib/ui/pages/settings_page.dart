@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/providers.dart';
 import '../../update/app_updater.dart';
 import '../widgets/gpu_settings_card.dart';
+import '../theme/app_theme.dart';
 import '../widgets/made_in_erode.dart';
+import '../widgets/ui_kit.dart';
 import 'about_page.dart';
 import 'benchmark_page.dart';
 import 'contact_support_page.dart';
@@ -77,28 +79,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _clearAllDownloads() async {
     if (_busy) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Clear all downloads?'),
-        content: const Text(
+    final confirm = await confirmAction(
+      context,
+      title: 'Clear all downloads?',
+      message:
           'This removes all downloaded or partial model files inside the app.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Clear all'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Clear all',
+      destructive: true,
     );
 
-    if (confirm != true) return;
+    if (!confirm) return;
 
     setState(() => _busy = true);
     try {
@@ -162,146 +152,137 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _promptInstall(AppUpdater updater) async {
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Update ready'),
-        content: const Text(
-          'The new version is downloaded. Thinai restarts to install it.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Later'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restart'),
-          ),
-        ],
-      ),
+    final go = await confirmAction(
+      context,
+      title: 'Update ready',
+      message: 'The new version is downloaded. Thinai restarts to install it.',
+      confirmLabel: 'Restart',
+      cancelLabel: 'Later',
     );
-    if (go == true) await updater.install();
+    if (go) await updater.install();
   }
 
-  void _toast(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
+  void _toast(String text) => showToast(context, text);
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final version = ref.watch(appVersionProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.xxxl),
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.alphaBlend(scheme.primaryContainer, scheme.surface),
-                  Color.alphaBlend(scheme.tertiaryContainer, scheme.surface),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.6),
-              ),
-            ),
-            child: Text(
-              'Thinai tools and app controls in one place.',
-              style: TextStyle(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
+          const SectionLabel(
+            'Appearance',
+            padding: EdgeInsets.fromLTRB(
+              Space.xs,
+              Space.sm,
+              Space.xs,
+              Space.sm,
             ),
           ),
-          const SizedBox(height: 14),
           const _ThemeModeCard(),
-          const _WebSearchCard(),
+          const SettingsGroup(
+            label: 'Chat',
+            children: [_WebSearchRow(), _FollowUpsRow()],
+          ),
+          const SectionLabel('Performance'),
           const GpuSettingsCard(),
-          const SizedBox(height: 6),
-          _SettingsTile(
-            icon: Icons.folder_open_rounded,
-            title: 'Import .gguf model',
-            subtitle: 'Pick a local model file from device storage',
-            onTap: _busy ? null : _importModel,
+          const SizedBox(height: Space.md),
+          SettingsGroup(
+            children: [
+              SettingsRow(
+                icon: Icons.speed_rounded,
+                title: 'Benchmark this phone',
+                subtitle: 'Measure tokens per second for any installed model',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BenchmarkPage()),
+                  );
+                },
+              ),
+            ],
           ),
-          _SettingsTile(
-            icon: Icons.link_rounded,
-            title: 'Download model by URL',
-            subtitle: 'Add a direct model URL and download',
-            onTap: _busy ? null : _downloadByUrl,
+          SettingsGroup(
+            label: 'Models',
+            children: [
+              SettingsRow(
+                icon: Icons.folder_open_rounded,
+                title: 'Import .gguf model',
+                subtitle: 'Pick a local model file from device storage',
+                onTap: _busy ? null : _importModel,
+              ),
+              SettingsRow(
+                icon: Icons.link_rounded,
+                title: 'Download model by URL',
+                subtitle: 'Add a direct model URL and download',
+                onTap: _busy ? null : _downloadByUrl,
+              ),
+              SettingsRow(
+                icon: Icons.delete_sweep_outlined,
+                title: 'Clear all downloaded items',
+                subtitle: 'Remove all downloaded and partial model files',
+                danger: true,
+                onTap: _busy ? null : _clearAllDownloads,
+              ),
+            ],
           ),
-          _SettingsTile(
-            icon: Icons.speed_rounded,
-            title: 'Benchmark this phone',
-            subtitle: 'Measure tokens per second for any installed model',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BenchmarkPage()),
-              );
-            },
+          SettingsGroup(
+            label: 'Help',
+            children: [
+              SettingsRow(
+                icon: Icons.tips_and_updates_outlined,
+                title: 'Start app tour',
+                subtitle: 'Run spotlight coach marks again',
+                onTap: () {
+                  ref.read(coachTourRequestProvider.notifier).state++;
+                  Navigator.pop(context);
+                },
+              ),
+              SettingsRow(
+                icon: Icons.system_update_outlined,
+                title: 'Check for updates',
+                subtitle: version == null
+                    ? 'Get the newest Thinai from Play Store'
+                    : 'You are on $version',
+                onTap: _busy ? null : _checkForUpdates,
+              ),
+              SettingsRow(
+                icon: Icons.support_agent_rounded,
+                title: 'Contact support',
+                subtitle: 'Get help and connect with the team',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ContactSupportPage(),
+                    ),
+                  );
+                },
+              ),
+              SettingsRow(
+                icon: Icons.info_outline_rounded,
+                title: 'About Thinai',
+                subtitle: 'Mission, capabilities, and design intent',
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
+                },
+              ),
+            ],
           ),
-          _SettingsTile(
-            icon: Icons.tips_and_updates_rounded,
-            title: 'Start app tour',
-            subtitle: 'Run spotlight coach marks again',
-            onTap: () {
-              ref.read(coachTourRequestProvider.notifier).state++;
-              Navigator.pop(context);
-            },
-          ),
-          _SettingsTile(
-            icon: Icons.delete_sweep_rounded,
-            title: 'Clear all downloaded items',
-            subtitle: 'Remove all downloaded and partial model files',
-            danger: true,
-            onTap: _busy ? null : _clearAllDownloads,
-          ),
-          const SizedBox(height: 12),
-          _SettingsTile(
-            icon: Icons.system_update_rounded,
-            title: 'Check for updates',
-            subtitle: version == null
-                ? 'Get the newest Thinai from Play Store'
-                : 'You are on $version',
-            onTap: _busy ? null : _checkForUpdates,
-          ),
-          _SettingsTile(
-            icon: Icons.support_agent_rounded,
-            title: 'Contact support',
-            subtitle: 'Get help and connect with the team',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ContactSupportPage()),
-              );
-            },
-          ),
-          _SettingsTile(
-            icon: Icons.info_outline_rounded,
-            title: 'About Thinai',
-            subtitle: 'Mission, capabilities, and design intent',
-            onTap: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
-            },
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: Space.xxxl),
           const MadeInErode(compact: true),
+          if (version != null) ...[
+            const SizedBox(height: Space.sm),
+            Text(
+              'Thinai $version',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
+            ),
+          ],
         ],
       ),
     );
@@ -313,143 +294,79 @@ class _ThemeModeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final mode = ref.watch(themeModeProvider);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.brightness_6_rounded, color: scheme.onSurface),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Appearance',
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Light, dark, or follow the system',
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return AppCard(
+      padding: const EdgeInsets.all(Space.md),
+      child: SizedBox(
+        width: double.infinity,
+        child: SegmentedButton<ThemeMode>(
+          segments: const [
+            ButtonSegment(
+              value: ThemeMode.system,
+              label: Text('System'),
+              icon: Icon(Icons.brightness_auto_outlined, size: 18),
             ),
-            const SizedBox(height: 12),
-            SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.brightness_auto_rounded),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode_rounded),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode_rounded),
-                ),
-              ],
-              selected: {mode},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) {
-                ref.read(themeModeProvider.notifier).set(selection.first);
-              },
+            ButtonSegment(
+              value: ThemeMode.light,
+              label: Text('Light'),
+              icon: Icon(Icons.light_mode_outlined, size: 18),
+            ),
+            ButtonSegment(
+              value: ThemeMode.dark,
+              label: Text('Dark'),
+              icon: Icon(Icons.dark_mode_outlined, size: 18),
             ),
           ],
+          selected: {mode},
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) {
+            ref.read(themeModeProvider.notifier).set(selection.first);
+          },
         ),
       ),
     );
   }
 }
 
-/// The same switch the composer's globe toggles, kept here too because this is
+/// The same switch the composer's dial toggles, kept here too because this is
 /// where someone looks when they want to know what the app sends out — and the
 /// subtitle is the answer, not just the label of a switch.
-class _WebSearchCard extends ConsumerWidget {
-  const _WebSearchCard();
+class _WebSearchRow extends ConsumerWidget {
+  const _WebSearchRow();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final enabled = ref.watch(webSearchEnabledProvider);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: SwitchListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        secondary: Icon(Icons.travel_explore_rounded, color: scheme.onSurface),
-        title: Text(
-          'Web search in chat',
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
+    return SettingsSwitchRow(
+      icon: Icons.travel_explore_rounded,
+      title: 'Web search in chat',
+      subtitle:
           'Looks up current info automatically. Only the question leaves '
           'the phone.',
-          style: TextStyle(color: scheme.onSurfaceVariant),
-        ),
-        value: enabled,
-        onChanged: (value) {
-          unawaited(ref.read(webSearchEnabledProvider.notifier).set(value));
-        },
-      ),
+      value: enabled,
+      onChanged: (value) {
+        unawaited(ref.read(webSearchEnabledProvider.notifier).set(value));
+      },
     );
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-  final bool danger;
+/// Whether three next questions are written after each answer.
+class _FollowUpsRow extends ConsumerWidget {
+  const _FollowUpsRow();
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final fg = danger ? scheme.error : scheme.onSurface;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        leading: Icon(icon, color: fg),
-        title: Text(
-          title,
-          style: TextStyle(color: fg, fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: scheme.onSurfaceVariant),
-        ),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SettingsSwitchRow(
+      icon: Icons.subdirectory_arrow_right_rounded,
+      title: 'Suggest follow-up questions',
+      subtitle:
+          'Writes three questions to ask next after each answer. Uses a '
+          'little extra battery.',
+      value: ref.watch(followUpsEnabledProvider),
+      onChanged: (value) {
+        unawaited(ref.read(followUpsEnabledProvider.notifier).set(value));
+      },
     );
   }
 }
@@ -482,29 +399,23 @@ class _DownloadDialogState extends State<_DownloadDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: const Text('Download model by URL'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _url,
+            keyboardType: TextInputType.url,
             decoration: const InputDecoration(
               labelText: 'Direct URL',
-              hintText: 'https://.../model.gguf',
-              border: OutlineInputBorder(),
-              isDense: true,
+              hintText: 'https://…/model.gguf',
             ),
             autofocus: true,
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(
-              labelText: 'Save as (optional)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+            decoration: const InputDecoration(labelText: 'Save as (optional)'),
           ),
         ],
       ),

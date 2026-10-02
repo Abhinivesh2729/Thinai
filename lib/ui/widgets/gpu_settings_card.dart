@@ -8,6 +8,8 @@ import '../../llm/gpu_support.dart';
 import '../../llm/llm_engine.dart';
 import '../../models_repo/model_store.dart';
 import '../../state/providers.dart';
+import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 
 /// GPU acceleration: off, or one of the backends this phone actually has, with
 /// a speed test that runs the active model both ways.
@@ -50,9 +52,11 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
   @override
   void initState() {
     super.initState();
-    unawaited(_store.ensureLoaded().then((_) {
-      if (mounted) setState(() {});
-    }));
+    unawaited(
+      _store.ensureLoaded().then((_) {
+        if (mounted) setState(() {});
+      }),
+    );
     _sub = _store.changes.listen((_) {
       if (mounted) setState(() {});
     });
@@ -96,16 +100,22 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
         maxTokens: _kTestTokens,
         gpu: backend,
       );
-      await for (final token in ref
-          .read(llmEngineProvider)
-          .generate(_kTestPrompt, modelPath: model.path, options: options)) {
+      await for (final token
+          in ref
+              .read(llmEngineProvider)
+              .generate(
+                _kTestPrompt,
+                modelPath: model.path,
+                options: options,
+              )) {
         if (token.isError) throw StateError(token.full);
         last = token.stats;
         if (token.done) break;
       }
     }
     final ttft = last.timeToFirstToken;
-    final prompt = ttft == null || ttft == Duration.zero || last.promptTokens == 0
+    final prompt =
+        ttft == null || ttft == Duration.zero || last.promptTokens == 0
         ? null
         : last.promptTokens / (ttft.inMicroseconds / 1e6);
     return _Speed(prompt, last.tokensPerSecond);
@@ -119,8 +129,9 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       return;
     }
     final saved = _store.settings.gpu;
-    final backend =
-        saved == GpuBackend.none ? recommendedBackend(devices) : saved;
+    final backend = saved == GpuBackend.none
+        ? recommendedBackend(devices)
+        : saved;
     if (backend == GpuBackend.none) return;
 
     setState(() {
@@ -167,115 +178,115 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
         current,
     ];
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconTile(icon: Icons.memory_rounded, size: 34),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'GPU acceleration',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Tag(
+                _label(current),
+                tone: current == GpuBackend.none
+                    ? TagTone.neutral
+                    : TagTone.accent,
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.md),
+          Text(
+            'Runs the model on the GPU instead of the CPU. Run the speed '
+            'test to check if it helps on this phone.',
+            style: theme.textTheme.bodySmall,
+          ),
+          if (crashed != null) ...[
+            const SizedBox(height: Space.md),
+            InlineNotice(
+              text:
+                  '${_label(crashed)} crashed the app last time, so GPU '
+                  'acceleration was turned off.',
+              icon: Icons.error_outline_rounded,
+              tone: TagTone.danger,
+            ),
+          ],
+          const SizedBox(height: 10),
+          if (devices == null)
+            OutlinedButton.icon(
+              onPressed: _probing ? null : _probe,
+              icon: _probing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.search_rounded),
+              label: const Text('Check this phone\'s GPU'),
+            )
+          else if (devices.isEmpty)
+            Text(
+              'No usable GPU found. Thinai will keep using the CPU.',
+              style: TextStyle(color: scheme.onSurfaceVariant),
+            )
+          else ...[
+            Text(
+              'Found: ${devices.map((d) => '${d.name} (${_label(d.backend)})').join(', ')}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final choice in choices)
+                  ChoiceChip(
+                    label: Text(
+                      choice == GpuBackend.auto
+                          ? 'Auto (${_label(recommendedBackend(devices))})'
+                          : _label(choice),
+                    ),
+                    selected: current == choice,
+                    onSelected: _testing
+                        ? null
+                        : (_) => unawaited(_store.setGpu(choice)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.memory_rounded, color: scheme.onSurface),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    'GPU acceleration',
-                    style: TextStyle(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Text(
-                  _label(current),
-                  style: TextStyle(color: scheme.primary),
+                OutlinedButton.icon(
+                  onPressed: _testing ? null : _speedTest,
+                  icon: _testing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.speed_rounded),
+                  label: Text(_testing ? 'Testing…' : 'Speed test'),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Runs the model on the GPU instead of the CPU. Run the speed '
-              'test to check if it helps on this phone.',
-              style: TextStyle(color: scheme.onSurfaceVariant),
-            ),
-            if (crashed != null) ...[
+            if (_cpu != null || _testError != null) ...[
               const SizedBox(height: 8),
-              Text(
-                '${_label(crashed)} crashed the app last time, so GPU '
-                'acceleration was turned off.',
-                style: TextStyle(color: scheme.error),
-              ),
-            ],
-            const SizedBox(height: 10),
-            if (devices == null)
-              OutlinedButton.icon(
-                onPressed: _probing ? null : _probe,
-                icon: _probing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.search_rounded),
-                label: const Text('Check this phone\'s GPU'),
-              )
-            else if (devices.isEmpty)
-              Text(
-                'No usable GPU found. Thinai will keep using the CPU.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              )
-            else ...[
-              Text(
-                'Found: ${devices.map((d) => '${d.name} (${_label(d.backend)})').join(', ')}',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final choice in choices)
-                    ChoiceChip(
-                      label: Text(
-                        choice == GpuBackend.auto
-                            ? 'Auto (${_label(recommendedBackend(devices))})'
-                            : _label(choice),
-                      ),
-                      selected: current == choice,
-                      onSelected: _testing
-                          ? null
-                          : (_) => unawaited(_store.setGpu(choice)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _testing ? null : _speedTest,
-                    icon: _testing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.speed_rounded),
-                    label: Text(_testing ? 'Testing…' : 'Speed test'),
-                  ),
-                ],
-              ),
-              if (_cpu != null || _testError != null) ...[
-                const SizedBox(height: 8),
-                if (_testError != null)
-                  Text(_testError!, style: TextStyle(color: scheme.error))
-                else
-                  _results(theme),
-              ],
+              if (_testError != null)
+                Text(_testError!, style: TextStyle(color: scheme.error))
+              else
+                _results(theme),
             ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -298,15 +309,15 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     }
 
     TableRow row(String label, _Speed? s) => TableRow(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(label),
-            ),
-            Text(s == null ? '…' : rate(s.promptPerSecond)),
-            Text(s == null ? '…' : rate(s.generatePerSecond)),
-          ],
-        );
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Text(label),
+        ),
+        Text(s == null ? '…' : rate(s.promptPerSecond)),
+        Text(s == null ? '…' : rate(s.generatePerSecond)),
+      ],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,12 +328,18 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
             TableRow(
               children: [
                 const SizedBox.shrink(),
-                Text('Reading prompt',
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: scheme.onSurfaceVariant)),
-                Text('Writing reply',
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  'Reading prompt',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  'Writing reply',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
             row('CPU', cpu),
@@ -338,9 +355,9 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
   }
 
   static String _label(GpuBackend backend) => switch (backend) {
-        GpuBackend.none => 'Off',
-        GpuBackend.auto => 'Auto',
-        GpuBackend.vulkan => 'Vulkan',
-        GpuBackend.opencl => 'OpenCL',
-      };
+    GpuBackend.none => 'Off',
+    GpuBackend.auto => 'Auto',
+    GpuBackend.vulkan => 'Vulkan',
+    GpuBackend.opencl => 'OpenCL',
+  };
 }
