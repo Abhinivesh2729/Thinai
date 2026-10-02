@@ -248,7 +248,14 @@ class GenerationSettingsStore {
       requestedContext: requestedContext,
       requestedTemperature: requestedTemperature,
     );
-    final backend = gpu ?? _settings.gpu;
+    var backend = gpu ?? _settings.gpu;
+    // A backend that keeps failing loads is rested and the request runs on
+    // the CPU; an explicit `gpu` argument (the speed test) still tries it.
+    if (gpu == null &&
+        backend != GpuBackend.none &&
+        LlmEngine.instance.gpuFailures.isRested(backend)) {
+      backend = GpuBackend.none;
+    }
     return GenerationOptions(
       temperature: resolved.temperature,
       topP: topP,

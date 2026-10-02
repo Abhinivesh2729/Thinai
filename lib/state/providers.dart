@@ -1118,6 +1118,8 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
   if (crashedGpu != null) {
     await GenerationSettingsStore.instance.setGpu(GpuBackend.none);
     ref.read(gpuCrashNoticeProvider.notifier).state = crashedGpu;
+    // This launch counts as the crash; one more failure rests the backend.
+    LlmEngine.instance.gpuFailures.recordFailure(crashedGpu);
   }
   final store = ref.read(modelStoreProvider);
   final installed = await store.list();
