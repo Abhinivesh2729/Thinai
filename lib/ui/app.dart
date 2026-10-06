@@ -37,10 +37,62 @@ class LocalLlmApp extends ConsumerWidget {
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
 /// so every screen adapts automatically.
 ThemeData _buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF0E4B75),
+  final isDark = brightness == Brightness.dark;
+  // Official Thinai logo leaf green and crisp error red
+  const logoGreen = Color(0xFF2CA048);
+  const errorRed = Color(0xFFDC2626);
+
+  final baseScheme = ColorScheme.fromSeed(
+    seedColor: logoGreen,
     brightness: brightness,
+    error: errorRed,
   );
+
+  final scheme = baseScheme.copyWith(
+    primary: logoGreen,
+    onPrimary: Colors.white,
+    primaryContainer: isDark
+        ? const Color(0x282CA048)
+        : const Color(0x182CA048),
+    onPrimaryContainer: isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF166534),
+    error: errorRed,
+    errorContainer: isDark
+        ? const Color(0x28DC2626)
+        : const Color(0x15DC2626),
+    onErrorContainer: isDark
+        ? const Color(0xFFFCA5A5)
+        : const Color(0xFF991B1B),
+    surface: isDark
+        ? const Color(0xFF090A0C)
+        : const Color(0xFFFFFFFF),
+    surfaceContainerLow: isDark
+        ? const Color(0xFF12151A)
+        : const Color(0xFFF8FAFC),
+    surfaceContainer: isDark
+        ? const Color(0xFF161B22)
+        : const Color(0xFFF1F5F9),
+    surfaceContainerHigh: isDark
+        ? const Color(0xFF1E252E)
+        : const Color(0xFFE2E8F0),
+    surfaceContainerHighest: isDark
+        ? const Color(0xFF27313B)
+        : const Color(0xFFCBD5E1),
+    onSurface: isDark
+        ? const Color(0xFFF0F6FC)
+        : const Color(0xFF090A0C),
+    onSurfaceVariant: isDark
+        ? const Color(0xFF8B949E)
+        : const Color(0xFF64748B),
+    outline: isDark
+        ? const Color(0xFF21262D)
+        : const Color(0xFFE2E8F0),
+    outlineVariant: isDark
+        ? const Color(0xFF30363D)
+        : const Color(0xFFF1F5F9),
+  );
+
   return ThemeData(
     colorScheme: scheme,
     useMaterial3: true,
@@ -48,44 +100,79 @@ ThemeData _buildTheme(Brightness brightness) {
     scaffoldBackgroundColor: scheme.surface,
     appBarTheme: AppBarTheme(
       backgroundColor: scheme.surface,
-      surfaceTintColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
         color: scheme.onSurface,
-        fontSize: 22,
+        fontSize: 21,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.3,
       ),
+      iconTheme: IconThemeData(color: scheme.onSurface),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
       color: scheme.surfaceContainerLow,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outline, width: 1),
       ),
       margin: EdgeInsets.zero,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
+        backgroundColor: logoGreen,
+        foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: scheme.onSurface,
+        side: BorderSide(color: scheme.outline, width: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: scheme.surface,
-      indicatorColor: scheme.primaryContainer,
-      labelTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSurface,
-        ),
-      ),
-      height: 72,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: logoGreen.withValues(alpha: 0.14),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return TextStyle(
+          fontSize: 11.5,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? logoGreen : scheme.onSurfaceVariant,
+          size: 23,
+        );
+      }),
+      height: 68,
+    ),
+    dividerTheme: DividerThemeData(
+      color: scheme.outlineVariant,
+      thickness: 1,
+      space: 1,
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: isDark ? const Color(0xFF1E252E) : const Color(0xFF0F172A),
+      contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      behavior: SnackBarBehavior.floating,
     ),
   );
 }
@@ -124,9 +211,8 @@ class _ShellState extends ConsumerState<_Shell> {
     }();
   }
 
-  /// Holds the splash until session state is restored, so the first frame of
-  /// the app already shows the right model and server state instead of
-  /// flashing "Stopped" and correcting itself.
+  /// Holds the splash until session state is restored, then performs a smooth
+  /// fade into the main app shell.
   Future<void> _boot() async {
     await Future.wait([
       Future<void>.delayed(const Duration(seconds: 3)),
@@ -144,15 +230,19 @@ class _ShellState extends ConsumerState<_Shell> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_showMainApp) {
-      return const SplashPage();
-    }
-    return const _MainShell();
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: !_showMainApp
+          ? const SplashPage(key: ValueKey('splash'))
+          : const _MainShell(key: ValueKey('shell')),
+    );
   }
 }
 
 class _MainShell extends ConsumerStatefulWidget {
-  const _MainShell();
+  const _MainShell({super.key});
 
   @override
   ConsumerState<_MainShell> createState() => _MainShellState();
@@ -429,13 +519,13 @@ class _MainShellState extends ConsumerState<_MainShell> {
               ),
               NavigationDestination(
                 key: CoachMarkTargets.modelsTab,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                selectedIcon: const Icon(Icons.auto_awesome_rounded),
+                icon: const Icon(Icons.memory_outlined),
+                selectedIcon: const Icon(Icons.memory_rounded),
                 label: 'Models',
               ),
               const NavigationDestination(
-                icon: Icon(Icons.cloud_outlined),
-                selectedIcon: Icon(Icons.cloud_rounded),
+                icon: Icon(Icons.dns_outlined),
+                selectedIcon: Icon(Icons.dns_rounded),
                 label: 'Server',
               ),
             ],

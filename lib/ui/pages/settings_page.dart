@@ -207,18 +207,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.alphaBlend(scheme.primaryContainer, scheme.surface),
-                  Color.alphaBlend(scheme.tertiaryContainer, scheme.surface),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.6),
-              ),
+              border: Border.all(color: scheme.outline),
             ),
             child: Text(
               'Thinai tools and app controls in one place.',

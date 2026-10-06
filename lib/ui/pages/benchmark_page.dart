@@ -297,24 +297,9 @@ class _Gauge extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.alphaBlend(
-                  scheme.primaryContainer.withValues(alpha: 0.72),
-                  scheme.surface,
-                ),
-                Color.alphaBlend(
-                  scheme.tertiaryContainer.withValues(alpha: 0.70),
-                  scheme.surface,
-                ),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.55),
-            ),
+            color: scheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.outline),
           ),
           child: Column(
             children: [
@@ -1087,7 +1072,7 @@ class _HardwareAdvice extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome_rounded, size: 16, color: scheme.primary),
+              Icon(Icons.bolt_rounded, size: 16, color: scheme.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

@@ -41,7 +41,8 @@ List<ChatMessage> _promptFrom(
   // name" after an answer about the latest models — is asked of a history
   // that holds the question and the reply but not what they were based on, so
   // they go back in unless this turn ran a search of its own.
-  final recall = search == null && turns.isNotEmpty && turns.last.role == 'assistant'
+  final recall =
+      search == null && turns.isNotEmpty && turns.last.role == 'assistant'
       ? turns.last.sources
       : const <WebResult>[];
   final messages = <ChatMessage>[];
@@ -204,8 +205,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (!mounted) return;
       setState(() => _document = document);
       if (document.truncated) {
-        _toast('Attached the first ${document.sizeLabel}. '
-            'The rest did not fit the context window.');
+        _toast(
+          'Attached the first ${document.sizeLabel}. '
+          'The rest did not fit the context window.',
+        );
       }
     } on FormatException catch (e) {
       if (mounted) _toast(e.message);
@@ -243,7 +246,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final bytes = await shot.readAsBytes();
       // The camera hands back a JPEG; a name without a usable extension would
       // only fail the format check for no reason.
-      final name = mimeTypeForImage(shot.name) == null ? 'photo.jpg' : shot.name;
+      final name = mimeTypeForImage(shot.name) == null
+          ? 'photo.jpg'
+          : shot.name;
       final image = readImage(name, bytes);
       if (!mounted) return;
       setState(() => _image = image);
@@ -313,10 +318,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (cancel.isCancelled) return null;
       if (results.isEmpty) {
         if (mounted) {
-          _toast(results.blocked
-              ? 'Search engines are rate-limiting this network right now. '
-                  'Answering without the web.'
-              : 'No web results for that. Answering from the model itself.');
+          _toast(
+            results.blocked
+                ? 'Search engines are rate-limiting this network right now. '
+                      'Answering without the web.'
+                : 'No web results for that. Answering from the model itself.',
+          );
         }
         return null;
       }
@@ -364,7 +371,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // off, and each question is judged on whether it wants live information.
     // An attachment answers its own questions, so neither the document nor the
     // photo in front of the model is a reason to go to the internet.
-    final searchWeb = ref.read(webSearchEnabledProvider) &&
+    final searchWeb =
+        ref.read(webSearchEnabledProvider) &&
         _document == null &&
         _image == null &&
         needsWebSearch(text);
@@ -494,9 +502,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final next = !ref.read(webSearchEnabledProvider);
     await ref.read(webSearchEnabledProvider.notifier).set(next);
     if (!mounted) return;
-    _toast(
-      next ? 'Web search on.' : 'Web search off.',
-    );
+    _toast(next ? 'Web search on.' : 'Web search off.');
   }
 
   /// Deletes the conversation on screen after confirming, since it is also
@@ -648,8 +654,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               icon: const Icon(Icons.tune_rounded),
               tooltip: 'Context & temperature',
               onPressed: () async {
-                final model =
-                    await ref.read(modelStoreProvider).findById(activeId);
+                final model = await ref
+                    .read(modelStoreProvider)
+                    .findById(activeId);
                 if (model == null || !context.mounted) return;
                 await showModelSettingsSheet(context, model);
               },
@@ -785,23 +792,47 @@ class _ModelBanner extends ConsumerWidget {
     }
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outline),
       ),
       child: Row(
         children: [
-          Icon(Icons.bolt_rounded, size: 16, color: scheme.onPrimaryContainer),
-          const SizedBox(width: 6),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               activeId!,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: scheme.onPrimaryContainer,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'ON-DEVICE',
+              style: TextStyle(
+                color: scheme.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -842,9 +873,7 @@ class _JumpToLatest extends StatelessWidget {
 class _EmptyChat extends StatelessWidget {
   final String? activeId;
 
-  /// Whether questions will be looked up before they are answered. Worth
-  /// saying here: "runs entirely on-device" stops being true the moment it is
-  /// on, and a promise that quietly lapses is worse than no promise.
+  /// Whether questions will be looked up before they are answered.
   final bool webSearch;
 
   const _EmptyChat({required this.activeId, this.webSearch = false});
@@ -852,34 +881,48 @@ class _EmptyChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 84,
-              height: 84,
+              width: 76,
+              height: 76,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [scheme.primary, scheme.tertiary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                color: isDark
+                    ? const Color(0xFF161B22)
+                    : const Color(0xFFFFFFFF),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.25),
+                  width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                size: 40,
-                color: scheme.onPrimary,
+              child: Center(
+                child: Image.asset(
+                  'store/icon-512.png',
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Text(
-              activeId == null ? 'Ready when you are' : 'Say hi 👋',
+              activeId == null ? 'Local Engine Idle' : 'Local Engine Ready',
               style: const TextStyle(
-                fontSize: 20,
+                fontSize: 19,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.3,
               ),
@@ -887,14 +930,14 @@ class _EmptyChat extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               activeId == null
-                  ? 'Load a model, then start chatting.'
+                  ? 'Download and load a model from the Models tab to start chatting.'
                   : webSearch
-                  ? 'Answers run on-device, with live results from the web.'
-                  : 'Your conversation runs entirely on-device.',
+                  ? 'Inference running entirely on your phone, with live web search results.'
+                  : 'All computation runs offline on your device silicon.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: scheme.onSurfaceVariant,
-                fontSize: 14,
+                fontSize: 13.5,
                 height: 1.4,
               ),
             ),
@@ -993,86 +1036,84 @@ class _Composer extends StatelessWidget {
                 ),
               ),
             Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // One control for everything a message can carry. It rides 4pt off
-            // the bottom so its centre lines up with the text on a one-line
-            // field, while still travelling down as the field grows to five.
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: _ComposerSpeedDial(
-                enabled: enabled,
-                visionReady: visionReady,
-                webSearch: webSearch,
-                onCamera: onAttachCamera,
-                onImage: onAttachImage,
-                onDocument: onAttachDocument,
-                onToggleWebSearch: onToggleWebSearch,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Container(
-                key: CoachMarkTargets.chatComposer,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: controller,
-                  enabled: enabled,
-                  minLines: 1,
-                  maxLines: 5,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => onSubmit(),
-                  decoration: InputDecoration(
-                    hintText: generating ? 'Generating…' : 'Message your model',
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // One control for everything a message can carry. It rides 4pt off
+                // the bottom so its centre lines up with the text on a one-line
+                // field, while still travelling down as the field grows to five.
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _ComposerSpeedDial(
+                    enabled: enabled,
+                    visionReady: visionReady,
+                    webSearch: webSearch,
+                    onCamera: onAttachCamera,
+                    onImage: onAttachImage,
+                    onDocument: onAttachDocument,
+                    onToggleWebSearch: onToggleWebSearch,
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                // Solid red while generating so the button reads as stop, and
-                // the brand gradient otherwise.
-                color: generating ? scheme.error : null,
-                gradient: generating
-                    ? null
-                    : LinearGradient(
-                        colors: enabled
-                            ? [scheme.primary, scheme.tertiary]
-                            : [
-                                scheme.surfaceContainerHigh,
-                                scheme.surfaceContainerHigh,
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Container(
+                    key: CoachMarkTargets.chatComposer,
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: controller,
+                      enabled: enabled,
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => onSubmit(),
+                      decoration: InputDecoration(
+                        hintText: generating
+                            ? 'Generating…'
+                            : 'Message your model',
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+                        hintStyle: TextStyle(color: scheme.onSurfaceVariant),
                       ),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                iconSize: 22,
-                tooltip: generating ? 'Stop' : 'Send',
-                onPressed: generating ? onStop : (enabled ? onSubmit : null),
-                icon: Icon(
-                  generating ? Icons.stop_rounded : Icons.arrow_upward_rounded,
-                  color: generating
-                      ? scheme.onError
-                      : (enabled ? scheme.onPrimary : scheme.onSurfaceVariant),
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.all(12),
-              ),
+                const SizedBox(width: 8),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    color: generating
+                        ? scheme.error
+                        : (enabled
+                              ? scheme.primary
+                              : scheme.surfaceContainerHigh),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    iconSize: 22,
+                    tooltip: generating ? 'Stop' : 'Send',
+                    onPressed: generating
+                        ? onStop
+                        : (enabled ? onSubmit : null),
+                    icon: Icon(
+                      generating
+                          ? Icons.stop_rounded
+                          : Icons.arrow_upward_rounded,
+                      color: generating
+                          ? Colors.white
+                          : (enabled ? Colors.white : scheme.onSurfaceVariant),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
           ],
         ),
       ),
@@ -1105,24 +1146,26 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = msg.role == 'user';
 
     final bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        gradient: isUser
-            ? LinearGradient(
-                colors: [scheme.primary, scheme.tertiary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: isUser ? null : scheme.surfaceContainerHigh,
+        color: isUser
+            ? (isDark ? const Color(0xFF1E252E) : const Color(0xFF0F172A))
+            : scheme.surfaceContainerLow,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(isUser ? 18 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 18),
+          topLeft: const Radius.circular(16),
+          topRight: const Radius.circular(16),
+          bottomLeft: Radius.circular(isUser ? 16 : 4),
+          bottomRight: Radius.circular(isUser ? 4 : 16),
+        ),
+        border: Border.all(
+          color: isUser
+              ? (isDark ? const Color(0xFF30363D) : const Color(0xFF1E293B))
+              : scheme.outline,
+          width: 1,
         ),
       ),
       child: msg.content.isEmpty && !isUser
@@ -1137,12 +1180,10 @@ class _MessageBubble extends StatelessWidget {
                       fontStyle: FontStyle.italic,
                     ),
                   ))
-          // Model replies arrive as Markdown; a user's own message is
-          // whatever they typed, so it stays literal.
           : isUser
           ? SelectableText(
               msg.content,
-              style: TextStyle(color: scheme.onPrimary, height: 1.35),
+              style: const TextStyle(color: Colors.white, height: 1.35),
             )
           : MarkdownText(
               data: msg.content,
@@ -1162,9 +1203,6 @@ class _MessageBubble extends StatelessWidget {
       );
     }
 
-    // The avatar belongs to the bubble, so it sits in a row with it rather
-    // than beside the whole block — otherwise a reply carrying sources leaves
-    // it stranded at the bottom, level with the links instead of the reply.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Column(
@@ -1173,22 +1211,27 @@ class _MessageBubble extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: scheme.primary,
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
+                ),
                 child: Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 14,
-                  color: scheme.onPrimary,
+                  Icons.energy_savings_leaf_rounded,
+                  size: 15,
+                  color: scheme.primary,
                 ),
               ),
               const SizedBox(width: _gutter - 28),
               Flexible(child: bubble),
             ],
           ),
-          // Held back until the reply has words in it. Five links under an
-          // empty bubble read as the answer itself, which is what a list of
-          // headlines above three dots looked like.
           if (msg.sources.isNotEmpty && msg.content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(left: _gutter, top: 6, right: 8),
@@ -1272,7 +1315,6 @@ class _TypingDotsState extends State<_TypingDots>
     );
   }
 }
-
 
 /// Everything a message can carry, behind one button.
 ///
@@ -1383,9 +1425,7 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
               onTap: _close,
               child: FadeTransition(
                 opacity: _anim,
-                child: ColoredBox(
-                  color: scheme.scrim.withValues(alpha: 0.32),
-                ),
+                child: ColoredBox(color: scheme.scrim.withValues(alpha: 0.32)),
               ),
             ),
           ),
@@ -1448,7 +1488,9 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         key: dialCameraKey,
         icon: Icons.photo_camera_outlined,
         label: 'Camera',
-        detail: widget.visionReady ? 'Take a photo now' : 'Needs a vision model',
+        detail: widget.visionReady
+            ? 'Take a photo now'
+            : 'Needs a vision model',
         enabled: widget.enabled,
         onTap: () => _choose(widget.onCamera),
       ),
@@ -1456,9 +1498,7 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         key: dialImageKey,
         icon: Icons.image_outlined,
         label: 'Image',
-        detail: widget.visionReady
-            ? 'PNG, JPEG, WebP'
-            : 'Needs a vision model',
+        detail: widget.visionReady ? 'PNG, JPEG, WebP' : 'Needs a vision model',
         enabled: widget.enabled,
         onTap: () => _choose(widget.onImage),
       ),
@@ -1481,35 +1521,35 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          for (var i = 0; i < entries.length; i++)
-            // Staggered from the bottom up, so the items read as coming out of
-            // the button rather than appearing all at once.
-            AnimatedBuilder(
-              animation: _anim,
-              builder: (context, child) {
-                final start = 0.08 * (entries.length - 1 - i);
-                final t = CurvedAnimation(
-                  parent: _anim,
-                  curve: Interval(start, 1, curve: Curves.easeOutBack),
-                  reverseCurve: const Interval(0, 1, curve: Curves.easeIn),
-                ).value;
-                return Opacity(
-                  opacity: t.clamp(0.0, 1.0),
-                  child: Transform.translate(
-                    offset: Offset(0, (1 - t) * 12),
-                    child: Transform.scale(
-                      scale: 0.9 + 0.1 * t.clamp(0.0, 1.0),
-                      alignment: Alignment.bottomLeft,
-                      child: child,
+            for (var i = 0; i < entries.length; i++)
+              // Staggered from the bottom up, so the items read as coming out of
+              // the button rather than appearing all at once.
+              AnimatedBuilder(
+                animation: _anim,
+                builder: (context, child) {
+                  final start = 0.08 * (entries.length - 1 - i);
+                  final t = CurvedAnimation(
+                    parent: _anim,
+                    curve: Interval(start, 1, curve: Curves.easeOutBack),
+                    reverseCurve: const Interval(0, 1, curve: Curves.easeIn),
+                  ).value;
+                  return Opacity(
+                    opacity: t.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - t) * 12),
+                      child: Transform.scale(
+                        scale: 0.9 + 0.1 * t.clamp(0.0, 1.0),
+                        alignment: Alignment.bottomLeft,
+                        child: child,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: entries[i],
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: entries[i],
+                ),
               ),
-            ),
           ],
         ),
       ),

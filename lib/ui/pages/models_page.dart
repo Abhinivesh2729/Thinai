@@ -677,18 +677,12 @@ class _CatalogCard extends StatelessWidget {
                 height: 52,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      model.accent,
-                      Color.alphaBlend(
-                        Colors.white.withValues(alpha: 0.2),
-                        model.accent,
-                      ),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: model.accent.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: model.accent.withValues(alpha: 0.28),
+                    width: 1,
+                  ),
                 ),
                 child: Text(model.emoji, style: const TextStyle(fontSize: 24)),
               ),

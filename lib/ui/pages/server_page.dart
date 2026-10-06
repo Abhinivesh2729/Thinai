@@ -13,16 +13,16 @@ import 'settings_page.dart';
 
 /// Accent per protocol family, so a glance separates the app's own routes from
 /// the OpenAI compatibility layer.
-// On-brand blue accents (brand navy #0E4B75). Native routes use lighter blues;
-// the OpenAI compatibility layer uses a deeper blue to set it apart.
-const _nativeChat = Color(0xFF4A90D9);
-const _nativeEmbed = Color(0xFF5FB0EE);
-const _nativeModels = Color(0xFF7CA7DB);
-const _openAi = Color(0xFF3564A8);
+// On-brand green accents (brand green #2A8C4A). Native routes use green shades;
+// the OpenAI compatibility layer uses a deeper green to set it apart.
+const _nativeChat = Color(0xFF2CA048);
+const _nativeEmbed = Color(0xFF2EA043);
+const _nativeModels = Color(0xFF16A34A);
+const _openAi = Color(0xFF15803D);
 
-/// Brand navy for the primary CTA (Start/Stop button). Fixed (not scheme-
+/// Brand green for the primary CTA (Start/Stop button). Fixed (not scheme-
 /// derived) so the button reads the same in both light and dark themes.
-const _brandDeep = Color(0xFF0E4B75);
+const _brandDeep = Color(0xFF2CA048);
 
 /// The model id to quote in embedding examples.
 ///
@@ -315,36 +315,11 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           ),
           const SizedBox(height: 20),
           Container(
-            padding: const EdgeInsets.all(14),
-            // Same tinted-gradient treatment as the Models page "Quick start"
-            // card, so both pages read consistently. Flat surface tones look
-            // muddy in dark mode.
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.alphaBlend(
-                    scheme.primaryContainer.withValues(alpha: 0.72),
-                    scheme.surface,
-                  ),
-                  Color.alphaBlend(
-                    scheme.tertiaryContainer.withValues(alpha: 0.70),
-                    scheme.surface,
-                  ),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.55),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              color: scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: scheme.outline),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -839,31 +814,9 @@ class _HeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        // Same tinted "Quick start" card in both stopped and running states
-        // (matches the Models page; no teal), so the page reads as one design.
-        gradient: LinearGradient(
-          colors: [
-            Color.alphaBlend(
-              scheme.primaryContainer.withValues(alpha: 0.72),
-              scheme.surface,
-            ),
-            Color.alphaBlend(
-              scheme.tertiaryContainer.withValues(alpha: 0.70),
-              scheme.surface,
-            ),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.55)),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
