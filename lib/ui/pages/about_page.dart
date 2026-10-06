@@ -15,60 +15,30 @@ class AboutPage extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: scheme.outline),
+              border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
             ),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF161B22)
-                        : const Color(0xFFFFFFFF),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.25),
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Image.asset(
-                      'store/icon-512.png',
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+                Image.asset(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? 'assets/images/logo_dark.png'
+                      : 'assets/images/logo_transparent.png',
+                  width: 170,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Thinai · திணை',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: scheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'On-device LLM server and companion chat for Android.',
-                        style: TextStyle(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 13,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 12),
+                Text(
+                  'On-device sovereign LLM engine and private chat companion for Android.',
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 13.5,
+                    height: 1.4,
                   ),
                 ),
               ],

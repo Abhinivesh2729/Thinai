@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -365,6 +365,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return;
     }
 
+    // Tactile pulse on send — makes the interaction feel physical.
+    HapticFeedback.lightImpact();
+
     final history = ref.read(chatSessionsProvider.notifier);
 
     // Decided here rather than asked: web search is on unless it was turned
@@ -649,18 +652,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   : () =>
                         ref.read(chatSessionsProvider.notifier).startNewChat(),
             ),
-          if (activeId != null)
-            IconButton(
-              icon: const Icon(Icons.tune_rounded),
-              tooltip: 'Context & temperature',
-              onPressed: () async {
-                final model = await ref
-                    .read(modelStoreProvider)
-                    .findById(activeId);
-                if (model == null || !context.mounted) return;
-                await showModelSettingsSheet(context, model);
-              },
-            ),
           IconButton(
             icon: const Icon(Icons.history_rounded),
             tooltip: 'Chat history',
@@ -677,12 +668,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ),
       body: Column(
         children: [
-          _ModelBanner(activeId: activeId),
+          _ModelSwitcherPill(activeId: activeId),
           Expanded(
             child: messages.isEmpty
                 ? _EmptyChat(
                     activeId: activeId,
                     webSearch: ref.watch(webSearchEnabledProvider),
+                    onSuggestion: (text) {
+                      _input.text = text;
+                      _input.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _input.text.length),
+                      );
+                    },
                   )
                 : Stack(
                     children: [
@@ -744,18 +741,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 }
 
-class _ModelBanner extends ConsumerWidget {
+/// Interactive model switcher pill — replaces the old static banner.
+///
+/// Shows the active model name with a pulsing green dot and context-window
+/// badge. Tapping opens the model settings sheet (temperature + context).
+/// When no model is loaded, shows a compact error strip with a CTA.
+class _ModelSwitcherPill extends ConsumerWidget {
   final String? activeId;
-  const _ModelBanner({required this.activeId});
+  const _ModelSwitcherPill({required this.activeId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
     if (activeId == null) {
       return Container(
         width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.fromLTRB(14, 6, 14, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: scheme.errorContainer,
           borderRadius: BorderRadius.circular(14),
@@ -770,73 +774,112 @@ class _ModelBanner extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'No model loaded. Open the Models tab first.',
+                'No model loaded — tap to browse.',
                 style: TextStyle(color: scheme.onErrorContainer, fontSize: 13),
               ),
             ),
             const SizedBox(width: 8),
-            OutlinedButton(
+            FilledButton(
               onPressed: () {
                 ref.read(shellTabIndexProvider.notifier).state = 1;
               },
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 34),
-                side: BorderSide(color: scheme.onErrorContainer),
-                foregroundColor: scheme.onErrorContainer,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 32),
+                backgroundColor: scheme.error,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              child: const Text('Open Models'),
+              child: const Text('Models', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
       );
     }
-    return Container(
-      margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 4),
+      child: Material(
         color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outline),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () async {
+            HapticFeedback.selectionClick();
+            final model = await ref
+                .read(modelStoreProvider)
+                .findById(activeId!);
+            if (model == null || !context.mounted) return;
+            await showModelSettingsSheet(context, model);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: scheme.primary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              activeId!,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.5,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: scheme.outline,
+                width: 1,
               ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(6),
+            child: Row(
+              children: [
+                // Pulsing green live dot
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: logoGreen,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x552CA048),
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    activeId!,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: logoGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'ON-DEVICE',
+                    style: TextStyle(
+                      color: logoGreen,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 9.5,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.tune_rounded,
+                  size: 16,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ],
             ),
-            child: Text(
-              'ON-DEVICE',
-              style: TextStyle(
-                color: scheme.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-                letterSpacing: 0.5,
-              ),
-            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -870,78 +913,217 @@ class _JumpToLatest extends StatelessWidget {
   }
 }
 
-class _EmptyChat extends StatelessWidget {
+class _EmptyChat extends ConsumerWidget {
   final String? activeId;
 
   /// Whether questions will be looked up before they are answered.
   final bool webSearch;
 
-  const _EmptyChat({required this.activeId, this.webSearch = false});
+  /// Callback when a quick starter chip is selected.
+  final ValueChanged<String>? onSuggestion;
+
+  const _EmptyChat({
+    required this.activeId,
+    this.webSearch = false,
+    this.onSuggestion,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // High-resolution removed-background logo (white text for dark, black text for light)
+            Image.asset(
+              isDark
+                  ? 'assets/images/logo_dark.png'
+                  : 'assets/images/logo_transparent.png',
+              width: activeId == null ? 200 : 170,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+            const SizedBox(height: 14),
+            if (activeId == null) ...[
+              const Text(
+                'Private Offline AI',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Chat privately with AI models that run 100% on your phone. '
+                'No internet required, zero cloud tracking, and your data never leaves your device.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                icon: const Icon(Icons.explore_rounded, size: 18),
+                label: const Text('Browse & Download Models'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: logoGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () {
+                  ref.read(shellTabIndexProvider.notifier).state = 1;
+                },
+              ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: logoGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: logoGreen.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: logoGreen,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      webSearch ? 'AI Ready · Web Search On' : 'AI Ready · 100% Offline',
+                      style: const TextStyle(
+                        color: logoGreen,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Running privately on your phone silicon.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 22),
+              // Starter prompt suggestions
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  _StarterChip(
+                    icon: Icons.lightbulb_outline_rounded,
+                    label: 'Brainstorm ideas',
+                    onTap: () => onSuggestion?.call(
+                      'Give me 5 creative ideas to build an on-device AI app',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.code_rounded,
+                    label: 'Write Python code',
+                    onTap: () => onSuggestion?.call(
+                      'Write a Python script to sort and deduplicate a list of items',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.summarize_outlined,
+                    label: 'Summarize text',
+                    onTap: () => onSuggestion?.call(
+                      'Summarize the key takeaways from the following:\n\n',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.speed_rounded,
+                    label: 'Measure speed',
+                    onTap: () => onSuggestion?.call(
+                      'What is your generation speed on this phone?',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StarterChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _StarterChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 76,
-              height: 76,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF161B22)
-                    : const Color(0xFFFFFFFF),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: scheme.primary.withValues(alpha: 0.25),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: scheme.primary.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Image.asset(
-                  'store/icon-512.png',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.contain,
+    return Material(
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: const Color(0xFF2CA048)),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: scheme.onSurface,
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              activeId == null ? 'Local Engine Idle' : 'Local Engine Ready',
-              style: const TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              activeId == null
-                  ? 'Download and load a model from the Models tab to start chatting.'
-                  : webSearch
-                  ? 'Inference running entirely on your phone, with live web search results.'
-                  : 'All computation runs offline on your device silicon.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: scheme.onSurfaceVariant,
-                fontSize: 13.5,
-                height: 1.4,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1091,7 +1273,7 @@ class _Composer extends StatelessWidget {
                     color: generating
                         ? scheme.error
                         : (enabled
-                              ? scheme.primary
+                              ? const Color(0xFF2CA048)
                               : scheme.surfaceContainerHigh),
                     shape: BoxShape.circle,
                   ),
@@ -1143,6 +1325,19 @@ class _MessageBubble extends StatelessWidget {
   /// to rather than with the avatar.
   static const double _gutter = 36;
 
+  void _copyReply(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: msg.content));
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Copied to clipboard'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -1153,20 +1348,17 @@ class _MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
         color: isUser
-            ? (isDark ? const Color(0xFF1E252E) : const Color(0xFF0F172A))
+            ? (isDark ? const Color(0xFF1A2233) : const Color(0xFF0F172A))
             : scheme.surfaceContainerLow,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: const Radius.circular(16),
-          bottomLeft: Radius.circular(isUser ? 16 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 16),
+          topLeft: const Radius.circular(18),
+          topRight: const Radius.circular(18),
+          bottomLeft: Radius.circular(isUser ? 18 : 4),
+          bottomRight: Radius.circular(isUser ? 4 : 18),
         ),
-        border: Border.all(
-          color: isUser
-              ? (isDark ? const Color(0xFF30363D) : const Color(0xFF1E293B))
-              : scheme.outline,
-          width: 1,
-        ),
+        border: isUser
+            ? null
+            : Border.all(color: scheme.outline, width: 1),
       ),
       child: msg.content.isEmpty && !isUser
           ? (searching
@@ -1183,11 +1375,19 @@ class _MessageBubble extends StatelessWidget {
           : isUser
           ? SelectableText(
               msg.content,
-              style: const TextStyle(color: Colors.white, height: 1.35),
+              style: const TextStyle(
+                color: Colors.white,
+                height: 1.4,
+                fontSize: 14.5,
+              ),
             )
           : MarkdownText(
               data: msg.content,
-              style: TextStyle(color: scheme.onSurface, height: 1.35),
+              style: TextStyle(
+                color: scheme.onSurface,
+                height: 1.4,
+                fontSize: 14.5,
+              ),
               codeBackground: scheme.surfaceContainerHighest,
               mutedColor: scheme.onSurfaceVariant,
             ),
@@ -1195,16 +1395,19 @@ class _MessageBubble extends StatelessWidget {
 
     if (isUser) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.only(top: 6, bottom: 2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [Flexible(child: bubble)],
+          children: [
+            const SizedBox(width: 48), // max-width guard for readability
+            Flexible(child: bubble),
+          ],
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 2, bottom: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1232,12 +1435,65 @@ class _MessageBubble extends StatelessWidget {
               Flexible(child: bubble),
             ],
           ),
-          if (msg.sources.isNotEmpty && msg.content.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: _gutter, top: 6, right: 8),
-              child: _SourcesPill(sources: msg.sources),
+          // Action row: copy button + sources pill
+          Padding(
+            padding: const EdgeInsets.only(left: _gutter, top: 4, right: 8),
+            child: Row(
+              children: [
+                if (msg.content.isNotEmpty && !pending)
+                  _BubbleAction(
+                    icon: Icons.copy_rounded,
+                    label: 'Copy',
+                    onTap: () => _copyReply(context),
+                  ),
+                if (msg.sources.isNotEmpty && msg.content.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _SourcesPill(sources: msg.sources),
+                ],
+              ],
             ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Tiny action button under assistant messages (copy, regenerate, etc.)
+class _BubbleAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _BubbleAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

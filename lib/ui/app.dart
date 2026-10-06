@@ -149,9 +149,12 @@ ThemeData _buildTheme(Brightness brightness) {
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
-          fontSize: 11.5,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.25,
+          color: selected
+              ? (isDark ? Colors.white : const Color(0xFF090A0C))
+              : scheme.onSurfaceVariant,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {

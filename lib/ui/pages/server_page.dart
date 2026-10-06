@@ -201,115 +201,153 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             const SizedBox(height: 12),
             const _LanApiTokenCard(),
           ],
+          const SizedBox(height: 14),
+          _DeveloperQuickStartCard(
+            base: base,
+            apiHost: apiHost,
+            port: status.port,
+            chatId: chatId,
+            lanShare: lanShare,
+          ),
           const SizedBox(height: 20),
           _ApiReferenceHeader(base: base),
           const SizedBox(height: 12),
           _EndpointGroup(
             icon: Icons.chat_rounded,
-            title: 'Chat',
-            subtitle: 'Generate text, copy a curl to test',
+            title: 'Chat & Completions',
+            subtitle: 'Generate text, chat completions, or streaming responses',
             cards: [
+              _EndpointCard(
+                icon: Icons.bolt_rounded,
+                accent: _openAi,
+                title: 'OpenAI Chat Completions',
+                protocol: 'OpenAI-compatible',
+                path: '/v1/chat/completions',
+                fullUrl: '$base/v1/chat/completions',
+                description:
+                    'Standard OpenAI endpoint. Connects directly to Continue, Cursor, Cline, and Python.',
+                curl:
+                    'curl $base/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"$chatId","messages":[{"role":"user","content":"hi"}],"stream":false}\'',
+              ),
               _EndpointCard(
                 icon: Icons.chat_rounded,
                 accent: _nativeChat,
-                title: 'Chat',
-                protocol: 'Thinai · streaming NDJSON',
+                title: 'Ollama Streaming Chat',
+                protocol: 'Thinai / Ollama · NDJSON stream',
                 path: '/api/chat',
+                fullUrl: '$base/api/chat',
+                description:
+                    'Streams token responses line-by-line for interactive chat applications.',
                 curl:
                     'curl $base/api/chat -d \'{"model":"$chatId","messages":[{"role":"user","content":"hi"}]}\'',
               ),
               _EndpointCard(
                 icon: Icons.edit_note_rounded,
                 accent: _nativeChat,
-                title: 'Generate',
-                protocol: 'Thinai · single prompt',
+                title: 'Single Prompt Generation',
+                protocol: 'Thinai / Ollama · single prompt',
                 path: '/api/generate',
+                fullUrl: '$base/api/generate',
+                description:
+                    'Sends a raw text prompt and returns the generated continuation.',
                 curl:
                     'curl $base/api/generate -d \'{"model":"$chatId","prompt":"hi","stream":false}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'Chat completions',
-                protocol: 'OpenAI-compatible',
-                path: '/v1/chat/completions',
-                curl:
-                    'curl $base/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"$chatId","messages":[{"role":"user","content":"hi"}],"stream":false}\'',
               ),
             ],
           ),
           const SizedBox(height: 10),
           _EndpointGroup(
             icon: Icons.scatter_plot_rounded,
-            title: 'Embeddings',
-            subtitle: 'Vectors for search and RAG',
+            title: 'Text Embeddings',
+            subtitle: 'Convert text into vector embeddings for semantic search and RAG',
             cards: [
+              _EndpointCard(
+                icon: Icons.bolt_rounded,
+                accent: _openAi,
+                title: 'OpenAI Embeddings',
+                protocol: 'OpenAI-compatible',
+                path: '/v1/embeddings',
+                fullUrl: '$base/v1/embeddings',
+                description:
+                    'Standard format for LangChain, LlamaIndex, and vector databases.',
+                curl:
+                    'curl $base/v1/embeddings -H "Content-Type: application/json" -d \'{"model":"$embedId","input":"hello"}\'',
+              ),
               _EndpointCard(
                 icon: Icons.scatter_plot_rounded,
                 accent: _nativeEmbed,
-                title: 'Embed',
-                protocol: 'Thinai · batches input',
+                title: 'Batch Embeddings',
+                protocol: 'Thinai / Ollama · array input',
                 path: '/api/embed',
+                fullUrl: '$base/api/embed',
+                description:
+                    'Computes vector embeddings for multiple input texts in one call.',
                 curl:
                     'curl $base/api/embed -d \'{"model":"$embedId","input":["hello","world"]}\'',
               ),
               _EndpointCard(
                 icon: Icons.history_rounded,
                 accent: _nativeEmbed,
-                title: 'Embeddings',
-                protocol: 'Thinai · legacy, single prompt',
+                title: 'Legacy Embeddings',
+                protocol: 'Thinai · single prompt',
                 path: '/api/embeddings',
+                fullUrl: '$base/api/embeddings',
+                description:
+                    'Computes embeddings for a single prompt string.',
                 curl:
                     'curl $base/api/embeddings -d \'{"model":"$embedId","prompt":"hello"}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'Embeddings',
-                protocol: 'OpenAI-compatible · float or base64',
-                path: '/v1/embeddings',
-                curl:
-                    'curl $base/v1/embeddings -H "Content-Type: application/json" -d \'{"model":"$embedId","input":"hello"}\'',
               ),
             ],
           ),
           const SizedBox(height: 10),
           _EndpointGroup(
             icon: Icons.inventory_2_rounded,
-            title: 'Models',
-            subtitle: 'Discover what is installed and loaded',
+            title: 'Model Discovery',
+            subtitle: 'Inspect loaded models, status, and system resources',
             cards: [
+              _EndpointCard(
+                icon: Icons.bolt_rounded,
+                accent: _openAi,
+                title: 'List Models (OpenAI)',
+                protocol: 'OpenAI-compatible',
+                path: '/v1/models',
+                fullUrl: '$base/v1/models',
+                description:
+                    'Returns installed and loaded models in OpenAI model object format.',
+                curl: 'curl $base/v1/models',
+              ),
               _EndpointCard(
                 icon: Icons.list_alt_rounded,
                 accent: _nativeModels,
-                title: 'List models',
-                protocol: 'Thinai',
+                title: 'List Models (Ollama)',
+                protocol: 'Thinai / Ollama tags',
                 path: '/api/tags',
+                fullUrl: '$base/api/tags',
+                description:
+                    'Returns models formatted for Ollama CLI and Open-WebUI model selector.',
                 curl: 'curl $base/api/tags',
               ),
               _EndpointCard(
                 icon: Icons.memory_rounded,
                 accent: _nativeModels,
-                title: 'Loaded model',
-                protocol: 'Thinai',
+                title: 'Loaded Model & VRAM',
+                protocol: 'Thinai / Ollama ps',
                 path: '/api/ps',
+                fullUrl: '$base/api/ps',
+                description:
+                    'Checks which model is currently resident in phone memory.',
                 curl: 'curl $base/api/ps',
               ),
               _EndpointCard(
                 icon: Icons.info_rounded,
                 accent: _nativeModels,
-                title: 'Show model',
-                protocol: 'Thinai',
+                title: 'Model Architecture Info',
+                protocol: 'Thinai / Ollama show',
                 path: '/api/show',
+                fullUrl: '$base/api/show',
+                description:
+                    'Shows model parameters, context length, and system details.',
                 curl: 'curl $base/api/show -d \'{"name":"$chatId"}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'List models',
-                protocol: 'OpenAI-compatible',
-                path: '/v1/models',
-                curl: 'curl $base/v1/models',
               ),
             ],
           ),
@@ -857,50 +895,121 @@ class _HeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           if (running) ...[
-            SelectableText(
-              lan && lanIp != null
-                  ? 'http://$lanIp:$port'
-                  : 'http://127.0.0.1:$port',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: scheme.primary,
-                fontFamily: 'monospace',
-              ),
-            ),
-            if (lan && lanIp != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                'On this device · http://127.0.0.1:$port',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: scheme.onSurfaceVariant,
-                  fontFamily: 'monospace',
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF2CA048).withValues(alpha: 0.35),
                 ),
               ),
-            ],
-            const SizedBox(height: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SERVER ADDRESS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        SelectableText(
+                          lan && lanIp != null
+                              ? 'http://$lanIp:$port'
+                              : 'http://127.0.0.1:$port',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2CA048),
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        if (lan && lanIp != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Local loopback: http://127.0.0.1:$port',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: scheme.onSurfaceVariant,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.copy_rounded, size: 14),
+                    label: const Text('Copy'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF2CA048),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: () async {
+                      final url = lan && lanIp != null
+                          ? 'http://$lanIp:$port'
+                          : 'http://127.0.0.1:$port';
+                      await Clipboard.setData(ClipboardData(text: url));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Copied $url to clipboard'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             Text(
-              activeId == null ? 'No model loaded' : 'Model · $activeId',
+              activeId == null ? 'No model loaded yet' : 'Active Model · $activeId',
               style: TextStyle(
                 fontSize: 12,
                 color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ] else ...[
             Text(
-              'Starts a local HTTP server other apps can call.',
+              'Run an on-device OpenAI & Ollama compatible HTTP server to connect apps, scripts, or coding assistants on your Wi-Fi.',
               style: TextStyle(
                 fontSize: 13,
                 color: scheme.onSurfaceVariant,
+                height: 1.35,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              activeId == null ? 'No model loaded' : 'Model · $activeId',
+              activeId == null ? 'No model loaded yet' : 'Active Model · $activeId',
               style: TextStyle(
                 fontSize: 12,
                 color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -1209,6 +1318,335 @@ class _StatusDotState extends State<_StatusDot>
   }
 }
 
+// ─── developer quick start ─────────────────────────────────────────────────
+
+class _DeveloperQuickStartCard extends StatefulWidget {
+  final String base;
+  final String apiHost;
+  final int port;
+  final String chatId;
+  final bool lanShare;
+
+  const _DeveloperQuickStartCard({
+    required this.base,
+    required this.apiHost,
+    required this.port,
+    required this.chatId,
+    required this.lanShare,
+  });
+
+  @override
+  State<_DeveloperQuickStartCard> createState() =>
+      _DeveloperQuickStartCardState();
+}
+
+class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
+  int _tabIndex = 0;
+
+  void _copy(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied $label to clipboard'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+    final openAiBase = 'http://${widget.apiHost}:${widget.port}/v1';
+    final ollamaBase = 'http://${widget.apiHost}:${widget.port}';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: logoGreen.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.hub_rounded, size: 16, color: logoGreen),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Connect External Tools',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    Text(
+                      'Zero-config setup for IDEs, scripts, and AI agents',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Clean 3-tab selector
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _buildTab(0, 'VS Code / Cursor', Icons.code_rounded),
+                _buildTab(1, 'Python SDK', Icons.terminal_rounded),
+                _buildTab(2, 'Ollama / Web-UI', Icons.dns_rounded),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (_tabIndex == 0) ...[
+            Text(
+              'Use Thinai with Continue.dev, Cline, or Cursor as an OpenAI-compatible provider:',
+              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            _buildCredentialRow(
+              scheme,
+              label: 'Provider',
+              value: 'OpenAI Compatible',
+            ),
+            const SizedBox(height: 6),
+            _buildCredentialRow(
+              scheme,
+              label: 'Base URL',
+              value: openAiBase,
+              isMonospace: true,
+              onCopy: () => _copy(openAiBase, 'Base URL'),
+            ),
+            const SizedBox(height: 6),
+            _buildCredentialRow(
+              scheme,
+              label: 'Model ID',
+              value: widget.chatId,
+              isMonospace: true,
+              onCopy: () => _copy(widget.chatId, 'Model ID'),
+            ),
+            const SizedBox(height: 6),
+            _buildCredentialRow(
+              scheme,
+              label: 'API Key',
+              value: 'thinai (or any text)',
+            ),
+          ] else if (_tabIndex == 1) ...[
+            Text(
+              'Call this phone using the standard OpenAI Python package:',
+              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.5)),
+              ),
+              child: SelectableText(
+                'from openai import OpenAI\n\n'
+                'client = OpenAI(\n'
+                '    base_url="$openAiBase",\n'
+                '    api_key="thinai",\n'
+                ')\n\n'
+                'response = client.chat.completions.create(\n'
+                '    model="${widget.chatId}",\n'
+                '    messages=[{"role": "user", "content": "Hello!"}],\n'
+                ')\n'
+                'print(response.choices[0].message.content)',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: scheme.onSurface,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonalIcon(
+                icon: const Icon(Icons.copy_rounded, size: 14),
+                label: const Text('Copy Python Code'),
+                style: FilledButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  textStyle: const TextStyle(
+                      fontSize: 11.5, fontWeight: FontWeight.w600),
+                ),
+                onPressed: () => _copy(
+                  'from openai import OpenAI\n\n'
+                  'client = OpenAI(\n'
+                  '    base_url="$openAiBase",\n'
+                  '    api_key="thinai",\n'
+                  ')\n\n'
+                  'response = client.chat.completions.create(\n'
+                  '    model="${widget.chatId}",\n'
+                  '    messages=[{"role": "user", "content": "Hello!"}],\n'
+                  ')\n'
+                  'print(response.choices[0].message.content)',
+                  'Python code',
+                ),
+              ),
+            ),
+          ] else ...[
+            Text(
+              'Connect Open-WebUI or Ollama-compatible tools directly:',
+              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            _buildCredentialRow(
+              scheme,
+              label: 'Ollama Host',
+              value: ollamaBase,
+              isMonospace: true,
+              onCopy: () => _copy(ollamaBase, 'Ollama Host'),
+            ),
+            const SizedBox(height: 6),
+            _buildCredentialRow(
+              scheme,
+              label: 'Model Name',
+              value: widget.chatId,
+              isMonospace: true,
+              onCopy: () => _copy(widget.chatId, 'Model Name'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(int index, String title, IconData icon) {
+    final selected = _tabIndex == index;
+    final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => setState(() => _tabIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? scheme.surface : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    )
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 13,
+                color: selected ? logoGreen : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCredentialRow(
+    ColorScheme scheme, {
+    required String label,
+    required String value,
+    bool isMonospace = false,
+    VoidCallback? onCopy,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 75,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurface,
+                fontFamily: isMonospace ? 'monospace' : null,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (onCopy != null)
+            IconButton(
+              icon: const Icon(Icons.copy_rounded, size: 14),
+              tooltip: 'Copy $label',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: onCopy,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── endpoints ─────────────────────────────────────────────────────────────
 
 class _EndpointCard extends StatelessWidget {
@@ -1218,6 +1656,8 @@ class _EndpointCard extends StatelessWidget {
   final String protocol;
   final String path;
   final String curl;
+  final String? description;
+  final String? fullUrl;
 
   const _EndpointCard({
     required this.icon,
@@ -1226,6 +1666,8 @@ class _EndpointCard extends StatelessWidget {
     required this.protocol,
     required this.path,
     required this.curl,
+    this.description,
+    this.fullUrl,
   });
 
   @override
@@ -1303,13 +1745,30 @@ class _EndpointCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (fullUrl != null)
+                IconButton(
+                  tooltip: 'Copy URL',
+                  icon: const Icon(Icons.link_rounded, size: 18),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: fullUrl!));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Copied URL: $fullUrl'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
+                ),
               IconButton(
+                tooltip: 'Copy cURL',
                 icon: const Icon(Icons.content_copy_rounded, size: 18),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: curl));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Copied curl command'),
+                      content: const Text('Copied cURL command'),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -1319,11 +1778,21 @@ class _EndpointCard extends StatelessWidget {
               ),
             ],
           ),
+          if (description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              description!,
+              style: TextStyle(
+                fontSize: 12,
+                color: scheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(10),
@@ -1337,6 +1806,61 @@ class _EndpointCard extends StatelessWidget {
                 height: 1.4,
               ),
             ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (fullUrl != null) ...[
+                TextButton.icon(
+                  icon: const Icon(Icons.link_rounded, size: 13),
+                  label: const Text('Copy URL',
+                      style:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: fullUrl!));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Copied URL: $fullUrl'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
+              TextButton.icon(
+                icon: const Icon(Icons.terminal_rounded, size: 13),
+                label: const Text('Copy cURL',
+                    style:
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: curl));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Copied cURL command'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),

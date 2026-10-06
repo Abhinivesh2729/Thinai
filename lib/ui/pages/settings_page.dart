@@ -202,96 +202,134 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: scheme.outline),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
             ),
-            child: Text(
-              'Thinai tools and app controls in one place.',
-              style: TextStyle(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.shield_outlined,
+                  size: 20,
+                  color: Color(0xFF2CA048),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'All processing stays 100% offline on your device. '
+                    'No account, telemetry, or server required.',
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12.5,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 14),
-          const _ThemeModeCard(),
-          const _WebSearchCard(),
-          const GpuSettingsCard(),
-          const SizedBox(height: 6),
-          _SettingsTile(
-            icon: Icons.folder_open_rounded,
-            title: 'Import .gguf model',
-            subtitle: 'Pick a local model file from device storage',
-            onTap: _busy ? null : _importModel,
-          ),
-          _SettingsTile(
-            icon: Icons.link_rounded,
-            title: 'Download model by URL',
-            subtitle: 'Add a direct model URL and download',
-            onTap: _busy ? null : _downloadByUrl,
-          ),
-          _SettingsTile(
-            icon: Icons.speed_rounded,
-            title: 'Benchmark this phone',
-            subtitle: 'Measure tokens per second for any installed model',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BenchmarkPage()),
-              );
-            },
-          ),
-          _SettingsTile(
-            icon: Icons.tips_and_updates_rounded,
-            title: 'Start app tour',
-            subtitle: 'Run spotlight coach marks again',
-            onTap: () {
-              ref.read(coachTourRequestProvider.notifier).state++;
-              Navigator.pop(context);
-            },
-          ),
-          _SettingsTile(
-            icon: Icons.delete_sweep_rounded,
-            title: 'Clear all downloaded items',
-            subtitle: 'Remove all downloaded and partial model files',
-            danger: true,
-            onTap: _busy ? null : _clearAllDownloads,
-          ),
-          const SizedBox(height: 12),
-          _SettingsTile(
-            icon: Icons.system_update_rounded,
-            title: 'Check for updates',
-            subtitle: version == null
-                ? 'Get the newest Thinai from Play Store'
-                : 'You are on $version',
-            onTap: _busy ? null : _checkForUpdates,
-          ),
-          _SettingsTile(
-            icon: Icons.support_agent_rounded,
-            title: 'Contact support',
-            subtitle: 'Get help and connect with the team',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ContactSupportPage()),
-              );
-            },
-          ),
-          _SettingsTile(
-            icon: Icons.info_outline_rounded,
-            title: 'About Thinai',
-            subtitle: 'Mission, capabilities, and design intent',
-            onTap: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
-            },
           ),
           const SizedBox(height: 18),
+          const _SettingsSection(
+            title: 'Appearance & Chat',
+            icon: Icons.palette_outlined,
+            children: [
+              _ThemeModeCard(),
+              _WebSearchCard(),
+            ],
+          ),
+          _SettingsSection(
+            title: 'Hardware Engine',
+            icon: Icons.memory_rounded,
+            children: [
+              const GpuSettingsCard(),
+              _SettingsTile(
+                icon: Icons.speed_rounded,
+                title: 'Benchmark phone',
+                subtitle: 'Measure tokens per second on device silicon',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BenchmarkPage()),
+                  );
+                },
+              ),
+            ],
+          ),
+          _SettingsSection(
+            title: 'Model Files & Storage',
+            icon: Icons.folder_outlined,
+            children: [
+              _SettingsTile(
+                icon: Icons.folder_open_rounded,
+                title: 'Import .gguf model',
+                subtitle: 'Pick a local model file from device storage',
+                onTap: _busy ? null : _importModel,
+              ),
+              _SettingsTile(
+                icon: Icons.link_rounded,
+                title: 'Download model by URL',
+                subtitle: 'Add direct Hugging Face or HTTP download link',
+                onTap: _busy ? null : _downloadByUrl,
+              ),
+              _SettingsTile(
+                icon: Icons.delete_sweep_rounded,
+                title: 'Clear downloaded models',
+                subtitle: 'Remove cached and downloaded model files to free space',
+                danger: true,
+                onTap: _busy ? null : _clearAllDownloads,
+              ),
+            ],
+          ),
+          _SettingsSection(
+            title: 'App & Guidance',
+            icon: Icons.help_outline_rounded,
+            children: [
+              _SettingsTile(
+                icon: Icons.tips_and_updates_rounded,
+                title: 'Start app tour',
+                subtitle: 'Re-run interactive feature walkthrough',
+                onTap: () {
+                  ref.read(coachTourRequestProvider.notifier).state++;
+                  Navigator.pop(context);
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.system_update_rounded,
+                title: 'Check for updates',
+                subtitle: version == null
+                    ? 'Check Play Store for newest build'
+                    : 'Installed version: $version',
+                onTap: _busy ? null : _checkForUpdates,
+              ),
+              _SettingsTile(
+                icon: Icons.support_agent_rounded,
+                title: 'Contact support',
+                subtitle: 'Get help or provide feedback to creators',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ContactSupportPage(),
+                    ),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.info_outline_rounded,
+                title: 'About Thinai',
+                subtitle: 'Mission, sovereignty, and project details',
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           const MadeInErode(compact: true),
         ],
       ),
@@ -516,3 +554,51 @@ class _DownloadDialogState extends State<_DownloadDialog> {
     );
   }
 }
+
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final IconData? icon;
+  final List<Widget> children;
+
+  const _SettingsSection({
+    required this.title,
+    this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const logoGreen = Color(0xFF2CA048);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+            child: Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 14, color: logoGreen),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                    color: logoGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+

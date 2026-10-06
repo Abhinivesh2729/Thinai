@@ -8,10 +8,13 @@ import '../../models_repo/downloader.dart';
 import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../state/providers.dart';
+import '../../models_repo/use_cases.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_advisor.dart';
 import 'benchmark_page.dart';
 import 'settings_page.dart';
+
+enum ModelFilter { all, installed, chat, vision, embedding }
 
 class ModelsPage extends ConsumerStatefulWidget {
   const ModelsPage({super.key});
@@ -23,6 +26,9 @@ class ModelsPage extends ConsumerStatefulWidget {
 class _ModelsPageState extends ConsumerState<ModelsPage> {
   final _search = TextEditingController();
   String _query = '';
+  ModelFilter _filter = ModelFilter.all;
+  UseCase? _selectedUseCase;
+  bool _advisorCollapsed = false;
   StreamSubscription<DownloadOutcome>? _outcomes;
 
   @override
@@ -141,6 +147,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     final activeId = ref.watch(activeModelIdProvider);
     final downloads = ref.watch(downloadsProvider);
     final scheme = Theme.of(context).colorScheme;
+    final installedCount = modelsAsync.valueOrNull?.length ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -176,6 +183,36 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onChanged: (value) =>
                 setState(() => _query = value.trim().toLowerCase()),
           ),
+          _ModelFilterBar(
+            selected: _filter,
+            selectedUseCase: _selectedUseCase,
+            installedCount: installedCount,
+            hasActiveFilter:
+                _filter != ModelFilter.all || _query.isNotEmpty || _selectedUseCase != null,
+            onSelected: (filter) {
+              setState(() {
+                _filter = filter;
+                if (filter == ModelFilter.installed ||
+                    filter == ModelFilter.embedding) {
+                  _selectedUseCase = null;
+                }
+              });
+            },
+            onSelectUseCase: (useCase) =>
+                setState(() => _selectedUseCase = useCase),
+            isAdvisorOpen: !_advisorCollapsed,
+            onToggleAdvisor: () =>
+                setState(() => _advisorCollapsed = !_advisorCollapsed),
+            onClear: () {
+              setState(() {
+                _filter = ModelFilter.all;
+                _selectedUseCase = null;
+                _query = '';
+                _search.clear();
+              });
+            },
+          ),
+          const SizedBox(height: 4),
           Expanded(
             child: modelsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -208,11 +245,105 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     }
 
     final yourModels = installed.where(_matchesInstalled).toList();
-    final chatModels = chatCatalog.where(_matchesCatalog).toList();
-    final embeddingModels = embeddingCatalog.where(_matchesCatalog).toList();
 
-    if (yourModels.isEmpty && chatModels.isEmpty && embeddingModels.isEmpty) {
-      return _NoResults(query: _search.text.trim());
+    // Selective filtering based on _filter
+    final List<CatalogModel> chatModels;
+    final List<CatalogModel> embeddingModels;
+    final bool showYourModels;
+    final bool showAdvisor;
+
+    switch (_filter) {
+      case ModelFilter.all:
+        chatModels = chatCatalog.where(_matchesCatalog).toList();
+        embeddingModels = embeddingCatalog.where(_matchesCatalog).toList();
+        showYourModels = yourModels.isNotEmpty && _selectedUseCase == null;
+        showAdvisor = _query.isEmpty;
+        break;
+      case ModelFilter.installed:
+        chatModels = const [];
+        embeddingModels = const [];
+        showYourModels = true;
+        showAdvisor = false;
+        break;
+      case ModelFilter.chat:
+        chatModels = chatCatalog
+            .where((m) => m.mmprojUrl == null)
+            .where(_matchesCatalog)
+            .toList();
+        embeddingModels = const [];
+        showYourModels = false;
+        showAdvisor = _query.isEmpty;
+        break;
+      case ModelFilter.vision:
+        chatModels = chatCatalog
+            .where((m) => m.mmprojUrl != null)
+            .where(_matchesCatalog)
+            .toList();
+        embeddingModels = const [];
+        showYourModels = false;
+        showAdvisor = _query.isEmpty;
+        break;
+      case ModelFilter.embedding:
+        chatModels = const [];
+        embeddingModels = embeddingCatalog.where(_matchesCatalog).toList();
+        showYourModels = false;
+        showAdvisor = false;
+        break;
+    }
+
+    if (_filter == ModelFilter.installed && yourModels.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.folder_open_rounded,
+                size: 48,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No models installed yet',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Download open-weight GGUF models from the catalog to run entirely offline on this device.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                icon: const Icon(Icons.explore_rounded, size: 16),
+                label: const Text('Browse Catalog'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF2CA048),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => setState(() => _filter = ModelFilter.all),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if ((!showYourModels || yourModels.isEmpty) &&
+        chatModels.isEmpty &&
+        embeddingModels.isEmpty) {
+      return _NoResults(
+        query: _search.text.trim(),
+        onClear: () {
+          setState(() {
+            _filter = ModelFilter.all;
+            _selectedUseCase = null;
+            _query = '';
+            _search.clear();
+          });
+        },
+      );
     }
 
     final missingEncoders = ref.watch(missingProjectorsProvider).maybeWhen(
@@ -248,6 +379,26 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           m.id,
     };
 
+    final Set<String> recommendedModelIds;
+    if (_selectedUseCase != null) {
+      final rec = recommend(
+        _selectedUseCase!,
+        device,
+        installedIds: installedCatalogIds,
+        speed: ref.watch(speedKnowledgeProvider),
+      );
+      recommendedModelIds = {for (final p in rec.picks) p.model.id};
+    } else {
+      recommendedModelIds = const {};
+    }
+
+    final recommendedChatModels = _selectedUseCase != null
+        ? chatModels.where((m) => recommendedModelIds.contains(m.id)).toList()
+        : const <CatalogModel>[];
+    final remainingChatModels = _selectedUseCase != null
+        ? chatModels.where((m) => !recommendedModelIds.contains(m.id)).toList()
+        : chatModels;
+
     return ListView(
       controller: CoachMarkTargets.modelsScroll,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -262,20 +413,36 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           ),
           const SizedBox(height: 16),
         ],
-        // Hidden while searching: someone typing a model name has already
-        // decided what they want, and the advisor would just push the results
-        // off the screen.
-        if (_query.isEmpty) ...[
+        // Hidden while searching or non-all filter
+        if (showAdvisor) ...[
           ModelAdvisor(
             speed: ref.watch(speedKnowledgeProvider),
             installedCatalogIds: installedCatalogIds,
             downloads: downloads,
             onDownload: (m) => ref.read(downloadsProvider.notifier).start(m),
             onCancel: (id) => ref.read(downloadsProvider.notifier).cancel(id),
+            selectedUseCase: _selectedUseCase,
+            onUseCaseChanged: (uc) => setState(() => _selectedUseCase = uc),
+            isCollapsed: _advisorCollapsed,
+            onToggleCollapse: () =>
+                setState(() => _advisorCollapsed = !_advisorCollapsed),
           ),
           const SizedBox(height: 18),
         ],
-        if (yourModels.isNotEmpty) ...[
+        if (_selectedUseCase != null && recommendedChatModels.isNotEmpty) ...[
+          _SectionHeader(
+            icon: _selectedUseCase!.icon,
+            title: 'Recommended for ${_selectedUseCase!.label}',
+            subtitle: _selectedUseCase!.blurb,
+          ),
+          const SizedBox(height: 12),
+          for (final m in recommendedChatModels) ...[
+            catalogCard(m),
+            const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 16),
+        ],
+        if (showYourModels && yourModels.isNotEmpty) ...[
           const _SectionHeader(
             icon: Icons.inventory_2_rounded,
             title: 'Your models',
@@ -293,17 +460,27 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           ],
           const SizedBox(height: 16),
         ],
-        if (chatModels.isNotEmpty) ...[
-          const _SectionHeader(
-            icon: Icons.explore_rounded,
-            title: 'Browse catalog',
-            subtitle: 'Curated GGUF models · one-tap download',
+        if (remainingChatModels.isNotEmpty) ...[
+          _SectionHeader(
+            icon: _filter == ModelFilter.vision
+                ? Icons.visibility_rounded
+                : Icons.explore_rounded,
+            title: _selectedUseCase != null
+                ? 'Other models'
+                : (_filter == ModelFilter.vision
+                    ? 'Vision models'
+                    : (_filter == ModelFilter.chat ? 'Chat models' : 'Browse catalog')),
+            subtitle: _selectedUseCase != null
+                ? 'All other models in the catalog'
+                : (_filter == ModelFilter.vision
+                    ? 'Multimodal · image & visual analysis'
+                    : 'Curated GGUF models · one-tap download'),
           ),
           const SizedBox(height: 12),
-          for (final m in chatModels) ...[
+          for (final m in remainingChatModels) ...[
             catalogCard(
               m,
-              actionKey: identical(m, chatModels.first)
+              actionKey: identical(m, remainingChatModels.first)
                   ? CoachMarkTargets.firstCatalogAction
                   : null,
             ),
@@ -358,6 +535,195 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
 // ─── widgets ───────────────────────────────────────────────────────────────
 
+class _ModelFilterBar extends StatelessWidget {
+  final ModelFilter selected;
+  final UseCase? selectedUseCase;
+  final int installedCount;
+  final bool hasActiveFilter;
+  final ValueChanged<ModelFilter> onSelected;
+  final ValueChanged<UseCase?> onSelectUseCase;
+  final VoidCallback onClear;
+  final VoidCallback? onToggleAdvisor;
+  final bool isAdvisorOpen;
+
+  const _ModelFilterBar({
+    required this.selected,
+    required this.selectedUseCase,
+    required this.installedCount,
+    required this.hasActiveFilter,
+    required this.onSelected,
+    required this.onSelectUseCase,
+    required this.onClear,
+    this.onToggleAdvisor,
+    this.isAdvisorOpen = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    final items = [
+      (ModelFilter.all, 'All', Icons.grid_view_rounded),
+      (
+        ModelFilter.installed,
+        installedCount > 0 ? 'Installed ($installedCount)' : 'Installed',
+        Icons.inventory_2_outlined,
+      ),
+      (ModelFilter.chat, 'Chat', Icons.chat_bubble_outline_rounded),
+      (ModelFilter.vision, 'Vision', Icons.visibility_outlined),
+      (ModelFilter.embedding, 'Embedding', Icons.hub_outlined),
+    ];
+
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        children: [
+          // Active goal chip if selected
+          if (selectedUseCase != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _FilterPill(
+                label: 'Goal: ${selectedUseCase!.label}',
+                icon: selectedUseCase!.icon,
+                selected: true,
+                trailing: const Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                onTap: () => onSelectUseCase(null),
+              ),
+            ),
+          for (final (filter, label, icon) in items) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _FilterPill(
+                label: label,
+                icon: icon,
+                selected: selected == filter,
+                onTap: () => onSelected(filter),
+              ),
+            ),
+          ],
+          if (onToggleAdvisor != null && selectedUseCase == null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _FilterPill(
+                label: 'Goal Guide',
+                icon: Icons.tune_rounded,
+                selected: isAdvisorOpen,
+                onTap: onToggleAdvisor!,
+              ),
+            ),
+          if (hasActiveFilter) ...[
+            Material(
+              color: scheme.error.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: onClear,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: scheme.error.withValues(alpha: 0.35),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.close_rounded, size: 14, color: scheme.error),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Clear',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: scheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterPill extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  const _FilterPill({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    this.trailing,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
+    return Material(
+      color: selected ? logoGreen : scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected
+                  ? logoGreen
+                  : scheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: selected ? Colors.white : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? Colors.white : scheme.onSurface,
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 4),
+                trailing!,
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Search across installed models and the catalog. Sits above the list rather
 /// than inside it so it stays reachable while scrolling a long catalog.
 class _SearchField extends StatefulWidget {
@@ -376,7 +742,7 @@ class _SearchFieldState extends State<_SearchField> {
     final scheme = Theme.of(context).colorScheme;
     final hasText = widget.controller.text.isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surfaceContainerHigh,
@@ -433,9 +799,10 @@ class _SearchFieldState extends State<_SearchField> {
 }
 
 class _NoResults extends StatelessWidget {
-  const _NoResults({required this.query});
-
   final String query;
+  final VoidCallback? onClear;
+
+  const _NoResults({required this.query, this.onClear});
 
   @override
   Widget build(BuildContext context) {
@@ -453,7 +820,7 @@ class _NoResults extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              'No models match "$query"',
+              query.isEmpty ? 'No models match current filters' : 'No models match "$query"',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,
@@ -463,11 +830,18 @@ class _NoResults extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Try a maker (Google, Alibaba), a size (1B, 4B), or a task '
-              'such as embedding.',
+              'Try adjusting your selected filters or search terms.',
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
             ),
+            if (onClear != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
+                label: const Text('Reset filters & search'),
+                onPressed: onClear,
+              ),
+            ],
           ],
         ),
       ),
@@ -548,26 +922,36 @@ class _InstalledCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
     return Material(
-      color: active ? scheme.primaryContainer : scheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(18),
+      color: active ? logoGreen.withValues(alpha: 0.08) : scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: active ? logoGreen : scheme.outlineVariant.withValues(alpha: 0.5),
+              width: active ? 1.5 : 1,
+            ),
+          ),
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: active ? scheme.primary : scheme.surfaceContainerHigh,
+                  color: active ? logoGreen : scheme.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  active ? Icons.check_rounded : Icons.memory_rounded,
-                  color: active ? scheme.onPrimary : scheme.onSurface,
+                  active ? Icons.check_circle_rounded : Icons.memory_rounded,
+                  color: active ? Colors.white : scheme.onSurface,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: 14),
@@ -581,11 +965,11 @@ class _InstalledCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         _Chip(
@@ -595,9 +979,17 @@ class _InstalledCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         if (active)
                           const _Chip(
-                            label: 'Active',
+                            label: 'Active in Chat',
                             icon: Icons.bolt_rounded,
                             tone: _ChipTone.accent,
+                          )
+                        else
+                          Text(
+                            'Tap to activate',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: scheme.onSurfaceVariant,
+                            ),
                           ),
                       ],
                     ),
@@ -605,7 +997,8 @@ class _InstalledCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded),
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                tooltip: 'Delete model',
                 onPressed: onDelete,
                 color: scheme.onSurfaceVariant,
               ),
@@ -663,7 +1056,7 @@ class _CatalogCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       padding: const EdgeInsets.all(14),
@@ -673,20 +1066,20 @@ class _CatalogCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: model.accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
+                  color: model.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: model.accent.withValues(alpha: 0.28),
+                    color: model.accent.withValues(alpha: 0.25),
                     width: 1,
                   ),
                 ),
-                child: Text(model.emoji, style: const TextStyle(fontSize: 24)),
+                child: Text(model.emoji, style: const TextStyle(fontSize: 22)),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,24 +1095,29 @@ class _CatalogCard extends StatelessWidget {
                         letterSpacing: -0.2,
                       ),
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       model.author,
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               _buildAction(context),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             model.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12.5,
               color: scheme.onSurfaceVariant,
               height: 1.35,
             ),
@@ -739,16 +1137,15 @@ class _CatalogCard extends StatelessWidget {
             children: [
               _Chip(label: model.parameters, icon: Icons.tune_rounded),
               _Chip(
-                label: model.approxSize,
-                icon: Icons.cloud_download_outlined,
+                label: '${model.contextLabel} ctx',
+                icon: Icons.short_text_rounded,
               ),
-              // Context window, not quantisation: how much text the model can
-              // hold is what a user chooses between, and every entry here is
-              // a small quant anyway.
-              _Chip(
-                label: '${model.contextLabel} context',
-                icon: Icons.article_rounded,
-              ),
+              if (model.mmprojUrl != null)
+                const _Chip(
+                  label: 'Vision Ready',
+                  icon: Icons.visibility_outlined,
+                  tone: _ChipTone.accent,
+                ),
               if (model.dimensions != null)
                 _Chip(
                   label: '${model.dimensions} dims',
@@ -766,45 +1163,41 @@ class _CatalogCard extends StatelessWidget {
   }
 
   Widget _buildAction(BuildContext context) {
-    // An installed vision model with no image encoder is one download away
-    // from being able to see. Saying "Installed" and leaving it there would
-    // hide that.
+    const logoGreen = Color(0xFF2CA048);
+
     if (installed && needsVisionEncoder) {
       return FilledButton.tonalIcon(
         key: actionKey,
         onPressed: onAddVision,
-        icon: const Icon(Icons.image_outlined, size: 16),
-        label: Text('Add vision · ${model.mmprojSize}'),
+        icon: const Icon(Icons.visibility_rounded, size: 14),
+        label: Text('+ Vision (${model.mmprojSize})'),
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
         ),
       );
     }
     if (installed) {
-      final scheme = Theme.of(context).colorScheme;
       return Container(
         key: actionKey,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: scheme.primaryContainer,
+          color: logoGreen.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: logoGreen.withValues(alpha: 0.3)),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.check_rounded,
-              size: 16,
-              color: scheme.onPrimaryContainer,
-            ),
-            const SizedBox(width: 4),
+            Icon(Icons.check_circle_rounded, size: 14, color: logoGreen),
+            SizedBox(width: 4),
             Text(
               'Installed',
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: scheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+                color: logoGreen,
               ),
             ),
           ],
@@ -823,12 +1216,12 @@ class _CatalogCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.block_rounded, size: 15, color: scheme.onSurfaceVariant),
+            Icon(Icons.memory_rounded, size: 14, color: scheme.onSurfaceVariant),
             const SizedBox(width: 4),
             Text(
-              'Too big',
+              'Needs RAM',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: scheme.onSurfaceVariant,
               ),
@@ -840,20 +1233,26 @@ class _CatalogCard extends StatelessWidget {
     if (download != null) {
       return IconButton(
         key: actionKey,
-        icon: const Icon(Icons.close_rounded),
+        icon: const Icon(Icons.close_rounded, size: 18),
+        tooltip: 'Cancel download',
         onPressed: onCancel,
         style: IconButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         ),
       );
     }
-    return FilledButton.tonalIcon(
+    return FilledButton.icon(
       key: actionKey,
-      icon: const Icon(Icons.download_rounded, size: 18),
-      label: const Text('Get'),
+      icon: const Icon(Icons.arrow_downward_rounded, size: 14),
+      label: Text(model.approxSize),
       onPressed: onDownload,
       style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        backgroundColor: logoGreen,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
       ),
     );
   }
