@@ -13,12 +13,10 @@ class SplashPage extends StatelessWidget {
       backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
         child: RepaintBoundary(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                const Spacer(flex: 3),
-                TweenAnimationBuilder<double>(
+          child: Stack(
+            children: [
+              Center(
+                child: TweenAnimationBuilder<double>(
                   duration: const Duration(milliseconds: 700),
                   curve: Curves.easeOutCubic,
                   tween: Tween(begin: 0.0, end: 1.0),
@@ -31,34 +29,39 @@ class SplashPage extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // High-resolution official Thinai logo from store assets
-                      Image.asset(
-                        'store/icon-512.png',
-                        width: 170,
-                        height: 170,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.medium,
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'On-Device Sovereign Intelligence',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
-                          letterSpacing: 0.5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 36),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Tightly cropped high-res logo with transparent background
+                        Image.asset(
+                          'assets/images/logo_transparent.png',
+                          width: 230,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 18),
+                        const Text(
+                          'On-Device Sovereign Intelligence',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const Spacer(flex: 4),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: Center(
                   child: TweenAnimationBuilder<double>(
                     duration: const Duration(milliseconds: 600),
                     curve: Curves.easeOut,
@@ -70,7 +73,7 @@ class SplashPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       text: const TextSpan(
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           color: Color(0xFF94A3B8),
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.3,
@@ -89,8 +92,8 @@ class SplashPage extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
