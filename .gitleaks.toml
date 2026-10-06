@@ -1,0 +1,8 @@
+# Gitleaks configuration for Thinai
+# Exclude vendored third-party upstream C/C++ dependencies (fllama/llama.cpp)
+# which contain AVX/vector intrinsic identifiers and upstream CI matrix definitions.
+[allowlist]
+description = "Vendored third-party dependencies"
+paths = [
+  '''third_party/''',
+]

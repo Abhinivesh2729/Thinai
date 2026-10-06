@@ -1,0 +1,7 @@
+# Test tags.
+tags:
+  # Exercises the real llama.cpp native bridge (third_party/fllama) and
+  # downloads a ~24 MB GGUF on first run, caching it in the system temp dir.
+  # Run just these:      flutter test --tags native
+  # Skip them:           flutter test --exclude-tags native
+  native:

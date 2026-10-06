@@ -1,0 +1,191 @@
+export 'io/fllama_io_embed.dart';
+export 'io/fllama_io_gpu.dart';
+export 'io/fllama_io_inference.dart';
+export 'io/fllama_io_tokenize.dart';
+
+import 'dart:ffi';
+import 'dart:io';
+
+import 'package:ffi/ffi.dart';
+import 'package:fllama/fllama_universal.dart';
+import 'package:fllama/io/fllama_bindings_generated.dart';
+import 'package:fllama/io/fllama_io_helpers.dart';
+import 'package:fllama/misc/openai.dart';
+
+typedef FllamaInferenceCallback =
+    void Function(String response, String openaiResponseJsonString, bool done);
+typedef FllamaMlcLoadCallback =
+    void Function(double downloadProgress, double loadProgress);
+
+/// The dynamic library in which the symbols for [FllamaBindings] can be found.
+final DynamicLibrary fllamaDylib = () {
+  // 1. Prefer native asset code-asset resolution if supported by the embedder
+  try {
+    return DynamicLibrary.codeAsset('package:fllama/fllama_io.dart');
+  } catch (_) {
+    // DynamicLibrary.codeAsset is not supported yet by flutter_tester or older embedders.
+  }
+
+  // 2. Explicit environment override (e.g. CI runtime library path)
+  final envPath =
+      Platform.environment['FLLAMA_DYLIB_PATH'] ??
+      Platform.environment['FLLAMA_LIBRARY_PATH'];
+  if (envPath != null && envPath.isNotEmpty && File(envPath).existsSync()) {
+    return DynamicLibrary.open(envPath);
+  }
+
+  const String fllamaLibName = 'fllama';
+  if (Platform.isMacOS || Platform.isIOS) {
+    try {
+      return DynamicLibrary.open('$fllamaLibName.framework/$fllamaLibName');
+    } catch (_) {
+      try {
+        return DynamicLibrary.open('lib$fllamaLibName.dylib');
+      } catch (_) {
+        final found = _findSharedLib('lib$fllamaLibName.dylib');
+        if (found != null) return DynamicLibrary.open(found);
+        rethrow;
+      }
+    }
+  }
+  if (Platform.isAndroid || Platform.isLinux) {
+    try {
+      return DynamicLibrary.open('lib$fllamaLibName.so');
+    } catch (_) {
+      final found = _findSharedLib('lib$fllamaLibName.so');
+      if (found != null) return DynamicLibrary.open(found);
+      rethrow;
+    }
+  }
+  if (Platform.isWindows) {
+    try {
+      return DynamicLibrary.open('$fllamaLibName.dll');
+    } catch (_) {
+      final found = _findSharedLib('$fllamaLibName.dll');
+      if (found != null) return DynamicLibrary.open(found);
+      rethrow;
+    }
+  }
+  throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+}();
+
+String? _findSharedLib(String fileName) {
+  // Check directory containing the running script/executable, Directory.current,
+  // and traverse upwards to find repository build output in .dart_tool or build
+  Directory? current = Directory.current;
+  for (var i = 0; i < 5 && current != null; i++) {
+    final searchDirs = [
+      Directory('${current.path}/.dart_tool/hooks_runner/shared/fllama/build'),
+      Directory('${current.path}/.dart_tool/hooks_runner'),
+      Directory('${current.path}/build'),
+    ];
+    for (final dir in searchDirs) {
+      if (!dir.existsSync()) continue;
+      try {
+        for (final entity in dir.listSync(
+          recursive: true,
+          followLinks: false,
+        )) {
+          if (entity is File &&
+              (entity.path.endsWith('/$fileName') ||
+                  entity.path.endsWith('\\$fileName') ||
+                  entity.path == fileName)) {
+            return entity.path;
+          }
+        }
+      } catch (_) {}
+    }
+    final parent = current.parent;
+    if (parent.path == current.path) break;
+    current = parent;
+  }
+  return null;
+}
+
+/// The bindings to the native functions in [fllamaDylib].
+final FllamaBindings fllamaBindings = FllamaBindings(fllamaDylib);
+
+/// Returns the chat template embedded in the .gguf file.
+/// If none is found, returns an empty string.
+///
+/// See [fllamaSanitizeChatTemplate] for using sensible fallbacks for gguf
+/// files that don't have a chat template or have incorrect chat templates.
+Future<String> fllamaChatTemplateGet(String modelPath) {
+  // Example models without a chat template:
+  // - Phi 2 has no template, either intended or in the model.
+  // - Mistral 7B via OpenHermes has no template and intends ChatML.
+  final filenamePointer = stringToPointerChar(modelPath);
+  final templatePointer = fllamaBindings.fllama_get_chat_template(
+    filenamePointer,
+  );
+  calloc.free(filenamePointer);
+  if (templatePointer == nullptr) {
+    return Future.value('');
+  }
+  final builtInChatTemplate = pointerCharToString(templatePointer);
+  return Future.value(builtInChatTemplate);
+}
+
+/// Returns the EOS token embedded in the .gguf file.
+/// If none is found, returns an empty string.
+///
+/// See [fllamaApplyChatTemplate] for using sensible fallbacks for gguf
+/// files that don't have an EOS token or have incorrect EOS tokens.
+Future<String> fllamaEosTokenGet(String modelPath) async {
+  final filenamePointer = stringToPointerChar(modelPath);
+  final eosTokenPointer = fllamaBindings.fllama_get_eos_token(filenamePointer);
+  calloc.free(filenamePointer);
+  if (eosTokenPointer == nullptr) {
+    return '';
+  }
+  return pointerCharToString(eosTokenPointer);
+}
+
+/// Returns the EOS token embedded in the .gguf file.
+/// If none is found, returns an empty string.
+///
+/// See [fllamaApplyChatTemplate] for using sensible fallbacks for gguf
+/// files that don't have an EOS token or have incorrect EOS tokens.
+Future<String> fllamaBosTokenGet(String modelPath) async {
+  final filenamePointer = stringToPointerChar(modelPath);
+  final eosTokenPointer = fllamaBindings.fllama_get_bos_token(filenamePointer);
+  calloc.free(filenamePointer);
+  if (eosTokenPointer == nullptr) {
+    return '';
+  }
+  return pointerCharToString(eosTokenPointer);
+}
+
+/// Use MLC's web JS SDK to do chat inference.
+/// If not on web, this will fallback to using [fllamaChat].
+///
+/// llama.cpp converted to WASM is very slow compared to native inference on the
+/// same platform, because it does not use the GPU.
+///
+/// MLC uses WebGPU to achieve ~native inference speeds.
+Future<int> fllamaChatMlcWeb(
+  OpenAiRequest request,
+  FllamaMlcLoadCallback loadCallback,
+  FllamaInferenceCallback callback,
+) async {
+  // ignore: avoid_print
+  print(
+    'WARNING: called fllamaChatMlcWeb on native platform. Using fllamaChat instead.',
+  );
+  return fllamaChat(request, callback);
+}
+
+Future<void> fllamaMlcWebModelDelete(String modelId) async {
+  // ignore: avoid_print
+  print(
+    'WARNING: called fllamaMlcWebModelDelete on native platform. Ignoring.',
+  );
+}
+
+Future<bool> fllamaMlcIsWebModelDownloaded(String modelId) async {
+  // ignore: avoid_print
+  print(
+    'WARNING: called fllamaMlcIsWebModelDownloaded on native platform. Returning false.',
+  );
+  return false;
+}

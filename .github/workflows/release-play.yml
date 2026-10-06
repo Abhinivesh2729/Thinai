@@ -1,0 +1,88 @@
+# Runs when release is pushed to (normally by merging a branch through a PR).
+# Analyze, test, build an arm64 app bundle, and publish it live to Play's production track.
+name: Release → Play Store
+
+on:
+  push:
+    branches: [release]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Build bundle and upload draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    # Queue rather than cancel: an upload cut off halfway can leave a half-made Play edit.
+    concurrency:
+      group: release-play
+      cancel-in-progress: false
+    steps:
+      - run: echo "START=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - run: flutter pub get
+
+      - run: flutter analyze
+
+      # Tests tagged `native` need a device and a model download; see dart_test.yaml.
+      - run: flutter test --exclude-tags native
+
+      # versionCode rises with every commit, so Play never rejects a reused one; versionName comes from pubspec.yaml.
+      - name: Work out version
+        id: version
+        run: |
+          echo "name=$(sed -nE 's/^version: *([^+ ]+).*/\1/p' pubspec.yaml)" >> "$GITHUB_OUTPUT"
+          echo "code=$((100 + $(git rev-list --count HEAD)))" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore release keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Build app bundle (arm64)
+        run: flutter build appbundle --release --target-platform android-arm64 --build-number=${{ steps.version.outputs.code }}
+
+      - name: Publish to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: in.atmega.thinai
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          tracks: production
+          status: completed
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Release → Play Store"
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Result | ${{ job.status }} |"
+            echo "| Version | ${{ steps.version.outputs.name }} (build ${{ steps.version.outputs.code }}) |"
+            echo "| Commit | ${{ steps.version.outputs.sha }} |"
+            echo "| CPU | arm64-v8a |"
+            echo "| Published to | Play Console → Thinai → Production, **live** to all users. |"
+            echo "| Job time | ~$(( ($(date +%s) - START) / 60 + 1 )) min |"
+          } >> "$GITHUB_STEP_SUMMARY"

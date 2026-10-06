@@ -1,0 +1,7 @@
+Thinai now answers about today.
+
+Web search: questions that need current information — news, prices, dates, scores — are looked up automatically, and every answer shows its sources. Only your question leaves the phone; your chats and the model stay on it. Switch it off any time in Settings.
+
+Camera: take a photo and ask about it.
+
+The + button in chat now holds camera, image, document and web search in one place.

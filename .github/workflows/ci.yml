@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel an older CI run when a newer commit is pushed
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # =========================================================
+  # Quality checks
+  # Runs automatically on PRs and pushes to main
+  # =========================================================
+  quality:
+    name: Lint, Test & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Required because the formatting check compares against
+          # the PR base commit / previous commit.
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          channel: stable
+          cache: true
+
+      - name: Cache Pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify code formatting (changed Dart files only)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+          else
+            base_sha="${{ github.event.before }}"
+          fi
+
+          mapfile -t dart_files < <(
+            git diff --name-only --diff-filter=ACMR \
+              "$base_sha" "${{ github.sha }}" \
+              -- '*.dart' ':!third_party/**'
+          )
+
+          if (( ${#dart_files[@]} == 0 )); then
+            echo "No changed Dart files to format-check."
+            exit 0
+          fi
+
+          dart format --output=none --set-exit-if-changed "${dart_files[@]}"
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Inspect native library diagnostics & runtime path
+        shell: bash
+        run: |
+          echo "=== Locating libfllama.so in .dart_tool ==="
+          find .dart_tool -name "libfllama.so" -type f -print || true
+          echo "=== Locating libfllama.so across repository ==="
+          find . -name "libfllama.so" -type f -print || true
+          echo "=== Inspecting native asset registration in .dart_tool ==="
+          find .dart_tool -name "output.json" -type f -exec cat {} + || true
+
+          # If libfllama.so is found, configure runtime library path
+          lib_path=$(find .dart_tool -name "libfllama.so" -type f 2>/dev/null | head -n 1 || true)
+          if [[ -n "$lib_path" ]]; then
+            lib_dir=$(dirname "$lib_path")
+            echo "Configuring LD_LIBRARY_PATH with $lib_dir"
+            echo "LD_LIBRARY_PATH=$lib_dir:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+            echo "FLLAMA_DYLIB_PATH=$(pwd)/$lib_path" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run unit & widget tests with coverage
+        run: flutter test --coverage
+
+      - name: Verify 100% test coverage gate
+        run: ./tool/check_coverage.sh
