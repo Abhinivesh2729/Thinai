@@ -181,8 +181,41 @@ final webSearchEnabledProvider =
       (ref) => WebSearchController(),
     );
 
-// Bottom navigation index for the main shell: 0=Chat, 1=Models, 2=Server.
-final shellTabIndexProvider = StateProvider<int>((ref) => 1);
+/// Whether three follow-up questions are written after each reply.
+///
+/// On by default. It costs a short second pass on the model after every
+/// answer, so it is a switch rather than a given for anyone counting battery.
+class FollowUpsController extends StateNotifier<bool> {
+  FollowUpsController() : super(true) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_kFollowUpsKey) ?? true;
+  }
+
+  Future<void> set(bool value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kFollowUpsKey, value);
+  }
+}
+
+final followUpsEnabledProvider =
+    StateNotifierProvider<FollowUpsController, bool>(
+      (ref) => FollowUpsController(),
+    );
+
+const _kFollowUpsKey = 'follow_ups_enabled';
+
+/// True while Chat is writing a reply. Read by the drawer, which must not
+/// switch conversations under a reply that is still streaming into one.
+final chatGeneratingProvider = StateProvider<bool>((ref) => false);
+
+// Which section the main shell shows: 0=Chat, 1=Models, 2=Server. Chat is
+// home; the others are reached from the drawer.
+final shellTabIndexProvider = StateProvider<int>((ref) => 0);
 
 // Increment to request a fresh coach-mark walkthrough from anywhere in the UI.
 final coachTourRequestProvider = StateProvider<int>((ref) => 0);
@@ -297,18 +330,18 @@ final benchmarkStoreProvider = Provider<BenchmarkStore>(
   (ref) => const BenchmarkStore(),
 );
 
-final benchmarkResultsProvider = StateNotifierProvider<
-    BenchmarkResultsController, Map<String, BenchmarkResult>>(
-  (ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)),
-);
+final benchmarkResultsProvider =
+    StateNotifierProvider<
+      BenchmarkResultsController,
+      Map<String, BenchmarkResult>
+    >((ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)));
 
 /// Everything known about speed on this phone: the device class, plus whatever
 /// the Benchmark page has actually measured.
 final speedKnowledgeProvider = Provider<SpeedKnowledge>((ref) {
-  final device = ref.watch(deviceProfileProvider).maybeWhen(
-        data: (d) => d,
-        orElse: () => DeviceProfile.unknownProfile,
-      );
+  final device = ref
+      .watch(deviceProfileProvider)
+      .maybeWhen(data: (d) => d, orElse: () => DeviceProfile.unknownProfile);
   return SpeedKnowledge(
     device: device,
     measurements: ref.watch(benchmarkResultsProvider),
@@ -330,23 +363,81 @@ class ChatTurn {
   /// would read them back to the model as something it had said.
   final List<WebResult> sources;
 
+  /// Every version of the conversation from this message onward, when the
+  /// question has been edited or its answer regenerated.
+  ///
+  /// Each entry is a whole tail — this message and everything after it — so
+  /// switching versions swaps the rest of the thread, and a version can hold
+  /// edits of its own further down. The slot at [variantIndex] is the version
+  /// on screen; its contents live in the conversation itself and the slot is
+  /// left empty rather than kept twice. Empty when there is only one version.
+  final List<List<ChatTurn>> variants;
+
+  /// Which entry of [variants] is on screen.
+  final int variantIndex;
+
+  /// Questions suggested after this reply, for the user to ask next.
+  final List<String> followUps;
+
   const ChatTurn({
     required this.role,
     required this.content,
     this.sources = const [],
+    this.variants = const [],
+    this.variantIndex = 0,
+    this.followUps = const [],
   });
 
-  ChatTurn withContent(String value) =>
-      ChatTurn(role: role, content: value, sources: sources);
+  /// How many versions this message has; 1 when it was never edited.
+  int get versionCount => variants.isEmpty ? 1 : variants.length;
 
-  ChatTurn withSources(List<WebResult> value) =>
-      ChatTurn(role: role, content: content, sources: value);
+  ChatTurn copyWith({
+    String? content,
+    List<WebResult>? sources,
+    List<List<ChatTurn>>? variants,
+    int? variantIndex,
+    List<String>? followUps,
+  }) => ChatTurn(
+    role: role,
+    content: content ?? this.content,
+    sources: sources ?? this.sources,
+    variants: variants ?? this.variants,
+    variantIndex: variantIndex ?? this.variantIndex,
+    followUps: followUps ?? this.followUps,
+  );
+
+  ChatTurn withContent(String value) => copyWith(content: value);
+
+  ChatTurn withSources(List<WebResult> value) => copyWith(sources: value);
+
+  /// This message without its version bookkeeping, for storing inside a
+  /// version list where that bookkeeping would be a copy of itself.
+  ChatTurn withoutVersions() =>
+      variants.isEmpty ? this : copyWith(variants: const [], variantIndex: 0);
+
+  /// Characters held by this message and every stored version under it, so
+  /// the storage cap counts what is actually written.
+  int get storedChars {
+    var total = content.length;
+    for (final version in variants) {
+      for (final turn in version) {
+        total += turn.storedChars;
+      }
+    }
+    return total;
+  }
 
   Map<String, Object?> toJson() => {
     'role': role,
     'content': content,
-    if (sources.isNotEmpty)
-      'sources': [for (final s in sources) s.toJson()],
+    if (sources.isNotEmpty) 'sources': [for (final s in sources) s.toJson()],
+    if (variants.isNotEmpty) ...{
+      'variants': [
+        for (final version in variants) [for (final t in version) t.toJson()],
+      ],
+      'variantIndex': variantIndex,
+    },
+    if (followUps.isNotEmpty) 'followUps': followUps,
   };
 
   static ChatTurn? fromJson(Object? value) {
@@ -359,7 +450,32 @@ class ChatTurn {
       final source = WebResult.fromJson(entry);
       if (source != null) sources.add(source);
     }
-    return ChatTurn(role: role, content: content, sources: sources);
+    final variants = <List<ChatTurn>>[];
+    for (final version in (value['variants'] as List? ?? const [])) {
+      if (version is! List) continue;
+      variants.add([for (final entry in version) ?ChatTurn.fromJson(entry)]);
+    }
+    final index = value['variantIndex'];
+    final followUps = [
+      for (final entry in (value['followUps'] as List? ?? const []))
+        if (entry is String && entry.trim().isNotEmpty) entry,
+    ];
+    // A version list that does not make sense (one entry, or an index off the
+    // end) is dropped rather than trusted: the thread on screen is still whole
+    // without it.
+    final usable =
+        variants.length > 1 &&
+        index is int &&
+        index >= 0 &&
+        index < variants.length;
+    return ChatTurn(
+      role: role,
+      content: content,
+      sources: sources,
+      variants: usable ? variants : const [],
+      variantIndex: usable ? index : 0,
+      followUps: followUps,
+    );
   }
 }
 
@@ -427,9 +543,7 @@ class ChatConversation {
     return ChatConversation(
       id: id,
       turns: turns,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        stamp is int ? stamp : 0,
-      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(stamp is int ? stamp : 0),
     );
   }
 }
@@ -481,7 +595,27 @@ class ChatSessions {
 /// for no gain. Losing a half-finished reply to a kill is the accepted cost.
 class ChatSessionsController extends StateNotifier<ChatSessions> {
   ChatSessionsController() : super(const ChatSessions()) {
-    _load();
+    unawaited(
+      _load().whenComplete(() {
+        if (!_ready.isCompleted) _ready.complete();
+      }),
+    );
+  }
+
+  final _ready = Completer<void>();
+
+  /// Completes once the stored conversations have been read back.
+  Future<void> get ready => _ready.future;
+
+  /// Opens on a blank chat, with every saved conversation left in the history.
+  ///
+  /// Called once per launch. Coming back to the app after closing it is the
+  /// start of something new; the chat from last time is one tap away in the
+  /// drawer, not sitting in the way of the next question. Waits for the stored
+  /// chats first, or reading them back would reopen the old one on top.
+  Future<void> startFreshSession() async {
+    await ready;
+    startNewChat();
   }
 
   /// Conversations kept. Old chats are cheap, but not free, and a phone
@@ -555,9 +689,8 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     conversations = _tidy(conversations);
     // A reply cut off by the app being killed leaves an empty placeholder.
     // Drop it, keep the question.
-    conversations = [
-      for (final c in conversations) _dropTrailingPlaceholder(c),
-    ]..removeWhere((c) => c.isEmpty);
+    conversations = [for (final c in conversations) _dropTrailingPlaceholder(c)]
+      ..removeWhere((c) => c.isEmpty);
 
     state = ChatSessions(
       conversations: conversations,
@@ -609,6 +742,141 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     if (current != null) {
       _put(current.copyWith(updatedAt: DateTime.now()));
     }
+    await _save();
+  }
+
+  /// Most versions kept for one message. Past this the oldest goes, so a
+  /// question regenerated all afternoon cannot grow the history file forever.
+  static const _maxVersions = 10;
+
+  /// Replaces the question at [index] with [text] as a new version, keeping
+  /// the old one (and everything that followed it) one swipe away, and adds
+  /// the placeholder the new reply streams into.
+  ///
+  /// Regenerating an answer is the same operation with the question unchanged.
+  void forkAt(int index, String text) {
+    final current = state.active;
+    if (current == null) return;
+    final turns = current.turns;
+    if (index < 0 || index >= turns.length || turns[index].role != 'user') {
+      return;
+    }
+    final at = turns[index];
+    final live = [at.withoutVersions(), ...turns.sublist(index + 1)];
+    var variants = at.variants.isEmpty
+        ? <List<ChatTurn>>[live]
+        : ([...at.variants]..[at.variantIndex] = live);
+    variants = [...variants, const <ChatTurn>[]];
+    while (variants.length > _maxVersions) {
+      variants.removeAt(0);
+    }
+    final fresh = ChatTurn(
+      role: 'user',
+      content: text,
+      variants: variants,
+      variantIndex: variants.length - 1,
+    );
+    _put(
+      current.copyWith(
+        turns: [
+          ...turns.sublist(0, index),
+          fresh,
+          const ChatTurn(role: 'assistant', content: ''),
+        ],
+        updatedAt: DateTime.now(),
+      ),
+      makeActive: true,
+    );
+    unawaited(_save());
+  }
+
+  /// Shows version [target] of the message at [index], swapping in the rest
+  /// of the thread that belongs to it.
+  void switchVersion(int index, int target) {
+    final current = state.active;
+    if (current == null) return;
+    final turns = current.turns;
+    if (index < 0 || index >= turns.length) return;
+    final at = turns[index];
+    if (at.variants.isEmpty ||
+        target == at.variantIndex ||
+        target < 0 ||
+        target >= at.variants.length) {
+      return;
+    }
+    final stored = at.variants[target];
+    if (stored.isEmpty) return;
+    final variants = [...at.variants]
+      ..[at.variantIndex] = [at.withoutVersions(), ...turns.sublist(index + 1)]
+      ..[target] = const [];
+    _put(
+      current.copyWith(
+        turns: [
+          ...turns.sublist(0, index),
+          stored.first.copyWith(variants: variants, variantIndex: target),
+          ...stored.sublist(1),
+        ],
+      ),
+    );
+    unawaited(_save());
+  }
+
+  /// Removes the exchange the message at [index] belongs to: the question and
+  /// its answer. When the question has other versions, only the one on screen
+  /// goes and a neighbour takes its place.
+  Future<void> deleteExchange(int index) async {
+    final current = state.active;
+    if (current == null) return;
+    final turns = current.turns;
+    if (index < 0 || index >= turns.length) return;
+    // An answer is deleted with the question it answers.
+    final start = turns[index].role == 'assistant' && index > 0
+        ? index - 1
+        : index;
+    final at = turns[start];
+    late final List<ChatTurn> remaining;
+    if (at.variants.length > 1) {
+      final variants = [...at.variants]..removeAt(at.variantIndex);
+      final next = at.variantIndex.clamp(0, variants.length - 1);
+      final tail = variants[next];
+      variants[next] = const [];
+      final first = variants.length > 1
+          ? tail.first.copyWith(variants: variants, variantIndex: next)
+          : tail.first.withoutVersions();
+      remaining = [...turns.sublist(0, start), first, ...tail.sublist(1)];
+    } else {
+      final end =
+          start + 1 < turns.length && turns[start + 1].role == 'assistant'
+          ? start + 2
+          : start + 1;
+      remaining = [...turns.sublist(0, start), ...turns.sublist(end)];
+    }
+    if (remaining.isEmpty) {
+      await delete(current.id);
+      return;
+    }
+    _put(current.copyWith(turns: remaining));
+    await _save();
+  }
+
+  /// Pins suggested next questions under the last reply of [conversationId],
+  /// if that reply is still the last one — a new message sent while they were
+  /// being written makes them stale.
+  Future<void> setFollowUps(
+    String conversationId,
+    String forReply,
+    List<String> followUps,
+  ) async {
+    ChatConversation? conversation;
+    for (final c in state.conversations) {
+      if (c.id == conversationId) conversation = c;
+    }
+    if (conversation == null || conversation.turns.isEmpty) return;
+    final last = conversation.turns.last;
+    if (last.role != 'assistant' || last.content != forReply) return;
+    final turns = [...conversation.turns];
+    turns[turns.length - 1] = last.copyWith(followUps: followUps);
+    _put(conversation.copyWith(turns: turns));
     await _save();
   }
 
@@ -702,7 +970,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     final kept = <ChatTurn>[];
     var chars = 0;
     for (var i = turns.length - 1; i >= 0; i--) {
-      chars += turns[i].content.length;
+      chars += turns[i].storedChars;
       // Never trim to nothing: one reply longer than the whole budget should
       // still be the thing that comes back, not an empty screen.
       if (kept.isNotEmpty && (kept.length >= _maxTurns || chars > _maxChars)) {
@@ -855,8 +1123,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       }
     }
     _emit(
-      DownloadOutcome(label: '${model.displayName} image encoder',
-          catalogModel: model),
+      DownloadOutcome(
+        label: '${model.displayName} image encoder',
+        catalogModel: model,
+      ),
     );
   }
 
@@ -875,7 +1145,9 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     if (await store.projectorPathFor(filename) != null) return;
 
     try {
-      final handle = await _ref.read(modelDownloaderProvider).start(
+      final handle = await _ref
+          .read(modelDownloaderProvider)
+          .start(
             url,
             filename: filename,
             displayName: '${model.displayName} · image encoder',
@@ -909,7 +1181,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     if (!_outcomes.isClosed) _outcomes.add(outcome);
   }
 
-  Future<LocalModel?> _findDownloaded(String expectedId, String destPath) async {
+  Future<LocalModel?> _findDownloaded(
+    String expectedId,
+    String destPath,
+  ) async {
     final store = _ref.read(modelStoreProvider);
     final byId = await store.findById(expectedId);
     if (byId != null) return byId;
@@ -943,7 +1218,6 @@ String _normalizeModelKey(String input) {
   }
   return key;
 }
-
 
 Future<String> _getOrCreateServerBearerToken() async {
   final prefs = await SharedPreferences.getInstance();
@@ -1024,11 +1298,7 @@ class ServerController extends StateNotifier<ServerStatus> {
       }
 
       await _server.start(
-        ApiServerConfig(
-          port: port,
-          lanMode: lanMode,
-          bearerToken: bearerToken,
-        ),
+        ApiServerConfig(port: port, lanMode: lanMode, bearerToken: bearerToken),
       );
 
       final ip = lanMode ? await lanIpv4() : null;
@@ -1040,10 +1310,7 @@ class ServerController extends StateNotifier<ServerStatus> {
         lanIp: ip,
       );
 
-      await _remember(
-        running: true,
-        port: state.port,
-      );
+      await _remember(running: true, port: state.port);
     } catch (e) {
       state = ServerStatus(
         running: false,
@@ -1052,10 +1319,7 @@ class ServerController extends StateNotifier<ServerStatus> {
         error: e.toString(),
       );
 
-      await _remember(
-        running: false,
-        port: port,
-      );
+      await _remember(running: false, port: port);
     }
   }
 
@@ -1154,10 +1418,9 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
     // lanShareProvider loads its own preference asynchronously, so read the
     // stored value directly instead of racing it.
     final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
-    await ref.read(serverControllerProvider.notifier).start(
-      port: port,
-      lanMode: lan,
-    );
+    await ref
+        .read(serverControllerProvider.notifier)
+        .start(port: port, lanMode: lan);
     final status = ref.read(serverControllerProvider);
     if (status.running) {
       await ForegroundServiceManager.serverStarted(
@@ -1167,5 +1430,4 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
       );
     }
   }
-
 });

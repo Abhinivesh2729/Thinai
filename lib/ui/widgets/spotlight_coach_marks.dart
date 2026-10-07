@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class SpotlightCoachStep {
   const SpotlightCoachStep({
     required this.targetKey,
@@ -275,20 +277,23 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
             width: panelWidth,
             child: Container(
               decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.6),
-                ),
+                color: AppColors.of(context).card,
+                borderRadius: BorderRadius.circular(Radii.xl),
+                border: Border.all(color: scheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.26),
-                    blurRadius: 22,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              padding: const EdgeInsets.fromLTRB(
+                Space.xl,
+                Space.lg,
+                Space.lg,
+                Space.md,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -297,38 +302,38 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
                     children: [
                       Text(
                         'App Tour',
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        '${_index + 1}/${widget.steps.length}',
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w700,
+                      // Progress as a row of segments: how far along, and how
+                      // much is left, at a glance.
+                      for (var i = 0; i < widget.steps.length; i++)
+                        AnimatedContainer(
+                          duration: Motion.base,
+                          margin: const EdgeInsets.only(left: 4),
+                          width: i == _index ? 16 : 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: i <= _index
+                                ? scheme.primary
+                                : scheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _step.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _step.message,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
-                      fontSize: 13.5,
-                      height: 1.35,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -358,6 +363,9 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
                     children: [
                       TextButton(
                         onPressed: widget.onDone,
+                        style: TextButton.styleFrom(
+                          foregroundColor: scheme.onSurfaceVariant,
+                        ),
                         child: const Text('Skip'),
                       ),
                       if (_index > 0)

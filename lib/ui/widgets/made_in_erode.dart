@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 /// The "Made in Erode" credit, in one place so the splash, About and Settings
 /// all show the same wording and gold accent.
 class MadeInErode extends StatelessWidget {
@@ -16,7 +18,7 @@ class MadeInErode extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final accent = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFF8D88A)
+        ? kBrandGold
         : _gold;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -28,7 +30,13 @@ class MadeInErode extends StatelessWidget {
             color: scheme.onSurfaceVariant,
           ),
         ),
-        Text('\u2764\ufe0f', style: TextStyle(fontSize: compact ? 11 : 13)),
+        // An icon, not the emoji: Inter carries its own monochrome heart,
+        // which wins over the colour one.
+        Icon(
+          Icons.favorite_rounded,
+          size: compact ? 12 : 14,
+          color: const Color(0xFFE5484D),
+        ),
         Text(
           ' in ',
           style: TextStyle(

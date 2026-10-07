@@ -1,45 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../theme/app_theme.dart';
+import '../widgets/ui_kit.dart';
+
+/// The first screen, held while session state is restored.
+///
+/// One composed moment rather than decoration: the app mark, the Tamil
+/// wordmark, a single line on what Thinai is, and the credit. Fixed colours,
+/// so it is the same brand screen whichever theme the phone is in.
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF041C3A), Color(0xFF0C3E7B), Color(0xFF1D7A88)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            const _Orb(
-              top: -90,
-              left: -50,
-              size: 250,
-              color: Color(0x33F5D07A),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: kBrandInk,
+      ),
+      child: Scaffold(
+        backgroundColor: kBrandInk,
+        // Expanded explicitly: a Scaffold body is laid out loose, and the
+        // glow would otherwise shrink to the width of the widest line.
+        body: SizedBox.expand(
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0, -0.25),
+                radius: 1.1,
+                colors: [Color(0xFF12557F), Color(0xFF0A2C48), kBrandInk],
+                stops: [0, 0.45, 1],
+              ),
             ),
-            const _Orb(
-              top: 90,
-              right: -70,
-              size: 210,
-              color: Color(0x2247C7BE),
-            ),
-            const _Orb(
-              bottom: 120,
-              left: -80,
-              size: 240,
-              color: Color(0x223B82F6),
-            ),
-            SafeArea(
+            child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
+                padding: const EdgeInsets.symmetric(horizontal: Space.xxl),
                 child: Column(
                   children: [
-                    const Spacer(),
+                    const Spacer(flex: 5),
                     TweenAnimationBuilder<double>(
                       duration: const Duration(milliseconds: 900),
                       curve: Curves.easeOutCubic,
@@ -48,37 +47,54 @@ class SplashPage extends StatelessWidget {
                         return Opacity(
                           opacity: value,
                           child: Transform.translate(
-                            offset: Offset(0, 24 * (1 - value)),
+                            offset: Offset(0, 16 * (1 - value)),
                             child: child,
                           ),
                         );
                       },
                       child: const _CenterBrand(),
                     ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFFE5EDF8),
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.4,
-                          ),
-                          children: [
-                            TextSpan(text: 'Made with ❤️ in '),
-                            TextSpan(
-                              text: 'Erode, Tamilnadu',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFF8D88A),
-                                letterSpacing: 0.2,
-                              ),
+                    const Spacer(flex: 6),
+                    TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 1200),
+                      curve: const Interval(0.4, 1, curve: Curves.easeOut),
+                      tween: Tween(begin: 0, end: 1),
+                      builder: (context, value, child) =>
+                          Opacity(opacity: value, child: child),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: Space.xl),
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13.5,
+                              color: Colors.white.withValues(alpha: 0.62),
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.1,
                             ),
-                          ],
+                            children: const [
+                              TextSpan(text: 'Made with '),
+                              // An icon, not the emoji: Inter carries its own
+                              // monochrome heart, which wins over the colour one.
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Icon(
+                                  Icons.favorite_rounded,
+                                  size: 14,
+                                  color: Color(0xFFE5484D),
+                                ),
+                              ),
+                              TextSpan(text: ' in '),
+                              TextSpan(
+                                text: 'Erode, Tamilnadu',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: kBrandGold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -86,7 +102,7 @@ class SplashPage extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -101,85 +117,44 @@ class _CenterBrand extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(width: 56, height: 1.2, color: const Color(0x88EED08A)),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                size: 20,
-                color: Color(0xFFEED08A),
-              ),
-            ),
-            Container(width: 56, height: 1.2, color: const Color(0x88EED08A)),
-          ],
-        ),
-        const SizedBox(height: 20),
+        const ThinaiMark(size: 76),
+        const SizedBox(height: Space.xxl + 4),
         const Text(
           'திணை',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 58,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.4,
+            fontSize: 52,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+            height: 1.15,
             color: Color(0xFFF8FBFF),
-            shadows: [
-              Shadow(
-                color: Color(0x66000000),
-                blurRadius: 16,
-                offset: Offset(0, 8),
-              ),
-            ],
           ),
         ),
-        const SizedBox(height: 16),
-        Container(
-          width: 180,
-          height: 2,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0x00F8D88A), Color(0xFFF8D88A), Color(0x00F8D88A)],
-            ),
+        const SizedBox(height: Space.sm),
+        Text(
+          'THINAI',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 6,
+            color: kBrandGold.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: Space.lg),
+        Text(
+          'Private AI that runs on your phone',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.1,
+            color: Colors.white.withValues(alpha: 0.7),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Orb extends StatelessWidget {
-  const _Orb({
-    this.top,
-    this.left,
-    this.right,
-    this.bottom,
-    required this.size,
-    required this.color,
-  });
-
-  final double? top;
-  final double? left;
-  final double? right;
-  final double? bottom;
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: top,
-      left: left,
-      right: right,
-      bottom: bottom,
-      child: IgnorePointer(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-        ),
-      ),
     );
   }
 }

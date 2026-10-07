@@ -11,6 +11,8 @@ import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
+import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 
 class ModelAdvisor extends StatefulWidget {
   const ModelAdvisor({
@@ -47,47 +49,55 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final choice = _choice;
     final device = widget.speed.device;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(
+        Space.lg,
+        Space.lg,
+        Space.lg,
+        Space.lg,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.auto_awesome_rounded, size: 18, color: scheme.primary),
-              const SizedBox(width: 8),
+              IconTile(
+                icon: Icons.auto_awesome_rounded,
+                size: 36,
+                background: scheme.primaryContainer,
+                color: scheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: Space.md),
               Expanded(
-                child: Text(
-                  'What do you want to do?',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurface,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'What do you want to do?',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      device.known
+                          ? 'Thinai picks a model that fits your phone · ${device.summary}'
+                          : 'Thinai picks a model for the job',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            device.known
-                ? 'Thinai picks a model that fits your phone · ${device.summary}'
-                : 'Thinai picks a model for the job',
-            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Space.lg),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: Space.sm,
+            runSpacing: Space.sm,
             children: [
               for (final useCase in UseCase.values)
                 _ChoiceChip(
@@ -99,18 +109,34 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 ),
             ],
           ),
-          if (choice != null) ...[
-            const SizedBox(height: 14),
-            _Answer(
+          if (choice != null)
+            // Faded in rather than grown: the answer is at full size from its
+            // first frame, so its button is where it will stay the moment it
+            // appears.
+            TweenAnimationBuilder<double>(
               key: ValueKey(choice),
-              useCase: choice,
-              speed: widget.speed,
-              installedCatalogIds: widget.installedCatalogIds,
-              downloads: widget.downloads,
-              onDownload: widget.onDownload,
-              onCancel: widget.onCancel,
+              tween: Tween(begin: 0, end: 1),
+              duration: Motion.base,
+              curve: Motion.curve,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(0, 6 * (1 - t)),
+                  child: child,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: Space.lg),
+                child: _Answer(
+                  useCase: choice,
+                  speed: widget.speed,
+                  installedCatalogIds: widget.installedCatalogIds,
+                  downloads: widget.downloads,
+                  onDownload: widget.onDownload,
+                  onCancel: widget.onCancel,
+                ),
+              ),
             ),
-          ],
         ],
       ),
     );
@@ -130,33 +156,48 @@ class _ChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: selected ? scheme.primary : scheme.surface,
-      borderRadius: BorderRadius.circular(30),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(30),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                useCase.icon,
-                size: 15,
-                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                useCase.label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? scheme.onPrimary : scheme.onSurface,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final fg = selected ? scheme.surface : scheme.onSurface;
+    return AnimatedContainer(
+      duration: Motion.fast,
+      decoration: ShapeDecoration(
+        color: selected ? scheme.onSurface : Colors.transparent,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: selected ? scheme.onSurface : scheme.outlineVariant,
+          ),
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Space.md,
+              vertical: Space.sm,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  useCase.icon,
+                  size: 15,
+                  color: selected ? fg : scheme.onSurfaceVariant,
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Text(
+                  useCase.label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -166,7 +207,6 @@ class _ChoiceChip extends StatelessWidget {
 
 class _Answer extends StatelessWidget {
   const _Answer({
-    super.key,
     required this.useCase,
     required this.speed,
     required this.installedCatalogIds,
@@ -184,7 +224,7 @@ class _Answer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final device = speed.device;
     final result = recommend(
       useCase,
@@ -195,34 +235,36 @@ class _Answer extends StatelessWidget {
 
     final unavailable = result.unavailable;
     if (unavailable != null) {
-      return _Note(text: unavailable, icon: Icons.info_outline_rounded);
+      return InlineNotice(text: unavailable);
     }
 
     final best = result.best;
     if (best == null) {
-      return _Note(
+      return InlineNotice(
         text: result.caveat ?? 'Nothing in the catalogue fits this one.',
-        icon: Icons.info_outline_rounded,
       );
     }
+
+    final overline = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (result.caveat != null) ...[
-          _Note(text: result.caveat!, icon: Icons.warning_amber_rounded),
-          const SizedBox(height: 10),
+          InlineNotice(
+            text: result.caveat!,
+            icon: Icons.warning_amber_rounded,
+            tone: TagTone.warning,
+          ),
+          const SizedBox(height: Space.md),
         ],
         Text(
           device.known ? 'Best model for your phone' : 'Best model for this',
-          style: TextStyle(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
-            color: scheme.onSurfaceVariant,
-          ),
+          style: overline,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Space.sm),
         _BestCard(
           pick: best,
           download: downloads[best.model.id],
@@ -230,17 +272,9 @@ class _Answer extends StatelessWidget {
           onCancel: () => onCancel?.call(best.model.id),
         ),
         if (result.alternatives.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            'Also worth considering',
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: Space.lg),
+          Text('Also worth considering', style: overline),
+          const SizedBox(height: Space.sm),
           for (final alt in result.alternatives) _AlternativeRow(pick: alt),
         ],
       ],
@@ -263,47 +297,51 @@ class _BestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final model = pick.model;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: model.accent.withValues(alpha: 0.35)),
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(Radii.md + 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(model.emoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 10),
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: model.accent.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(Radii.md - 1),
+                ),
+                child: Text(model.emoji, style: const TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: Space.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       model.displayName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(fontSize: 15),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       '${model.author} · ${model.approxSize} download',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: scheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Space.md),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -311,29 +349,34 @@ class _BestCard extends StatelessWidget {
               _Stat(icon: Icons.speed_rounded, label: pick.speedLabel),
               _Stat(icon: Icons.memory_rounded, label: pick.ramLabel),
               _Stat(
-                icon: Icons.article_outlined,
+                icon: Icons.notes_rounded,
                 label: '${model.contextLabel} context',
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Space.md),
           _FitLine(fit: pick.fit),
-          const SizedBox(height: 8),
+          const SizedBox(height: Space.sm),
           for (final reason in pick.reasons)
             Padding(
-              padding: const EdgeInsets.only(bottom: 3),
+              padding: const EdgeInsets.only(bottom: Space.xs),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '• ',
-                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
+                  const SizedBox(width: Space.sm),
                   Expanded(
                     child: Text(
                       reason,
-                      style: TextStyle(
-                        fontSize: 12.5,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 13,
                         color: scheme.onSurface,
                       ),
                     ),
@@ -341,7 +384,7 @@ class _BestCard extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Space.md),
           SizedBox(
             width: double.infinity,
             child: pick.installed
@@ -351,27 +394,21 @@ class _BestCard extends StatelessWidget {
                     label: const Text('Already downloaded'),
                   )
                 : download != null
-                    ? _DownloadingButton(
-                        handle: download!,
-                        onCancel: onCancel,
-                      )
-                    : FilledButton.icon(
-                        onPressed: onDownload,
-                        icon: const Icon(Icons.download_rounded, size: 18),
-                        label: Text('Download ${model.approxSize}'),
-                      ),
+                ? _DownloadingButton(handle: download!, onCancel: onCancel)
+                : FilledButton.icon(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download_rounded, size: 18),
+                    label: Text('Download ${model.approxSize}'),
+                  ),
           ),
           if (pick.estimatedTokensPerSecond != null)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: Space.sm),
               child: Text(
                 pick.speedIsMeasured
                     ? 'Speed measured on this phone by Benchmark.'
                     : 'Estimated speed. Run Benchmark for the real number.',
-                style: TextStyle(
-                  fontSize: 10.5,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
               ),
             ),
         ],
@@ -387,23 +424,29 @@ class _AlternativeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(pick.model.emoji, style: const TextStyle(fontSize: 13)),
-          const SizedBox(width: 8),
+          SizedBox(
+            width: 22,
+            child: Text(pick.model.emoji, style: const TextStyle(fontSize: 14)),
+          ),
+          const SizedBox(width: Space.sm),
           Expanded(
             child: Text(
               pick.model.displayName,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
             '${pick.speedLabel} · ${pick.model.approxSize}',
-            style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
           ),
         ],
       ),
@@ -419,21 +462,26 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: 5),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.of(context).card,
+        borderRadius: BorderRadius.circular(Radii.xs),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 13, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 4),
+          const SizedBox(width: Space.xs),
           Text(
             label,
-            style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontSize: 11.5,
+              color: scheme.onSurface,
+            ),
           ),
         ],
       ),
@@ -448,58 +496,27 @@ class _FitLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final app = AppColors.of(context);
     final (icon, color) = switch (fit) {
-      RamFit.comfortable => (Icons.check_circle_rounded, Colors.green.shade600),
-      RamFit.tight => (Icons.warning_amber_rounded, Colors.orange.shade700),
+      RamFit.comfortable => (Icons.check_circle_rounded, app.success),
+      RamFit.tight => (Icons.warning_amber_rounded, app.warning),
       RamFit.tooBig => (Icons.block_rounded, scheme.error),
       RamFit.unknown => (Icons.help_outline_rounded, scheme.onSurfaceVariant),
     };
     return Row(
       children: [
-        Icon(icon, size: 15, color: color),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 6),
         Text(
           fit.label,
-          style: TextStyle(
-            fontSize: 12,
+          style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: color,
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Note extends StatelessWidget {
-  const _Note({required this.text, required this.icon});
-
-  final String text;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -518,57 +535,64 @@ class _DownloadingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return StreamBuilder<DownloadProgress>(
       stream: handle.progress,
       builder: (context, snapshot) {
         final progress = snapshot.data;
         final fraction = progress?.fraction;
-        final percent =
-            fraction == null ? null : (fraction * 100).toStringAsFixed(0);
+        final percent = fraction == null
+            ? null
+            : (fraction * 100).toStringAsFixed(0);
 
         return Material(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.of(context).card,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Radii.md + 2),
+            side: BorderSide(color: scheme.outlineVariant),
+          ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onCancel,
-            child: Stack(
-              children: [
-                // The fill is the progress bar: the button itself carries how
-                // far along the download is, rather than a separate bar the
-                // eye has to find.
-                if (fraction != null)
-                  Positioned.fill(
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: fraction.clamp(0.0, 1.0),
-                      child: ColoredBox(
-                        color: scheme.primary.withValues(alpha: 0.22),
-                      ),
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.close_rounded, size: 16, color: scheme.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        percent == null
-                            ? 'Starting… · tap to cancel'
-                            : 'Downloading $percent% · tap to cancel',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: scheme.onSurface,
+            child: SizedBox(
+              height: 48,
+              child: Stack(
+                children: [
+                  // The fill is the progress bar: the button itself carries
+                  // how far along the download is, rather than a separate bar
+                  // the eye has to find.
+                  if (fraction != null)
+                    Positioned.fill(
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: fraction.clamp(0.0, 1.0),
+                        child: ColoredBox(
+                          color: scheme.primary.withValues(alpha: 0.14),
                         ),
                       ),
-                    ],
+                    ),
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: Space.sm),
+                        Text(
+                          percent == null
+                              ? 'Starting… · tap to cancel'
+                              : 'Downloading $percent% · tap to cancel',
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
