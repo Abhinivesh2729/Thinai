@@ -15,7 +15,7 @@ Once Thinai is running with a downloaded model, any local client or companion ap
 - **On-Device Web Search**: Optional web search capability to answer questions needing current information, citing sources while keeping chats local.
 - **Multimodal Attachments**: Take photos via the system camera, attach images, or analyze documents directly in chat.
 - **Background Service**: Android foreground service ensures the local HTTP server continues running when the app is backgrounded.
-- **Hardware Acceleration**: Experimental GPU offload (Vulkan / OpenCL) with built-in CPU vs. GPU benchmark.
+- **Hardware Acceleration**: Experimental GPU offload (Vulkan / OpenCL) with built-in CPU vs. GPU benchmark, and automatic fallback to the CPU when a device's GPU driver misbehaves.
 
 ---
 
@@ -88,7 +88,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 ### 1. Clone and Install Dependencies
 
 ```bash
-git clone https://github.com/ATmega-Software-Technologies/Thinai.git
+git clone https://github.com/Abhinivesh2729/Thinai.git
 cd Thinai
 flutter pub get
 ```

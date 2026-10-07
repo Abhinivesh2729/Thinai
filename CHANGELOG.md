@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- GPU inference no longer crashes the app on most Android devices: GPU backend registration failures are caught and fall back to CPU, Vulkan device re-enumeration is bounds-checked, and a backend that fails two loads in a row rests for ten minutes while requests run on the CPU.
+
 ### Added
 - Open-source preparation: repository documentation, contribution guidelines, code of conduct, security policy, issue templates, and pull request template.
 

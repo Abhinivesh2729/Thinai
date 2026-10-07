@@ -94,11 +94,18 @@ static const char *const FLLAMA_REG_OPENCL = "OpenCL"; // ggml_backend_opencl_re
 // Serialises registrations: register_backend() appends to the registry's
 // vectors, which must not happen concurrently.
 static std::mutex g_gpu_reg_mutex;
+
+// Set when a backend's registration threw; it will throw again, so don't retry.
+static bool fllama_gpu_reg_failed[4] = {};
 #endif
 
 static void fllama_register_gpu_backends(int32_t kind) {
   fllama_backend_init_once();
 #ifdef FLLAMA_LAZY_GPU_REG
+  if (kind >= 0 && kind < 4 && fllama_gpu_reg_failed[kind]) {
+    return;
+  }
+  try {
 #  ifdef GGML_USE_VULKAN
   if (kind == FLLAMA_GPU_BACKEND_AUTO || kind == FLLAMA_GPU_BACKEND_VULKAN) {
     static std::once_flag once;
@@ -123,6 +130,15 @@ static void fllama_register_gpu_backends(int32_t kind) {
     });
   }
 #  endif
+  } catch (const std::exception &e) {
+    // A driver that throws at registration will throw for every request;
+    // fall back to CPU and remember rather than dying inside it.
+    log_message("[fllama] GPU backend registration failed: " + std::string(e.what()));
+    if (kind >= 0 && kind < 4) fllama_gpu_reg_failed[kind] = true;
+  } catch (...) {
+    log_message("[fllama] GPU backend registration failed");
+    if (kind >= 0 && kind < 4) fllama_gpu_reg_failed[kind] = true;
+  }
 #else
   (void) kind;
 #endif

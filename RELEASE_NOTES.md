@@ -1,5 +1,26 @@
 # Release notes
 
+## v2.3.12 branch
+
+### GPU inference that falls back instead of crashing
+
+GPU offload crashed the app on most Android phones the moment inference
+started: the Vulkan loader on several drivers throws during backend
+registration, and parts of the Vulkan device code re-enumerate physical
+devices without checking that the answer still matches the first one — so a
+driver that reports fewer devices the second time was indexed straight past
+the end of the list.
+
+Both are fixed in the native layer: a backend whose registration throws is
+remembered and the request runs on the CPU, and every device re-enumeration is
+now guarded so a stale device reads as "no memory" or an error instead of a
+segfault.
+
+On top of that, two GPU load failures in a row now rest the backend for ten
+minutes and serve requests on the CPU — the same model, the same answers, just
+not on the broken driver. The saved GPU setting is left alone, an engine that
+answers clears the count, and the speed test still genuinely tests the GPU.
+
 ## v2.3.11 branch
 
 ### Context window and temperature, per model

@@ -231,3 +231,57 @@ Future<GpuBackend?> takeCrashedGpuTrial() async {
     return null;
   }
 }
+
+/// How many consecutive GPU loads must fail before a backend is rested.
+const int kGpuFailureThreshold = 2;
+
+/// How long a rested backend stays on the CPU, even without a restart.
+const Duration gpuCooldown = Duration(minutes: 10);
+
+/// Counts consecutive GPU load failures per backend and rests a backend that
+/// fails [kGpuFailureThreshold] times in a row.
+///
+/// A vendor driver can fail below the crash guard's radar: a load error that
+/// comes back as a normal failure, or a device that disappears between
+/// enumerations. Retrying such a backend on every request costs the user the
+/// full load time and then an error; resting it keeps the session usable and
+/// the saved setting untouched.
+class GpuFailureTracker {
+  final _failures = <GpuBackend, int>{};
+  final _restedUntil = <GpuBackend, DateTime>{};
+
+  /// Records a failed load. Returns true when the backend just crossed the
+  /// threshold and is now rested.
+  bool recordFailure(GpuBackend backend, {DateTime? now}) {
+    if (backend == GpuBackend.none) return false;
+    final count = (_failures[backend] ?? 0) + 1;
+    _failures[backend] = count;
+    if (count >= kGpuFailureThreshold) {
+      _restedUntil[backend] =
+          (now ?? DateTime.now()).add(gpuCooldown);
+      _failures[backend] = 0;
+      return true;
+    }
+    return false;
+  }
+
+  /// Clears the count after a load that produced a token.
+  void recordSuccess(GpuBackend backend) => _failures.remove(backend);
+
+  /// True while the backend is rested after repeated failures.
+  bool isRested(GpuBackend backend, {DateTime? now}) {
+    final until = _restedUntil[backend];
+    if (until == null) return false;
+    if ((now ?? DateTime.now()).isAfter(until)) {
+      _restedUntil.remove(backend);
+      return false;
+    }
+    return true;
+  }
+
+  /// Resets everything; used when the user picks a backend themselves.
+  void reset() {
+    _failures.clear();
+    _restedUntil.clear();
+  }
+}
