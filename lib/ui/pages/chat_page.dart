@@ -16,10 +16,10 @@ import '../../llm/generation_settings.dart';
 import '../../llm/llm_engine.dart';
 import '../../state/providers.dart';
 import '../../web/web_search.dart';
+import '../widgets/chat_drawer.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/markdown_text.dart';
 import '../widgets/model_settings_sheet.dart';
-import 'chat_history_page.dart';
 
 /// Builds the message list sent to the model, with same-role neighbours merged.
 ///
@@ -508,39 +508,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _toast(next ? 'Web search on.' : 'Web search off.');
   }
 
-  /// Deletes the conversation on screen after confirming, since it is also
-  /// being removed from the history list.
-  Future<void> _deleteCurrent() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete this chat?'),
-        content: const Text('It is removed from your chat history too.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(c).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await ref.read(chatSessionsProvider.notifier).deleteActive();
-  }
 
-  void _openHistory() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ChatHistoryPage()));
-  }
 
   /// Keeps the newest message in view as tokens arrive, but only while the
   /// user has not scrolled away to read something earlier.
@@ -639,30 +607,36 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
-        actions: [
-          // Only offered once there is something to leave behind: on a blank
-          // chat it would do nothing.
-          if (messages.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.add_comment_rounded),
-              tooltip: 'New chat',
-              onPressed: _generating
-                  ? null
-                  : () =>
-                        ref.read(chatSessionsProvider.notifier).startNewChat(),
-            ),
-          IconButton(
-            icon: const Icon(Icons.history_rounded),
-            tooltip: 'Chat history',
-            onPressed: _openHistory,
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          tooltip: 'Menu & Chats',
+          onPressed: () {
+            if (shellScaffoldKey.currentState != null) {
+              shellScaffoldKey.currentState!.openDrawer();
+            } else {
+              Scaffold.maybeOf(context)?.openDrawer();
+            }
+          },
+        ),
+        title: Text(
+          sessions.active?.title ?? 'Thinai',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
           ),
-          if (messages.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Delete this chat',
-              onPressed: _generating ? null : _deleteCurrent,
-            ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_square, size: 20),
+            tooltip: 'New chat',
+            onPressed: _generating
+                ? null
+                : () => ref.read(chatSessionsProvider.notifier).startNewChat(),
+          ),
           const SizedBox(width: 4),
         ],
       ),

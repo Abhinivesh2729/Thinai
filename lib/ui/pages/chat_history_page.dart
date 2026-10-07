@@ -112,6 +112,19 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                   controller.open(conversation.id);
                                   Navigator.of(context).pop();
                                 },
+                                onRename: () async {
+                                  final newTitle = await _showRenameDialog(
+                                    context,
+                                    conversation.title,
+                                  );
+                                  if (newTitle != null &&
+                                      newTitle.isNotEmpty) {
+                                    await controller.rename(
+                                      conversation.id,
+                                      newTitle,
+                                    );
+                                  }
+                                },
                                 onDelete: () async {
                                   final ok = await _confirm(
                                     context,
@@ -295,12 +308,14 @@ class _SwipeableConversationCard extends StatelessWidget {
     required this.current,
     required this.onOpen,
     required this.onDelete,
+    this.onRename,
   });
 
   final ChatConversation conversation;
   final bool current;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
+  final VoidCallback? onRename;
 
   @override
   Widget build(BuildContext context) {
@@ -331,6 +346,7 @@ class _SwipeableConversationCard extends StatelessWidget {
         conversation: conversation,
         current: current,
         onOpen: onOpen,
+        onRename: onRename,
         onDelete: onDelete,
       ),
     );
@@ -403,12 +419,57 @@ Future<bool> _confirm(
   return result ?? false;
 }
 
+Future<String?> _showRenameDialog(
+  BuildContext context,
+  String currentTitle,
+) async {
+  final controller = TextEditingController(text: currentTitle);
+  controller.selection = TextSelection(
+    baseOffset: 0,
+    extentOffset: currentTitle.length,
+  );
+  return showDialog<String>(
+    context: context,
+    builder: (c) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('Rename chat'),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: 'Conversation title',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+        ),
+        onSubmitted: (v) => Navigator.pop(c, v.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(c),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF2CA048),
+          ),
+          onPressed: () => Navigator.pop(c, controller.text.trim()),
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
+}
+
 class _ConversationCard extends StatelessWidget {
   const _ConversationCard({
     required this.conversation,
     required this.current,
     required this.onOpen,
     required this.onDelete,
+    this.onRename,
   });
 
   final ChatConversation conversation;
@@ -417,6 +478,7 @@ class _ConversationCard extends StatelessWidget {
   final bool current;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
+  final VoidCallback? onRename;
 
   @override
   Widget build(BuildContext context) {
@@ -428,6 +490,7 @@ class _ConversationCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onOpen,
+        onLongPress: onRename,
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
           decoration: BoxDecoration(
@@ -555,6 +618,13 @@ class _ConversationCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onRename != null)
+                IconButton(
+                  tooltip: 'Rename chat',
+                  icon: const Icon(Icons.edit_outlined, size: 19),
+                  color: scheme.onSurfaceVariant,
+                  onPressed: onRename,
+                ),
               // Delete button
               IconButton(
                 tooltip: 'Delete chat',

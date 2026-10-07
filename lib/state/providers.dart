@@ -368,16 +368,20 @@ class ChatConversation {
   final String id;
   final List<ChatTurn> turns;
   final DateTime updatedAt;
+  final String? customTitle;
 
   const ChatConversation({
     required this.id,
     required this.turns,
     required this.updatedAt,
+    this.customTitle,
   });
 
-  /// Derived from the opening message rather than stored, so it can never go
-  /// stale and nothing has to name a chat before writing it.
+  /// Derived from custom title if present, otherwise from the opening message.
   String get title {
+    if (customTitle != null && customTitle!.trim().isNotEmpty) {
+      return customTitle!.trim();
+    }
     for (final turn in turns) {
       if (turn.role == 'user' && turn.content.trim().isNotEmpty) {
         final line = turn.content.trim().replaceAll(RegExp(r'\s+'), ' ');
@@ -401,17 +405,25 @@ class ChatConversation {
 
   bool get isEmpty => turns.isEmpty;
 
-  ChatConversation copyWith({List<ChatTurn>? turns, DateTime? updatedAt}) =>
+  ChatConversation copyWith({
+    List<ChatTurn>? turns,
+    DateTime? updatedAt,
+    String? customTitle,
+    bool clearCustomTitle = false,
+  }) =>
       ChatConversation(
         id: id,
         turns: turns ?? this.turns,
         updatedAt: updatedAt ?? this.updatedAt,
+        customTitle: clearCustomTitle ? null : (customTitle ?? this.customTitle),
       );
 
   Map<String, Object?> toJson() => {
     'id': id,
     'updatedAt': updatedAt.millisecondsSinceEpoch,
     'turns': [for (final t in turns) t.toJson()],
+    if (customTitle != null && customTitle!.trim().isNotEmpty)
+      'customTitle': customTitle!.trim(),
   };
 
   static ChatConversation? fromJson(Object? value) {
@@ -424,12 +436,14 @@ class ChatConversation {
       if (turn != null) turns.add(turn);
     }
     final stamp = value['updatedAt'];
+    final customTitle = value['customTitle'] as String?;
     return ChatConversation(
       id: id,
       turns: turns,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(
         stamp is int ? stamp : 0,
       ),
+      customTitle: customTitle,
     );
   }
 }
@@ -622,6 +636,22 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
   void open(String id) {
     state = state.copyWith(activeId: id);
     unawaited(_save());
+  }
+
+  Future<void> rename(String id, String newTitle) async {
+    final trimmed = newTitle.trim();
+    final updated = [
+      for (final c in state.conversations)
+        if (c.id == id)
+          c.copyWith(
+            customTitle: trimmed.isEmpty ? null : trimmed,
+            clearCustomTitle: trimmed.isEmpty,
+          )
+        else
+          c,
+    ];
+    state = state.copyWith(conversations: updated);
+    await _save();
   }
 
   Future<void> delete(String id) async {

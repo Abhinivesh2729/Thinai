@@ -13,6 +13,7 @@ import 'pages/chat_page.dart';
 import 'pages/models_page.dart';
 import 'pages/server_page.dart';
 import 'pages/splash_page.dart';
+import 'widgets/chat_drawer.dart';
 import 'widgets/coach_mark_targets.dart';
 import 'widgets/spotlight_coach_marks.dart';
 
@@ -491,6 +492,8 @@ class _MainShellState extends ConsumerState<_MainShell> {
 
     final update = _update;
     return Scaffold(
+      key: shellScaffoldKey,
+      drawer: const ChatDrawer(),
       body: IndexedStack(index: index, children: _pages),
       // The banner rides above the navigation bar rather than above the body:
       // every page brings its own AppBar, and a notice pushed in over those
