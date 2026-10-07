@@ -17,6 +17,8 @@ class MarkdownText extends StatelessWidget {
     this.codeBackground,
     this.mutedColor,
     this.selectable = true,
+    this.streamingCursor = false,
+    this.cursorColor,
   });
 
   final String data;
@@ -31,6 +33,12 @@ class MarkdownText extends StatelessWidget {
 
   final bool selectable;
 
+  /// Whether to render a breathing ChatGPT-style cursor at the end of the text.
+  final bool streamingCursor;
+
+  /// Colour for the streaming cursor.
+  final Color? cursorColor;
+
   @override
   Widget build(BuildContext context) {
     final span = buildMarkdownSpan(
@@ -42,8 +50,10 @@ class MarkdownText extends StatelessWidget {
       muted:
           mutedColor ??
           (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.62),
+      streamingCursor: streamingCursor,
+      cursorColor: cursorColor ?? style.color ?? const Color(0xFF2CA048),
     );
-    return selectable
+    return (selectable && !streamingCursor)
         ? SelectableText.rich(span)
         : Text.rich(span);
   }
@@ -56,6 +66,8 @@ TextSpan buildMarkdownSpan(
   required TextStyle base,
   required Color codeBackground,
   required Color muted,
+  bool streamingCursor = false,
+  Color? cursorColor,
 }) {
   final code = base.copyWith(
     fontFamily: 'monospace',
@@ -91,7 +103,58 @@ TextSpan buildMarkdownSpan(
     children.addAll(_blockSpans(line, base, code, muted));
   }
 
+  if (streamingCursor) {
+    children.add(
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: _StreamingBlinkingCursor(
+          color: cursorColor ?? base.color ?? const Color(0xFF2CA048),
+        ),
+      ),
+    );
+  }
+
   return TextSpan(style: base, children: children);
+}
+
+/// Smooth breathing cursor block similar to ChatGPT's streaming indicator.
+class _StreamingBlinkingCursor extends StatefulWidget {
+  final Color color;
+  const _StreamingBlinkingCursor({required this.color});
+
+  @override
+  State<_StreamingBlinkingCursor> createState() =>
+      _StreamingBlinkingCursorState();
+}
+
+class _StreamingBlinkingCursorState extends State<_StreamingBlinkingCursor>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 650),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: _anim, curve: Curves.easeInOut),
+      child: Container(
+        width: 8,
+        height: 15,
+        margin: const EdgeInsets.only(left: 3),
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
 }
 
 /// One line of Markdown: heading, list item, quote, rule, or paragraph.

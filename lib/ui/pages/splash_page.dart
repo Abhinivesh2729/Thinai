@@ -10,25 +10,30 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const logoGreen = Color(0xFF2CA048);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF090A0C) : const Color(0xFFFFFFFF);
+    final logoAsset = isDark
+        ? 'assets/images/logo_dark.png'
+        : 'assets/images/logo_white.png';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.white,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: bg,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFFFFFF),
+        backgroundColor: bg,
         body: SafeArea(
           child: Column(
             children: [
               const Spacer(flex: 3),
               // Golden-ratio optical center brand group
               TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 700),
+                duration: const Duration(milliseconds: 600),
                 curve: Curves.easeOutCubic,
                 tween: Tween(begin: 0.0, end: 1.0),
                 builder: (context, value, child) {
@@ -45,12 +50,12 @@ class SplashPage extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Non-removed high-resolution logo on pure white canvas
                       Image.asset(
-                        'assets/images/logo_white.png',
+                        logoAsset,
                         width: 250,
+                        cacheWidth: 500,
                         fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+                        filterQuality: FilterQuality.medium,
                       ),
                       const SizedBox(height: 16),
                       const Text(

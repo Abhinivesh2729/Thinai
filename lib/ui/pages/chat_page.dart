@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../chat/document_attachment.dart';
@@ -1299,8 +1300,8 @@ class _MessageBubble extends StatelessWidget {
   /// to rather than with the avatar.
   static const double _gutter = 36;
 
-  void _copyReply(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: msg.content));
+  void _copyText(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1312,59 +1313,128 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 
+  void _shareText(BuildContext context, String text) {
+    HapticFeedback.lightImpact();
+    SharePlus.instance.share(ShareParams(text: text));
+  }
+
+  void _showUserOptions(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: scheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 14),
+              ListTile(
+                leading: const Icon(Icons.copy_rounded, size: 20),
+                title: const Text(
+                  'Copy text',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  _copyText(context, msg.content);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.share_rounded, size: 20),
+                title: const Text(
+                  'Share text',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  _shareText(context, msg.content);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = msg.role == 'user';
 
-    final bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: isUser
-            ? (isDark ? const Color(0xFF1A2233) : const Color(0xFF0F172A))
-            : scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(isUser ? 18 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 18),
+    final bubble = GestureDetector(
+      onLongPress: isUser ? () => _showUserOptions(context) : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: isUser
+              ? (isDark ? const Color(0xFF1A2233) : const Color(0xFF0F172A))
+              : scheme.surfaceContainerLow,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(18),
+            topRight: const Radius.circular(18),
+            bottomLeft: Radius.circular(isUser ? 18 : 4),
+            bottomRight: Radius.circular(isUser ? 4 : 18),
+          ),
+          border: isUser
+              ? null
+              : Border.all(color: scheme.outline, width: 1),
         ),
-        border: isUser
-            ? null
-            : Border.all(color: scheme.outline, width: 1),
+        child: msg.content.isEmpty && !isUser
+            ? (searching
+                  ? _SearchingLine(color: scheme.onSurfaceVariant)
+                  : pending
+                  ? _TypingDots(color: scheme.onSurfaceVariant)
+                  : Text(
+                      'Stopped',
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ))
+            : isUser
+            ? SelectableText(
+                msg.content,
+                style: const TextStyle(
+                  color: Colors.white,
+                  height: 1.4,
+                  fontSize: 14.5,
+                ),
+              )
+            : MarkdownText(
+                data: msg.content,
+                style: TextStyle(
+                  color: scheme.onSurface,
+                  height: 1.45,
+                  fontSize: 14.5,
+                ),
+                codeBackground: scheme.surfaceContainerHighest,
+                mutedColor: scheme.onSurfaceVariant,
+                streamingCursor: pending,
+                cursorColor: const Color(0xFF2CA048),
+              ),
       ),
-      child: msg.content.isEmpty && !isUser
-          ? (searching
-                ? _SearchingLine(color: scheme.onSurfaceVariant)
-                : pending
-                ? _TypingDots(color: scheme.onSurfaceVariant)
-                : Text(
-                    'Stopped',
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ))
-          : isUser
-          ? SelectableText(
-              msg.content,
-              style: const TextStyle(
-                color: Colors.white,
-                height: 1.4,
-                fontSize: 14.5,
-              ),
-            )
-          : MarkdownText(
-              data: msg.content,
-              style: TextStyle(
-                color: scheme.onSurface,
-                height: 1.4,
-                fontSize: 14.5,
-              ),
-              codeBackground: scheme.surfaceContainerHighest,
-              mutedColor: scheme.onSurfaceVariant,
-            ),
     );
 
     if (isUser) {
@@ -1409,17 +1479,24 @@ class _MessageBubble extends StatelessWidget {
               Flexible(child: bubble),
             ],
           ),
-          // Action row: copy button + sources pill
+          // Action row: copy button + share button + sources pill
           Padding(
             padding: const EdgeInsets.only(left: _gutter, top: 4, right: 8),
             child: Row(
               children: [
-                if (msg.content.isNotEmpty && !pending)
+                if (msg.content.isNotEmpty && !pending) ...[
                   _BubbleAction(
                     icon: Icons.copy_rounded,
                     label: 'Copy',
-                    onTap: () => _copyReply(context),
+                    onTap: () => _copyText(context, msg.content),
                   ),
+                  const SizedBox(width: 6),
+                  _BubbleAction(
+                    icon: Icons.share_rounded,
+                    label: 'Share',
+                    onTap: () => _shareText(context, msg.content),
+                  ),
+                ],
                 if (msg.sources.isNotEmpty && msg.content.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   _SourcesPill(sources: msg.sources),

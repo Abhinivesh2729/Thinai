@@ -11,6 +11,7 @@ import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
+import 'model_brand_logo.dart';
 
 class ModelAdvisor extends StatefulWidget {
   const ModelAdvisor({
@@ -407,7 +408,16 @@ class _BestCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(model.emoji, style: const TextStyle(fontSize: 20)),
+              Container(
+                width: 36,
+                height: 36,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: ModelBrandLogo.catalog(model: model, size: 24),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -521,7 +531,7 @@ class _AlternativeRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Text(pick.model.emoji, style: const TextStyle(fontSize: 13)),
+          ModelBrandLogo.catalog(model: pick.model, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

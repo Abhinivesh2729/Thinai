@@ -83,7 +83,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: const Text('Clear all downloads?'),
         content: const Text(
-          'This removes all downloaded or partial model files inside the app.',
+          'This removes all downloaded or partial model files inside the app to free up device storage.',
         ),
         actions: [
           TextButton(
@@ -91,6 +91,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Clear all'),
           ),
@@ -118,9 +119,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  /// Manual counterpart to the launch-time check in the shell. Same Play API,
-  /// but this one always says something back — a check that answers nothing
-  /// reads as broken.
   Future<void> _checkForUpdates() async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -132,8 +130,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       case UpdateState.upToDate:
         _toast('Thinai is up to date');
       case UpdateState.unavailable:
-        // Debug and sideloaded builds land here too: Play only serves updates
-        // to installs it made itself.
         _toast('Play Store could not check for updates');
       case UpdateState.downloading:
         _toast('An update is already downloading');
@@ -144,9 +140,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  /// Play puts up its own consent sheet, then downloads while the app stays
-  /// usable. [_busy] is already cleared: this can take minutes and there is no
-  /// reason to lock Settings for it.
   Future<void> _downloadUpdate(AppUpdater updater) async {
     _toast('Downloading update in the background');
     final result = await updater.download();
@@ -197,60 +190,174 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final mode = ref.watch(themeModeProvider);
+    final webSearchEnabled = ref.watch(webSearchEnabledProvider);
     final version = ref.watch(appVersionProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
+          // 1. Sovereign On-Device Privacy Banner
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.shield_outlined,
-                  size: 20,
-                  color: Color(0xFF2CA048),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2CA048).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.security_rounded,
+                    size: 20,
+                    color: Color(0xFF2CA048),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    'All processing stays 100% offline on your device. '
-                    'No account, telemetry, or server required.',
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 12.5,
-                      height: 1.35,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '100% Offline & Private',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'All inference executes locally on device silicon. No cloud telemetry or accounts.',
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          const _SettingsSection(
-            title: 'Appearance & Chat',
-            icon: Icons.palette_outlined,
+          const SizedBox(height: 8),
+
+          // 2. APPEARANCE & CHAT SECTION
+          _SettingsGroup(
+            title: 'APPEARANCE & CHAT',
             children: [
-              _ThemeModeCard(),
-              _WebSearchCard(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.palette_outlined, size: 20, color: scheme.onSurface),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Theme mode',
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                'Light, dark, or follow system default',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          label: Text('System'),
+                          icon: Icon(Icons.brightness_auto_rounded),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('Light'),
+                          icon: Icon(Icons.light_mode_rounded),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('Dark'),
+                          icon: Icon(Icons.dark_mode_rounded),
+                        ),
+                      ],
+                      selected: {mode},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (selection) {
+                        ref.read(themeModeProvider.notifier).set(selection.first);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const _TileDivider(),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                secondary: Icon(
+                  Icons.travel_explore_rounded,
+                  size: 20,
+                  color: scheme.onSurface,
+                ),
+                title: const Text(
+                  'Web search in chat',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  'Fetches current facts when answering questions. Only the search query leaves the device.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                value: webSearchEnabled,
+                onChanged: (value) {
+                  unawaited(ref.read(webSearchEnabledProvider.notifier).set(value));
+                },
+              ),
             ],
           ),
-          _SettingsSection(
-            title: 'Hardware Engine',
-            icon: Icons.memory_rounded,
+
+          // 3. HARDWARE & ACCELERATION SECTION
+          _SettingsGroup(
+            title: 'HARDWARE & ACCELERATION',
             children: [
               const GpuSettingsCard(),
+              const _TileDivider(),
               _SettingsTile(
                 icon: Icons.speed_rounded,
-                title: 'Benchmark phone',
-                subtitle: 'Measure tokens per second on device silicon',
+                title: 'Benchmark device',
+                subtitle: 'Measure prompt evaluation and token generation speed',
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const BenchmarkPage()),
@@ -259,24 +366,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-          _SettingsSection(
-            title: 'Model Files & Storage',
-            icon: Icons.folder_outlined,
+
+          // 4. MODEL MANAGEMENT SECTION
+          _SettingsGroup(
+            title: 'MODEL STORAGE & MANAGEMENT',
             children: [
               _SettingsTile(
-                icon: Icons.folder_open_rounded,
-                title: 'Import .gguf model',
-                subtitle: 'Pick a local model file from device storage',
+                icon: Icons.file_upload_outlined,
+                title: 'Import local .gguf',
+                subtitle: 'Load a quantized model file from device storage',
                 onTap: _busy ? null : _importModel,
               ),
+              const _TileDivider(),
               _SettingsTile(
                 icon: Icons.link_rounded,
-                title: 'Download model by URL',
-                subtitle: 'Add direct Hugging Face or HTTP download link',
+                title: 'Download model from URL',
+                subtitle: 'Fetch directly via Hugging Face or direct HTTP link',
                 onTap: _busy ? null : _downloadByUrl,
               ),
+              const _TileDivider(),
               _SettingsTile(
-                icon: Icons.delete_sweep_rounded,
+                icon: Icons.delete_outline_rounded,
                 title: 'Clear downloaded models',
                 subtitle: 'Remove cached and downloaded model files to free space',
                 danger: true,
@@ -284,31 +394,54 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-          _SettingsSection(
-            title: 'App & Guidance',
-            icon: Icons.help_outline_rounded,
+
+          // 5. ABOUT & GUIDANCE SECTION
+          _SettingsGroup(
+            title: 'ABOUT & GUIDANCE',
             children: [
               _SettingsTile(
-                icon: Icons.tips_and_updates_rounded,
+                icon: Icons.explore_outlined,
                 title: 'Start app tour',
-                subtitle: 'Re-run interactive feature walkthrough',
+                subtitle: 'Launch interactive step-by-step feature walkthrough',
                 onTap: () {
                   ref.read(coachTourRequestProvider.notifier).state++;
-                  Navigator.pop(context);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
               ),
+              const _TileDivider(),
               _SettingsTile(
-                icon: Icons.system_update_rounded,
+                icon: Icons.system_update_alt_rounded,
                 title: 'Check for updates',
                 subtitle: version == null
                     ? 'Check Play Store for newest build'
                     : 'Installed version: $version',
+                trailing: version != null
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'v$version',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      )
+                    : null,
                 onTap: _busy ? null : _checkForUpdates,
               ),
+              const _TileDivider(),
               _SettingsTile(
-                icon: Icons.support_agent_rounded,
+                icon: Icons.chat_bubble_outline_rounded,
                 title: 'Contact support',
-                subtitle: 'Get help or provide feedback to creators',
+                subtitle: 'Get help or share feedback with creators',
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -317,18 +450,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   );
                 },
               ),
+              const _TileDivider(),
               _SettingsTile(
                 icon: Icons.info_outline_rounded,
                 title: 'About Thinai',
                 subtitle: 'Mission, sovereignty, and project details',
                 onTap: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AboutPage()),
+                  );
                 },
               ),
             ],
           ),
+
           const SizedBox(height: 10),
           const MadeInErode(compact: true),
         ],
@@ -337,108 +472,68 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 }
 
-class _ThemeModeCard extends ConsumerWidget {
-  const _ThemeModeCard();
+class _SettingsGroup extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SettingsGroup({
+    required this.title,
+    required this.children,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final mode = ref.watch(themeModeProvider);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.brightness_6_rounded, color: scheme.onSurface),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Appearance',
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Light, dark, or follow the system',
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: Color(0xFF2CA048),
+              ),
             ),
-            const SizedBox(height: 12),
-            SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.brightness_auto_rounded),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode_rounded),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode_rounded),
-                ),
-              ],
-              selected: {mode},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) {
-                ref.read(themeModeProvider.notifier).set(selection.first);
-              },
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
-          ],
-        ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// The same switch the composer's globe toggles, kept here too because this is
-/// where someone looks when they want to know what the app sends out — and the
-/// subtitle is the answer, not just the label of a switch.
-class _WebSearchCard extends ConsumerWidget {
-  const _WebSearchCard();
+class _TileDivider extends StatelessWidget {
+  const _TileDivider();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final enabled = ref.watch(webSearchEnabledProvider);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: SwitchListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        secondary: Icon(Icons.travel_explore_rounded, color: scheme.onSurface),
-        title: Text(
-          'Web search in chat',
-          style: TextStyle(
-            color: scheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          'Looks up current info automatically. Only the question leaves '
-          'the phone.',
-          style: TextStyle(color: scheme.onSurfaceVariant),
-        ),
-        value: enabled,
-        onChanged: (value) {
-          unawaited(ref.read(webSearchEnabledProvider.notifier).set(value));
-        },
-      ),
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: scheme.outlineVariant.withValues(alpha: 0.35),
     );
   }
 }
@@ -449,6 +544,7 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.trailing,
     this.danger = false,
   });
 
@@ -456,6 +552,7 @@ class _SettingsTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
+  final Widget? trailing;
   final bool danger;
 
   @override
@@ -463,22 +560,35 @@ class _SettingsTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final fg = danger ? scheme.error : scheme.onSurface;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        leading: Icon(icon, color: fg),
-        title: Text(
-          title,
-          style: TextStyle(color: fg, fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: scheme.onSurfaceVariant),
-        ),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: Icon(
+        icon,
+        size: 20,
+        color: danger ? scheme.error : scheme.onSurface,
       ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: fg,
+          fontSize: 14.5,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+      trailing: trailing ??
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: scheme.onSurfaceVariant,
+          ),
+      onTap: onTap,
     );
   }
 }
@@ -519,8 +629,8 @@ class _DownloadDialogState extends State<_DownloadDialog> {
           TextField(
             controller: _url,
             decoration: const InputDecoration(
-              labelText: 'Direct URL',
-              hintText: 'https://.../model.gguf',
+              labelText: 'Direct GGUF URL',
+              hintText: 'https://huggingface.co/.../model.gguf',
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -554,51 +664,3 @@ class _DownloadDialogState extends State<_DownloadDialog> {
     );
   }
 }
-
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final IconData? icon;
-  final List<Widget> children;
-
-  const _SettingsSection({
-    required this.title,
-    this.icon,
-    required this.children,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const logoGreen = Color(0xFF2CA048);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-            child: Row(
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 14, color: logoGreen),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  title.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: logoGreen,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...children,
-        ],
-      ),
-    );
-  }
-}
-

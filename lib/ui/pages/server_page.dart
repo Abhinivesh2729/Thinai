@@ -8,6 +8,7 @@ import '../../models_repo/catalog.dart';
 import '../../models_repo/model_store.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
+import '../widgets/floating_lines_background.dart';
 import '../widgets/model_settings_sheet.dart';
 import 'settings_page.dart';
 
@@ -849,224 +850,308 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline),
+        border: Border.all(
+          color: running
+              ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.55 : 0.40)
+              : scheme.outline,
+          width: running ? 1.5 : 1,
+        ),
+        boxShadow: running
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF2CA048).withValues(
+                    alpha: isDark ? 0.20 : 0.12,
+                  ),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _StatusDot(running: running),
-              const SizedBox(width: 10),
-              Text(
-                running ? 'Running' : 'Stopped',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                  color: scheme.onSurface,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // FloatingLines Background: Flowing harmonic waves clipped strictly inside top card
+            Positioned.fill(
+              child: FloatingLinesBackground(
+                animated: running,
+                isDark: isDark,
+                animationSpeed: 1.0,
+                enabledWaves: const ['top', 'middle', 'bottom'],
+                lineCount: const [5, 6, 5],
+                lineDistance: const [4.0, 4.5, 4.0],
+                topWavePosition: const WavePosition(x: 8.0, y: 0.45, rotate: -0.35),
+                middleWavePosition: const WavePosition(x: 4.0, y: 0.0, rotate: 0.18),
+                bottomWavePosition: const WavePosition(x: 1.8, y: -0.55, rotate: 0.35),
+                interactive: true,
+                bendRadius: 4.0,
+                bendStrength: -0.45,
+                mouseDamping: 0.08,
+                parallax: true,
+                parallaxStrength: 0.15,
+              ),
+            ),
+            // Subtle frosted readability tint so FloatingLines waves shine through vividly while keeping text crisp
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF090E14).withValues(alpha: 0.22),
+                            const Color(0xFF0D141C).withValues(alpha: 0.42),
+                          ]
+                        : [
+                            const Color(0xFFFFFFFF).withValues(alpha: 0.35),
+                            const Color(0xFFF3F7F5).withValues(alpha: 0.50),
+                          ],
+                  ),
                 ),
               ),
-              const Spacer(),
-              if (running)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'LIVE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
-                      color: scheme.primary,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (running) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF2CA048).withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
+            ),
+            // Card Content
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SERVER ADDRESS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                            color: scheme.onSurfaceVariant,
-                          ),
+                  Row(
+                    children: [
+                      _StatusDot(running: running),
+                      const SizedBox(width: 10),
+                      Text(
+                        running ? 'Running' : 'Stopped',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                          color: scheme.onSurface,
                         ),
-                        const SizedBox(height: 3),
-                        SelectableText(
-                          lan && lanIp != null
-                              ? 'http://$lanIp:$port'
-                              : 'http://127.0.0.1:$port',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF2CA048),
-                            fontFamily: 'monospace',
+                      ),
+                      const Spacer(),
+                      if (running)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
                           ),
-                        ),
-                        if (lan && lanIp != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Local loopback: http://127.0.0.1:$port',
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'LIVE',
                             style: TextStyle(
-                              fontSize: 11,
-                              color: scheme.onSurfaceVariant,
-                              fontFamily: 'monospace',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1,
+                              color: scheme.primary,
                             ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  if (running) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF090E13).withValues(alpha: 0.82)
+                            : Colors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              const Color(0xFF2CA048).withValues(alpha: 0.45),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'SERVER ADDRESS',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.8,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                SelectableText(
+                                  lan && lanIp != null
+                                      ? 'http://$lanIp:$port'
+                                      : 'http://127.0.0.1:$port',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF2CA048),
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                                if (lan && lanIp != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Local loopback: http://127.0.0.1:$port',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: scheme.onSurfaceVariant,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton.icon(
+                            icon: const Icon(Icons.copy_rounded, size: 14),
+                            label: const Text('Copy'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF2CA048),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final url = lan && lanIp != null
+                                  ? 'http://$lanIp:$port'
+                                  : 'http://127.0.0.1:$port';
+                              await Clipboard.setData(ClipboardData(text: url));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Copied $url to clipboard'),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    icon: const Icon(Icons.copy_rounded, size: 14),
-                    label: const Text('Copy'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF2CA048),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      textStyle: const TextStyle(
+                    const SizedBox(height: 10),
+                    Text(
+                      activeId == null
+                          ? 'No model loaded yet'
+                          : 'Active Model · $activeId',
+                      style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    onPressed: () async {
-                      final url = lan && lanIp != null
-                          ? 'http://$lanIp:$port'
-                          : 'http://127.0.0.1:$port';
-                      await Clipboard.setData(ClipboardData(text: url));
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Copied $url to clipboard'),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                  ] else ...[
+                    Text(
+                      'Run an on-device OpenAI & Ollama compatible HTTP server to connect apps, scripts, or coding assistants on your Wi-Fi.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: scheme.onSurfaceVariant,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      activeId == null
+                          ? 'No model loaded yet'
+                          : 'Active Model · $activeId',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF090E13).withValues(alpha: 0.78)
+                                : Colors.white.withValues(alpha: 0.92),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.25),
                             ),
                           ),
-                        );
-                      }
-                    },
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 4,
+                          ),
+                          child: TextField(
+                            controller: portController,
+                            enabled: !running,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              color: scheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Port',
+                              labelStyle: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton.icon(
+                        icon: Icon(
+                          running
+                              ? Icons.stop_rounded
+                              : Icons.play_arrow_rounded,
+                        ),
+                        label: Text(running ? 'Stop' : 'Start'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _brandDeep,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 22,
+                            vertical: 16,
+                          ),
+                        ),
+                        onPressed: running ? onStop : onStart,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              activeId == null ? 'No model loaded yet' : 'Active Model · $activeId',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ] else ...[
-            Text(
-              'Run an on-device OpenAI & Ollama compatible HTTP server to connect apps, scripts, or coding assistants on your Wi-Fi.',
-              style: TextStyle(
-                fontSize: 13,
-                color: scheme.onSurfaceVariant,
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              activeId == null ? 'No model loaded yet' : 'Active Model · $activeId',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ],
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    // Frosted fill tinted to the Quick start card so the field
-                    // belongs to the card instead of a grey box.
-                    color: scheme.surface.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  child: TextField(
-                    controller: portController,
-                    enabled: !running,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Port',
-                      labelStyle: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
-                icon: Icon(
-                  running ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                ),
-                label: Text(running ? 'Stop' : 'Start'),
-                style: FilledButton.styleFrom(
-                  // Solid brand navy CTA in both states/themes so it matches
-                  // the Quick start card's colour scheme (no teal).
-                  backgroundColor: _brandDeep,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 22, vertical: 16),
-                ),
-                onPressed: running ? onStop : onStart,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

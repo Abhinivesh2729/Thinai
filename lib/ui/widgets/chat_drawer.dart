@@ -31,6 +31,8 @@ class ChatDrawer extends ConsumerStatefulWidget {
 class _ChatDrawerState extends ConsumerState<ChatDrawer> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isManageMode = false;
+  final Set<String> _selectedIds = <String>{};
 
   @override
   void dispose() {
@@ -69,118 +71,192 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top branding & close button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
-              child: Row(
-                children: [
-                  Image.asset(
-                    isDark
-                        ? 'assets/images/logo_dark.png'
-                        : 'assets/images/logo_transparent.png',
-                    height: 24,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: logoGreen.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.eco_rounded,
-                            size: 18,
-                            color: logoGreen,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Thinai',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                            color: scheme.onSurface,
-                          ),
-                        ),
-                      ],
+            // Top Header: Manage Mode header vs Normal Branding header
+            if (_isManageMode)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                      tooltip: 'Exit manage mode',
+                      color: scheme.onSurfaceVariant,
+                      onPressed: () => setState(() {
+                        _isManageMode = false;
+                        _selectedIds.clear();
+                      }),
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    tooltip: 'Close menu',
-                    color: scheme.onSurfaceVariant,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-
-            // Prominent "+ New chat" button (ChatGPT / Claude style)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              child: Material(
-                color: scheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    controller.startNewChat();
-                    ref.read(shellTabIndexProvider.notifier).state = 0;
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 11,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: scheme.outlineVariant.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: logoGreen,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.add_rounded,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'New chat',
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Manage chats',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
                               color: scheme.onSurface,
                             ),
                           ),
+                          Text(
+                            _selectedIds.isEmpty
+                                ? 'Tap to select'
+                                : '${_selectedIds.length} of ${filtered.length} selected',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: logoGreen,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                      ),
+                      onPressed: filtered.isEmpty
+                          ? null
+                          : () {
+                              setState(() {
+                                if (_selectedIds.length == filtered.length &&
+                                    filtered.isNotEmpty) {
+                                  _selectedIds.clear();
+                                } else {
+                                  _selectedIds.addAll(filtered.map((c) => c.id));
+                                }
+                              });
+                            },
+                      child: Text(
+                        _selectedIds.length == filtered.length &&
+                                filtered.isNotEmpty
+                            ? 'Deselect all'
+                            : 'Select all',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                         ),
-                        Icon(
-                          Icons.edit_square,
-                          size: 16,
-                          color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              // Top branding & close button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      isDark
+                          ? 'assets/images/logo_dark.png'
+                          : 'assets/images/logo_transparent.png',
+                      height: 24,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: logoGreen.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.eco_rounded,
+                              size: 18,
+                              color: logoGreen,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Thinai',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                              color: scheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      tooltip: 'Close menu',
+                      color: scheme.onSurfaceVariant,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Prominent "+ New chat" button (ChatGPT / Claude style)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                child: Material(
+                  color: scheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () {
+                      controller.startNewChat();
+                      ref.read(shellTabIndexProvider.notifier).state = 0;
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.7),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: logoGreen,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.add_rounded,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'New chat',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.2,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.edit_square,
+                            size: 16,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
 
             // Live Search Bar
             if (allConversations.isNotEmpty)
@@ -267,17 +343,43 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                             }
                             final conv = item as ChatConversation;
                             final isActive = conv.id == sessions.activeId;
+                            final isSelected = _selectedIds.contains(conv.id);
+
                             return _DrawerConversationTile(
                               conversation: conv,
                               isActive: isActive,
+                              isManageMode: _isManageMode,
+                              isSelected: isSelected,
                               onTap: () {
-                                controller.open(conv.id);
-                                ref.read(shellTabIndexProvider.notifier).state = 0;
-                                Navigator.of(context).pop();
+                                if (_isManageMode) {
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selectedIds.remove(conv.id);
+                                    } else {
+                                      _selectedIds.add(conv.id);
+                                    }
+                                  });
+                                } else {
+                                  controller.open(conv.id);
+                                  ref
+                                      .read(shellTabIndexProvider.notifier)
+                                      .state = 0;
+                                  Navigator.of(context).pop();
+                                }
                               },
                               onLongPress: () {
-                                HapticFeedback.mediumImpact();
-                                _showConversationOptions(context, ref, conv);
+                                if (_isManageMode) {
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selectedIds.remove(conv.id);
+                                    } else {
+                                      _selectedIds.add(conv.id);
+                                    }
+                                  });
+                                } else {
+                                  HapticFeedback.mediumImpact();
+                                  _showConversationOptions(context, ref, conv);
+                                }
                               },
                               onOptionsTap: () {
                                 _showConversationOptions(context, ref, conv);
@@ -289,50 +391,218 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
 
             const Divider(height: 1),
 
-            // Footer options (Settings, Models, About)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _DrawerFooterTile(
-                    icon: Icons.tune_rounded,
-                    label: 'Settings',
-                    subtitle: 'Context window & temperature',
-                    onTap: () => _openModelSettings(context),
-                  ),
-                  _DrawerFooterTile(
-                    icon: Icons.memory_rounded,
-                    label: 'Models',
-                    onTap: () {
-                      ref.read(shellTabIndexProvider.notifier).state = 1;
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  _DrawerFooterTile(
-                    icon: Icons.settings_outlined,
-                    label: 'App settings',
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
-                      );
-                    },
-                  ),
-                  _DrawerFooterTile(
-                    icon: Icons.info_outline_rounded,
-                    label: 'About Thinai',
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AboutPage()),
-                      );
-                    },
-                  ),
-                ],
+            // Manage Mode Action Bar vs Streamlined Footer
+            if (_isManageMode)
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerLow,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: scheme.error,
+                          foregroundColor: scheme.onError,
+                          disabledBackgroundColor:
+                              scheme.surfaceContainerHighest,
+                          disabledForegroundColor: scheme.onSurfaceVariant
+                              .withValues(alpha: 0.5),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _selectedIds.isEmpty
+                            ? null
+                            : () => _confirmBatchDelete(ref),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _selectedIds.isEmpty
+                              ? 'Delete'
+                              : 'Delete (${_selectedIds.length})',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => setState(() {
+                        _isManageMode = false;
+                        _selectedIds.clear();
+                      }),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              // Streamlined Footer options: Settings, About Thinai, Manage
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _DrawerFooterTile(
+                      icon: Icons.checklist_rounded,
+                      label: 'Manage chats',
+                      subtitle:
+                          '${allConversations.length} conversation${allConversations.length == 1 ? '' : 's'}',
+                      onTap: () {
+                        setState(() {
+                          _isManageMode = true;
+                          _selectedIds.clear();
+                        });
+                      },
+                    ),
+                    _DrawerFooterTile(
+                      icon: Icons.tune_rounded,
+                      label: 'Model Settings',
+                      subtitle: 'Context window & temperature',
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        final activeId = ref.read(activeModelIdProvider);
+                        LocalModel? model;
+                        if (activeId != null) {
+                          model = await ref
+                              .read(modelStoreProvider)
+                              .findById(activeId);
+                        }
+                        if (model == null) {
+                          final installed =
+                              await ref.read(modelStoreProvider).list();
+                          if (installed.isNotEmpty) {
+                            model = installed.first;
+                          }
+                        }
+                        if (model != null && context.mounted) {
+                          await showModelSettingsSheet(context, model);
+                        } else if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'No model downloaded yet. Download a model from the Models tab first.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _DrawerFooterTile(
+                      icon: Icons.settings_outlined,
+                      label: 'App Settings',
+                      subtitle: 'Theme, GPU, downloads & server',
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SettingsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    _DrawerFooterTile(
+                      icon: Icons.info_outline_rounded,
+                      label: 'About Thinai',
+                      subtitle: 'Version, privacy & details',
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AboutPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Dialog to confirm batch deletion of multiple selected conversations.
+  Future<void> _confirmBatchDelete(WidgetRef ref) async {
+    final scheme = Theme.of(context).colorScheme;
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: scheme.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Delete $count chat${count == 1 ? '' : 's'}?',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          content: Text(
+            'Are you sure you want to permanently delete $count selected conversation${count == 1 ? '' : 's'}? This action cannot be undone.',
+            style: TextStyle(fontSize: 13.5, color: scheme.onSurfaceVariant),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.error,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () => Navigator.of(dialogCtx).pop(true),
+              child: const Text('Delete'),
             ),
           ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    final idsToDelete = Set<String>.from(_selectedIds);
+    await ref.read(chatSessionsProvider.notifier).deleteMultiple(idsToDelete);
+    if (!mounted) return;
+
+    setState(() {
+      _selectedIds.clear();
+      if (ref.read(chatSessionsProvider).conversations.isEmpty) {
+        _isManageMode = false;
+      }
+    });
+    HapticFeedback.mediumImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted $count chat${count == 1 ? '' : 's'}'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
@@ -407,6 +677,26 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 const SizedBox(height: 14),
                 const Divider(height: 1),
                 const SizedBox(height: 6),
+
+                // Select / Manage option
+                ListTile(
+                  leading: const Icon(Icons.checklist_rounded, size: 21),
+                  title: const Text(
+                    'Select / Manage',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    setState(() {
+                      _isManageMode = true;
+                      _selectedIds.add(conversation.id);
+                    });
+                  },
+                ),
 
                 // Rename option
                 ListTile(
@@ -599,91 +889,14 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
       },
     );
   }
-
-  /// Opens the model settings sheet to configure context window and temperature.
-  Future<void> _openModelSettings(BuildContext context) async {
-    final activeId = ref.read(activeModelIdProvider);
-    final store = ref.read(modelStoreProvider);
-    LocalModel? target;
-
-    if (activeId != null) {
-      target = await store.findById(activeId);
-    }
-
-    if (target == null) {
-      final list = await store.list();
-      if (list.length == 1) {
-        target = list.first;
-      } else if (list.length > 1 && context.mounted) {
-        target = await showDialog<LocalModel>(
-          context: context,
-          builder: (dialogCtx) => AlertDialog(
-            title: const Text(
-              'Select model',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: list.length,
-                itemBuilder: (_, i) {
-                  final m = list[i];
-                  return ListTile(
-                    leading: const Icon(Icons.memory_rounded),
-                    title: Text(
-                      m.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      m.id,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () => Navigator.of(dialogCtx).pop(m),
-                  );
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: const Text('Cancel'),
-              ),
-            ],
-          ),
-        );
-      }
-    }
-
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
-
-    if (target != null) {
-      await showModelSettingsSheet(context, target);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'No model loaded. Download or activate a model first.',
-          ),
-          action: SnackBarAction(
-            label: 'Models',
-            onPressed: () {
-              ref.read(shellTabIndexProvider.notifier).state = 1;
-            },
-          ),
-        ),
-      );
-    }
-  }
 }
 
 /// A conversation row inside the side navigation drawer.
 class _DrawerConversationTile extends StatelessWidget {
   final ChatConversation conversation;
   final bool isActive;
+  final bool isManageMode;
+  final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback onOptionsTap;
@@ -691,6 +904,8 @@ class _DrawerConversationTile extends StatelessWidget {
   const _DrawerConversationTile({
     required this.conversation,
     required this.isActive,
+    this.isManageMode = false,
+    this.isSelected = false,
     required this.onTap,
     required this.onLongPress,
     required this.onOptionsTap,
@@ -701,14 +916,22 @@ class _DrawerConversationTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     const logoGreen = Color(0xFF2CA048);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Material(
-        color: isActive
+    final highlight = isManageMode
+        ? (isSelected
+            ? (Theme.of(context).brightness == Brightness.dark
+                ? logoGreen.withValues(alpha: 0.20)
+                : logoGreen.withValues(alpha: 0.12))
+            : Colors.transparent)
+        : (isActive
             ? (Theme.of(context).brightness == Brightness.dark
                 ? logoGreen.withValues(alpha: 0.16)
                 : logoGreen.withValues(alpha: 0.10))
-            : Colors.transparent,
+            : Colors.transparent);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: highlight,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
@@ -718,7 +941,7 @@ class _DrawerConversationTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: isActive
+              border: (isManageMode && isSelected) || (!isManageMode && isActive)
                   ? Border.all(
                       color: logoGreen.withValues(alpha: 0.35),
                       width: 1,
@@ -727,25 +950,49 @@ class _DrawerConversationTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Active indicator line or subtle icon
-                if (isActive)
+                if (isManageMode) ...[
+                  // Custom styled checkbox
                   Container(
-                    width: 3,
-                    height: 16,
-                    margin: const EdgeInsets.only(right: 8),
+                    width: 20,
+                    height: 20,
+                    margin: const EdgeInsets.only(right: 10),
                     decoration: BoxDecoration(
-                      color: logoGreen,
-                      borderRadius: BorderRadius.circular(1.5),
+                      color: isSelected ? logoGreen : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isSelected ? logoGreen : scheme.outline,
+                        width: 1.5,
+                      ),
                     ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          )
+                        : null,
                   ),
-                Icon(
-                  isActive
-                      ? Icons.chat_bubble_rounded
-                      : Icons.chat_bubble_outline_rounded,
-                  size: 16,
-                  color: isActive ? logoGreen : scheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 10),
+                ] else ...[
+                  // Active indicator line or subtle icon
+                  if (isActive)
+                    Container(
+                      width: 3,
+                      height: 16,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: logoGreen,
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ),
+                  Icon(
+                    isActive
+                        ? Icons.chat_bubble_rounded
+                        : Icons.chat_bubble_outline_rounded,
+                    size: 16,
+                    color: isActive ? logoGreen : scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Expanded(
                   child: Text(
                     conversation.title,
@@ -753,27 +1000,29 @@ class _DrawerConversationTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13.5,
-                      fontWeight:
-                          isActive ? FontWeight.w700 : FontWeight.w500,
-                      color: isActive ? scheme.onSurface : scheme.onSurface,
+                      fontWeight: (isActive || (isManageMode && isSelected))
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
-                // Trailing 3-dots button for easy access without long-pressing
-                InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  onTap: onOptionsTap,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 16,
-                      color: isActive
-                          ? scheme.onSurface
-                          : scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                if (!isManageMode)
+                  // Trailing 3-dots button for easy access without long-pressing
+                  InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: onOptionsTap,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        size: 16,
+                        color: isActive
+                            ? scheme.onSurface
+                            : scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

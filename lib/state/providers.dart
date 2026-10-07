@@ -667,6 +667,21 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     await _save();
   }
 
+  /// Deletes multiple conversations in a single batch.
+  Future<void> deleteMultiple(Set<String> ids) async {
+    if (ids.isEmpty) return;
+    final remaining = [
+      for (final c in state.conversations)
+        if (!ids.contains(c.id)) c,
+    ];
+    state = ChatSessions(
+      conversations: remaining,
+      activeId: ids.contains(state.activeId) ? null : state.activeId,
+      loaded: true,
+    );
+    await _save();
+  }
+
   /// Deletes the conversation on screen, if there is one.
   Future<void> deleteActive() async {
     final id = state.activeId;
@@ -1138,21 +1153,27 @@ final savedServerPortProvider = FutureProvider<int>((ref) async {
 /// is not a decision the app gets to make; the tour points at the catalog
 /// instead.
 final appBootstrapProvider = FutureProvider<void>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  // Before the server can restart: its first request must already see the
-  // saved context windows and temperatures.
-  await GenerationSettingsStore.instance.ensureLoaded();
+  // Concurrently load preferences, generation settings, GPU trial check, and installed models.
+  final store = ref.read(modelStoreProvider);
+  final initResults = await Future.wait([
+    SharedPreferences.getInstance(),
+    GenerationSettingsStore.instance.ensureLoaded(),
+    takeCrashedGpuTrial(),
+    store.list(),
+  ]);
+
+  final prefs = initResults[0] as SharedPreferences;
+  final crashedGpu = initResults[2] as GpuBackend?;
+  final installed = initResults[3] as List<LocalModel>;
+
   // A GPU attempt that never produced a token means the driver took the app
   // down last time. Switch GPU off before anything can load a model with it.
-  final crashedGpu = await takeCrashedGpuTrial();
   if (crashedGpu != null) {
     await GenerationSettingsStore.instance.setGpu(GpuBackend.none);
     ref.read(gpuCrashNoticeProvider.notifier).state = crashedGpu;
     // This launch counts as the crash; one more failure rests the backend.
     LlmEngine.instance.gpuFailures.recordFailure(crashedGpu);
   }
-  final store = ref.read(modelStoreProvider);
-  final installed = await store.list();
 
   // 1. Active model.
   final savedId = prefs.getString(_kActiveModelKey);
@@ -1172,30 +1193,36 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
   // 2. Server.
   //
   // Any service still running at this point is a leftover: reaching here
-  // means a fresh isolate, and the HTTP server lived in the old one. Clear it
-  // first so the notification is never a lie, and so the restarted service
-  // gets a task handler this isolate can talk to (that is what delivers the
-  // notification's Stop button).
-  if (await FlutterForegroundTask.isRunningService) {
-    await FlutterForegroundTask.stopService();
-  }
-  if (prefs.getBool(_kServerRunningKey) ?? false) {
-    final port = prefs.getInt(_kServerPortKey) ?? 11434;
-    // lanShareProvider loads its own preference asynchronously, so read the
-    // stored value directly instead of racing it.
-    final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
-    await ref.read(serverControllerProvider.notifier).start(
-      port: port,
-      lanMode: lan,
-    );
-    final status = ref.read(serverControllerProvider);
-    if (status.running) {
-      await ForegroundServiceManager.serverStarted(
-        port: status.port,
-        lan: status.lan,
-        ip: status.lanIp,
-      );
-    }
-  }
-
+  // means a fresh isolate, and the HTTP server lived in the old one.
+  // Resume in background so the UI shell displays immediately without
+  // waiting for Android IPC service checks, socket binding, or LAN interface scans.
+  unawaited(_resumeServerIfConfigured(ref, prefs));
 });
+
+Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
+  try {
+    if (await FlutterForegroundTask.isRunningService) {
+      await FlutterForegroundTask.stopService();
+    }
+    if (prefs.getBool(_kServerRunningKey) ?? false) {
+      final port = prefs.getInt(_kServerPortKey) ?? 11434;
+      // lanShareProvider loads its own preference asynchronously, so read the
+      // stored value directly instead of racing it.
+      final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
+      await ref.read(serverControllerProvider.notifier).start(
+        port: port,
+        lanMode: lan,
+      );
+      final status = ref.read(serverControllerProvider);
+      if (status.running) {
+        await ForegroundServiceManager.serverStarted(
+          port: status.port,
+          lan: status.lan,
+          ip: status.lanIp,
+        );
+      }
+    }
+  } catch (_) {
+    // Background server recovery should never crash the app.
+  }
+}
