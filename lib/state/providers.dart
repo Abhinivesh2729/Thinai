@@ -887,6 +887,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
         if (installed != null && model.kind == ModelKind.chat) {
           await _ref.read(activeModelIdProvider.notifier).set(installed);
         }
+        // Ensure state is cleanly cleared and catalog/installed lists refresh
+        state = {...state}..remove(model.id);
+        _ref.read(modelsRefreshProvider.notifier).state++;
+
         _emit(
           DownloadOutcome(
             label: model.displayName,
@@ -897,6 +901,8 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       });
       return true;
     } catch (e) {
+      state = {...state}..remove(model.id);
+      _ref.read(modelsRefreshProvider.notifier).state++;
       _emit(
         DownloadOutcome(
           label: model.displayName,
@@ -908,7 +914,20 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     }
   }
 
-  void cancel(String catalogId) => state[catalogId]?.cancel();
+  void cancel(String catalogId) {
+    final handle = state[catalogId];
+    if (handle != null) {
+      handle.cancel();
+      state = {...state}..remove(catalogId);
+      _ref.read(modelsRefreshProvider.notifier).state++;
+      _emit(
+        DownloadOutcome(
+          label: handle.label,
+          cancelled: true,
+        ),
+      );
+    }
+  }
 
   /// Fetches the image encoder for a vision model whose weights are already
   /// installed.
@@ -978,6 +997,9 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
           error: e.toString(),
         ),
       );
+    } finally {
+      state = {...state}..remove(model.id);
+      _ref.read(modelsRefreshProvider.notifier).state++;
     }
   }
 
@@ -996,6 +1018,7 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     for (final m in all) {
       if (m.path == destPath) return m;
       if (_normalizeModelKey(m.displayName) == wanted) return m;
+      if (_normalizeModelKey(m.id) == wanted) return m;
     }
     return null;
   }
@@ -1184,18 +1207,17 @@ final savedServerPortProvider = FutureProvider<int>((ref) async {
 /// is not a decision the app gets to make; the tour points at the catalog
 /// instead.
 final appBootstrapProvider = FutureProvider<void>((ref) async {
-  // Concurrently load preferences, generation settings, GPU trial check, and installed models.
-  final store = ref.read(modelStoreProvider);
+  // Concurrently load preferences, generation settings, and GPU trial check.
+  // Model scanning on disk is deferred to only when a saved model actually
+  // needs to be verified, avoiding heavy filesystem stat calls on cold startup.
+  final prefs = await SharedPreferences.getInstance();
+
   final initResults = await Future.wait([
-    SharedPreferences.getInstance(),
     GenerationSettingsStore.instance.ensureLoaded(),
     takeCrashedGpuTrial(),
-    store.list(),
   ]);
 
-  final prefs = initResults[0] as SharedPreferences;
-  final crashedGpu = initResults[2] as GpuBackend?;
-  final installed = initResults[3] as List<LocalModel>;
+  final crashedGpu = initResults[1] as GpuBackend?;
 
   // A GPU attempt that never produced a token means the driver took the app
   // down last time. Switch GPU off before anything can load a model with it.
@@ -1206,16 +1228,11 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
     LlmEngine.instance.gpuFailures.recordFailure(crashedGpu);
   }
 
-  // 1. Active model.
+  // 1. Active model (fast-path: skip disk listing on first run or when no active model was saved).
   final savedId = prefs.getString(_kActiveModelKey);
   if (savedId != null) {
-    LocalModel? match;
-    for (final m in installed) {
-      if (m.id == savedId) {
-        match = m;
-        break;
-      }
-    }
+    final store = ref.read(modelStoreProvider);
+    final match = await store.findById(savedId);
     // A missing file means the model was deleted from outside the app; drop
     // the stored id rather than pointing the engine at a dead path.
     await ref.read(activeModelIdProvider.notifier).set(match);

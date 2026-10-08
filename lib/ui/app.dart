@@ -15,8 +15,8 @@ import 'pages/settings_page.dart';
 import 'pages/splash_page.dart';
 import 'widgets/chat_drawer.dart';
 import 'widgets/coach_mark_targets.dart';
-import 'widgets/welcome_tour_sheet.dart';
 import 'widgets/app_tour_dialog.dart';
+import 'widgets/onboarding_tour_screen.dart';
 
 class LocalLlmApp extends ConsumerWidget {
   const LocalLlmApp({super.key});
@@ -190,7 +190,9 @@ class _Shell extends ConsumerStatefulWidget {
 }
 
 class _ShellState extends ConsumerState<_Shell> {
-  bool _showMainApp = false;
+  static const _tourSeenKey = 'app_tour_seen_v2';
+  bool _booted = false;
+  bool _needsOnboarding = false;
 
   @override
   void initState() {
@@ -202,12 +204,9 @@ class _ShellState extends ConsumerState<_Shell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Pre-warm the splash logo so the very first frame paints immediately without decode blanking.
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    precacheImage(
-      AssetImage(isDark ? 'assets/images/logo_dark.png' : 'assets/images/logo_white.png'),
-      context,
-    );
+    // Pre-warm the splash logos so the very first frame paints immediately without decode blanking.
+    precacheImage(const AssetImage('assets/images/logo_dark.png'), context);
+    precacheImage(const AssetImage('assets/images/logo_transparent.png'), context);
   }
 
   @override
@@ -227,32 +226,48 @@ class _ShellState extends ConsumerState<_Shell> {
     }();
   }
 
-  /// Holds the splash until session state is restored, then performs a smooth
-  /// fade into the main app shell.
+  /// Performs a fast, non-blocking splash transition into onboarding or the main shell.
   Future<void> _boot() async {
-    await Future.wait([
-      Future<void>.delayed(const Duration(milliseconds: 200)),
-      // Bounded on purpose. Restoring state reads preferences, lists the
-      // models directory, and sets active model; if any of that ever stalls,
-      // the app should still open rather than sit on the splash forever.
-      ref
-          .read(appBootstrapProvider.future)
-          .catchError((Object _) {})
-          .timeout(const Duration(seconds: 4), onTimeout: () {}),
-    ]);
+    // Kick off state restoration concurrently in the background so it never
+    // blocks the UI shell or welcome sheet from rendering immediately.
+    unawaited(ref.read(appBootstrapProvider.future).catchError((Object _) {}));
+
+    // Pre-check whether this is the first launch while splash is displaying
+    final prefs = await SharedPreferences.getInstance();
+    _needsOnboarding = !(prefs.getBool(_tourSeenKey) ?? false);
+
+    // Show the logo and brand presence for ~2.8s (~3s as requested: "likely 3s")
+    // while all heavy database & model checks finish in the background.
+    await Future<void>.delayed(const Duration(milliseconds: 2800));
     if (!mounted) return;
-    setState(() => _showMainApp = true);
+    setState(() => _booted = true);
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget child;
+    if (!_booted) {
+      child = const SplashPage(key: ValueKey('splash'));
+    } else if (_needsOnboarding) {
+      child = OnboardingTourScreen(
+        key: const ValueKey('onboarding'),
+        onComplete: () {
+          if (mounted) setState(() => _needsOnboarding = false);
+        },
+        onNavigateTab: (tabIndex) {
+          ref.read(shellTabIndexProvider.notifier).state = tabIndex;
+          if (mounted) setState(() => _needsOnboarding = false);
+        },
+      );
+    } else {
+      child = const _MainShell(key: ValueKey('shell'));
+    }
+
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      child: !_showMainApp
-          ? const SplashPage(key: ValueKey('splash'))
-          : const _MainShell(key: ValueKey('shell')),
+      child: child,
     );
   }
 }
@@ -266,7 +281,6 @@ class _MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _tourSeenKey = 'app_tour_seen_v2';
-  bool _tourCheckStarted = false;
   bool _liveTourActive = false;
   int _liveTourStep = 0;
   int _lastTourRequest = 0;
@@ -300,7 +314,11 @@ class _MainShellState extends ConsumerState<_MainShell> {
     super.didChangeDependencies();
     if (!_logosPrecached) {
       _logosPrecached = true;
-      _precacheModelLogos();
+      // Defer pre-warming logos by 2.5s so cold boot paints the initial UI
+      // and welcome sheet with zero decode/GC stalls on the UI thread.
+      Future.delayed(const Duration(milliseconds: 2500), () {
+        if (mounted) _precacheModelLogos();
+      });
     }
   }
 
@@ -332,8 +350,10 @@ class _MainShellState extends ConsumerState<_MainShell> {
     final startPage = ref.read(startPageProvider);
     ref.read(shellTabIndexProvider.notifier).state = startPage;
     _loadedTabs.add(startPage);
-    _maybeShowInitialTour();
-    _checkForUpdate();
+    // Defer Google Play store update check by 4s so cold boot has zero network/IPC overhead
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) _checkForUpdate();
+    });
   }
 
   @override
@@ -424,39 +444,6 @@ class _MainShellState extends ConsumerState<_MainShell> {
     if (mounted) setState(() => _updateBusy = false);
   }
 
-  Future<void> _maybeShowInitialTour() async {
-    if (_tourCheckStarted) return;
-    _tourCheckStarted = true;
-    final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool(_tourSeenKey) ?? false;
-    if (!mounted || seen) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      WelcomeTourSheet.show(
-        context: context,
-        onStartTour: () async {
-          Navigator.of(context).pop();
-          await Future<void>.delayed(const Duration(milliseconds: 200));
-          if (!mounted) return;
-          _startAppTour(markSeen: true);
-        },
-        onBrowseModels: () async {
-          Navigator.of(context).pop();
-          await prefs.setBool(_tourSeenKey, true);
-          ref.read(shellTabIndexProvider.notifier).state = 1;
-        },
-        onStartChat: () async {
-          Navigator.of(context).pop();
-          await prefs.setBool(_tourSeenKey, true);
-          ref.read(shellTabIndexProvider.notifier).state = 0;
-        },
-      );
-    });
-  }
-
-
-
   Future<void> _startAppTour({required bool markSeen}) async {
     if (!mounted) return;
     if (markSeen) {
@@ -464,20 +451,10 @@ class _MainShellState extends ConsumerState<_MainShell> {
       await prefs.setBool(_tourSeenKey, true);
     }
     if (!mounted) return;
-    await AppTourDialog.show(
+    await OnboardingTourScreen.show(
       context: context,
       onNavigateTab: (tabIndex) {
         ref.read(shellTabIndexProvider.notifier).state = tabIndex;
-      },
-      onSelectStarterModel: () {
-        ref.read(shellTabIndexProvider.notifier).state = 1;
-      },
-      onStartLiveWalkthrough: () {
-        setState(() {
-          _liveTourActive = true;
-          _liveTourStep = 0;
-        });
-        ref.read(shellTabIndexProvider.notifier).state = 1;
       },
     );
   }

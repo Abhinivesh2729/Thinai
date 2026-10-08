@@ -1285,10 +1285,6 @@ class _MessageBubble extends StatelessWidget {
     this.searching = false,
   });
 
-  /// Left inset of everything under an assistant bubble: the avatar's width
-  /// plus the gap after it, so the sources line up with the reply they belong
-  /// to rather than with the avatar.
-  static const double _gutter = 36;
 
   void _copyText(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
@@ -1369,173 +1365,144 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = msg.role == 'user';
 
-    final bubble = GestureDetector(
-      onLongPress: isUser ? () => _showUserOptions(context) : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        decoration: BoxDecoration(
-          color: isUser
-              ? (isDark ? const Color(0xFF1A2233) : const Color(0xFF0F172A))
-              : scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isUser ? 18 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 18),
-          ),
-          border: isUser
-              ? null
-              : Border.all(color: scheme.outline, width: 1),
-        ),
-        child: msg.content.isEmpty && !isUser
-            ? (searching
-                  ? _SearchingLine(color: scheme.onSurfaceVariant)
-                  : pending
-                  ? _TypingDots(color: scheme.onSurfaceVariant)
-                  : Text(
-                      'Stopped',
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ))
-            : isUser
-            ? SelectableText(
-                msg.content,
-                style: const TextStyle(
-                  color: Colors.white,
-                  height: 1.4,
-                  fontSize: 14.5,
-                ),
-              )
-            : MarkdownText(
-                data: msg.content,
-                style: TextStyle(
-                  color: scheme.onSurface,
-                  height: 1.45,
-                  fontSize: 14.5,
-                ),
-                codeBackground: scheme.surfaceContainerHighest,
-                mutedColor: scheme.onSurfaceVariant,
-                streamingCursor: pending,
-                cursorColor: const Color(0xFF2CA048),
-              ),
-      ),
-    );
-
     if (isUser) {
       return Padding(
-        padding: const EdgeInsets.only(top: 6, bottom: 2),
+        padding: const EdgeInsets.only(top: 8, bottom: 4, right: 14, left: 48),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const SizedBox(width: 48), // max-width guard for readability
-            Flexible(child: bubble),
+            Flexible(
+              child: GestureDetector(
+                onLongPress: () => _showUserOptions(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF262C38) : const Color(0xFFE9ECEF),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: SelectableText(
+                    msg.content,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      height: 1.45,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       );
     }
 
+    // Assistant Reply: Pure ChatGPT style — borderless, seamless, full width markdown
     return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 6),
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: scheme.primary.withValues(alpha: 0.25),
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.energy_savings_leaf_rounded,
-                  size: 15,
-                  color: scheme.primary,
-                ),
-              ),
-              const SizedBox(width: _gutter - 28),
-              Flexible(child: bubble),
-            ],
-          ),
-          // Action row: copy button + share button + sources pill
           Padding(
-            padding: const EdgeInsets.only(left: _gutter, top: 4, right: 8),
-            child: Row(
-              children: [
-                if (msg.content.isNotEmpty && !pending) ...[
-                  _BubbleAction(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: msg.content.isEmpty
+                ? (searching
+                      ? _SearchingLine(
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        )
+                      : pending
+                      ? _TypingDots(
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        )
+                      : Text(
+                          'Stopped',
+                          style: TextStyle(
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ))
+                : MarkdownText(
+                    data: msg.content,
+                    style: TextStyle(
+                      color: isDark
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF0F172A),
+                      height: 1.55,
+                      fontSize: 15.0,
+                    ),
+                    codeBackground: isDark
+                        ? const Color(0xFF1E2638)
+                        : const Color(0xFFE2E8F0),
+                    mutedColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                    streamingCursor: pending,
+                    cursorColor: const Color(0xFF2CA048),
+                  ),
+          ),
+          // Action row: Minimalist icon buttons like ChatGPT
+          if (msg.content.isNotEmpty && !pending)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4, right: 16),
+              child: Row(
+                children: [
+                  _BubbleIconButton(
                     icon: Icons.copy_rounded,
-                    label: 'Copy',
+                    tooltip: 'Copy',
                     onTap: () => _copyText(context, msg.content),
                   ),
-                  const SizedBox(width: 6),
-                  _BubbleAction(
+                  const SizedBox(width: 4),
+                  _BubbleIconButton(
                     icon: Icons.share_rounded,
-                    label: 'Share',
+                    tooltip: 'Share',
                     onTap: () => _shareText(context, msg.content),
                   ),
+                  if (msg.sources.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    _SourcesPill(sources: msg.sources),
+                  ],
                 ],
-                if (msg.sources.isNotEmpty && msg.content.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  _SourcesPill(sources: msg.sources),
-                ],
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 }
 
-/// Tiny action button under assistant messages (copy, regenerate, etc.)
-class _BubbleAction extends StatelessWidget {
+/// Minimalist icon button under assistant messages (ChatGPT style)
+class _BubbleIconButton extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String tooltip;
   final VoidCallback onTap;
 
-  const _BubbleAction({
+  const _BubbleIconButton({
     required this.icon,
-    required this.label,
+    required this.tooltip,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 13, color: scheme.onSurfaceVariant),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon, size: 16),
+      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(),
+      splashRadius: 18,
+      onPressed: onTap,
     );
   }
 }

@@ -264,7 +264,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
                 const Divider(color: Color(0x1AFFFFFF), height: 24),
                 _buildComparisonRow(
                   icon: Icons.cloud_off_rounded,
-                  iconColor: Colors.orangeAccent,
+                  iconColor: Colors.white60,
                   title: 'Traditional Cloud AI',
                   subtitle:
                       'Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls',

@@ -140,20 +140,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         model.id.toLowerCase().contains(_query);
   }
 
-  void _openModelManager(
-    BuildContext context, {
-    required List<LocalModel> installed,
-    required String? activeId,
-    required Map<String, DownloadHandle> downloads,
-  }) {
+  void _openModelManager(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ModelManagerSheet(
-        installed: installed,
-        activeId: activeId,
-        downloads: downloads,
         onActivate: (m) {
           _load(m);
           Navigator.pop(ctx);
@@ -221,7 +213,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           IconButton(
             key: CoachMarkTargets.modelsTourButton,
             tooltip: isDownloading
-                ? 'Downloading (${downloads.length}) · Manage Models'
+                ? 'Downloading (${downloads.length}) · Model Manager'
                 : (installedCount > 0
                     ? 'Model Manager ($installedCount installed)'
                     : 'Model Manager'),
@@ -232,19 +224,11 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
               ),
               backgroundColor: _brandGreen,
               textColor: Colors.white,
-              child: Icon(
-                isDownloading
-                    ? Icons.downloading_rounded
-                    : Icons.inventory_2_rounded,
-                color: isDownloading ? _brandGreen : null,
+              child: const Icon(
+                Icons.layers_rounded,
               ),
             ),
-            onPressed: () => _openModelManager(
-              context,
-              installed: installed,
-              activeId: activeId,
-              downloads: downloads,
-            ),
+            onPressed: () => _openModelManager(context),
           ),
           const SizedBox(width: 8),
         ],
@@ -253,7 +237,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         children: [
           _SearchBar(
             controller: _search,
-            selectedUseCase: _selectedUseCase,
             onChanged: (value) =>
                 setState(() => _query = value.trim().toLowerCase()),
             onClear: () {
@@ -262,9 +245,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                 _search.clear();
               });
             },
-            onOpenGoalPicker: () => _openGoalPickerSheet(context),
           ),
-          _UnifiedFilterBar(
+          _DropdownFilterBar(
             selected: _filter,
             selectedUseCase: _selectedUseCase,
             installedCount: installedCount,
@@ -281,6 +263,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                 }
               });
             },
+            onOpenGoalPicker: () => _openGoalPickerSheet(context),
             onClearGoal: () => setState(() => _selectedUseCase = null),
             onResetAll: () {
               setState(() {
@@ -323,7 +306,17 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     for (final m in installed) {
       installedKeys.add(_normalizeModelKey(m.id));
       installedKeys.add(_normalizeModelKey(m.displayName));
+      installedKeys.add(m.id.toLowerCase());
+      installedKeys.add(m.displayName.toLowerCase());
     }
+
+    bool isModelInstalled(CatalogModel m) =>
+        installedKeys.contains(_normalizeModelKey(m.id)) ||
+        installedKeys.contains(_normalizeModelKey(m.filename)) ||
+        installedKeys.contains(_normalizeModelKey(m.displayName)) ||
+        installedKeys.contains(m.id.toLowerCase()) ||
+        installedKeys.contains(m.filename.toLowerCase()) ||
+        installedKeys.contains(m.displayName.toLowerCase());
 
     final yourModels = installed.where(_matchesInstalled).toList();
 
@@ -463,9 +456,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           fit: fitFor(m, device),
           runtimeBytes: runtimeBytesFor(m),
           budgetBytes: device.modelBudgetBytes,
-          installed:
-              installedKeys.contains(_normalizeModelKey(m.id)) ||
-              installedKeys.contains(_normalizeModelKey(m.filename)),
+          installed: isModelInstalled(m),
           needsVisionEncoder: missingEncoders.contains(m.id),
           isRecommended: isRecommended,
           onAddVision: () =>
@@ -478,8 +469,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
     final installedCatalogIds = <String>{
       for (final m in chatCatalog)
-        if (installedKeys.contains(_normalizeModelKey(m.id)) ||
-            installedKeys.contains(_normalizeModelKey(m.filename)))
+        if (isModelInstalled(m))
           m.id,
     };
 
@@ -559,8 +549,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             fit: fitFor(featured, device),
             runtimeBytes: runtimeBytesFor(featured),
             budgetBytes: device.modelBudgetBytes,
-            installed: installedKeys.contains(_normalizeModelKey(featured.id)) ||
-                installedKeys.contains(_normalizeModelKey(featured.filename)),
+            installed: isModelInstalled(featured),
             needsVisionEncoder: missingEncoders.contains(featured.id),
             onAddVision: () =>
                 ref.read(downloadsProvider.notifier).addVisionSupport(featured),
@@ -659,108 +648,249 @@ class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
-  final UseCase? selectedUseCase;
-  final VoidCallback onOpenGoalPicker;
 
   const _SearchBar({
     required this.controller,
     required this.onChanged,
     required this.onClear,
-    required this.selectedUseCase,
-    required this.onOpenGoalPicker,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasText = controller.text.isNotEmpty;
-    final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Container(
+        height: 46,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF131722) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: hasText
+                ? _brandGreen
+                : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
+            width: hasText ? 1.5 : 1,
+          ),
+          boxShadow: isDark
+              ? null
+              : const [
+                  BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search_rounded,
+              size: 20,
+              color: hasText
+                  ? _brandGreen
+                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                textInputAction: TextInputAction.search,
+                onChanged: onChanged,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                decoration: InputDecoration(
+                  hintText: 'Search models, makers, architectures…',
+                  hintStyle: TextStyle(
+                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    fontSize: 13.5,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            if (hasText)
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 18),
+                tooltip: 'Clear search',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                onPressed: onClear,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DropdownFilterBar extends StatelessWidget {
+  final ModelFilter selected;
+  final UseCase? selectedUseCase;
+  final int installedCount;
+  final bool hasActiveFilter;
+  final ValueChanged<ModelFilter> onSelected;
+  final VoidCallback onOpenGoalPicker;
+  final VoidCallback onClearGoal;
+  final VoidCallback onResetAll;
+
+  const _DropdownFilterBar({
+    required this.selected,
+    required this.selectedUseCase,
+    required this.installedCount,
+    required this.hasActiveFilter,
+    required this.onSelected,
+    required this.onOpenGoalPicker,
+    required this.onClearGoal,
+    required this.onResetAll,
+  });
+
+  String _filterLabel(ModelFilter filter) {
+    switch (filter) {
+      case ModelFilter.all:
+        return 'All Models';
+      case ModelFilter.chat:
+        return 'Chat Models';
+      case ModelFilter.vision:
+        return 'Vision Models';
+      case ModelFilter.embedding:
+        return 'Embedding';
+      case ModelFilter.installed:
+        return installedCount > 0 ? 'Installed ($installedCount)' : 'Installed';
+    }
+  }
+
+  IconData _filterIcon(ModelFilter filter) {
+    switch (filter) {
+      case ModelFilter.all:
+        return Icons.grid_view_rounded;
+      case ModelFilter.chat:
+        return Icons.chat_bubble_outline_rounded;
+      case ModelFilter.vision:
+        return Icons.visibility_outlined;
+      case ModelFilter.embedding:
+        return Icons.hub_outlined;
+      case ModelFilter.installed:
+        return Icons.inventory_2_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCategoryFiltered = selected != ModelFilter.all;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Row(
         children: [
-          Expanded(
-            child: Container(
-              height: 48,
+          // 1. Sleek Dropdown Styled Filter Picker
+          PopupMenuButton<ModelFilter>(
+            tooltip: 'Filter Category',
+            initialValue: selected,
+            onSelected: onSelected,
+            offset: const Offset(0, 42),
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+                width: 1,
+              ),
+            ),
+            color: isDark ? const Color(0xFF131722) : Colors.white,
+            itemBuilder: (context) => [
+              _buildMenuItem(ModelFilter.all, isDark),
+              _buildMenuItem(ModelFilter.chat, isDark),
+              _buildMenuItem(ModelFilter.vision, isDark),
+              _buildMenuItem(ModelFilter.embedding, isDark),
+              _buildMenuItem(ModelFilter.installed, isDark),
+            ],
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF131722) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: isCategoryFiltered
+                    ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.22 : 0.12)
+                    : (isDark ? const Color(0xFF131722) : Colors.white),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1),
-                  width: 1,
+                  color: isCategoryFiltered
+                      ? const Color(0xFF2CA048)
+                      : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
+                  width: isCategoryFiltered ? 1.5 : 1,
                 ),
-                boxShadow: isDark
-                    ? null
-                    : const [
+                boxShadow: !isDark && !isCategoryFiltered
+                    ? const [
                         BoxShadow(
                           color: Color(0x08000000),
                           blurRadius: 4,
                           offset: Offset(0, 1),
                         ),
-                      ],
+                      ]
+                    : null,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.search_rounded,
+                    _filterIcon(selected),
+                    size: 15,
+                    color: isCategoryFiltered
+                        ? const Color(0xFF2CA048)
+                        : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    _filterLabel(selected),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: isCategoryFiltered ? FontWeight.w800 : FontWeight.w600,
+                      color: isCategoryFiltered
+                          ? const Color(0xFF2CA048)
+                          : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_drop_down_rounded,
                     size: 20,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isCategoryFiltered
+                        ? const Color(0xFF2CA048)
+                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      textInputAction: TextInputAction.search,
-                      onChanged: onChanged,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                        hintText: 'Search models, makers, architectures…',
-                        hintStyle: TextStyle(
-                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                          fontSize: 13.5,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                    ),
-                  ),
-                  if (hasText)
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      tooltip: 'Clear search',
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: onClear,
-                    ),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          // Classical Goals / Smart Match shortcut button
+
+          const SizedBox(width: 8),
+
+          // 2. Classical Goals / Smart Match Button
           Material(
             color: selectedUseCase != null
-                ? (isDark ? const Color(0x282CA048) : const Color(0x181B8738))
+                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.22 : 0.12)
                 : (isDark ? const Color(0xFF131722) : Colors.white),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             elevation: !isDark && selectedUseCase == null ? 0.5 : 0,
-            shadowColor: const Color(0x10000000),
+            shadowColor: const Color(0x08000000),
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               onTap: onOpenGoalPicker,
               child: Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 11),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: selectedUseCase != null
-                        ? primaryBrand
+                        ? const Color(0xFF2CA048)
                         : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
                     width: selectedUseCase != null ? 1.5 : 1,
                   ),
@@ -772,113 +902,64 @@ class _SearchBar extends StatelessWidget {
                       selectedUseCase != null
                           ? selectedUseCase!.icon
                           : Icons.auto_awesome_rounded,
-                      size: 17,
+                      size: 14.5,
                       color: selectedUseCase != null
-                          ? primaryBrand
+                          ? const Color(0xFF2CA048)
                           : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
                     ),
-                    const SizedBox(width: 7),
+                    const SizedBox(width: 6),
                     Text(
-                      selectedUseCase != null
-                          ? selectedUseCase!.label
-                          : 'Goals',
+                      selectedUseCase != null ? selectedUseCase!.label : 'Goals',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                        fontWeight: selectedUseCase != null ? FontWeight.w800 : FontWeight.w600,
                         color: selectedUseCase != null
-                          ? primaryBrand
-                          : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                            ? const Color(0xFF2CA048)
+                            : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
                       ),
                     ),
+                    if (selectedUseCase != null) ...[
+                      const SizedBox(width: 5),
+                      InkWell(
+                        onTap: onClearGoal,
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Padding(
+                          padding: EdgeInsets.all(2),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 13,
+                            color: Color(0xFF2CA048),
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.arrow_drop_down_rounded,
+                        size: 20,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
 
-class _UnifiedFilterBar extends StatelessWidget {
-  final ModelFilter selected;
-  final UseCase? selectedUseCase;
-  final int installedCount;
-  final bool hasActiveFilter;
-  final ValueChanged<ModelFilter> onSelected;
-  final VoidCallback onClearGoal;
-  final VoidCallback onResetAll;
+          const Spacer(),
 
-  const _UnifiedFilterBar({
-    required this.selected,
-    required this.selectedUseCase,
-    required this.installedCount,
-    required this.hasActiveFilter,
-    required this.onSelected,
-    required this.onClearGoal,
-    required this.onResetAll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    final categories = [
-      (ModelFilter.all, 'All', Icons.grid_view_rounded),
-      (ModelFilter.chat, 'Chat', Icons.chat_bubble_outline_rounded),
-      (ModelFilter.vision, 'Vision', Icons.visibility_outlined),
-      (ModelFilter.embedding, 'Embedding', Icons.hub_outlined),
-      (
-        ModelFilter.installed,
-        installedCount > 0 ? 'Installed ($installedCount)' : 'Installed',
-        Icons.inventory_2_outlined,
-      ),
-    ];
-
-    return SizedBox(
-      height: 38,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          for (final (filter, label, icon) in categories) ...[
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: _FilterPill(
-                label: label,
-                icon: icon,
-                selected: selected == filter,
-                onTap: () => onSelected(filter),
-              ),
-            ),
-          ],
-          if (selectedUseCase != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: _FilterPill(
-                label: selectedUseCase!.label,
-                icon: selectedUseCase!.icon,
-                selected: true,
-                trailing: const Icon(
-                  Icons.close_rounded,
-                  size: 13,
-                  color: Colors.white,
-                ),
-                onTap: onClearGoal,
-              ),
-            ),
+          // 3. Reset Button (Appears if any filter, goal or search query is active)
           if (hasActiveFilter)
-            Padding(
-              padding: const EdgeInsets.only(left: 2),
+            Material(
+              color: scheme.error.withValues(alpha: isDark ? 0.14 : 0.08),
+              borderRadius: BorderRadius.circular(10),
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: onResetAll,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: scheme.error.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: scheme.error.withValues(alpha: 0.35),
@@ -889,16 +970,16 @@ class _UnifiedFilterBar extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.filter_alt_off_rounded,
-                        size: 13,
+                        Icons.refresh_rounded,
+                        size: 14,
                         color: scheme.error,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Reset',
                         style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                           color: scheme.error,
                         ),
                       ),
@@ -911,83 +992,44 @@ class _UnifiedFilterBar extends StatelessWidget {
       ),
     );
   }
-}
 
-class _FilterPill extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final Widget? trailing;
-  final VoidCallback onTap;
+  PopupMenuItem<ModelFilter> _buildMenuItem(ModelFilter filter, bool isDark) {
+    final isSelected = selected == filter;
+    final label = _filterLabel(filter);
+    final icon = _filterIcon(filter);
 
-  const _FilterPill({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    this.trailing,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final selectedBg = isDark
-        ? const Color(0xFF2CA048)
-        : const Color(0xFF0F172A);
-    final unselectedBg = isDark
-        ? const Color(0xFF131722)
-        : Colors.white;
-    final selectedFg = Colors.white;
-    final unselectedFg = isDark
-        ? const Color(0xFFCBD5E1)
-        : const Color(0xFF334155);
-    final borderColor = selected
-        ? (isDark ? const Color(0xFF2CA048) : const Color(0xFF0F172A))
-        : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1));
-
-    return Material(
-      color: selected ? selectedBg : unselectedBg,
-      borderRadius: BorderRadius.circular(10),
-      elevation: !isDark && !selected ? 0.5 : 0,
-      shadowColor: const Color(0x10000000),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: borderColor,
-              width: selected ? 1.5 : 1,
+    return PopupMenuItem<ModelFilter>(
+      value: filter,
+      height: 42,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: isSelected
+                ? const Color(0xFF2CA048)
+                : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF2CA048)
+                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
+              ),
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 14,
-                color: selected ? selectedFg : unselectedFg,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                  color: selected ? selectedFg : unselectedFg,
-                  letterSpacing: -0.1,
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 4),
-                trailing!,
-              ],
-            ],
-          ),
-        ),
+          if (isSelected)
+            const Icon(
+              Icons.check_rounded,
+              size: 17,
+              color: Color(0xFF2CA048),
+            ),
+        ],
       ),
     );
   }
@@ -1078,19 +1120,13 @@ class _ActiveGoalBanner extends StatelessWidget {
   }
 }
 
-class _ModelManagerSheet extends StatelessWidget {
-  final List<LocalModel> installed;
-  final String? activeId;
-  final Map<String, DownloadHandle> downloads;
+class _ModelManagerSheet extends ConsumerWidget {
   final ValueChanged<LocalModel> onActivate;
   final ValueChanged<LocalModel> onDelete;
   final ValueChanged<String> onCancelDownload;
   final VoidCallback onBrowseCatalog;
 
   const _ModelManagerSheet({
-    required this.installed,
-    required this.activeId,
-    required this.downloads,
     required this.onActivate,
     required this.onDelete,
     required this.onCancelDownload,
@@ -1098,8 +1134,11 @@ class _ModelManagerSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final installed = ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
+    final activeId = ref.watch(activeModelIdProvider);
+    final downloads = ref.watch(downloadsProvider);
     final totalBytes = installed.fold<int>(0, (sum, m) => sum + m.sizeBytes);
     final activeModel = installed.cast<LocalModel?>().firstWhere(
           (m) => m?.id == activeId,
@@ -1144,10 +1183,8 @@ class _ModelManagerSheet extends StatelessWidget {
                     color: _brandGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    downloads.isNotEmpty
-                        ? Icons.downloading_rounded
-                        : Icons.inventory_2_rounded,
+                  child: const Icon(
+                    Icons.layers_rounded,
                     color: _brandGreen,
                     size: 20,
                   ),
@@ -1765,27 +1802,54 @@ class _DownloadProgressRow extends StatelessWidget {
       builder: (context, snap) {
         final p = snap.data;
         final fraction = p?.fraction;
+        final isDone = p?.done ?? false;
+        final isCancelled = p?.cancelled ?? false;
+        final hasError = p?.error != null;
+
+        String statusText;
+        if (isDone) {
+          if (isCancelled) {
+            statusText = 'Cancelled';
+          } else if (hasError) {
+            statusText = 'Failed';
+          } else {
+            statusText = '100% · Completed';
+          }
+        } else if (fraction != null) {
+          statusText = '${(fraction * 100).toStringAsFixed(0)}%';
+        } else {
+          statusText = 'Starting…';
+        }
+
+        String sizeText = '';
+        if (p != null) {
+          if (p.total != null && p.total! > 0) {
+            sizeText = '${_fmtSize(p.received)} / ${_fmtSize(p.total!)}';
+          } else if (p.received > 0) {
+            sizeText = _fmtSize(p.received);
+          }
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Text(
-                  fraction != null
-                      ? '${(fraction * 100).toStringAsFixed(0)}%'
-                      : 'Starting…',
+                  statusText,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: primaryBrand,
+                    color: (isDone && hasError) ? scheme.error : primaryBrand,
                   ),
                 ),
                 const Spacer(),
-                if (p != null)
+                if (sizeText.isNotEmpty)
                   Text(
-                    _fmtSize(p.received),
+                    sizeText,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
@@ -1795,10 +1859,10 @@ class _DownloadProgressRow extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
-                value: fraction,
+                value: isDone ? 1.0 : fraction,
                 minHeight: 6,
                 backgroundColor: isDark ? const Color(0xFF1E2533) : const Color(0xFFE2E8F0),
-                color: primaryBrand,
+                color: (isDone && hasError) ? scheme.error : primaryBrand,
               ),
             ),
           ],
@@ -1943,6 +2007,175 @@ class _InstalledCard extends StatelessWidget {
   }
 }
 
+/// Visual taxonomy classification for catalog model cards
+enum _ModelVisualKind {
+  vision,
+  embedding,
+  reasoning,
+  text,
+}
+
+_ModelVisualKind _classifyModel(CatalogModel model) {
+  if (model.supportsVision || model.mmprojUrl != null) {
+    return _ModelVisualKind.vision;
+  }
+  if (model.kind == ModelKind.embedding) {
+    return _ModelVisualKind.embedding;
+  }
+  final lowerId = model.id.toLowerCase();
+  final lowerDesc = model.description.toLowerCase();
+  if (lowerId.contains('deepseek') ||
+      lowerId.contains('coder') ||
+      lowerId.contains('code') ||
+      lowerId.contains('granite') ||
+      lowerId.contains('math') ||
+      lowerDesc.contains('reasoning') ||
+      lowerDesc.contains('coding') ||
+      lowerDesc.contains('code generation')) {
+    return _ModelVisualKind.reasoning;
+  }
+  return _ModelVisualKind.text;
+}
+
+/// Category badge pill shown on model cards to instantly identify model type
+class _CategoryBadge extends StatelessWidget {
+  final _ModelVisualKind kind;
+  final bool isDark;
+
+  const _CategoryBadge({
+    required this.kind,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon, color) = switch (kind) {
+      _ModelVisualKind.vision => (
+          'VISION',
+          Icons.visibility_rounded,
+          const Color(0xFF6366F1),
+        ),
+      _ModelVisualKind.embedding => (
+          'EMBED',
+          Icons.hub_rounded,
+          const Color(0xFFF59E0B),
+        ),
+      _ModelVisualKind.reasoning => (
+          'REASON',
+          Icons.psychology_rounded,
+          const Color(0xFF0EA5E9),
+        ),
+      _ModelVisualKind.text => (
+          'TEXT',
+          Icons.chat_bubble_outline_rounded,
+          const Color(0xFF2CA048),
+        ),
+    };
+
+    final bg = color.withValues(alpha: isDark ? 0.16 : 0.10);
+    final border = color.withValues(alpha: isDark ? 0.32 : 0.22);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: border, width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 9.5, color: color),
+          const SizedBox(width: 3.5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 8.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.6,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dynamic celestial wave & sparkle pattern painter for the Featured Hero card
+class _FeaturedPatternPainter extends CustomPainter {
+  final bool isDark;
+
+  const _FeaturedPatternPainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Glowing harmonic emerald ribbons
+    final ribbonPaint = Paint()
+      ..color = (isDark ? const Color(0xFF34D399) : const Color(0xFF10B981))
+          .withValues(alpha: isDark ? 0.16 : 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..isAntiAlias = true;
+
+    final secondaryPaint = Paint()
+      ..color = (isDark ? const Color(0xFF10B981) : const Color(0xFF059669))
+          .withValues(alpha: isDark ? 0.09 : 0.06)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..isAntiAlias = true;
+
+    // Wave 1
+    final p1 = Path();
+    p1.moveTo(0, h * 0.40);
+    p1.cubicTo(w * 0.28, h * 0.15, w * 0.65, h * 0.68, w, h * 0.32);
+    canvas.drawPath(p1, ribbonPaint);
+
+    // Wave 2
+    final p2 = Path();
+    p2.moveTo(0, h * 0.58);
+    p2.cubicTo(w * 0.35, h * 0.85, w * 0.72, h * 0.30, w, h * 0.58);
+    canvas.drawPath(p2, ribbonPaint);
+
+    // Wave 3 (ambient echo)
+    final p3 = Path();
+    p3.moveTo(0, h * 0.74);
+    p3.cubicTo(w * 0.40, h * 0.96, w * 0.78, h * 0.46, w, h * 0.78);
+    canvas.drawPath(p3, secondaryPaint);
+
+    // Sparkling 4-point starbursts (✦)
+    final sparklePaint = Paint()
+      ..color = (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF059669))
+          .withValues(alpha: isDark ? 0.28 : 0.16)
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    _drawSparkle(canvas, Offset(w * 0.80, h * 0.22), 6.0, sparklePaint);
+    _drawSparkle(canvas, Offset(w * 0.92, h * 0.46), 4.5, sparklePaint);
+    _drawSparkle(canvas, Offset(w * 0.68, h * 0.84), 5.0, sparklePaint);
+    _drawSparkle(canvas, Offset(w * 0.14, h * 0.82), 4.0, sparklePaint);
+  }
+
+  void _drawSparkle(Canvas canvas, Offset center, double r, Paint paint) {
+    final p = Path();
+    p.moveTo(center.dx, center.dy - r);
+    p.quadraticBezierTo(center.dx, center.dy, center.dx + r, center.dy);
+    p.quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + r);
+    p.quadraticBezierTo(center.dx, center.dy, center.dx - r, center.dy);
+    p.quadraticBezierTo(center.dx, center.dy, center.dx, center.dy - r);
+    p.close();
+    canvas.drawPath(p, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FeaturedPatternPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
+}
+
+
 /// Atmospheric hero card modeled directly after the user's featured models design
 class _FeaturedHeroCard extends StatelessWidget {
   final CatalogModel model;
@@ -1975,27 +2208,64 @@ class _FeaturedHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardBg = Color(0xFF0C1017);
-    const cardBorder = Color(0xFF1E2638);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final capTag = _capabilityTagFor(model);
+
+    // Deep celestial emerald gradient in dark mode; fresh mint-emerald in light mode
+    final cardGradient = isDark
+        ? const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0E241B), Color(0xFF071510)],
+          )
+        : const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF0FDF4), Color(0xFFE4F9EB)],
+          );
+    final cardBorder = isDark
+        ? const Color(0xFF1E4D38)
+        : const Color(0xFF86EFAC);
+    final cardShadow = isDark
+        ? const [
+            BoxShadow(
+              color: Color(0x60000000),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Color(0x2010B981),
+              blurRadius: 20,
+              offset: Offset(0, 4),
+            ),
+          ]
+        : const [
+            BoxShadow(
+              color: Color(0x1215803D),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ];
 
     return Container(
       decoration: BoxDecoration(
-        color: cardBg,
+        gradient: cardGradient,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder, width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: cardBorder, width: 1.2),
+        boxShadow: cardShadow,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
+            // Celestial wave & sparkles background pattern
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _FeaturedPatternPainter(isDark: isDark),
+                ),
+              ),
+            ),
             // Glowing emerald corner wave aura in bottom right
             Positioned(
               right: -30,
@@ -2004,12 +2274,12 @@ class _FeaturedHeroCard extends StatelessWidget {
                 child: Container(
                   width: 200,
                   height: 200,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Color(0x3510B981),
-                        Color(0x18059669),
+                        const Color(0xFF10B981).withValues(alpha: isDark ? 0.22 : 0.12),
+                        const Color(0xFF059669).withValues(alpha: isDark ? 0.10 : 0.05),
                         Colors.transparent,
                       ],
                     ),
@@ -2032,11 +2302,15 @@ class _FeaturedHeroCard extends StatelessWidget {
                         height: 46,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF132B20) : Colors.white,
                           borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF235A40) : const Color(0xFF86EFAC),
+                            width: 1,
+                          ),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x25000000),
+                              color: Color(0x18000000),
                               blurRadius: 6,
                               offset: Offset(0, 2),
                             ),
@@ -2050,25 +2324,46 @@ class _FeaturedHeroCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              model.author.toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
-                                color: Color(0xFF94A3B8),
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  model.author.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
+                                    color: isDark ? const Color(0xFF86EFAC) : const Color(0xFF15803D),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2CA048).withValues(alpha: isDark ? 0.24 : 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'FEATURED',
+                                    style: TextStyle(
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.6,
+                                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
                               model.displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: -0.2,
-                                color: Colors.white,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                           ],
@@ -2079,50 +2374,29 @@ class _FeaturedHeroCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E2837),
+                          color: isDark ? const Color(0xFF133624) : const Color(0xFFDCFCE7),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFF334155),
+                            color: isDark ? const Color(0xFF225E3F) : const Color(0xFF86EFAC),
                             width: 1,
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('🔥', style: TextStyle(fontSize: 11)),
-                            SizedBox(width: 4),
+                            const Text('🔥', style: TextStyle(fontSize: 11)),
+                            const SizedBox(width: 4),
                             Text(
                               'Popular',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFFF1F5F9),
+                                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF166534),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Description & Action
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          model.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: Color(0xFF94A3B8),
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      _buildHeroAction(context),
                     ],
                   ),
                   if (blocked || (!installed && fit == RamFit.tight)) ...[
@@ -2133,27 +2407,35 @@ class _FeaturedHeroCard extends StatelessWidget {
                       budget: budgetBytes,
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  // Bottom Spec Pills (Dark mode styled)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                  const SizedBox(height: 12),
+                  // Bottom Specs & Action Row (Clean, no redundant description clutter)
+                  Row(
                     children: [
-                      _SpecPill(
-                        label: model.parameters,
-                        icon: Icons.bolt_rounded,
-                        isDarkCard: true,
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _SpecPill(
+                              label: model.parameters,
+                              icon: Icons.bolt_rounded,
+                              isDarkCard: isDark,
+                            ),
+                            _SpecPill(
+                              label: '${model.contextLabel} ctx',
+                              icon: Icons.receipt_long_outlined,
+                              isDarkCard: isDark,
+                            ),
+                            _SpecPill(
+                              label: capTag.$2,
+                              icon: capTag.$1,
+                              isDarkCard: isDark,
+                            ),
+                          ],
+                        ),
                       ),
-                      _SpecPill(
-                        label: '${model.contextLabel} ctx',
-                        icon: Icons.receipt_long_outlined,
-                        isDarkCard: true,
-                      ),
-                      _SpecPill(
-                        label: capTag.$2,
-                        icon: capTag.$1,
-                        isDarkCard: true,
-                      ),
+                      const SizedBox(width: 8),
+                      _buildHeroAction(context, isDark: isDark),
                     ],
                   ),
                   if (download != null) ...[
@@ -2169,7 +2451,7 @@ class _FeaturedHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroAction(BuildContext context) {
+  Widget _buildHeroAction(BuildContext context, {required bool isDark}) {
     if (installed && needsVisionEncoder) {
       return OutlinedButton.icon(
         key: actionKey,
@@ -2219,11 +2501,24 @@ class _FeaturedHeroCard extends StatelessWidget {
         height: 34,
         child: OutlinedButton.icon(
           key: actionKey,
-          icon: const Icon(Icons.close_rounded, size: 14, color: Colors.white70),
-          label: const Text('Cancel', style: TextStyle(color: Colors.white)),
+          icon: Icon(
+            Icons.close_rounded,
+            size: 14,
+            color: isDark ? Colors.white70 : const Color(0xFF475569),
+          ),
+          label: Text(
+            'Cancel',
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           onPressed: onCancel,
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Color(0xFF334155)),
+            side: BorderSide(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -2233,6 +2528,8 @@ class _FeaturedHeroCard extends StatelessWidget {
     return Material(
       color: _brandGreen,
       borderRadius: BorderRadius.circular(16),
+      elevation: isDark ? 0 : 1,
+      shadowColor: const Color(0x302CA048),
       child: InkWell(
         key: actionKey,
         borderRadius: BorderRadius.circular(16),
@@ -2304,6 +2601,7 @@ class _CatalogCard extends StatelessWidget {
     final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
     final auraColor = _vendorAuraColor(model);
     final capTag = _capabilityTagFor(model);
+    final visualKind = _classifyModel(model);
 
     final cardBg = isDark
         ? (isRecommended ? const Color(0xFF131A24) : const Color(0xFF111722))
@@ -2353,7 +2651,7 @@ class _CatalogCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        auraColor.withValues(alpha: isDark ? 0.16 : 0.10),
+                        auraColor.withValues(alpha: isDark ? 0.16 : 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -2363,21 +2661,21 @@ class _CatalogCard extends StatelessWidget {
             ),
             // Card Content
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // Brand logo emblem
                       Container(
-                        width: 46,
-                        height: 46,
+                        width: 44,
+                        height: 44,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF1A222E) : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(13),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isDark ? const Color(0xFF2A3648) : const Color(0xFFE2E8F0),
                             width: 1,
@@ -2401,6 +2699,11 @@ class _CatalogCard extends StatelessWidget {
                                     letterSpacing: 1.1,
                                     color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   ),
+                                ),
+                                const SizedBox(width: 6),
+                                _CategoryBadge(
+                                  kind: visualKind,
+                                  isDark: isDark,
                                 ),
                                 if (isRecommended) ...[
                                   const SizedBox(width: 6),
@@ -2441,86 +2744,76 @@ class _CatalogCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Right column: 3-dots menu & Action button
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          SizedBox(
-                            height: 24,
-                            width: 28,
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.more_horiz_rounded,
-                                size: 18,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: 'Model details',
-                              onPressed: () => _openModelDetailsSheet(
-                                context,
-                                model: model,
-                                installed: installed,
-                                fit: fit,
-                                runtimeBytes: runtimeBytes,
-                                budgetBytes: budgetBytes,
-                                onDownload: onDownload,
-                              ),
-                            ),
+                      // 3-dots details menu button
+                      SizedBox(
+                        height: 28,
+                        width: 28,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.more_horiz_rounded,
+                            size: 18,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
-                          const SizedBox(height: 4),
-                          _buildAction(context),
-                        ],
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Model details',
+                          onPressed: () => _openModelDetailsSheet(
+                            context,
+                            model: model,
+                            installed: installed,
+                            fit: fit,
+                            runtimeBytes: runtimeBytes,
+                            budgetBytes: budgetBytes,
+                            onDownload: onDownload,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    model.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      height: 1.35,
-                    ),
-                  ),
                   if (blocked || (!installed && fit == RamFit.tight)) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _FitWarning(
                       blocked: blocked,
                       needs: runtimeBytes,
                       budget: budgetBytes,
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  // Specifications Row
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  const SizedBox(height: 10),
+                  // Specifications & Action Row (Clean, no repetitive description text)
+                  Row(
                     children: [
-                      _SpecPill(
-                        label: model.parameters,
-                        icon: Icons.bolt_rounded,
-                      ),
-                      _SpecPill(
-                        label: '${model.contextLabel} ctx',
-                        icon: Icons.receipt_long_outlined,
-                      ),
-                      _SpecPill(
-                        label: capTag.$2,
-                        icon: capTag.$1,
-                      ),
-                      if (model.dimensions != null)
-                        _SpecPill(
-                          label: '${model.dimensions} dims',
-                          icon: Icons.scatter_plot_rounded,
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _SpecPill(
+                              label: model.parameters,
+                              icon: Icons.bolt_rounded,
+                            ),
+                            _SpecPill(
+                              label: '${model.contextLabel} ctx',
+                              icon: Icons.receipt_long_outlined,
+                            ),
+                            _SpecPill(
+                              label: capTag.$2,
+                              icon: capTag.$1,
+                            ),
+                            if (model.dimensions != null)
+                              _SpecPill(
+                                label: '${model.dimensions} dims',
+                                icon: Icons.scatter_plot_rounded,
+                              ),
+                          ],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildAction(context),
                     ],
                   ),
                   if (download != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     _DownloadProgressRow(handle: download!),
                   ],
                 ],

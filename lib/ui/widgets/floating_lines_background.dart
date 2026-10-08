@@ -105,6 +105,10 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
   Duration _lastElapsed = Duration.zero;
   double _time = 0.0;
 
+  // Smooth physics speed ramp for start/stop transitions
+  double _currentSpeed = 0.0;
+  double _targetSpeed = 0.0;
+
   // Pointer interaction state (smoothly lerped for liquid responsiveness)
   Offset _targetMouse = const Offset(-1000, -1000);
   Offset _currentMouse = const Offset(-1000, -1000);
@@ -117,32 +121,66 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
   void initState() {
     super.initState();
     _ticker = createTicker(_onTick);
+    _targetSpeed = widget.animated ? (widget.animationSpeed * 2.2) : 0.0;
+    _currentSpeed = widget.animated ? _targetSpeed : 0.0;
     if (widget.animated) {
       _ticker.start();
     }
   }
 
   void _onTick(Duration elapsed) {
-    if (_lastElapsed != Duration.zero) {
-      final dt = (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
-      // Faster, fluid, dynamic animation rate (2.4x standard speed)
-      _time += dt * (widget.animationSpeed * 2.4);
+    final double dt;
+    if (_lastElapsed == Duration.zero) {
+      dt = 0.016;
+    } else {
+      dt = ((elapsed - _lastElapsed).inMicroseconds / 1000000.0).clamp(0.001, 0.05);
     }
     _lastElapsed = elapsed;
-    if (mounted) setState(() {});
+
+    // Smooth exponential acceleration (ramp up ~1.2s) and gentle deceleration (~1.0s)
+    final diff = _targetSpeed - _currentSpeed;
+    if (diff.abs() > 0.001) {
+      final rampFactor = diff > 0 ? 1.6 : 2.2;
+      _currentSpeed += diff * (dt * rampFactor).clamp(0.0, 1.0);
+    } else {
+      _currentSpeed = _targetSpeed;
+    }
+
+    if (_currentSpeed > 0.0005) {
+      _time += dt * _currentSpeed;
+      if (mounted) setState(() {});
+    } else {
+      // Fully stationary state reached
+      _currentSpeed = 0.0;
+      if (_targetSpeed == 0.0 && _ticker.isActive) {
+        _ticker.stop();
+        _lastElapsed = Duration.zero;
+      }
+      if (mounted) setState(() {});
+    }
   }
 
   @override
   void didUpdateWidget(FloatingLinesBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.animated != oldWidget.animated) {
+      _targetSpeed = widget.animated ? (widget.animationSpeed * 2.2) : 0.0;
       if (widget.animated) {
-        _lastElapsed = Duration.zero;
-        if (!_ticker.isActive) _ticker.start();
+        // Slowly starts to animate from current speed
+        if (!_ticker.isActive) {
+          _lastElapsed = Duration.zero;
+          _ticker.start();
+        }
       } else {
-        if (_ticker.isActive) _ticker.stop();
-        _lastElapsed = Duration.zero;
-        setState(() {}); // Redraw static state
+        // Smoothly ramp down to zero without sudden freeze
+        if (!_ticker.isActive && _currentSpeed > 0.001) {
+          _lastElapsed = Duration.zero;
+          _ticker.start();
+        }
+      }
+    } else if (widget.animationSpeed != oldWidget.animationSpeed) {
+      if (widget.animated) {
+        _targetSpeed = widget.animationSpeed * 2.2;
       }
     }
   }
@@ -363,24 +401,25 @@ class _FloatingLinesPainter extends CustomPainter {
     final halfW = size.width / 2.0;
     final halfH = size.height / 2.0;
 
-    // 2. Draw ambient radial glow when animated to give luminous depth
-    if (animated) {
-      final glowCenter = Offset(size.width * 0.72, size.height * 0.45);
-      final glowRadius = size.width * 0.75;
-      final primaryColor = colors.isNotEmpty ? colors.first : const Color(0xFF2CA048);
-      final accentColor = colors.length > 2 ? colors[2] : primaryColor;
+    // 2. Draw ambient radial glow to give luminous depth
+    final glowCenter = Offset(size.width * 0.72, size.height * 0.45);
+    final glowRadius = size.width * 0.75;
+    final primaryColor = colors.isNotEmpty ? colors.first : const Color(0xFF2CA048);
+    final accentColor = colors.length > 2 ? colors[2] : primaryColor;
 
-      final glowPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            primaryColor.withValues(alpha: isDark ? 0.18 : 0.08),
-            accentColor.withValues(alpha: isDark ? 0.09 : 0.04),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.45, 1.0],
-        ).createShader(Rect.fromCircle(center: glowCenter, radius: glowRadius));
-      canvas.drawCircle(glowCenter, glowRadius, glowPaint);
-    }
+    final glowAlpha1 = isDark ? (animated ? 0.20 : 0.12) : (animated ? 0.10 : 0.05);
+    final glowAlpha2 = isDark ? (animated ? 0.10 : 0.06) : (animated ? 0.05 : 0.03);
+
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          primaryColor.withValues(alpha: glowAlpha1),
+          accentColor.withValues(alpha: glowAlpha2),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(Rect.fromCircle(center: glowCenter, radius: glowRadius));
+    canvas.drawCircle(glowCenter, glowRadius, glowPaint);
 
     // 3. Render wave ribbons
     final enableBottom = enabledWaves.contains('bottom');
