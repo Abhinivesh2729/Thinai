@@ -5,18 +5,18 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models_repo/catalog.dart';
 import '../server/foreground_handler.dart';
 import '../state/providers.dart';
 import '../update/app_updater.dart';
 import 'pages/chat_page.dart';
 import 'pages/models_page.dart';
 import 'pages/server_page.dart';
+import 'pages/settings_page.dart';
 import 'pages/splash_page.dart';
 import 'widgets/chat_drawer.dart';
 import 'widgets/coach_mark_targets.dart';
-import 'widgets/spotlight_coach_marks.dart';
 import 'widgets/welcome_tour_sheet.dart';
+import 'widgets/app_tour_dialog.dart';
 
 class LocalLlmApp extends ConsumerWidget {
   const LocalLlmApp({super.key});
@@ -267,14 +267,15 @@ class _MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _tourSeenKey = 'app_tour_seen_v2';
   bool _tourCheckStarted = false;
-  bool _tourRunning = false;
+  bool _liveTourActive = false;
+  int _liveTourStep = 0;
   int _lastTourRequest = 0;
   bool _logosPrecached = false;
 
   /// Tracks initialized tabs so inactive pages (e.g. Models with 30+ items,
   /// Server with docs) are constructed lazily only when visited, avoiding
   /// heavy multi-page widget trees during cold startup.
-  final Set<int> _loadedTabs = {0};
+  final Set<int> _loadedTabs = {};
 
   List<Widget> _buildPages(int activeIndex) {
     _loadedTabs.add(activeIndex);
@@ -282,6 +283,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       _loadedTabs.contains(0) ? const ChatPage() : const SizedBox.shrink(),
       _loadedTabs.contains(1) ? const ModelsPage() : const SizedBox.shrink(),
       _loadedTabs.contains(2) ? const ServerPage() : const SizedBox.shrink(),
+      _loadedTabs.contains(3) ? const SettingsPage() : const SizedBox.shrink(),
     ];
   }
 
@@ -327,6 +329,9 @@ class _MainShellState extends ConsumerState<_MainShell> {
   @override
   void initState() {
     super.initState();
+    final startPage = ref.read(startPageProvider);
+    ref.read(shellTabIndexProvider.notifier).state = startPage;
+    _loadedTabs.add(startPage);
     _maybeShowInitialTour();
     _checkForUpdate();
   }
@@ -432,9 +437,9 @@ class _MainShellState extends ConsumerState<_MainShell> {
         context: context,
         onStartTour: () async {
           Navigator.of(context).pop();
-          await Future<void>.delayed(const Duration(milliseconds: 240));
+          await Future<void>.delayed(const Duration(milliseconds: 200));
           if (!mounted) return;
-          _startCoachTour(markSeen: true);
+          _startAppTour(markSeen: true);
         },
         onBrowseModels: () async {
           Navigator.of(context).pop();
@@ -450,106 +455,31 @@ class _MainShellState extends ConsumerState<_MainShell> {
     });
   }
 
-  /// Wording for the download step. Points at the icon on any card, and
-  /// names the smallest model for anyone who would rather not choose.
-  String _starterModelAdvice() {
-    final starter = starterModel;
-    if (starter == null) {
-      return 'Tap the download icon on any model. Smaller ones run faster.';
+
+
+  Future<void> _startAppTour({required bool markSeen}) async {
+    if (!mounted) return;
+    if (markSeen) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_tourSeenKey, true);
     }
-    return 'Tap the download icon.  '
-        '() is the smallest, a safe first pick.';
-  }
-
-  Future<void> _switchTabAndWait(int index) async {
-    ref.read(shellTabIndexProvider.notifier).state = index;
-    await Future<void>.delayed(const Duration(milliseconds: 260));
-  }
-
-  List<SpotlightCoachStep> _buildCoachSteps() {
-    return [
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTab,
-        title: 'Step 1: Open Models',
-        message:
-            'Thinai runs models on your phone. Download one before you chat.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(0),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTourButton,
-        title: 'Model manager',
-        message: 'Manage downloads, installed models, and disk storage here.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.firstCatalogAction,
-        title: 'Step 2: Download a model',
-        // Names the smallest model and its size: this step stands in for the
-        // first-run auto-download that used to happen, so it has to answer
-        // "which one" and "how big" rather than leave someone staring at 22
-        // chat models.
-        message: _starterModelAdvice(),
-        borderRadius: 20,
-        // The catalogue sits below the advisor and the installed models, far
-        // enough down that the card is not built yet. Scrolling to it is what
-        // brings it into existence for the spotlight to find.
-        beforeShow: () async {
-          await _switchTabAndWait(1);
-          await revealCoachTarget(
-            CoachMarkTargets.firstCatalogAction,
-            CoachMarkTargets.modelsScroll,
-          );
-        },
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatTab,
-        title: 'Step 3: Go to Chat',
-        message: 'With a model active, go to Chat to start talking.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatComposer,
-        title: 'Step 4: Type and send',
-        message: 'Type your prompt and send. Responses generate on-device.',
-        borderRadius: 22,
-        beforeShow: () => _switchTabAndWait(0),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.benchmarkButton,
-        title: 'Measure your phone',
-        // Last, because it only means something once a model is running: the
-        // measurement it takes is also what replaces the estimated speeds on
-        // the Models page with real ones for this device.
-        message:
-            'Tap Benchmark to measure real speed on your phone, replacing '
-            'the estimates.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-    ];
-  }
-
-  Future<void> _startCoachTour({required bool markSeen}) async {
-    if (_tourRunning || !mounted) return;
-    _tourRunning = true;
-    try {
-      await SpotlightCoachMarks.show(
-        context: context,
-        steps: _buildCoachSteps(),
-      );
-    } finally {
-      _tourRunning = false;
-      // The update banner is suppressed while the tour runs; this is what
-      // brings it back once the spotlight is gone.
-      if (mounted) setState(() {});
-      if (markSeen) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_tourSeenKey, true);
-      }
-    }
+    if (!mounted) return;
+    await AppTourDialog.show(
+      context: context,
+      onNavigateTab: (tabIndex) {
+        ref.read(shellTabIndexProvider.notifier).state = tabIndex;
+      },
+      onSelectStarterModel: () {
+        ref.read(shellTabIndexProvider.notifier).state = 1;
+      },
+      onStartLiveWalkthrough: () {
+        setState(() {
+          _liveTourActive = true;
+          _liveTourStep = 0;
+        });
+        ref.read(shellTabIndexProvider.notifier).state = 1;
+      },
+    );
   }
 
   @override
@@ -561,7 +491,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       _lastTourRequest = tourRequest;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _startCoachTour(markSeen: true);
+        _startAppTour(markSeen: true);
       });
     }
 
@@ -569,7 +499,28 @@ class _MainShellState extends ConsumerState<_MainShell> {
     return Scaffold(
       key: shellScaffoldKey,
       drawer: const ChatDrawer(),
-      body: IndexedStack(index: index, children: _buildPages(index)),
+      body: Stack(
+        children: [
+          IndexedStack(index: index, children: _buildPages(index)),
+          if (_liveTourActive)
+            LiveGuidedTourDock(
+              step: _liveTourStep,
+              onStepChanged: (s) {
+                setState(() => _liveTourStep = s);
+                // Step 0 & 1 -> Models tab (1)
+                // Step 2 -> Chat tab (0)
+                // Step 3 -> Server tab (2)
+                final targetTab = (s == 0 || s == 1) ? 1 : (s == 2 ? 0 : 2);
+                ref.read(shellTabIndexProvider.notifier).state = targetTab;
+              },
+              onDismiss: () async {
+                setState(() => _liveTourActive = false);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(_tourSeenKey, true);
+              },
+            ),
+        ],
+      ),
       // The banner rides above the navigation bar rather than above the body:
       // every page brings its own AppBar, and a notice pushed in over those
       // would sit in the status bar. Hidden while the coach tour runs, because
@@ -577,7 +528,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (update != null && !_tourRunning)
+          if (update != null && !_liveTourActive)
             _UpdateBanner(
               status: update,
               busy: _updateBusy,
@@ -608,6 +559,11 @@ class _MainShellState extends ConsumerState<_MainShell> {
                 icon: Icon(Icons.dns_outlined),
                 selectedIcon: Icon(Icons.dns_rounded),
                 label: 'Server',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings_rounded),
+                label: 'Settings',
               ),
             ],
           ),

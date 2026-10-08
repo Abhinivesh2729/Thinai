@@ -1759,64 +1759,35 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         child: SizedBox(
           width: kComposerButton,
           height: kComposerButton,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Material(
-                color: buttonBg,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _toggle,
-                  child: Container(
-                    width: kComposerButton,
-                    height: kComposerButton,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: buttonBorder,
-                        width: widget.webSearch ? 1.5 : 1.0,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: AnimatedRotation(
-                      turns: _open ? 0.125 : 0,
-                      duration: const Duration(milliseconds: 190),
-                      curve: Curves.easeOut,
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: 22,
-                        color: iconColor,
-                      ),
-                    ),
+          child: Material(
+            color: buttonBg,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _toggle,
+              child: Container(
+                width: kComposerButton,
+                height: kComposerButton,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: buttonBorder,
+                    width: 1.0,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: AnimatedRotation(
+                  turns: _open ? 0.125 : 0,
+                  duration: const Duration(milliseconds: 190),
+                  curve: Curves.easeOut,
+                  child: Icon(
+                    Icons.add_rounded,
+                    size: 22,
+                    color: iconColor,
                   ),
                 ),
               ),
-              if (widget.webSearch)
-                Positioned(
-                  right: 1,
-                  top: 1,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: logoGreen,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark ? const Color(0xFF111620) : Colors.white,
-                        width: 1.5,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x662CA048),
-                          blurRadius: 4,
-                          spreadRadius: 0.5,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
         ),
       ),

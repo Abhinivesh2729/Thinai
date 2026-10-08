@@ -182,7 +182,38 @@ final webSearchEnabledProvider =
     );
 
 // Bottom navigation index for the main shell: 0=Chat, 1=Models, 2=Server.
-final shellTabIndexProvider = StateProvider<int>((ref) => 1);
+// Defaults to 0 (Chat).
+final shellTabIndexProvider = StateProvider<int>((ref) => 0);
+
+/// Controls which tab/screen opens when Thinai launches:
+/// 0 = Chat (Default)
+/// 1 = Models
+/// 2 = Server
+/// 3 = Settings
+class StartPageController extends StateNotifier<int> {
+  StartPageController() : super(0) {
+    _load();
+  }
+
+  static const key = 'default_start_page';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(key) ?? 0;
+    state = (saved >= 0 && saved <= 3) ? saved : 0;
+  }
+
+  Future<void> set(int index) async {
+    if (index < 0 || index > 3) return;
+    state = index;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, index);
+  }
+}
+
+final startPageProvider = StateNotifierProvider<StartPageController, int>(
+  (ref) => StartPageController(),
+);
 
 // Increment to request a fresh coach-mark walkthrough from anywhere in the UI.
 final coachTourRequestProvider = StateProvider<int>((ref) => 0);
@@ -1190,7 +1221,12 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
     await ref.read(activeModelIdProvider.notifier).set(match);
   }
 
-  // 2. Server.
+  // 2. Default startup tab.
+  final savedStart = prefs.getInt(StartPageController.key) ?? 0;
+  final startPage = (savedStart >= 0 && savedStart <= 3) ? savedStart : 0;
+  ref.read(shellTabIndexProvider.notifier).state = startPage;
+
+  // 3. Server.
   //
   // Any service still running at this point is a leftover: reaching here
   // means a fresh isolate, and the HTTP server lived in the old one.

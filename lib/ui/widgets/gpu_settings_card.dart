@@ -18,7 +18,8 @@ import '../../state/providers.dart';
 /// phones — Mali especially — the GPU is slower than the CPU for the small
 /// models this app runs, and the only honest way to know is to measure.
 class GpuSettingsCard extends ConsumerStatefulWidget {
-  const GpuSettingsCard({super.key});
+  final bool embedded;
+  const GpuSettingsCard({super.key, this.embedded = false});
 
   @override
   ConsumerState<GpuSettingsCard> createState() => _GpuSettingsCardState();
@@ -167,116 +168,154 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
         current,
     ];
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(16, widget.embedded ? 14 : 12, 16, widget.embedded ? 14 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.memory_rounded, size: 20, color: scheme.onSurface),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'GPU acceleration',
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      'Offloads computation to hardware accelerator',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: current == GpuBackend.none
+                      ? scheme.surfaceContainerHigh
+                      : const Color(0xFF2CA048).withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _label(current),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: current == GpuBackend.none
+                        ? scheme.onSurfaceVariant
+                        : const Color(0xFF2CA048),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Runs the model on the GPU instead of the CPU. Run the speed '
+            'test to check if it helps on this phone.',
+            style: TextStyle(
+              fontSize: 12,
+              color: scheme.onSurfaceVariant,
+              height: 1.3,
+            ),
+          ),
+          if (crashed != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${_label(crashed)} crashed the app last time, so GPU '
+              'acceleration was turned off.',
+              style: TextStyle(color: scheme.error, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 10),
+          if (devices == null)
+            OutlinedButton.icon(
+              onPressed: _probing ? null : _probe,
+              icon: _probing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.search_rounded, size: 18),
+              label: const Text('Check this phone\'s GPU', style: TextStyle(fontSize: 13)),
+            )
+          else if (devices.isEmpty)
+            Text(
+              'No usable GPU found. Thinai will keep using the CPU.',
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12.5),
+            )
+          else ...[
+            Text(
+              'Found: ${devices.map((d) => '${d.name} (${_label(d.backend)})').join(', ')}',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final choice in choices)
+                  ChoiceChip(
+                    label: Text(
+                      choice == GpuBackend.auto
+                          ? 'Auto (${_label(recommendedBackend(devices))})'
+                          : _label(choice),
+                      style: const TextStyle(fontSize: 12.5),
+                    ),
+                    selected: current == choice,
+                    onSelected: _testing
+                        ? null
+                        : (_) => unawaited(_store.setGpu(choice)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.memory_rounded, color: scheme.onSurface),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    'GPU acceleration',
-                    style: TextStyle(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Text(
-                  _label(current),
-                  style: TextStyle(color: scheme.primary),
+                OutlinedButton.icon(
+                  onPressed: _testing ? null : _speedTest,
+                  icon: _testing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.speed_rounded, size: 18),
+                  label: Text(_testing ? 'Testing…' : 'Speed test', style: const TextStyle(fontSize: 13)),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Runs the model on the GPU instead of the CPU. Run the speed '
-              'test to check if it helps on this phone.',
-              style: TextStyle(color: scheme.onSurfaceVariant),
-            ),
-            if (crashed != null) ...[
+            if (_cpu != null || _testError != null) ...[
               const SizedBox(height: 8),
-              Text(
-                '${_label(crashed)} crashed the app last time, so GPU '
-                'acceleration was turned off.',
-                style: TextStyle(color: scheme.error),
-              ),
-            ],
-            const SizedBox(height: 10),
-            if (devices == null)
-              OutlinedButton.icon(
-                onPressed: _probing ? null : _probe,
-                icon: _probing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.search_rounded),
-                label: const Text('Check this phone\'s GPU'),
-              )
-            else if (devices.isEmpty)
-              Text(
-                'No usable GPU found. Thinai will keep using the CPU.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              )
-            else ...[
-              Text(
-                'Found: ${devices.map((d) => '${d.name} (${_label(d.backend)})').join(', ')}',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final choice in choices)
-                    ChoiceChip(
-                      label: Text(
-                        choice == GpuBackend.auto
-                            ? 'Auto (${_label(recommendedBackend(devices))})'
-                            : _label(choice),
-                      ),
-                      selected: current == choice,
-                      onSelected: _testing
-                          ? null
-                          : (_) => unawaited(_store.setGpu(choice)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _testing ? null : _speedTest,
-                    icon: _testing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.speed_rounded),
-                    label: Text(_testing ? 'Testing…' : 'Speed test'),
-                  ),
-                ],
-              ),
-              if (_cpu != null || _testError != null) ...[
-                const SizedBox(height: 8),
-                if (_testError != null)
-                  Text(_testError!, style: TextStyle(color: scheme.error))
-                else
-                  _results(theme),
-              ],
+              if (_testError != null)
+                Text(_testError!, style: TextStyle(color: scheme.error, fontSize: 12))
+              else
+                _results(theme),
             ],
           ],
-        ),
+        ],
       ),
+    );
+
+    if (widget.embedded) {
+      return content;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: content,
     );
   }
 

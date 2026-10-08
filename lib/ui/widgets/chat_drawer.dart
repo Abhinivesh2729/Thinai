@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models_repo/model_store.dart';
 import '../../state/providers.dart';
 import '../pages/about_page.dart';
-import '../pages/settings_page.dart';
 import 'model_settings_sheet.dart';
 
 /// Global key for the shell scaffold so the drawer can be opened from
@@ -513,11 +512,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                       subtitle: 'Theme, GPU, downloads & server',
                       onTap: () {
                         Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SettingsPage(),
-                          ),
-                        );
+                        ref.read(shellTabIndexProvider.notifier).state = 3;
                       },
                     ),
                     _DrawerFooterTile(

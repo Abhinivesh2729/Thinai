@@ -62,7 +62,7 @@ class _SpotlightCoachOverlay extends StatefulWidget {
 }
 
 class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
-  static const _maxResolveAttempts = 30;
+  static const _maxResolveAttempts = 8;
 
   /// How long the spotlight and panel take to travel between two steps. The
   /// mask and the panel share it so they arrive together.
@@ -106,11 +106,6 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
     await _scrollTargetIntoView(step.targetKey);
     final rect = await _resolveTargetRect(step.targetKey, step.padding);
     if (!mounted) return;
-
-    if (rect == null) {
-      await _activateStep(nextIndex + 1);
-      return;
-    }
 
     setState(() {
       _targetRect = rect;
@@ -362,12 +357,12 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
                       ),
                       if (_index > 0)
                         TextButton(
-                          onPressed: _resolving ? null : _previous,
+                          onPressed: _previous,
                           child: const Text('Back'),
                         ),
                       const Spacer(),
                       FilledButton(
-                        onPressed: _resolving ? null : _next,
+                        onPressed: _next,
                         child: Text(
                           _index == widget.steps.length - 1 ? 'Done' : 'Next',
                         ),

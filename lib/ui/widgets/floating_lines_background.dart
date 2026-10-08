@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 /// Flutter native recreation of the FloatingLines component from React / Three.js.
 ///
@@ -100,7 +101,9 @@ class WavePosition {
 
 class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final Ticker _ticker;
+  Duration _lastElapsed = Duration.zero;
+  double _time = 0.0;
 
   // Pointer interaction state (smoothly lerped for liquid responsiveness)
   Offset _targetMouse = const Offset(-1000, -1000);
@@ -113,15 +116,40 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 20),
-    )..repeat();
+    _ticker = createTicker(_onTick);
+    if (widget.animated) {
+      _ticker.start();
+    }
+  }
+
+  void _onTick(Duration elapsed) {
+    if (_lastElapsed != Duration.zero) {
+      final dt = (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
+      // Faster, fluid, dynamic animation rate (2.4x standard speed)
+      _time += dt * (widget.animationSpeed * 2.4);
+    }
+    _lastElapsed = elapsed;
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(FloatingLinesBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animated != oldWidget.animated) {
+      if (widget.animated) {
+        _lastElapsed = Duration.zero;
+        if (!_ticker.isActive) _ticker.start();
+      } else {
+        if (_ticker.isActive) _ticker.stop();
+        _lastElapsed = Duration.zero;
+        setState(() {}); // Redraw static state
+      }
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ticker.dispose();
     super.dispose();
   }
 
@@ -212,11 +240,6 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
     final effectiveBackground = widget.backgroundColor ??
         (isDark ? const Color(0xFF090E14) : scheme.surfaceContainerLow);
 
-    // Active speed when server is running; calm ambient drift when stopped
-    final effectiveSpeed = widget.animated
-        ? widget.animationSpeed
-        : (widget.animationSpeed * 0.35);
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
@@ -228,14 +251,14 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
             onPointerMove: (e) => _onPointerMove(e, size),
             onPointerUp: _onPointerUp,
             onPointerCancel: _onPointerCancel,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
+            child: Builder(
+              builder: (context) {
                 _tickInteraction();
 
                 return CustomPaint(
                   painter: _FloatingLinesPainter(
-                    time: _controller.value * 2.0 * math.pi * effectiveSpeed,
+                    time: _time,
+                    animated: widget.animated,
                     colors: effectiveGradient,
                     backgroundColor: effectiveBackground,
                     enabledWaves: widget.enabledWaves,
@@ -266,6 +289,7 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
 class _FloatingLinesPainter extends CustomPainter {
   _FloatingLinesPainter({
     required this.time,
+    required this.animated,
     required this.colors,
     required this.backgroundColor,
     required this.enabledWaves,
@@ -292,6 +316,7 @@ class _FloatingLinesPainter extends CustomPainter {
           ..strokeJoin = StrokeJoin.round;
 
   final double time;
+  final bool animated;
   final List<Color> colors;
   final Color backgroundColor;
   final List<String> enabledWaves;
@@ -338,22 +363,24 @@ class _FloatingLinesPainter extends CustomPainter {
     final halfW = size.width / 2.0;
     final halfH = size.height / 2.0;
 
-    // 2. Draw ambient radial glow in the center-right to give luminous depth
-    final glowCenter = Offset(size.width * 0.72, size.height * 0.45);
-    final glowRadius = size.width * 0.75;
-    final primaryColor = colors.isNotEmpty ? colors.first : const Color(0xFF2CA048);
-    final accentColor = colors.length > 2 ? colors[2] : primaryColor;
+    // 2. Draw ambient radial glow when animated to give luminous depth
+    if (animated) {
+      final glowCenter = Offset(size.width * 0.72, size.height * 0.45);
+      final glowRadius = size.width * 0.75;
+      final primaryColor = colors.isNotEmpty ? colors.first : const Color(0xFF2CA048);
+      final accentColor = colors.length > 2 ? colors[2] : primaryColor;
 
-    final glowPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          primaryColor.withValues(alpha: isDark ? 0.16 : 0.08),
-          accentColor.withValues(alpha: isDark ? 0.08 : 0.04),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.45, 1.0],
-      ).createShader(Rect.fromCircle(center: glowCenter, radius: glowRadius));
-    canvas.drawCircle(glowCenter, glowRadius, glowPaint);
+      final glowPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            primaryColor.withValues(alpha: isDark ? 0.18 : 0.08),
+            accentColor.withValues(alpha: isDark ? 0.09 : 0.04),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.45, 1.0],
+        ).createShader(Rect.fromCircle(center: glowCenter, radius: glowRadius));
+      canvas.drawCircle(glowCenter, glowRadius, glowPaint);
+    }
 
     // 3. Render wave ribbons
     final enableBottom = enabledWaves.contains('bottom');
@@ -445,8 +472,8 @@ class _FloatingLinesPainter extends CustomPainter {
       final xOffsetPos = distance * i + position.x;
       final yBase = position.y;
 
-      final amp = math.sin(lineOffset + time * 0.2) * 0.32;
-      final xMovement = time * 0.1;
+      final amp = math.sin(lineOffset + time * 0.28) * 0.32;
+      final xMovement = time * 0.22;
 
       path.reset();
       var isFirst = true;
@@ -502,17 +529,19 @@ class _FloatingLinesPainter extends CustomPainter {
         }
       }
 
-      final alpha = (isDark ? 0.90 : 0.75) * intensityScale;
+      final alpha = (isDark ? 0.90 : 0.75) * intensityScale * (animated ? 1.0 : 0.45);
 
-      // 1. Soft atmospheric glowing halo
-      _haloPaint
-        ..color = lineColor.withValues(alpha: alpha * (isDark ? 0.35 : 0.22))
-        ..strokeWidth = isDark ? 4.8 : 3.5;
-      canvas.drawPath(path, _haloPaint);
+      // 1. Soft atmospheric glowing halo (only when active/running)
+      if (animated) {
+        _haloPaint
+          ..color = lineColor.withValues(alpha: alpha * (isDark ? 0.35 : 0.22))
+          ..strokeWidth = isDark ? 4.8 : 3.5;
+        canvas.drawPath(path, _haloPaint);
+      }
 
       // 2. Luminous crisp core line
       _corePaint
-        ..color = (isDark ? lineColor : lineColor.withValues(alpha: alpha * 0.9))
+        ..color = lineColor.withValues(alpha: alpha * (animated ? 0.95 : 0.35))
         ..strokeWidth = isDark ? 1.6 : 1.4;
       canvas.drawPath(path, _corePaint);
     }

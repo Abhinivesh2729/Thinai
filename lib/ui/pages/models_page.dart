@@ -27,6 +27,7 @@ class ModelsPage extends ConsumerStatefulWidget {
 
 class _ModelsPageState extends ConsumerState<ModelsPage> {
   final _search = TextEditingController();
+  final _scrollController = ScrollController();
   String _query = '';
   ModelFilter _filter = ModelFilter.all;
   UseCase? _selectedUseCase;
@@ -45,6 +46,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   void dispose() {
     _outcomes?.cancel();
     _search.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -408,7 +410,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       }
 
       return ListView(
-        controller: CoachMarkTargets.modelsScroll,
+        controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           _SectionHeader(
@@ -512,7 +514,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         : remainingChatModels;
 
     return ListView(
-      controller: CoachMarkTargets.modelsScroll,
+      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
 
