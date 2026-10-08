@@ -914,51 +914,54 @@ class _DrawerConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const logoGreen = Color(0xFF2CA048);
 
     final highlight = isManageMode
         ? (isSelected
-            ? (Theme.of(context).brightness == Brightness.dark
+            ? (isDark
                 ? logoGreen.withValues(alpha: 0.20)
                 : logoGreen.withValues(alpha: 0.12))
             : Colors.transparent)
         : (isActive
-            ? (Theme.of(context).brightness == Brightness.dark
-                ? logoGreen.withValues(alpha: 0.16)
-                : logoGreen.withValues(alpha: 0.10))
+            ? (isDark ? const Color(0xFF202736) : const Color(0xFFEAEFF5))
+            : Colors.transparent);
+
+    final borderColor = isManageMode && isSelected
+        ? logoGreen.withValues(alpha: 0.45)
+        : (isActive && !isManageMode
+            ? (isDark ? const Color(0xFF2E384D) : const Color(0xFFCBD5E1))
             : Colors.transparent);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Material(
         color: highlight,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(9),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(9),
           onTap: onTap,
           onLongPress: onLongPress,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9.5),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: (isManageMode && isSelected) || (!isManageMode && isActive)
-                  ? Border.all(
-                      color: logoGreen.withValues(alpha: 0.35),
-                      width: 1,
-                    )
-                  : null,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(
+                color: borderColor,
+                width: 1,
+              ),
             ),
             child: Row(
               children: [
                 if (isManageMode) ...[
                   // Custom styled checkbox
                   Container(
-                    width: 20,
-                    height: 20,
+                    width: 18,
+                    height: 18,
                     margin: const EdgeInsets.only(right: 10),
                     decoration: BoxDecoration(
                       color: isSelected ? logoGreen : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(
                         color: isSelected ? logoGreen : scheme.outline,
                         width: 1.5,
@@ -967,31 +970,11 @@ class _DrawerConversationTile extends StatelessWidget {
                     child: isSelected
                         ? const Icon(
                             Icons.check_rounded,
-                            size: 14,
+                            size: 13,
                             color: Colors.white,
                           )
                         : null,
                   ),
-                ] else ...[
-                  // Active indicator line or subtle icon
-                  if (isActive)
-                    Container(
-                      width: 3,
-                      height: 16,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: logoGreen,
-                        borderRadius: BorderRadius.circular(1.5),
-                      ),
-                    ),
-                  Icon(
-                    isActive
-                        ? Icons.chat_bubble_rounded
-                        : Icons.chat_bubble_outline_rounded,
-                    size: 16,
-                    color: isActive ? logoGreen : scheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 10),
                 ],
                 Expanded(
                   child: Text(
@@ -1001,14 +984,15 @@ class _DrawerConversationTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: (isActive || (isManageMode && isSelected))
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      color: scheme.onSurface,
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isActive
+                          ? scheme.onSurface
+                          : scheme.onSurface.withValues(alpha: 0.88),
                     ),
                   ),
                 ),
                 if (!isManageMode)
-                  // Trailing 3-dots button for easy access without long-pressing
                   InkWell(
                     borderRadius: BorderRadius.circular(6),
                     onTap: onOptionsTap,
@@ -1019,7 +1003,7 @@ class _DrawerConversationTile extends StatelessWidget {
                         size: 16,
                         color: isActive
                             ? scheme.onSurface
-                            : scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            : scheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
                   ),

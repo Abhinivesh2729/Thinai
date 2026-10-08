@@ -630,16 +630,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_square, size: 20),
-            tooltip: 'New chat',
-            onPressed: _generating
-                ? null
-                : () => ref.read(chatSessionsProvider.notifier).startNewChat(),
-          ),
-          const SizedBox(width: 4),
-        ],
       ),
       body: Column(
         children: [
@@ -1722,6 +1712,21 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    final buttonBg = _open
+        ? (isDark ? const Color(0xFF2E3A4E) : const Color(0xFFE2E8F0))
+        : (isDark ? const Color(0xFF202736) : const Color(0xFFF1F5F9));
+
+    final buttonBorder = widget.webSearch
+        ? logoGreen.withValues(alpha: 0.7)
+        : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1));
+
+    final iconColor = _open
+        ? (isDark ? Colors.white : const Color(0xFF0F172A))
+        : (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155));
+
     return OverlayPortal(
       controller: _portal,
       overlayChildBuilder: (context) => Stack(
@@ -1754,27 +1759,64 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         child: SizedBox(
           width: kComposerButton,
           height: kComposerButton,
-          child: IconButton(
-            onPressed: _toggle,
-            iconSize: kComposerIcon,
-            padding: EdgeInsets.zero,
-            tooltip: _open ? 'Close' : 'Add to this message',
-            style: IconButton.styleFrom(
-              backgroundColor: _open || widget.webSearch
-                  ? scheme.primaryContainer
-                  : null,
-              foregroundColor: _open || widget.webSearch
-                  ? scheme.onPrimaryContainer
-                  : scheme.onSurfaceVariant,
-            ),
-            // The plus turns into a close as the items come out, so the same
-            // button always undoes what it just did.
-            icon: AnimatedRotation(
-              turns: _open ? 0.125 : 0,
-              duration: const Duration(milliseconds: 190),
-              curve: Curves.easeOut,
-              child: const Icon(Icons.add_circle_outline_rounded),
-            ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Material(
+                color: buttonBg,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _toggle,
+                  child: Container(
+                    width: kComposerButton,
+                    height: kComposerButton,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: buttonBorder,
+                        width: widget.webSearch ? 1.5 : 1.0,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: AnimatedRotation(
+                      turns: _open ? 0.125 : 0,
+                      duration: const Duration(milliseconds: 190),
+                      curve: Curves.easeOut,
+                      child: Icon(
+                        Icons.add_rounded,
+                        size: 22,
+                        color: iconColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (widget.webSearch)
+                Positioned(
+                  right: 1,
+                  top: 1,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: logoGreen,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF111620) : Colors.white,
+                        width: 1.5,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x662CA048),
+                          blurRadius: 4,
+                          spreadRadius: 0.5,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -1888,58 +1930,115 @@ class _DialItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fg = enabled ? scheme.onSurface : scheme.onSurfaceVariant;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    final cardBg = isDark ? const Color(0xFF1E2636) : Colors.white;
+    final borderColor = active
+        ? logoGreen.withValues(alpha: 0.7)
+        : (isDark ? const Color(0xFF2E384D) : const Color(0xFFE2E8F0));
+    final fg = enabled ? scheme.onSurface : scheme.onSurfaceVariant.withValues(alpha: 0.6);
+
     return Material(
-      color: active ? scheme.primaryContainer : scheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 3,
-      shadowColor: scheme.shadow.withValues(alpha: 0.3),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: active ? scheme.onPrimaryContainer : fg,
-              ),
-              const SizedBox(width: 12),
-              // Flexible, so a long second line ellipsises instead of pushing
-              // the item off the side of a narrow phone.
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: active ? scheme.onPrimaryContainer : fg,
-                      ),
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: borderColor,
+            width: active ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: enabled ? onTap : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? logoGreen.withValues(alpha: 0.15)
+                          : (isDark ? const Color(0xFF283245) : const Color(0xFFF1F5F9)),
+                      borderRadius: BorderRadius.circular(9),
                     ),
-                    Text(
-                      detail,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: active
-                            ? scheme.onPrimaryContainer.withValues(alpha: 0.8)
-                            : scheme.onSurfaceVariant,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      icon,
+                      size: 19,
+                      color: active ? logoGreen : fg,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Flexible, so a long second line ellipsises instead of pushing
+                  // the item off the side of a narrow phone.
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: active ? scheme.onSurface : fg,
+                          ),
+                        ),
+                        const SizedBox(height: 1.5),
+                        Text(
+                          detail,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: active
+                                ? logoGreen
+                                : scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (active) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: logoGreen.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'ON',
+                        style: TextStyle(
+                          color: logoGreen,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
