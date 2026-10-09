@@ -114,6 +114,7 @@ class ModelDownloader {
     ModelStore store,
     String label,
   ) async {
+    bool succeeded = false;
     try {
       await _dio.download(
         url,
@@ -121,6 +122,11 @@ class ModelDownloader {
         cancelToken: cancelToken,
         options: Options(followRedirects: true, receiveTimeout: null),
         onReceiveProgress: (received, total) {
+          ForegroundServiceManager.downloadProgress(
+            label,
+            received,
+            total > 0 ? total : null,
+          );
           if (!controller.isClosed) {
             controller.add(DownloadProgress(
               received: received,
@@ -136,6 +142,9 @@ class ModelDownloader {
         await temp.rename(destPath);
       }
       store.notifyChanged();
+      succeeded = true;
+      await ForegroundServiceManager.downloadCompleted(label);
+
       if (!controller.isClosed) {
         final size = await File(destPath).length();
         controller.add(DownloadProgress(
@@ -163,7 +172,9 @@ class ModelDownloader {
         await controller.close();
       }
     } finally {
-      await ForegroundServiceManager.downloadFinished(label);
+      if (!succeeded) {
+        await ForegroundServiceManager.downloadFinished(label);
+      }
     }
   }
 

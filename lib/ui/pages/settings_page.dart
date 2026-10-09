@@ -307,7 +307,7 @@ class _DropdownListRow<T> extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
           Container(
@@ -335,24 +335,35 @@ class _DropdownListRow<T> extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
+                  ? const Color(0xFF161C26)
+                  : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF273244)
+                    : const Color(0xFFE2E8F0),
+                width: 0.8,
+              ),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<T>(
                 value: value,
-                icon: Icon(
-                  Icons.arrow_drop_down_rounded,
-                  color: scheme.onSurfaceVariant,
-                  size: 20,
+                isDense: true,
+                elevation: 3,
+                icon: Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
+                    size: 16,
+                  ),
                 ),
-                dropdownColor: isDark ? const Color(0xFF1E2433) : scheme.surface,
+                dropdownColor: isDark ? const Color(0xFF161C26) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 style: TextStyle(
                   fontSize: 13,

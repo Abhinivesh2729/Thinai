@@ -293,11 +293,12 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
               builder: (context) {
                 _tickInteraction();
 
-                return CustomPaint(
-                  painter: _FloatingLinesPainter(
-                    time: _time,
-                    animated: widget.animated,
-                    colors: effectiveGradient,
+                return ClipRect(
+                  child: CustomPaint(
+                    painter: _FloatingLinesPainter(
+                      time: _time,
+                      animated: widget.animated,
+                      colors: effectiveGradient,
                     backgroundColor: effectiveBackground,
                     enabledWaves: widget.enabledWaves,
                     lineCounts: widget.lineCount,
@@ -314,6 +315,7 @@ class _FloatingLinesBackgroundState extends State<FloatingLinesBackground>
                     isDark: isDark,
                   ),
                   child: const SizedBox.expand(),
+                  ),
                 );
               },
             ),
@@ -568,20 +570,20 @@ class _FloatingLinesPainter extends CustomPainter {
         }
       }
 
-      final alpha = (isDark ? 0.90 : 0.75) * intensityScale * (animated ? 1.0 : 0.45);
+      final alpha = (isDark ? 0.92 : 0.96) * intensityScale * (animated ? 1.0 : 0.60);
 
       // 1. Soft atmospheric glowing halo (only when active/running)
       if (animated) {
         _haloPaint
-          ..color = lineColor.withValues(alpha: alpha * (isDark ? 0.35 : 0.22))
-          ..strokeWidth = isDark ? 4.8 : 3.5;
+          ..color = lineColor.withValues(alpha: alpha * (isDark ? 0.38 : 0.30))
+          ..strokeWidth = isDark ? 4.8 : 4.2;
         canvas.drawPath(path, _haloPaint);
       }
 
       // 2. Luminous crisp core line
       _corePaint
-        ..color = lineColor.withValues(alpha: alpha * (animated ? 0.95 : 0.35))
-        ..strokeWidth = isDark ? 1.6 : 1.4;
+        ..color = lineColor.withValues(alpha: alpha * (animated ? 0.98 : 0.60))
+        ..strokeWidth = isDark ? 1.7 : 2.0;
       canvas.drawPath(path, _corePaint);
     }
   }

@@ -115,6 +115,8 @@ flutter:
     - assets/images/logo_white.png
     - assets/images/logo_dark.png
     - assets/logos/
+    - assets/onboarding/
+    - assets/branding/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

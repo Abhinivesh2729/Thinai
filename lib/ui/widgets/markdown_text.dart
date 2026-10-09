@@ -1,14 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// Renders the small slice of Markdown that models actually emit.
-///
-/// Not a general Markdown implementation: no tables, images, or reference
-/// links. It covers what shows up in chat replies, and anything it does not
-/// understand falls through as plain text rather than disappearing.
-///
-/// Everything is built into a single [TextSpan] tree so a reply stays
-/// selectable end to end. Splitting blocks into separate widgets would break
-/// selection at every paragraph.
+/// Renders Markdown emitted by LLM models with rich structured code blocks,
+/// language tags, one-tap copy actions, headings, lists, quotes, and inline code.
 class MarkdownText extends StatelessWidget {
   const MarkdownText({
     super.key,
@@ -24,8 +19,7 @@ class MarkdownText extends StatelessWidget {
   final String data;
   final TextStyle style;
 
-  /// Fill behind inline and fenced code. Defaults to a light wash of the
-  /// text colour, which works on both bubble tints.
+  /// Fill behind inline code tags.
   final Color? codeBackground;
 
   /// Colour for quotes and rules. Defaults to the text colour at 60%.
@@ -33,7 +27,7 @@ class MarkdownText extends StatelessWidget {
 
   final bool selectable;
 
-  /// Whether to render a breathing ChatGPT-style cursor at the end of the text.
+  /// Whether to render a breathing ChatGPT-style cursor at the end of streaming text.
   final bool streamingCursor;
 
   /// Colour for the streaming cursor.
@@ -41,21 +35,301 @@ class MarkdownText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final span = buildMarkdownSpan(
-      data,
-      base: style,
-      codeBackground:
-          codeBackground ??
-          (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.10),
-      muted:
-          mutedColor ??
-          (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.62),
-      streamingCursor: streamingCursor,
-      cursorColor: cursorColor ?? style.color ?? const Color(0xFF2CA048),
+    final effectiveCodeBg = codeBackground ??
+        (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.10);
+    final effectiveMuted = mutedColor ??
+        (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.62);
+    final effectiveCursor = cursorColor ?? style.color ?? const Color(0xFF2CA048);
+
+    final blocks = _parseBlocks(data, streamingCursor);
+
+    // If there are no fenced code blocks, render a single span tree for efficiency
+    if (blocks.isEmpty || (blocks.length == 1 && blocks.first.type == _BlockType.text)) {
+      final span = buildMarkdownSpan(
+        data,
+        base: style,
+        codeBackground: effectiveCodeBg,
+        muted: effectiveMuted,
+        streamingCursor: streamingCursor,
+        cursorColor: effectiveCursor,
+      );
+      return (selectable && !streamingCursor)
+          ? SelectableText.rich(span)
+          : Text.rich(span);
+    }
+
+    // When code blocks exist, render structured code cards with headers & copy buttons
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (blocks[i].type == _BlockType.text && blocks[i].content.trim().isNotEmpty) ...[
+            if (i > 0) const SizedBox(height: 6),
+            Builder(builder: (ctx) {
+              final isLastBlock = i == blocks.length - 1;
+              final span = buildMarkdownSpan(
+                blocks[i].content,
+                base: style,
+                codeBackground: effectiveCodeBg,
+                muted: effectiveMuted,
+                streamingCursor: isLastBlock && streamingCursor,
+                cursorColor: effectiveCursor,
+              );
+              return (selectable && !streamingCursor)
+                  ? SelectableText.rich(span)
+                  : Text.rich(span);
+            }),
+            if (i < blocks.length - 1) const SizedBox(height: 6),
+          ] else if (blocks[i].type == _BlockType.code) ...[
+            _StructuredCodeBlock(
+              code: blocks[i].content,
+              language: blocks[i].language ?? 'code',
+              isStreaming: blocks[i].isStreaming,
+              cursorColor: effectiveCursor,
+            ),
+          ],
+        ],
+      ],
     );
-    return (selectable && !streamingCursor)
-        ? SelectableText.rich(span)
-        : Text.rich(span);
+  }
+}
+
+enum _BlockType { text, code }
+
+class _MarkdownBlock {
+  final _BlockType type;
+  final String content;
+  final String? language;
+  final bool isStreaming;
+
+  const _MarkdownBlock({
+    required this.type,
+    required this.content,
+    this.language,
+    this.isStreaming = false,
+  });
+}
+
+/// Parses raw markdown content into alternating text and fenced code blocks.
+List<_MarkdownBlock> _parseBlocks(String data, bool streamingCursor) {
+  final blocks = <_MarkdownBlock>[];
+  final lines = data.split('\n');
+  var inCode = false;
+  String? currentLang;
+  final currentLines = <String>[];
+
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    final trimmed = line.trim();
+
+    if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+      if (!inCode) {
+        if (currentLines.isNotEmpty) {
+          final text = currentLines.join('\n');
+          if (text.isNotEmpty) {
+            blocks.add(_MarkdownBlock(type: _BlockType.text, content: text));
+          }
+          currentLines.clear();
+        }
+        inCode = true;
+        final fence = trimmed.startsWith('```') ? '```' : '~~~';
+        currentLang = trimmed.substring(fence.length).trim();
+        if (currentLang.isEmpty) currentLang = 'code';
+      } else {
+        inCode = false;
+        final codeText = currentLines.join('\n');
+        blocks.add(_MarkdownBlock(
+          type: _BlockType.code,
+          content: codeText,
+          language: currentLang ?? 'code',
+          isStreaming: false,
+        ));
+        currentLines.clear();
+        currentLang = null;
+      }
+    } else {
+      currentLines.add(line);
+    }
+  }
+
+  if (currentLines.isNotEmpty) {
+    if (inCode) {
+      final codeText = currentLines.join('\n');
+      blocks.add(_MarkdownBlock(
+        type: _BlockType.code,
+        content: codeText,
+        language: currentLang ?? 'code',
+        isStreaming: streamingCursor,
+      ));
+    } else {
+      final text = currentLines.join('\n');
+      if (text.isNotEmpty) {
+        blocks.add(_MarkdownBlock(type: _BlockType.text, content: text));
+      }
+    }
+  }
+
+  return blocks;
+}
+
+/// Beautiful, high-contrast, structured code block widget with language tag,
+/// tactile copy button, horizontal scrolling, and monospaced typography.
+class _StructuredCodeBlock extends StatefulWidget {
+  final String code;
+  final String language;
+  final bool isStreaming;
+  final Color? cursorColor;
+
+  const _StructuredCodeBlock({
+    required this.code,
+    required this.language,
+    this.isStreaming = false,
+    this.cursorColor,
+  });
+
+  @override
+  State<_StructuredCodeBlock> createState() => _StructuredCodeBlockState();
+}
+
+class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
+  bool _copied = false;
+  Timer? _copyTimer;
+
+  @override
+  void dispose() {
+    _copyTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _copyCode() async {
+    HapticFeedback.lightImpact();
+    await Clipboard.setData(ClipboardData(text: widget.code));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _copyTimer?.cancel();
+    _copyTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayLang = widget.language.isEmpty || widget.language.toLowerCase() == 'code'
+        ? 'CODE'
+        : widget.language.toUpperCase();
+
+    const bgCard = Color(0xFF0F172A); // Modern dark IDE canvas
+    const bgHeader = Color(0xFF1E293B);
+    const borderCard = Color(0xFF334155);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderCard, width: 1.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x28000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header Bar with Language tag & Copy Action
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            color: bgHeader,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.terminal_rounded,
+                      size: 14,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      displayLang,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: Color(0xFFCBD5E1),
+                      ),
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: _copyCode,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _copied ? Icons.check_rounded : Icons.copy_rounded,
+                          size: 13,
+                          color: _copied ? const Color(0xFF4ADE80) : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          _copied ? 'Copied!' : 'Copy',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: _copied ? const Color(0xFF4ADE80) : const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Horizontally Scrollable Monospaced Code
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: SelectableText.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: widget.code,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13.0,
+                      height: 1.5,
+                      color: Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  if (widget.isStreaming)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: _StreamingBlinkingCursor(
+                        color: widget.cursorColor ?? const Color(0xFF2CA048),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

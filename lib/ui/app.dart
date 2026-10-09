@@ -190,7 +190,6 @@ class _Shell extends ConsumerStatefulWidget {
 }
 
 class _ShellState extends ConsumerState<_Shell> {
-  static const _tourSeenKey = 'app_tour_seen_v2';
   bool _booted = false;
   bool _needsOnboarding = false;
 
@@ -234,7 +233,9 @@ class _ShellState extends ConsumerState<_Shell> {
 
     // Pre-check whether this is the first launch while splash is displaying
     final prefs = await SharedPreferences.getInstance();
-    _needsOnboarding = !(prefs.getBool(_tourSeenKey) ?? false);
+    await prefs.reload();
+    final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
+    _needsOnboarding = !seen;
 
     // Show the logo and brand presence for ~2.8s (~3s as requested: "likely 3s")
     // while all heavy database & model checks finish in the background.
@@ -280,7 +281,6 @@ class _MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<_MainShell> {
-  static const _tourSeenKey = 'app_tour_seen_v2';
   bool _liveTourActive = false;
   int _liveTourStep = 0;
   int _lastTourRequest = 0;
@@ -350,10 +350,25 @@ class _MainShellState extends ConsumerState<_MainShell> {
     final startPage = ref.read(startPageProvider);
     ref.read(shellTabIndexProvider.notifier).state = startPage;
     _loadedTabs.add(startPage);
+    _checkFirstRunTour();
     // Defer Google Play store update check by 4s so cold boot has zero network/IPC overhead
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) _checkForUpdate();
     });
+  }
+
+  /// Safety check: if the app ever reached the main shell without the user
+  /// completing the introductory tour, trigger it immediately.
+  Future<void> _checkFirstRunTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
+    if (!seen && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _startAppTour(markSeen: false);
+      });
+    }
   }
 
   @override
@@ -448,7 +463,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
     if (!mounted) return;
     if (markSeen) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_tourSeenKey, true);
+      await prefs.setBool(OnboardingTourScreen.tourSeenKey, true);
     }
     if (!mounted) return;
     await OnboardingTourScreen.show(
@@ -493,7 +508,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
               onDismiss: () async {
                 setState(() => _liveTourActive = false);
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool(_tourSeenKey, true);
+                await prefs.setBool(OnboardingTourScreen.tourSeenKey, true);
               },
             ),
         ],

@@ -290,76 +290,89 @@ class _HeroCard extends StatelessWidget {
         lan && lanIp != null ? 'http://$lanIp:$port' : 'http://127.0.0.1:$port';
 
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1522) : Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: running
-                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.35 : 0.25)
-                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-            width: 1,
-          ),
+        color: isDark ? const Color(0xFF0B111A) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: running
+              ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.45 : 0.35)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: running
+                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.16 : 0.08)
+                : Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Stack(
+        clipBehavior: Clip.antiAlias,
         children: [
-          // Background Pattern (Runs smoothly when active, static when stopped)
+          // Background Pattern (Contained within card, high contrast in light theme)
           Positioned.fill(
-            child: FloatingLinesBackground(
-              animated: running,
-              isDark: isDark,
-              animationSpeed: 0.9,
-              linesGradient: running
-                  ? (isDark
-                      ? const [
-                          Color(0xFF2CA048),
-                          Color(0xFF4ADE80),
-                          Color(0xFF10B981),
-                          Color(0xFF6EE7B7),
-                          Color(0xFFA7F3D0),
-                        ]
-                      : const [
-                          Color(0xFF15803D),
-                          Color(0xFF2CA048),
-                          Color(0xFF059669),
-                          Color(0xFF16A34A),
-                          Color(0xFF34D399),
-                        ])
-                  : (isDark
-                      ? const [
-                          Color(0xFF14532D),
-                          Color(0xFF15803D),
-                          Color(0xFF2CA048),
-                          Color(0xFF16A34A),
-                          Color(0xFF22C55E),
-                        ]
-                      : const [
-                          Color(0xFF166534),
-                          Color(0xFF15803D),
-                          Color(0xFF2CA048),
-                          Color(0xFF4ADE80),
-                          Color(0xFF86EFAC),
-                        ]),
-              backgroundColor: isDark
-                  ? const Color(0xFF080D14)
-                  : const Color(0xFFF8FAFC),
-              enabledWaves: const ['top', 'middle', 'bottom'],
-              lineCount: const [5, 6, 5],
-              lineDistance: const [4.0, 4.5, 4.0],
-              topWavePosition: const WavePosition(x: 8.0, y: 0.45, rotate: -0.35),
-              middleWavePosition: const WavePosition(x: 4.0, y: 0.0, rotate: 0.18),
-              bottomWavePosition: const WavePosition(x: 1.8, y: -0.55, rotate: 0.35),
-              interactive: true,
-              bendRadius: 4.0,
-              bendStrength: -0.45,
-              mouseDamping: 0.08,
-              parallax: true,
-              parallaxStrength: 0.15,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: FloatingLinesBackground(
+                animated: running,
+                isDark: isDark,
+                animationSpeed: 0.9,
+                linesGradient: running
+                    ? (isDark
+                        ? const [
+                            Color(0xFF2CA048),
+                            Color(0xFF4ADE80),
+                            Color(0xFF10B981),
+                            Color(0xFF6EE7B7),
+                            Color(0xFFA7F3D0),
+                          ]
+                        : const [
+                            Color(0xFF15803D),
+                            Color(0xFF16A34A),
+                            Color(0xFF2CA048),
+                            Color(0xFF059669),
+                            Color(0xFF047857),
+                          ])
+                    : (isDark
+                        ? const [
+                            Color(0xFF14532D),
+                            Color(0xFF15803D),
+                            Color(0xFF2CA048),
+                            Color(0xFF16A34A),
+                            Color(0xFF22C55E),
+                          ]
+                        : const [
+                            Color(0xFF166534),
+                            Color(0xFF15803D),
+                            Color(0xFF2CA048),
+                            Color(0xFF16A34A),
+                            Color(0xFF22C55E),
+                          ]),
+                backgroundColor: isDark
+                    ? const Color(0xFF080D14)
+                    : const Color(0xFFF8FAFC),
+                enabledWaves: const ['top', 'middle', 'bottom'],
+                lineCount: const [5, 6, 5],
+                lineDistance: const [4.0, 4.5, 4.0],
+                topWavePosition: const WavePosition(x: 8.0, y: 0.45, rotate: -0.35),
+                middleWavePosition: const WavePosition(x: 4.0, y: 0.0, rotate: 0.18),
+                bottomWavePosition: const WavePosition(x: 1.8, y: -0.55, rotate: 0.35),
+                interactive: true,
+                bendRadius: 4.0,
+                bendStrength: -0.45,
+                mouseDamping: 0.08,
+                parallax: true,
+                parallaxStrength: 0.15,
+              ),
             ),
           ),
 
-          // Readability gradient overlay
+          // Readability gradient overlay (Subtle so light theme pattern is punchy & visible)
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -368,21 +381,21 @@ class _HeroCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: isDark
                       ? [
-                          const Color(0xFF090E17).withValues(alpha: 0.65),
-                          const Color(0xFF0E1624).withValues(alpha: 0.80),
+                          const Color(0xFF090E17).withValues(alpha: 0.55),
+                          const Color(0xFF0E1624).withValues(alpha: 0.72),
                         ]
                       : [
-                          const Color(0xFFFFFFFF).withValues(alpha: 0.70),
-                          const Color(0xFFF1F5F9).withValues(alpha: 0.85),
+                          const Color(0xFFFFFFFF).withValues(alpha: 0.12),
+                          const Color(0xFFF1F5F9).withValues(alpha: 0.28),
                         ],
                 ),
               ),
             ),
           ),
 
-          // Spacious server control content - Identical fixed size in both Start and Stop
+          // Spacious, elevated server control deck
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -454,14 +467,14 @@ class _HeroCard extends StatelessWidget {
                     const Spacer(),
                     // Fixed Size Tactile Start / Stop Button with smooth transition animation
                     SizedBox(
-                      width: 92,
-                      height: 38,
+                      width: 98,
+                      height: 42,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeInOutCubic,
                         decoration: BoxDecoration(
                           color: running ? const Color(0xFFE11D48) : _brandDeep,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
                               color: (running ? const Color(0xFFE11D48) : _brandDeep)
@@ -542,17 +555,17 @@ class _HeroCard extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
                 // Bottom Row: Fixed-Height Endpoint / Port Strip (Identical size in both Start and Stop)
                 Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: isDark
                         ? const Color(0xFF0B111A).withValues(alpha: 0.85)
                         : Colors.white.withValues(alpha: 0.90),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: running
                           ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.40 : 0.30)

@@ -630,10 +630,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ),
         centerTitle: false,
+        actions: [
+          _ModelSwitcherAction(activeId: activeId),
+        ],
       ),
       body: Column(
         children: [
-          _ModelSwitcherPill(activeId: activeId),
+          if (activeId == null) const _NoModelWarningBanner(),
           Expanded(
             child: messages.isEmpty
                 ? _EmptyChat(
@@ -706,148 +709,368 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 }
 
-/// Interactive model switcher pill — replaces the old static banner.
-///
-/// Shows the active model name with a pulsing green dot and context-window
-/// badge. Tapping opens the model settings sheet (temperature + context).
-/// When no model is loaded, shows a compact error strip with a CTA.
-class _ModelSwitcherPill extends ConsumerWidget {
+/// Red warning banner displayed at the top of the chat page when no local model
+/// is loaded into memory or downloaded in the app.
+class _NoModelWarningBanner extends ConsumerWidget {
+  const _NoModelWarningBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final models = ref.watch(modelListProvider).valueOrNull ?? const [];
+    final hasInstalled = models.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: scheme.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: scheme.onErrorContainer,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              hasInstalled
+                  ? 'No model loaded — tap to select or browse.'
+                  : 'No model downloaded — tap to download.',
+              style: TextStyle(
+                color: scheme.onErrorContainer,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: () {
+              ref.read(shellTabIndexProvider.notifier).state = 1;
+            },
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              backgroundColor: scheme.error,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              hasInstalled ? 'Select' : 'Download',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Top-right AppBar action button to switch between installed models.
+class _ModelSwitcherAction extends ConsumerWidget {
   final String? activeId;
-  const _ModelSwitcherPill({required this.activeId});
+  const _ModelSwitcherAction({required this.activeId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     const logoGreen = Color(0xFF2CA048);
 
-    if (activeId == null) {
-      return Container(
-        width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(14, 6, 14, 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: scheme.errorContainer,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: IconButton(
+        icon: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: scheme.onErrorContainer,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'No model loaded — tap to browse.',
-                style: TextStyle(color: scheme.onErrorContainer, fontSize: 13),
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: activeId != null
+                    ? logoGreen.withValues(alpha: 0.12)
+                    : scheme.errorContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                activeId != null ? Icons.memory_rounded : Icons.warning_amber_rounded,
+                size: 20,
+                color: activeId != null ? logoGreen : scheme.error,
               ),
             ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: () {
-                ref.read(shellTabIndexProvider.notifier).state = 1;
-              },
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 32),
-                backgroundColor: scheme.error,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            // Live status indicator dot
+            Positioned(
+              top: -1,
+              right: -1,
+              child: Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: activeId != null ? logoGreen : scheme.error,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    width: 1.5,
+                  ),
                 ),
               ),
-              child: const Text('Models', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
-      );
-    }
+        tooltip: activeId != null
+            ? 'Active model: $activeId (tap to switch)'
+            : 'No model loaded (tap to choose)',
+        onPressed: () => _showModelSwitchSheet(context, ref),
+      ),
+    );
+  }
+}
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 4),
-      child: Material(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () async {
-            HapticFeedback.selectionClick();
-            final model = await ref
-                .read(modelStoreProvider)
-                .findById(activeId!);
-            if (model == null || !context.mounted) return;
-            await showModelSettingsSheet(context, model);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: scheme.outline,
-                width: 1,
+Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
+  HapticFeedback.lightImpact();
+  final activeId = ref.read(activeModelIdProvider);
+  final store = ref.read(modelStoreProvider);
+  final installedModels = await store.list();
+  if (!context.mounted) return;
+
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  final scheme = theme.colorScheme;
+  const logoGreen = Color(0xFF2CA048);
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: isDark ? const Color(0xFF131722) : Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (modalContext) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: scheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                // Pulsing green live dot
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: logoGreen.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.memory_rounded,
+                      size: 20,
+                      color: logoGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Switch Model',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                            color: scheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          installedModels.isEmpty
+                              ? 'No models installed'
+                              : '${installedModels.length} installed on device',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.of(modalContext).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (installedModels.isEmpty) ...[
                 Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: logoGreen,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x552CA048),
-                        blurRadius: 6,
-                        spreadRadius: 1,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.explore_outlined, size: 36, color: scheme.onSurfaceVariant),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No models downloaded yet',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onSurface),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Download an open model from the catalogue to begin chatting.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                        label: const Text('Browse Models'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: logoGreen,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          Navigator.of(modalContext).pop();
+                          ref.read(shellTabIndexProvider.notifier).state = 1;
+                        },
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    activeId!,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12.5,
-                    ),
+              ] else ...[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.45,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: installedModels.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final m = installedModels[index];
+                      final isSelected = m.id == activeId;
+                      return Material(
+                        color: isSelected
+                            ? logoGreen.withValues(alpha: isDark ? 0.16 : 0.08)
+                            : scheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () async {
+                            HapticFeedback.selectionClick();
+                            await ref.read(activeModelIdProvider.notifier).set(m);
+                            if (modalContext.mounted) Navigator.of(modalContext).pop();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? logoGreen : scheme.outlineVariant,
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isSelected
+                                      ? Icons.radio_button_checked_rounded
+                                      : Icons.radio_button_unchecked_rounded,
+                                  color: isSelected ? logoGreen : scheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        m.displayName,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: isSelected
+                                              ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                              : scheme.onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${m.sizeFormatted} · ${m.id}',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.tune_rounded, size: 18),
+                                    color: logoGreen,
+                                    tooltip: 'Model Parameters',
+                                    onPressed: () async {
+                                      Navigator.of(modalContext).pop();
+                                      await showModelSettingsSheet(context, m);
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                  decoration: BoxDecoration(
-                    color: logoGreen.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Download More Models'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: scheme.onSurface,
+                    side: BorderSide(color: scheme.outlineVariant),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    'ON-DEVICE',
-                    style: TextStyle(
-                      color: logoGreen,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 9.5,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  Icons.tune_rounded,
-                  size: 16,
-                  color: scheme.onSurfaceVariant,
+                  onPressed: () {
+                    Navigator.of(modalContext).pop();
+                    ref.read(shellTabIndexProvider.notifier).state = 1;
+                  },
                 ),
               ],
-            ),
+            ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
 }
 
 /// Puts the user back on the newest message after they have scrolled away.
