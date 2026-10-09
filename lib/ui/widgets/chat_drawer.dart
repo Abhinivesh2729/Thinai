@@ -6,7 +6,6 @@ import '../../models_repo/model_store.dart';
 import '../../state/providers.dart';
 import '../pages/about_page.dart';
 import 'model_settings_sheet.dart';
-import 'onboarding_tour_screen.dart';
 
 /// Global key for the shell scaffold so the drawer can be opened from
 /// the top-left menu button in the chat screen.
@@ -514,20 +513,6 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                       onTap: () {
                         Navigator.of(context).pop();
                         ref.read(shellTabIndexProvider.notifier).state = 3;
-                      },
-                    ),
-                    _DrawerFooterTile(
-                      icon: Icons.explore_outlined,
-                      label: 'App Tour & Guide',
-                      subtitle: 'Interactive feature tour',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        OnboardingTourScreen.show(
-                          context: context,
-                          onNavigateTab: (tabIndex) {
-                            ref.read(shellTabIndexProvider.notifier).state = tabIndex;
-                          },
-                        );
                       },
                     ),
                     _DrawerFooterTile(

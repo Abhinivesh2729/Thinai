@@ -13,15 +13,7 @@ class ContactSupportPage extends ConsumerWidget {
   static final Uri _instagramUrl = Uri.parse(
     'https://www.instagram.com/27_ai_27/',
   );
-  static final Uri _githubIssuesUrl = Uri.parse(
-    'https://github.com/sowmiyan-s/Thinai/issues',
-  );
-  static final Uri _emailUrl = Uri.parse(
-    'mailto:sowmisowmiyan58@gmail.com?subject=Thinai%20Support%20Request',
-  );
-
   static const String _instagramHandle = '@27_ai_27';
-  static const String _supportEmail = 'sowmisowmiyan58@gmail.com';
   static const Color _brandGreen = Color(0xFF2CA048);
 
   Future<void> _launch(BuildContext context, Uri uri, {String? failureMessage}) async {
@@ -195,81 +187,6 @@ class ContactSupportPage extends ConsumerWidget {
                     context,
                     _instagramHandle,
                     'Instagram handle',
-                  ),
-                  style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 2. GITHUB ISSUES CARD
-          _ChannelCard(
-            badgeColor: isDark ? const Color(0xFF8B949E) : const Color(0xFF24292F),
-            icon: Icons.bug_report_rounded,
-            title: 'GitHub Issues & Bugs',
-            handle: 'github.com/sowmiyan-s/Thinai',
-            description:
-                'Report reproducible crashes, hardware-specific issues, or request model quantization support.',
-            action: OutlinedButton.icon(
-              onPressed: () => _launch(
-                context,
-                _githubIssuesUrl,
-                failureMessage: 'Unable to open GitHub repository',
-              ),
-              icon: const Icon(Icons.open_in_new_rounded, size: 16),
-              label: const Text('Open GitHub Issues'),
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 11),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 3. EMAIL SUPPORT CARD
-          _ChannelCard(
-            badgeColor: const Color(0xFF3B82F6),
-            icon: Icons.email_outlined,
-            title: 'Email Inquiries',
-            handle: _supportEmail,
-            description:
-                'For private inquiries, business, or detailed crash logs that cannot be shared publicly.',
-            action: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _launch(
-                      context,
-                      _emailUrl,
-                      failureMessage: 'No email application installed',
-                    ),
-                    icon: const Icon(Icons.send_rounded, size: 16),
-                    label: const Text('Send Email'),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton.outlined(
-                  tooltip: 'Copy email address',
-                  icon: const Icon(Icons.copy_rounded, size: 18),
-                  onPressed: () => _copyToClipboard(
-                    context,
-                    _supportEmail,
-                    'Email address',
                   ),
                   style: IconButton.styleFrom(
                     shape: RoundedRectangleBorder(

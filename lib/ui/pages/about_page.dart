@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../state/providers.dart';
 import '../widgets/made_in_erode.dart';
@@ -11,34 +9,7 @@ import 'contact_support_page.dart';
 class AboutPage extends ConsumerWidget {
   const AboutPage({super.key});
 
-  static final Uri _githubUrl = Uri.parse(
-    'https://github.com/sowmiyan-s/Thinai',
-  );
   static const Color _brandGreen = Color(0xFF2CA048);
-
-  Future<void> _openGithub(BuildContext context) async {
-    HapticFeedback.lightImpact();
-    try {
-      final ok = await launchUrl(_githubUrl, mode: LaunchMode.externalApplication);
-      if (!ok && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open GitHub link'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening link: $e'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -210,7 +181,7 @@ class AboutPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Thinai is developed in the open. You can audit the source code, verify all privacy guarantees, and contribute to future releases.',
+                  'Thinai is built on sovereign privacy and open-source principles. You can inspect all third-party licenses or contact support for help.',
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.45,
@@ -222,9 +193,22 @@ class AboutPage extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: FilledButton.tonalIcon(
-                        onPressed: () => _openGithub(context),
-                        icon: const Icon(Icons.code_rounded, size: 18),
-                        label: const Text('GitHub'),
+                        onPressed: () => showLicensePage(
+                          context: context,
+                          applicationName: 'Thinai',
+                          applicationVersion: 'v$version',
+                          applicationIcon: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Image.asset(
+                              isDark
+                                  ? 'assets/images/logo_dark.png'
+                                  : 'assets/images/logo_transparent.png',
+                              width: 80,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.description_outlined, size: 18),
+                        label: const Text('Licenses'),
                         style: FilledButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -244,7 +228,7 @@ class AboutPage extends ConsumerWidget {
                           );
                         },
                         icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                        label: const Text('Contact'),
+                        label: const Text('Contact Support'),
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -254,28 +238,6 @@ class AboutPage extends ConsumerWidget {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: () => showLicensePage(
-                      context: context,
-                      applicationName: 'Thinai',
-                      applicationVersion: 'v$version',
-                      applicationIcon: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Image.asset(
-                          isDark
-                              ? 'assets/images/logo_dark.png'
-                              : 'assets/images/logo_transparent.png',
-                          width: 80,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.description_outlined, size: 16),
-                    label: const Text('Open Source Licenses'),
-                  ),
                 ),
               ],
             ),
