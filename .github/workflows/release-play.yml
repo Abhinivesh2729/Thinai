@@ -44,12 +44,12 @@ jobs:
       - run: flutter test --exclude-tags native
         continue-on-error: true
 
-      # versionCode rises with every commit, so Play never rejects a reused one; versionName comes from pubspec.yaml.
+      # versionCode = 10000 + run number: above any code Play has seen (older repo used 100 + commit count) and rising every run; versionName comes from pubspec.yaml.
       - name: Work out version
         id: version
         run: |
           echo "name=$(sed -nE 's/^version: *([^+ ]+).*/\1/p' pubspec.yaml)" >> "$GITHUB_OUTPUT"
-          echo "code=$((100 + $(git rev-list --count HEAD)))" >> "$GITHUB_OUTPUT"
+          echo "code=$((10000 + ${{ github.run_number }}))" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Restore release keystore
