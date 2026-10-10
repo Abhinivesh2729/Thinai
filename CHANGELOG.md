@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- EmbeddingGemma 2 (270M, Q8_0, 296 MB) in the embedding catalog: 768 dimensions, shortenable to 512/256/128 via `dimensions`, 8K context. Text only; the vision/audio projector is not wired up. (#13)
+
+### Changed
+- Vendored llama.cpp updated from `ecd99d6` (2026-03-03) to release `b11452`, which adds the `gemma-embedding2` architecture. fllama's local patches (Android OpenCL shim, lazy GPU registration, Vulkan device guards) are re-applied; see `third_party/fllama/LLAMA_CPP.md`.
+
 ### Fixed
 - GPU inference no longer crashes the app on most Android devices: GPU backend registration failures are caught and fall back to CPU, Vulkan device re-enumeration is bounds-checked, and a backend that fails two loads in a row rests for ten minutes while requests run on the CPU.
 
