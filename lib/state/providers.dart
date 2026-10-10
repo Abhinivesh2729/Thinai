@@ -182,7 +182,38 @@ final webSearchEnabledProvider =
     );
 
 // Bottom navigation index for the main shell: 0=Chat, 1=Models, 2=Server.
-final shellTabIndexProvider = StateProvider<int>((ref) => 1);
+// Defaults to 0 (Chat).
+final shellTabIndexProvider = StateProvider<int>((ref) => 0);
+
+/// Controls which tab/screen opens when Thinai launches:
+/// 0 = Chat (Default)
+/// 1 = Models
+/// 2 = Server
+/// 3 = Settings
+class StartPageController extends StateNotifier<int> {
+  StartPageController() : super(0) {
+    _load();
+  }
+
+  static const key = 'default_start_page';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(key) ?? 0;
+    state = (saved >= 0 && saved <= 3) ? saved : 0;
+  }
+
+  Future<void> set(int index) async {
+    if (index < 0 || index > 3) return;
+    state = index;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, index);
+  }
+}
+
+final startPageProvider = StateNotifierProvider<StartPageController, int>(
+  (ref) => StartPageController(),
+);
 
 // Increment to request a fresh coach-mark walkthrough from anywhere in the UI.
 final coachTourRequestProvider = StateProvider<int>((ref) => 0);
@@ -368,16 +399,20 @@ class ChatConversation {
   final String id;
   final List<ChatTurn> turns;
   final DateTime updatedAt;
+  final String? customTitle;
 
   const ChatConversation({
     required this.id,
     required this.turns,
     required this.updatedAt,
+    this.customTitle,
   });
 
-  /// Derived from the opening message rather than stored, so it can never go
-  /// stale and nothing has to name a chat before writing it.
+  /// Derived from custom title if present, otherwise from the opening message.
   String get title {
+    if (customTitle != null && customTitle!.trim().isNotEmpty) {
+      return customTitle!.trim();
+    }
     for (final turn in turns) {
       if (turn.role == 'user' && turn.content.trim().isNotEmpty) {
         final line = turn.content.trim().replaceAll(RegExp(r'\s+'), ' ');
@@ -401,17 +436,25 @@ class ChatConversation {
 
   bool get isEmpty => turns.isEmpty;
 
-  ChatConversation copyWith({List<ChatTurn>? turns, DateTime? updatedAt}) =>
+  ChatConversation copyWith({
+    List<ChatTurn>? turns,
+    DateTime? updatedAt,
+    String? customTitle,
+    bool clearCustomTitle = false,
+  }) =>
       ChatConversation(
         id: id,
         turns: turns ?? this.turns,
         updatedAt: updatedAt ?? this.updatedAt,
+        customTitle: clearCustomTitle ? null : (customTitle ?? this.customTitle),
       );
 
   Map<String, Object?> toJson() => {
     'id': id,
     'updatedAt': updatedAt.millisecondsSinceEpoch,
     'turns': [for (final t in turns) t.toJson()],
+    if (customTitle != null && customTitle!.trim().isNotEmpty)
+      'customTitle': customTitle!.trim(),
   };
 
   static ChatConversation? fromJson(Object? value) {
@@ -424,12 +467,14 @@ class ChatConversation {
       if (turn != null) turns.add(turn);
     }
     final stamp = value['updatedAt'];
+    final customTitle = value['customTitle'] as String?;
     return ChatConversation(
       id: id,
       turns: turns,
       updatedAt: DateTime.fromMillisecondsSinceEpoch(
         stamp is int ? stamp : 0,
       ),
+      customTitle: customTitle,
     );
   }
 }
@@ -624,6 +669,22 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     unawaited(_save());
   }
 
+  Future<void> rename(String id, String newTitle) async {
+    final trimmed = newTitle.trim();
+    final updated = [
+      for (final c in state.conversations)
+        if (c.id == id)
+          c.copyWith(
+            customTitle: trimmed.isEmpty ? null : trimmed,
+            clearCustomTitle: trimmed.isEmpty,
+          )
+        else
+          c,
+    ];
+    state = state.copyWith(conversations: updated);
+    await _save();
+  }
+
   Future<void> delete(String id) async {
     final remaining = [
       for (final c in state.conversations)
@@ -632,6 +693,21 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     state = ChatSessions(
       conversations: remaining,
       activeId: state.activeId == id ? null : state.activeId,
+      loaded: true,
+    );
+    await _save();
+  }
+
+  /// Deletes multiple conversations in a single batch.
+  Future<void> deleteMultiple(Set<String> ids) async {
+    if (ids.isEmpty) return;
+    final remaining = [
+      for (final c in state.conversations)
+        if (!ids.contains(c.id)) c,
+    ];
+    state = ChatSessions(
+      conversations: remaining,
+      activeId: ids.contains(state.activeId) ? null : state.activeId,
       loaded: true,
     );
     await _save();
@@ -811,6 +887,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
         if (installed != null && model.kind == ModelKind.chat) {
           await _ref.read(activeModelIdProvider.notifier).set(installed);
         }
+        // Ensure state is cleanly cleared and catalog/installed lists refresh
+        state = {...state}..remove(model.id);
+        _ref.read(modelsRefreshProvider.notifier).state++;
+
         _emit(
           DownloadOutcome(
             label: model.displayName,
@@ -821,6 +901,8 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       });
       return true;
     } catch (e) {
+      state = {...state}..remove(model.id);
+      _ref.read(modelsRefreshProvider.notifier).state++;
       _emit(
         DownloadOutcome(
           label: model.displayName,
@@ -832,7 +914,20 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     }
   }
 
-  void cancel(String catalogId) => state[catalogId]?.cancel();
+  void cancel(String catalogId) {
+    final handle = state[catalogId];
+    if (handle != null) {
+      handle.cancel();
+      state = {...state}..remove(catalogId);
+      _ref.read(modelsRefreshProvider.notifier).state++;
+      _emit(
+        DownloadOutcome(
+          label: handle.label,
+          cancelled: true,
+        ),
+      );
+    }
+  }
 
   /// Fetches the image encoder for a vision model whose weights are already
   /// installed.
@@ -902,6 +997,9 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
           error: e.toString(),
         ),
       );
+    } finally {
+      state = {...state}..remove(model.id);
+      _ref.read(modelsRefreshProvider.notifier).state++;
     }
   }
 
@@ -920,6 +1018,7 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     for (final m in all) {
       if (m.path == destPath) return m;
       if (_normalizeModelKey(m.displayName) == wanted) return m;
+      if (_normalizeModelKey(m.id) == wanted) return m;
     }
     return null;
   }
@@ -1108,64 +1207,75 @@ final savedServerPortProvider = FutureProvider<int>((ref) async {
 /// is not a decision the app gets to make; the tour points at the catalog
 /// instead.
 final appBootstrapProvider = FutureProvider<void>((ref) async {
+  // Concurrently load preferences, generation settings, and GPU trial check.
+  // Model scanning on disk is deferred to only when a saved model actually
+  // needs to be verified, avoiding heavy filesystem stat calls on cold startup.
   final prefs = await SharedPreferences.getInstance();
-  // Before the server can restart: its first request must already see the
-  // saved context windows and temperatures.
-  await GenerationSettingsStore.instance.ensureLoaded();
+
+  final initResults = await Future.wait([
+    GenerationSettingsStore.instance.ensureLoaded(),
+    takeCrashedGpuTrial(),
+  ]);
+
+  final crashedGpu = initResults[1] as GpuBackend?;
+
   // A GPU attempt that never produced a token means the driver took the app
   // down last time. Switch GPU off before anything can load a model with it.
-  final crashedGpu = await takeCrashedGpuTrial();
   if (crashedGpu != null) {
     await GenerationSettingsStore.instance.setGpu(GpuBackend.none);
     ref.read(gpuCrashNoticeProvider.notifier).state = crashedGpu;
     // This launch counts as the crash; one more failure rests the backend.
     LlmEngine.instance.gpuFailures.recordFailure(crashedGpu);
   }
-  final store = ref.read(modelStoreProvider);
-  final installed = await store.list();
 
-  // 1. Active model.
+  // 1. Active model (fast-path: skip disk listing on first run or when no active model was saved).
   final savedId = prefs.getString(_kActiveModelKey);
   if (savedId != null) {
-    LocalModel? match;
-    for (final m in installed) {
-      if (m.id == savedId) {
-        match = m;
-        break;
-      }
-    }
+    final store = ref.read(modelStoreProvider);
+    final match = await store.findById(savedId);
     // A missing file means the model was deleted from outside the app; drop
     // the stored id rather than pointing the engine at a dead path.
     await ref.read(activeModelIdProvider.notifier).set(match);
   }
 
-  // 2. Server.
+  // 2. Default startup tab.
+  final savedStart = prefs.getInt(StartPageController.key) ?? 0;
+  final startPage = (savedStart >= 0 && savedStart <= 3) ? savedStart : 0;
+  ref.read(shellTabIndexProvider.notifier).state = startPage;
+
+  // 3. Server.
   //
   // Any service still running at this point is a leftover: reaching here
-  // means a fresh isolate, and the HTTP server lived in the old one. Clear it
-  // first so the notification is never a lie, and so the restarted service
-  // gets a task handler this isolate can talk to (that is what delivers the
-  // notification's Stop button).
-  if (await FlutterForegroundTask.isRunningService) {
-    await FlutterForegroundTask.stopService();
-  }
-  if (prefs.getBool(_kServerRunningKey) ?? false) {
-    final port = prefs.getInt(_kServerPortKey) ?? 11434;
-    // lanShareProvider loads its own preference asynchronously, so read the
-    // stored value directly instead of racing it.
-    final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
-    await ref.read(serverControllerProvider.notifier).start(
-      port: port,
-      lanMode: lan,
-    );
-    final status = ref.read(serverControllerProvider);
-    if (status.running) {
-      await ForegroundServiceManager.serverStarted(
-        port: status.port,
-        lan: status.lan,
-        ip: status.lanIp,
-      );
-    }
-  }
-
+  // means a fresh isolate, and the HTTP server lived in the old one.
+  // Resume in background so the UI shell displays immediately without
+  // waiting for Android IPC service checks, socket binding, or LAN interface scans.
+  unawaited(_resumeServerIfConfigured(ref, prefs));
 });
+
+Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
+  try {
+    if (await FlutterForegroundTask.isRunningService) {
+      await FlutterForegroundTask.stopService();
+    }
+    if (prefs.getBool(_kServerRunningKey) ?? false) {
+      final port = prefs.getInt(_kServerPortKey) ?? 11434;
+      // lanShareProvider loads its own preference asynchronously, so read the
+      // stored value directly instead of racing it.
+      final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
+      await ref.read(serverControllerProvider.notifier).start(
+        port: port,
+        lanMode: lan,
+      );
+      final status = ref.read(serverControllerProvider);
+      if (status.running) {
+        await ForegroundServiceManager.serverStarted(
+          port: status.port,
+          lan: status.lan,
+          ip: status.lanIp,
+        );
+      }
+    }
+  } catch (_) {
+    // Background server recovery should never crash the app.
+  }
+}

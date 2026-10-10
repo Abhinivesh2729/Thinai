@@ -133,7 +133,7 @@ if(ANDROID)
     endif()
 endif()
 
-if(WIN32)
+if(WIN32 AND NOT ANDROID)
   set(GGML_VULKAN ON CACHE BOOL "ggml: use Vulkan" FORCE)
   message(STATUS "Windows detected, enabling GGML_VULKAN")
 endif()

@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
 /// The "Made in Erode" credit, in one place so the splash, About and Settings
-/// all show the same wording and gold accent.
+/// all show the same wording and green accent.
 class MadeInErode extends StatelessWidget {
   const MadeInErode({super.key, this.compact = false});
 
   /// Smaller type for use as a page footer rather than a card.
   final bool compact;
 
-  /// Gold from the splash wordmark, fixed rather than scheme-derived so the
+  /// Brand green from the logo, fixed rather than scheme-derived so the
   /// credit reads the same in light and dark.
-  static const _gold = Color(0xFFB8860B);
+  static const _green = Color(0xFF2CA048);
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final accent = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFF8D88A)
-        : _gold;
+        ? const Color(0xFF2EA043)
+        : _green;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

@@ -5,16 +5,18 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models_repo/catalog.dart';
 import '../server/foreground_handler.dart';
 import '../state/providers.dart';
 import '../update/app_updater.dart';
 import 'pages/chat_page.dart';
 import 'pages/models_page.dart';
 import 'pages/server_page.dart';
+import 'pages/settings_page.dart';
 import 'pages/splash_page.dart';
+import 'widgets/chat_drawer.dart';
 import 'widgets/coach_mark_targets.dart';
-import 'widgets/spotlight_coach_marks.dart';
+import 'widgets/app_tour_dialog.dart';
+import 'widgets/onboarding_tour_screen.dart';
 
 class LocalLlmApp extends ConsumerWidget {
   const LocalLlmApp({super.key});
@@ -37,10 +39,62 @@ class LocalLlmApp extends ConsumerWidget {
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
 /// so every screen adapts automatically.
 ThemeData _buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF0E4B75),
+  final isDark = brightness == Brightness.dark;
+  // Official Thinai logo leaf green and crisp error red
+  const logoGreen = Color(0xFF2CA048);
+  const errorRed = Color(0xFFDC2626);
+
+  final baseScheme = ColorScheme.fromSeed(
+    seedColor: logoGreen,
     brightness: brightness,
+    error: errorRed,
   );
+
+  final scheme = baseScheme.copyWith(
+    primary: isDark ? logoGreen : const Color(0xFF1B8738),
+    onPrimary: Colors.white,
+    primaryContainer: isDark
+        ? const Color(0x282CA048)
+        : const Color(0x181B8738),
+    onPrimaryContainer: isDark
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFF14532D),
+    error: errorRed,
+    errorContainer: isDark
+        ? const Color(0x28DC2626)
+        : const Color(0x15DC2626),
+    onErrorContainer: isDark
+        ? const Color(0xFFFCA5A5)
+        : const Color(0xFF991B1B),
+    surface: isDark
+        ? const Color(0xFF0B0E14)
+        : const Color(0xFFFFFFFF),
+    surfaceContainerLow: isDark
+        ? const Color(0xFF121620)
+        : const Color(0xFFF8FAFC),
+    surfaceContainer: isDark
+        ? const Color(0xFF171C28)
+        : const Color(0xFFF1F5F9),
+    surfaceContainerHigh: isDark
+        ? const Color(0xFF1E2533)
+        : const Color(0xFFE8EDF5),
+    surfaceContainerHighest: isDark
+        ? const Color(0xFF273142)
+        : const Color(0xFFDCE3ED),
+    onSurface: isDark
+        ? const Color(0xFFF8FAFC)
+        : const Color(0xFF0F172A),
+    onSurfaceVariant: isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF475569),
+    outline: isDark
+        ? const Color(0xFF273242)
+        : const Color(0xFFCBD5E1),
+    outlineVariant: isDark
+        ? const Color(0xFF344256)
+        : const Color(0xFFE2E8F0),
+  );
+
   return ThemeData(
     colorScheme: scheme,
     useMaterial3: true,
@@ -48,44 +102,82 @@ ThemeData _buildTheme(Brightness brightness) {
     scaffoldBackgroundColor: scheme.surface,
     appBarTheme: AppBarTheme(
       backgroundColor: scheme.surface,
-      surfaceTintColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
         color: scheme.onSurface,
-        fontSize: 22,
+        fontSize: 21,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.3,
       ),
+      iconTheme: IconThemeData(color: scheme.onSurface),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
       color: scheme.surfaceContainerLow,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.outline, width: 1),
       ),
       margin: EdgeInsets.zero,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
+        backgroundColor: logoGreen,
+        foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: scheme.onSurface,
+        side: BorderSide(color: scheme.outline, width: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: scheme.surface,
-      indicatorColor: scheme.primaryContainer,
-      labelTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: scheme.onSurface,
-        ),
-      ),
-      height: 72,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: logoGreen.withValues(alpha: 0.14),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.25,
+          color: selected
+              ? (isDark ? Colors.white : const Color(0xFF090A0C))
+              : scheme.onSurfaceVariant,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? logoGreen : scheme.onSurfaceVariant,
+          size: 23,
+        );
+      }),
+      height: 68,
+    ),
+    dividerTheme: DividerThemeData(
+      color: scheme.outlineVariant,
+      thickness: 1,
+      space: 1,
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: isDark ? const Color(0xFF1E252E) : const Color(0xFF0F172A),
+      contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      behavior: SnackBarBehavior.floating,
     ),
   );
 }
@@ -98,13 +190,22 @@ class _Shell extends ConsumerStatefulWidget {
 }
 
 class _ShellState extends ConsumerState<_Shell> {
-  bool _showMainApp = false;
+  bool _booted = false;
+  bool _needsOnboarding = false;
 
   @override
   void initState() {
     super.initState();
     FlutterForegroundTask.addTaskDataCallback(_onServiceData);
     _boot();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-warm the splash logos so the very first frame paints immediately without decode blanking.
+    precacheImage(const AssetImage('assets/images/logo_dark.png'), context);
+    precacheImage(const AssetImage('assets/images/logo_transparent.png'), context);
   }
 
   @override
@@ -124,45 +225,81 @@ class _ShellState extends ConsumerState<_Shell> {
     }();
   }
 
-  /// Holds the splash until session state is restored, so the first frame of
-  /// the app already shows the right model and server state instead of
-  /// flashing "Stopped" and correcting itself.
+  /// Performs a fast, non-blocking splash transition into onboarding or the main shell.
   Future<void> _boot() async {
-    await Future.wait([
-      Future<void>.delayed(const Duration(seconds: 3)),
-      // Bounded on purpose. Restoring state reads preferences, lists the
-      // models directory, and may bind a socket; if any of that ever stalls,
-      // the app should still open rather than sit on the splash forever.
-      ref
-          .read(appBootstrapProvider.future)
-          .catchError((Object _) {})
-          .timeout(const Duration(seconds: 10), onTimeout: () {}),
-    ]);
+    // Kick off state restoration concurrently in the background so it never
+    // blocks the UI shell or welcome sheet from rendering immediately.
+    unawaited(ref.read(appBootstrapProvider.future).catchError((Object _) {}));
+
+    // Pre-check whether this is the first launch while splash is displaying
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
+    _needsOnboarding = !seen;
+
+    // Show the logo and brand presence for ~2.8s (~3s as requested: "likely 3s")
+    // while all heavy database & model checks finish in the background.
+    await Future<void>.delayed(const Duration(milliseconds: 2800));
     if (!mounted) return;
-    setState(() => _showMainApp = true);
+    setState(() => _booted = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_showMainApp) {
-      return const SplashPage();
+    Widget child;
+    if (!_booted) {
+      child = const SplashPage(key: ValueKey('splash'));
+    } else if (_needsOnboarding) {
+      child = OnboardingTourScreen(
+        key: const ValueKey('onboarding'),
+        onComplete: () {
+          if (mounted) setState(() => _needsOnboarding = false);
+        },
+        onNavigateTab: (tabIndex) {
+          ref.read(shellTabIndexProvider.notifier).state = tabIndex;
+          if (mounted) setState(() => _needsOnboarding = false);
+        },
+      );
+    } else {
+      child = const _MainShell(key: ValueKey('shell'));
     }
-    return const _MainShell();
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: child,
+    );
   }
 }
 
 class _MainShell extends ConsumerStatefulWidget {
-  const _MainShell();
+  const _MainShell({super.key});
 
   @override
   ConsumerState<_MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends ConsumerState<_MainShell> {
-  static const _tourSeenKey = 'app_tour_seen_v2';
-  bool _tourCheckStarted = false;
-  bool _tourRunning = false;
+  bool _liveTourActive = false;
+  int _liveTourStep = 0;
   int _lastTourRequest = 0;
+  bool _logosPrecached = false;
+
+  /// Tracks initialized tabs so inactive pages (e.g. Models with 30+ items,
+  /// Server with docs) are constructed lazily only when visited, avoiding
+  /// heavy multi-page widget trees during cold startup.
+  final Set<int> _loadedTabs = {};
+
+  List<Widget> _buildPages(int activeIndex) {
+    _loadedTabs.add(activeIndex);
+    return [
+      _loadedTabs.contains(0) ? const ChatPage() : const SizedBox.shrink(),
+      _loadedTabs.contains(1) ? const ModelsPage() : const SizedBox.shrink(),
+      _loadedTabs.contains(2) ? const ServerPage() : const SizedBox.shrink(),
+      _loadedTabs.contains(3) ? const SettingsPage() : const SizedBox.shrink(),
+    ];
+  }
 
   /// Set once Play answers with something newer than the running build. Null
   /// while up to date, while the check is in flight, and after the user
@@ -172,13 +309,66 @@ class _MainShellState extends ConsumerState<_MainShell> {
   bool _updateBusy = false;
   StreamSubscription<InstallStatus>? _installSub;
 
-  final _pages = const [ChatPage(), ModelsPage(), ServerPage()];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_logosPrecached) {
+      _logosPrecached = true;
+      // Defer pre-warming logos by 2.5s so cold boot paints the initial UI
+      // and welcome sheet with zero decode/GC stalls on the UI thread.
+      Future.delayed(const Duration(milliseconds: 2500), () {
+        if (mounted) _precacheModelLogos();
+      });
+    }
+  }
+
+  /// Warms up real brand logo textures into Flutter's image cache in the background
+  /// so visiting the Models page or chatting displays brand logos without decode stutter.
+  void _precacheModelLogos() {
+    const logos = [
+      'assets/logos/baai.png',
+      'assets/logos/deepseek.png',
+      'assets/logos/gemma.png',
+      'assets/logos/google.png',
+      'assets/logos/huggingface.png',
+      'assets/logos/ibm.png',
+      'assets/logos/liquid.png',
+      'assets/logos/meta.png',
+      'assets/logos/microsoft.png',
+      'assets/logos/mistral.png',
+      'assets/logos/nomic.png',
+      'assets/logos/qwen.png',
+    ];
+    for (final path in logos) {
+      precacheImage(AssetImage(path), context);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _maybeShowInitialTour();
-    _checkForUpdate();
+    final startPage = ref.read(startPageProvider);
+    ref.read(shellTabIndexProvider.notifier).state = startPage;
+    _loadedTabs.add(startPage);
+    _checkFirstRunTour();
+    // Defer Google Play store update check by 4s so cold boot has zero network/IPC overhead
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) _checkForUpdate();
+    });
+  }
+
+  /// Safety check: if the app ever reached the main shell without the user
+  /// completing the introductory tour, trigger it immediately.
+  Future<void> _checkFirstRunTour() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
+    if (!seen && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _startAppTour(markSeen: false);
+      });
+    }
   }
 
   @override
@@ -269,118 +459,19 @@ class _MainShellState extends ConsumerState<_MainShell> {
     if (mounted) setState(() => _updateBusy = false);
   }
 
-  Future<void> _maybeShowInitialTour() async {
-    if (_tourCheckStarted) return;
-    _tourCheckStarted = true;
-    final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool(_tourSeenKey) ?? false;
-    if (!mounted || seen) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _startCoachTour(markSeen: true);
-    });
-  }
-
-  /// Wording for the download step. Points at the icon on any card, and
-  /// names the smallest model for anyone who would rather not choose.
-  String _starterModelAdvice() {
-    final starter = starterModel;
-    if (starter == null) {
-      return 'Tap the download icon on any model. Smaller ones run faster.';
+  Future<void> _startAppTour({required bool markSeen}) async {
+    if (!mounted) return;
+    if (markSeen) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(OnboardingTourScreen.tourSeenKey, true);
     }
-    return 'Tap the download icon. ${starter.displayName} '
-        '(${starter.approxSize}) is the smallest, a safe first pick.';
-  }
-
-  Future<void> _switchTabAndWait(int index) async {
-    ref.read(shellTabIndexProvider.notifier).state = index;
-    await Future<void>.delayed(const Duration(milliseconds: 260));
-  }
-
-  List<SpotlightCoachStep> _buildCoachSteps() {
-    return [
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTab,
-        title: 'Step 1: Open Models',
-        message:
-            'Thinai runs models on your phone. Download one before you chat.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.modelsTourButton,
-        title: 'Settings and tools',
-        message: 'Open Settings here for import, downloads, and support.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.firstCatalogAction,
-        title: 'Step 2: Download a model',
-        // Names the smallest model and its size: this step stands in for the
-        // first-run auto-download that used to happen, so it has to answer
-        // "which one" and "how big" rather than leave someone staring at 22
-        // chat models.
-        message: _starterModelAdvice(),
-        borderRadius: 20,
-        // The catalogue sits below the advisor and the installed models, far
-        // enough down that the card is not built yet. Scrolling to it is what
-        // brings it into existence for the spotlight to find.
-        beforeShow: () async {
-          await _switchTabAndWait(1);
-          await revealCoachTarget(
-            CoachMarkTargets.firstCatalogAction,
-            CoachMarkTargets.modelsScroll,
-          );
-        },
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatTab,
-        title: 'Step 3: Go to Chat',
-        message: 'With a model active, go to Chat to start talking.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.chatComposer,
-        title: 'Step 4: Type and send',
-        message: 'Type your prompt and send. Responses generate on-device.',
-        borderRadius: 22,
-        beforeShow: () => _switchTabAndWait(0),
-      ),
-      SpotlightCoachStep(
-        targetKey: CoachMarkTargets.benchmarkButton,
-        title: 'Measure your phone',
-        // Last, because it only means something once a model is running: the
-        // measurement it takes is also what replaces the estimated speeds on
-        // the Models page with real ones for this device.
-        message:
-            'Tap Benchmark to measure real speed on your phone, replacing '
-            'the estimates.',
-        borderRadius: 24,
-        beforeShow: () => _switchTabAndWait(1),
-      ),
-    ];
-  }
-
-  Future<void> _startCoachTour({required bool markSeen}) async {
-    if (_tourRunning || !mounted) return;
-    _tourRunning = true;
-    try {
-      await SpotlightCoachMarks.show(
-        context: context,
-        steps: _buildCoachSteps(),
-      );
-    } finally {
-      _tourRunning = false;
-      // The update banner is suppressed while the tour runs; this is what
-      // brings it back once the spotlight is gone.
-      if (mounted) setState(() {});
-      if (markSeen) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_tourSeenKey, true);
-      }
-    }
+    if (!mounted) return;
+    await OnboardingTourScreen.show(
+      context: context,
+      onNavigateTab: (tabIndex) {
+        ref.read(shellTabIndexProvider.notifier).state = tabIndex;
+      },
+    );
   }
 
   @override
@@ -392,13 +483,36 @@ class _MainShellState extends ConsumerState<_MainShell> {
       _lastTourRequest = tourRequest;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _startCoachTour(markSeen: true);
+        _startAppTour(markSeen: true);
       });
     }
 
     final update = _update;
     return Scaffold(
-      body: IndexedStack(index: index, children: _pages),
+      key: shellScaffoldKey,
+      drawer: const ChatDrawer(),
+      body: Stack(
+        children: [
+          IndexedStack(index: index, children: _buildPages(index)),
+          if (_liveTourActive)
+            LiveGuidedTourDock(
+              step: _liveTourStep,
+              onStepChanged: (s) {
+                setState(() => _liveTourStep = s);
+                // Step 0 & 1 -> Models tab (1)
+                // Step 2 -> Chat tab (0)
+                // Step 3 -> Server tab (2)
+                final targetTab = (s == 0 || s == 1) ? 1 : (s == 2 ? 0 : 2);
+                ref.read(shellTabIndexProvider.notifier).state = targetTab;
+              },
+              onDismiss: () async {
+                setState(() => _liveTourActive = false);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(OnboardingTourScreen.tourSeenKey, true);
+              },
+            ),
+        ],
+      ),
       // The banner rides above the navigation bar rather than above the body:
       // every page brings its own AppBar, and a notice pushed in over those
       // would sit in the status bar. Hidden while the coach tour runs, because
@@ -406,7 +520,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (update != null && !_tourRunning)
+          if (update != null && !_liveTourActive)
             _UpdateBanner(
               status: update,
               busy: _updateBusy,
@@ -429,14 +543,19 @@ class _MainShellState extends ConsumerState<_MainShell> {
               ),
               NavigationDestination(
                 key: CoachMarkTargets.modelsTab,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                selectedIcon: const Icon(Icons.auto_awesome_rounded),
+                icon: const Icon(Icons.memory_outlined),
+                selectedIcon: const Icon(Icons.memory_rounded),
                 label: 'Models',
               ),
               const NavigationDestination(
-                icon: Icon(Icons.cloud_outlined),
-                selectedIcon: Icon(Icons.cloud_rounded),
+                icon: Icon(Icons.dns_outlined),
+                selectedIcon: Icon(Icons.dns_rounded),
                 label: 'Server',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings_rounded),
+                label: 'Settings',
               ),
             ],
           ),

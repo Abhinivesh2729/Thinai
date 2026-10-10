@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show Color;
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -93,9 +94,13 @@ class ForegroundServiceManager {
   static bool _serverLan = false;
   static String? _serverIp;
 
-  /// Display names of the models currently downloading (one entry per active
-  /// download), so the notification can name them.
-  static final List<String> _downloads = [];
+  /// Tracks active model downloads with progress metrics for notification updates.
+  static final Map<String, _ModelDownloadProgress> _activeDownloads = {};
+
+  /// Recently completed model download to show a completion notification.
+  static String? _recentCompletedModel;
+  static Timer? _completedDismissTimer;
+  static DateTime _lastProgressSync = DateTime.fromMillisecondsSinceEpoch(0);
 
   static Future<void> serverStarted({
     required int port,
@@ -114,42 +119,103 @@ class ForegroundServiceManager {
     await _sync();
   }
 
-  static Future<void> downloadStarted(String label) async {
-    _downloads.add(label);
+  static Future<void> downloadStarted(String label, {int? totalBytes}) async {
+    _completedDismissTimer?.cancel();
+    _recentCompletedModel = null;
+    _activeDownloads[label] = _ModelDownloadProgress(
+      label: label,
+      received: 0,
+      total: totalBytes,
+    );
     await _sync();
+  }
+
+  static void downloadProgress(String label, int received, int? total) {
+    final entry = _activeDownloads[label];
+    if (entry == null) return;
+    entry.received = received;
+    if (total != null && total > 0) entry.total = total;
+
+    // Throttle notification updates: at most once every 700ms to avoid IPC spam
+    final now = DateTime.now();
+    if (now.difference(_lastProgressSync).inMilliseconds >= 700) {
+      _lastProgressSync = now;
+      _sync();
+    }
+  }
+
+  static Future<void> downloadCompleted(String label) async {
+    _activeDownloads.remove(label);
+    _recentCompletedModel = label;
+    await _sync();
+
+    // Keep the "Download completed" notice visible for 5s before dismissing
+    _completedDismissTimer?.cancel();
+    _completedDismissTimer = Timer(const Duration(seconds: 5), () {
+      _recentCompletedModel = null;
+      _sync();
+    });
   }
 
   static Future<void> downloadFinished(String label) async {
-    _downloads.remove(label);
+    _activeDownloads.remove(label);
     await _sync();
   }
 
-  static bool get _needed => _serverRunning || _downloads.isNotEmpty;
+  static bool get _needed =>
+      _serverRunning || _activeDownloads.isNotEmpty || _recentCompletedModel != null;
+
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } else {
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+    }
+  }
 
   static String get _title {
-    if (_downloads.isNotEmpty) {
-      final extra = _downloads.length - 1;
-      final suffix = extra > 0 ? '  +$extra more' : '';
-      return 'Downloading ${_downloads.first}$suffix';
+    if (_activeDownloads.isNotEmpty) {
+      final first = _activeDownloads.values.first;
+      final percent = (first.total != null && first.total! > 0)
+          ? ' · ${((first.received / first.total!) * 100).clamp(0, 100).toInt()}%'
+          : '';
+      final extra = _activeDownloads.length - 1;
+      final suffix = extra > 0 ? ' (+$extra more)' : '';
+      return 'Downloading ${first.label}$percent$suffix';
+    }
+    if (_recentCompletedModel != null) {
+      return 'Download completed: $_recentCompletedModel';
     }
     if (_serverRunning) return 'Thinai server running';
     return 'Thinai';
   }
 
   static String get _text {
-    final parts = <String>[];
+    if (_activeDownloads.isNotEmpty) {
+      final first = _activeDownloads.values.first;
+      final parts = <String>[];
+      if (first.total != null && first.total! > 0) {
+        parts.add('${_formatBytes(first.received)} of ${_formatBytes(first.total!)}');
+      } else if (first.received > 0) {
+        parts.add(_formatBytes(first.received));
+      }
+      if (_serverRunning) {
+        parts.add('Server active on :$_serverPort');
+      } else {
+        parts.add('Saving to local storage');
+      }
+      return parts.join(' · ');
+    }
+    if (_recentCompletedModel != null) {
+      return 'Model is installed and ready for inference';
+    }
     if (_serverRunning) {
       final host = _serverLan && _serverIp != null ? _serverIp : '127.0.0.1';
-      parts.add('API at http://$host:$_serverPort');
+      return 'API at http://$host:$_serverPort';
     }
-    if (_downloads.isNotEmpty) {
-      parts.add(
-        _serverRunning
-            ? 'Downloading ${_downloads.length} model${_downloads.length == 1 ? '' : 's'}'
-            : 'Saving to your models. Keep the app open or backgrounded',
-      );
-    }
-    return parts.isEmpty ? 'Thinai' : parts.join(' · ');
+    return 'Thinai';
   }
 
   static Future<void> _sync() async {
@@ -182,4 +248,16 @@ class ForegroundServiceManager {
     if (await Permission.notification.isGranted) return;
     await Permission.notification.request();
   }
+}
+
+class _ModelDownloadProgress {
+  final String label;
+  int received;
+  int? total;
+
+  _ModelDownloadProgress({
+    required this.label,
+    required this.received,
+    this.total,
+  });
 }

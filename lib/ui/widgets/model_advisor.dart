@@ -11,6 +11,7 @@ import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
+import 'model_brand_logo.dart';
 
 class ModelAdvisor extends StatefulWidget {
   const ModelAdvisor({
@@ -20,6 +21,10 @@ class ModelAdvisor extends StatefulWidget {
     required this.onDownload,
     this.downloads = const {},
     this.onCancel,
+    this.selectedUseCase,
+    this.onUseCaseChanged,
+    this.isCollapsed = false,
+    this.onToggleCollapse,
   });
 
   /// What is known about this phone's speed: its class, plus any benchmark
@@ -38,32 +43,126 @@ class ModelAdvisor extends StatefulWidget {
   /// Cancels the download for a catalog id.
   final void Function(String catalogId)? onCancel;
 
+  /// Externally controlled goal use-case, syncing with the models filter bar.
+  final UseCase? selectedUseCase;
+
+  /// Callback when a goal use-case is selected or unselected.
+  final ValueChanged<UseCase?>? onUseCaseChanged;
+
+  /// Whether the advisor is collapsed to a compact one-line status bar.
+  final bool isCollapsed;
+
+  /// Toggles collapsed state.
+  final VoidCallback? onToggleCollapse;
+
   @override
   State<ModelAdvisor> createState() => _ModelAdvisorState();
 }
 
 class _ModelAdvisorState extends State<ModelAdvisor> {
-  UseCase? _choice;
+  UseCase? _localChoice;
+
+  UseCase? get _choice => widget.selectedUseCase ?? _localChoice;
+
+  void _select(UseCase useCase) {
+    final next = _choice == useCase ? null : useCase;
+    if (widget.onUseCaseChanged != null) {
+      widget.onUseCaseChanged!(next);
+    } else {
+      setState(() => _localChoice = next);
+    }
+  }
+
+  void _clear() {
+    if (widget.onUseCaseChanged != null) {
+      widget.onUseCaseChanged!(null);
+    } else {
+      setState(() => _localChoice = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final choice = _choice;
     final device = widget.speed.device;
+    const logoGreen = Color(0xFF2CA048);
+
+    if (widget.isCollapsed) {
+      return Container(
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: choice != null
+                ? logoGreen.withValues(alpha: 0.4)
+                : scheme.outlineVariant.withValues(alpha: 0.6),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: widget.onToggleCollapse,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                const Icon(Icons.tune_rounded, size: 18, color: logoGreen),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    choice != null
+                        ? 'Goal: ${choice.label} · tap to customize'
+                        : 'What do you want to do? · tap to pick a goal',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: choice != null ? FontWeight.w700 : FontWeight.w600,
+                      color: choice != null ? logoGreen : scheme.onSurface,
+                    ),
+                  ),
+                ),
+                if (choice != null) ...[
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 16),
+                    tooltip: 'Clear goal',
+                    onPressed: _clear,
+                    style: IconButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(26, 26),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Icon(
+                  Icons.expand_more_rounded,
+                  size: 20,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: choice != null
+              ? logoGreen.withValues(alpha: 0.35)
+              : scheme.outlineVariant.withValues(alpha: 0.6),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome_rounded, size: 18, color: scheme.primary),
+              const Icon(Icons.tune_rounded, size: 18, color: logoGreen),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -75,6 +174,28 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                   ),
                 ),
               ),
+              if (choice != null)
+                TextButton(
+                  onPressed: _clear,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    foregroundColor: scheme.error,
+                  ),
+                  child: const Text('Clear', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+              if (widget.onToggleCollapse != null)
+                IconButton(
+                  icon: const Icon(Icons.expand_less_rounded, size: 20),
+                  tooltip: 'Collapse guide',
+                  onPressed: widget.onToggleCollapse,
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(28, 28),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 4),
@@ -93,9 +214,7 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 _ChoiceChip(
                   useCase: useCase,
                   selected: useCase == choice,
-                  onTap: () => setState(
-                    () => _choice = useCase == choice ? null : useCase,
-                  ),
+                  onTap: () => _select(useCase),
                 ),
             ],
           ),
@@ -131,29 +250,40 @@ class _ChoiceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
     return Material(
-      color: selected ? scheme.primary : scheme.surface,
-      borderRadius: BorderRadius.circular(30),
+      color: selected ? logoGreen : scheme.surfaceContainerHigh.withValues(alpha: 0.65),
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: selected
+                  ? logoGreen
+                  : scheme.outlineVariant.withValues(alpha: 0.6),
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 useCase.icon,
-                size: 15,
-                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant,
+                size: 14,
+                color: selected ? Colors.white : scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 6),
               Text(
                 useCase.label,
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? scheme.onPrimary : scheme.onSurface,
+                  color: selected ? Colors.white : scheme.onSurface,
                 ),
               ),
             ],
@@ -278,7 +408,16 @@ class _BestCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(model.emoji, style: const TextStyle(fontSize: 20)),
+              Container(
+                width: 36,
+                height: 36,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: ModelBrandLogo.catalog(model: model, size: 24),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -392,7 +531,7 @@ class _AlternativeRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Text(pick.model.emoji, style: const TextStyle(fontSize: 13)),
+          ModelBrandLogo.catalog(model: pick.model, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

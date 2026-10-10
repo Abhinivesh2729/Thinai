@@ -101,16 +101,9 @@ void main(List<String> args) async {
     if (targetOS == OS.android) {
       defines['GGML_LLAMAFILE'] = 'OFF';
       defines['GGML_OPENMP'] = 'OFF';
-      // GPU offload: Vulkan + OpenCL (Adreno kernels, embedded), arm64 only.
-      // src/CMakeLists.txt turns this into GGML_VULKAN / GGML_OPENCL and
-      // resolves the Vulkan inputs from the NDK the toolchain file belongs to:
-      //   - glslc          <ndk>/shader-tools/<host>/glslc (fatal if missing)
-      //   - libvulkan.so   <ndk sysroot>/usr/lib/aarch64-linux-android/<api>/
-      //   - Vulkan headers src/third_party/Vulkan-Headers (vendored)
-      // OpenCL links src/opencl_shim.c, never libOpenCL.so. Neither backend is
-      // registered until a request asks for it (fllama_inference_request
-      // .gpu_backend). Set to OFF for a CPU-only library.
-      defines['FLLAMA_ANDROID_GPU'] = 'ON';
+      defines['GGML_VULKAN'] = 'OFF';
+      defines['GGML_OPENCL'] = 'OFF';
+      defines['FLLAMA_ANDROID_GPU'] = 'OFF';
     }
 
     // ── Stale CMake cache detection ────────────────────────────────────

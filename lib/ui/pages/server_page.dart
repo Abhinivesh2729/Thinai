@@ -3,40 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models_repo/catalog.dart';
-import '../../models_repo/model_store.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
+import '../widgets/floating_lines_background.dart';
 import '../widgets/model_settings_sheet.dart';
-import 'settings_page.dart';
 
-/// Accent per protocol family, so a glance separates the app's own routes from
-/// the OpenAI compatibility layer.
-// On-brand blue accents (brand navy #0E4B75). Native routes use lighter blues;
-// the OpenAI compatibility layer uses a deeper blue to set it apart.
-const _nativeChat = Color(0xFF4A90D9);
-const _nativeEmbed = Color(0xFF5FB0EE);
-const _nativeModels = Color(0xFF7CA7DB);
-const _openAi = Color(0xFF3564A8);
+const _brandDeep = Color(0xFF2CA048);
 
-/// Brand navy for the primary CTA (Start/Stop button). Fixed (not scheme-
-/// derived) so the button reads the same in both light and dark themes.
-const _brandDeep = Color(0xFF0E4B75);
-
-/// The model id to quote in embedding examples.
-///
-/// Deliberately not the active model: the active model is a chat model, and
-/// the embedding endpoints reject those (no pooling layer), so pasting it
-/// would hand the user a curl that 400s. Prefer an embedding model they have
-/// actually installed; fall back to a placeholder when they have none.
-String _embeddingIdFor(List<LocalModel>? installed) {
-  final known = {for (final m in embeddingCatalog) m.servedId};
-  for (final m in installed ?? const <LocalModel>[]) {
-    if (known.contains(m.id)) return m.id;
-  }
-  return 'embedding-model-id';
-}
 
 class ServerPage extends ConsumerStatefulWidget {
   const ServerPage({super.key});
@@ -47,13 +22,11 @@ class ServerPage extends ConsumerStatefulWidget {
 
 class _ServerPageState extends ConsumerState<ServerPage> {
   final _portController = TextEditingController(text: '11434');
+  bool _isTransitioning = false;
 
   @override
   void initState() {
     super.initState();
-    // Show the port the server is actually on. After an auto-resume the
-    // running server may be on a port the user set in an earlier session, and
-    // a field reading 11434 next to a server on 8080 is just wrong.
     _restorePort();
   }
 
@@ -70,34 +43,44 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   }
 
   Future<void> _start() async {
-    final port = int.tryParse(_portController.text.trim()) ?? 11434;
-    final lan = ref.read(lanShareProvider);
-    await _ensurePermissions();
-    await ref
-        .read(serverControllerProvider.notifier)
-        .start(port: port, lanMode: lan);
-    final status = ref.read(serverControllerProvider);
-    if (status.running) {
-      await ForegroundServiceManager.serverStarted(
-        port: status.port,
-        lan: status.lan,
-        ip: status.lanIp,
-      );
-      if (mounted && status.lan && status.lanIp == null) {
-        _toast('Sharing on, but no Wi-Fi/LAN address was found.');
+    if (_isTransitioning) return;
+    setState(() => _isTransitioning = true);
+    try {
+      final port = int.tryParse(_portController.text.trim()) ?? 11434;
+      final lan = ref.read(lanShareProvider);
+      await _ensurePermissions();
+      await ref
+          .read(serverControllerProvider.notifier)
+          .start(port: port, lanMode: lan);
+      final status = ref.read(serverControllerProvider);
+      if (status.running) {
+        await ForegroundServiceManager.serverStarted(
+          port: status.port,
+          lan: status.lan,
+          ip: status.lanIp,
+        );
+        if (mounted && status.lan && status.lanIp == null) {
+          _toast('Sharing on, but no Wi-Fi/LAN address was found.');
+        }
+      } else if (status.error != null && mounted) {
+        _toast('Start failed: ${status.error}');
       }
-    } else if (status.error != null && mounted) {
-      _toast('Start failed: ${status.error}');
+    } finally {
+      if (mounted) setState(() => _isTransitioning = false);
     }
   }
 
   Future<void> _stop() async {
-    await ForegroundServiceManager.serverStopped();
-    await ref.read(serverControllerProvider.notifier).stop();
+    if (_isTransitioning) return;
+    setState(() => _isTransitioning = true);
+    try {
+      await ForegroundServiceManager.serverStopped();
+      await ref.read(serverControllerProvider.notifier).stop();
+    } finally {
+      if (mounted) setState(() => _isTransitioning = false);
+    }
   }
 
-  /// Flips network sharing. If the server is already running, rebind it so the
-  /// new binding (loopback vs LAN) takes effect immediately.
   Future<void> _setLanShare(bool value) async {
     await ref.read(lanShareProvider.notifier).set(value);
     if (ref.read(serverControllerProvider).running) {
@@ -116,79 +99,131 @@ class _ServerPageState extends ConsumerState<ServerPage> {
       SnackBar(
         content: Text(text),
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
+  Future<void> _showPortDialog() async {
+    final controller = TextEditingController(text: _portController.text);
+    final scheme = Theme.of(context).colorScheme;
+    final newPort = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Change Server Port'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select or enter the local TCP port Thinai binds to. Default is 11434 for Ollama, 8080 for standard.',
+              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Port number',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text('11434 (Ollama)'),
+                  onPressed: () => controller.text = '11434',
+                ),
+                ActionChip(
+                  label: const Text('8080 (Standard)'),
+                  onPressed: () => controller.text = '8080',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final p = int.tryParse(controller.text.trim());
+              Navigator.pop(ctx, p);
+            },
+            child: const Text('Save Port'),
+          ),
+        ],
+      ),
+    );
+
+    if (newPort != null && newPort > 0 && newPort <= 65535) {
+      setState(() => _portController.text = '$newPort');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('server_port', newPort);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final status = ref.watch(serverControllerProvider);
     final activeId = ref.watch(activeModelIdProvider);
-    final installed = ref.watch(modelListProvider).valueOrNull;
     final lanShare = ref.watch(lanShareProvider);
     final deviceIp = ref.watch(deviceLanIpProvider).valueOrNull;
 
-    // When sharing on the network, quote the LAN IP in the copyable examples
-    // so they work from other devices; otherwise keep them on loopback.
     final apiHost =
         lanShare ? (status.lanIp ?? deviceIp ?? '127.0.0.1') : '127.0.0.1';
     final base = 'http://$apiHost:${status.port}';
     final chatId = activeId ?? 'model-id';
-    final embedId = _embeddingIdFor(installed);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Server'),
-        actions: [
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_rounded),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
-            },
+        title: const Text(
+          'Server',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
           ),
-          const SizedBox(width: 4),
-        ],
+        ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        padding: const EdgeInsets.only(bottom: 36),
         children: [
+          // 1. Compact High-Density Server Control Deck
           _HeroCard(
             running: status.running,
+            isTransitioning: _isTransitioning,
             port: status.port,
             lan: status.lan,
             lanIp: status.lanIp,
-            activeId: activeId,
-            portController: _portController,
             onStart: _start,
             onStop: _stop,
+            onEditPort: _showPortDialog,
           ),
-          if (activeId != null) ...[
-            const SizedBox(height: 12),
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(Icons.tune_rounded, color: scheme.onSurface),
-                title: const Text('Context & temperature'),
-                subtitle: Text(
-                  'What $activeId is served with. Requests can override it.',
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () async {
-                  final model =
-                      await ref.read(modelStoreProvider).findById(activeId);
-                  if (model == null || !context.mounted) return;
-                  await showModelSettingsSheet(context, model);
-                },
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
+
+          // 2. Full-Width Active Model Serving Strip (No decorative icon badges)
+          _ActiveModelBanner(
+            activeId: activeId,
+            onConfigure: () async {
+              if (activeId == null) return;
+              final model =
+                  await ref.read(modelStoreProvider).findById(activeId);
+              if (model == null || !context.mounted) return;
+              await showModelSettingsSheet(context, model);
+            },
+            onBrowseModels: () {
+              ref.read(shellTabIndexProvider.notifier).state = 1;
+            },
+          ),
+
+          // 3. Full-Width Network Sharing (LAN) & Token
           _NetworkShareCard(
             enabled: lanShare,
             running: status.running,
@@ -197,174 +232,417 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             port: status.port,
             onChanged: _setLanShare,
           ),
-          if (lanShare) ...[
-            const SizedBox(height: 12),
-            const _LanApiTokenCard(),
-          ],
-          const SizedBox(height: 20),
-          _ApiReferenceHeader(base: base),
-          const SizedBox(height: 12),
-          _EndpointGroup(
-            icon: Icons.chat_rounded,
-            title: 'Chat',
-            subtitle: 'Generate text, copy a curl to test',
-            cards: [
-              _EndpointCard(
-                icon: Icons.chat_rounded,
-                accent: _nativeChat,
-                title: 'Chat',
-                protocol: 'Thinai · streaming NDJSON',
-                path: '/api/chat',
-                curl:
-                    'curl $base/api/chat -d \'{"model":"$chatId","messages":[{"role":"user","content":"hi"}]}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.edit_note_rounded,
-                accent: _nativeChat,
-                title: 'Generate',
-                protocol: 'Thinai · single prompt',
-                path: '/api/generate',
-                curl:
-                    'curl $base/api/generate -d \'{"model":"$chatId","prompt":"hi","stream":false}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'Chat completions',
-                protocol: 'OpenAI-compatible',
-                path: '/v1/chat/completions',
-                curl:
-                    'curl $base/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"$chatId","messages":[{"role":"user","content":"hi"}],"stream":false}\'',
-              ),
-            ],
+
+          // 4. Full-Width Developer Quick Connect
+          _DeveloperQuickStartCard(
+            base: base,
+            apiHost: apiHost,
+            port: status.port,
+            chatId: chatId,
+            lanShare: lanShare,
           ),
-          const SizedBox(height: 10),
-          _EndpointGroup(
-            icon: Icons.scatter_plot_rounded,
-            title: 'Embeddings',
-            subtitle: 'Vectors for search and RAG',
-            cards: [
-              _EndpointCard(
-                icon: Icons.scatter_plot_rounded,
-                accent: _nativeEmbed,
-                title: 'Embed',
-                protocol: 'Thinai · batches input',
-                path: '/api/embed',
-                curl:
-                    'curl $base/api/embed -d \'{"model":"$embedId","input":["hello","world"]}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.history_rounded,
-                accent: _nativeEmbed,
-                title: 'Embeddings',
-                protocol: 'Thinai · legacy, single prompt',
-                path: '/api/embeddings',
-                curl:
-                    'curl $base/api/embeddings -d \'{"model":"$embedId","prompt":"hello"}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'Embeddings',
-                protocol: 'OpenAI-compatible · float or base64',
-                path: '/v1/embeddings',
-                curl:
-                    'curl $base/v1/embeddings -H "Content-Type: application/json" -d \'{"model":"$embedId","input":"hello"}\'',
-              ),
-            ],
+
+          // 5. Full-Width Clean API Endpoints List (No bloated categories)
+          _ApiEndpointsSection(
+            base: base,
+            chatId: chatId,
           ),
-          const SizedBox(height: 10),
-          _EndpointGroup(
-            icon: Icons.inventory_2_rounded,
-            title: 'Models',
-            subtitle: 'Discover what is installed and loaded',
-            cards: [
-              _EndpointCard(
-                icon: Icons.list_alt_rounded,
-                accent: _nativeModels,
-                title: 'List models',
-                protocol: 'Thinai',
-                path: '/api/tags',
-                curl: 'curl $base/api/tags',
-              ),
-              _EndpointCard(
-                icon: Icons.memory_rounded,
-                accent: _nativeModels,
-                title: 'Loaded model',
-                protocol: 'Thinai',
-                path: '/api/ps',
-                curl: 'curl $base/api/ps',
-              ),
-              _EndpointCard(
-                icon: Icons.info_rounded,
-                accent: _nativeModels,
-                title: 'Show model',
-                protocol: 'Thinai',
-                path: '/api/show',
-                curl: 'curl $base/api/show -d \'{"name":"$chatId"}\'',
-              ),
-              _EndpointCard(
-                icon: Icons.bolt_rounded,
-                accent: _openAi,
-                title: 'List models',
-                protocol: 'OpenAI-compatible',
-                path: '/v1/models',
-                curl: 'curl $base/v1/models',
-              ),
-            ],
+
+          // 6. Full-Width Security Notice
+          _SecurityNoticeBanner(
+            lanShare: lanShare,
+            port: status.port,
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(14),
-            // Same tinted-gradient treatment as the Models page "Quick start"
-            // card, so both pages read consistently. Flat surface tones look
-            // muddy in dark mode.
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.alphaBlend(
-                    scheme.primaryContainer.withValues(alpha: 0.72),
-                    scheme.surface,
-                  ),
-                  Color.alphaBlend(
-                    scheme.tertiaryContainer.withValues(alpha: 0.70),
-                    scheme.surface,
-                  ),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        ],
+      ),
+    );
+  }
+}
+
+// ─── 1. FULL-WIDTH HERO SERVER CARD ──────────────────────────────────────────
+
+class _HeroCard extends StatelessWidget {
+  final bool running;
+  final bool isTransitioning;
+  final int port;
+  final bool lan;
+  final String? lanIp;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
+  final VoidCallback onEditPort;
+
+  const _HeroCard({
+    required this.running,
+    required this.isTransitioning,
+    required this.port,
+    required this.lan,
+    required this.lanIp,
+    required this.onStart,
+    required this.onStop,
+    required this.onEditPort,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final serverUrl =
+        lan && lanIp != null ? 'http://$lanIp:$port' : 'http://127.0.0.1:$port';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B111A) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: running
+              ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.45 : 0.35)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: running
+                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.16 : 0.08)
+                : Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.antiAlias,
+        children: [
+          // Background Pattern (Contained within card, high contrast in light theme)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: FloatingLinesBackground(
+                animated: running,
+                isDark: isDark,
+                animationSpeed: 0.9,
+                linesGradient: running
+                    ? (isDark
+                        ? const [
+                            Color(0xFF2CA048),
+                            Color(0xFF4ADE80),
+                            Color(0xFF10B981),
+                            Color(0xFF6EE7B7),
+                            Color(0xFFA7F3D0),
+                          ]
+                        : const [
+                            Color(0xFF15803D),
+                            Color(0xFF16A34A),
+                            Color(0xFF2CA048),
+                            Color(0xFF059669),
+                            Color(0xFF047857),
+                          ])
+                    : (isDark
+                        ? const [
+                            Color(0xFF14532D),
+                            Color(0xFF15803D),
+                            Color(0xFF2CA048),
+                            Color(0xFF16A34A),
+                            Color(0xFF22C55E),
+                          ]
+                        : const [
+                            Color(0xFF166534),
+                            Color(0xFF15803D),
+                            Color(0xFF2CA048),
+                            Color(0xFF16A34A),
+                            Color(0xFF22C55E),
+                          ]),
+                backgroundColor: isDark
+                    ? const Color(0xFF080D14)
+                    : const Color(0xFFF8FAFC),
+                enabledWaves: const ['top', 'middle', 'bottom'],
+                lineCount: const [5, 6, 5],
+                lineDistance: const [4.0, 4.5, 4.0],
+                topWavePosition: const WavePosition(x: 8.0, y: 0.45, rotate: -0.35),
+                middleWavePosition: const WavePosition(x: 4.0, y: 0.0, rotate: 0.18),
+                bottomWavePosition: const WavePosition(x: 1.8, y: -0.55, rotate: 0.35),
+                interactive: true,
+                bendRadius: 4.0,
+                bendStrength: -0.45,
+                mouseDamping: 0.08,
+                parallax: true,
+                parallaxStrength: 0.15,
               ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.55),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  lanShare ? Icons.public_rounded : Icons.lock_rounded,
-                  size: 18,
-                  color: lanShare ? scheme.error : scheme.onSurfaceVariant,
+          ),
+
+          // Readability gradient overlay (Subtle so light theme pattern is punchy & visible)
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          const Color(0xFF090E17).withValues(alpha: 0.55),
+                          const Color(0xFF0E1624).withValues(alpha: 0.72),
+                        ]
+                      : [
+                          const Color(0xFFFFFFFF).withValues(alpha: 0.12),
+                          const Color(0xFFF1F5F9).withValues(alpha: 0.28),
+                        ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    lanShare
-                        ? 'Sharing is on. Any device on this Wi-Fi can reach the API with no authentication. Ollama-compatible on port 11434.'
-                        : 'Only this phone can reach the API. Enable sharing to reach it from other devices. Ollama-compatible on port 11434.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: scheme.onSurfaceVariant,
-                      height: 1.4,
+              ),
+            ),
+          ),
+
+          // Spacious, elevated server control deck
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Row: Status Dot + State Title + Port Tag + Spacer + Fixed-Size Tactile Button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _StatusDot(running: running),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 80,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            running ? 'Running' : 'Stopped',
+                            key: ValueKey(running),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.4,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
+                    const SizedBox(width: 8),
+                    // Port Configuration Tag
+                    InkWell(
+                      onTap: running ? null : onEditPort,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF162030)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF263650) : const Color(0xFFCBD5E1),
+                            width: 0.9,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.tune_rounded,
+                              size: 12,
+                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              ':$port',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Fixed Size Tactile Start / Stop Button with smooth transition animation
+                    SizedBox(
+                      width: 98,
+                      height: 42,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOutCubic,
+                        decoration: BoxDecoration(
+                          color: running ? const Color(0xFFE11D48) : _brandDeep,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (running ? const Color(0xFFE11D48) : _brandDeep)
+                                  .withValues(alpha: 0.30),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: isTransitioning
+                                ? null
+                                : () {
+                                    HapticFeedback.mediumImpact();
+                                    if (running) {
+                                      onStop();
+                                    } else {
+                                      onStart();
+                                    }
+                                  },
+                            child: Center(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: Tween<double>(begin: 0.85, end: 1.0)
+                                          .animate(animation),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: isTransitioning
+                                    ? const SizedBox(
+                                        key: ValueKey('loading'),
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.0,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : Row(
+                                        key: ValueKey(running),
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            running
+                                                ? Icons.stop_rounded
+                                                : Icons.play_arrow_rounded,
+                                            size: 18,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            running ? 'Stop' : 'Start',
+                                            style: const TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                              letterSpacing: 0.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Bottom Row: Fixed-Height Endpoint / Port Strip (Identical size in both Start and Stop)
+                Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0B111A).withValues(alpha: 0.85)
+                        : Colors.white.withValues(alpha: 0.90),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: running
+                          ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.40 : 0.30)
+                          : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.link_rounded,
+                        size: 14,
+                        color: running
+                            ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
+                            : scheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      // URL Address
+                      Expanded(
+                        child: SelectableText(
+                          serverUrl,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'monospace',
+                            color: running
+                                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
+                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Copy Server Address',
+                        icon: const Icon(Icons.copy_rounded, size: 14),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: serverUrl));
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Copied $serverUrl to clipboard'),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF151D2A) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          lan ? 'LAN' : 'Localhost',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -376,29 +654,142 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   }
 }
 
-class _LanApiTokenCard extends ConsumerStatefulWidget {
-  const _LanApiTokenCard();
+// ─── 2. FULL-WIDTH ACTIVE MODEL SERVING STRIP ────────────────────────────────
+
+class _ActiveModelBanner extends StatelessWidget {
+  final String? activeId;
+  final VoidCallback onConfigure;
+  final VoidCallback onBrowseModels;
+
+  const _ActiveModelBanner({
+    required this.activeId,
+    required this.onConfigure,
+    required this.onBrowseModels,
+  });
 
   @override
-  ConsumerState<_LanApiTokenCard> createState() => _LanApiTokenCardState();
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: activeId != null
+          ? Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'SERVING MODEL',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: scheme.primary,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        activeId!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: onConfigure,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Tune'),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'No model loaded yet. Load one to enable completions.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                FilledButton.tonal(
+                  onPressed: onBrowseModels,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Browse Models'),
+                ),
+              ],
+            ),
+    );
+  }
 }
 
-class _LanApiTokenCardState extends ConsumerState<_LanApiTokenCard> {
+// ─── 3. FULL-WIDTH NETWORK SHARE & TOKEN SECTION ─────────────────────────────
+
+class _NetworkShareCard extends ConsumerStatefulWidget {
+  final bool enabled;
+  final bool running;
+  final String? lanIp;
+  final String? deviceIp;
+  final int port;
+  final ValueChanged<bool> onChanged;
+
+  const _NetworkShareCard({
+    required this.enabled,
+    required this.running,
+    required this.lanIp,
+    required this.deviceIp,
+    required this.port,
+    required this.onChanged,
+  });
+
+  @override
+  ConsumerState<_NetworkShareCard> createState() => _NetworkShareCardState();
+}
+
+class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
   bool _showToken = false;
   bool _regenerating = false;
 
-  Future<void> _copyToken(String token) async {
-    await Clipboard.setData(ClipboardData(text: token));
-
-    if (!mounted) return;
-
+  void _copy(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('API token copied'),
+        content: Text('Copied $label'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -409,8 +800,7 @@ class _LanApiTokenCardState extends ConsumerState<_LanApiTokenCard> {
       builder: (context) => AlertDialog(
         title: const Text('Regenerate API token?'),
         content: const Text(
-          'Existing LAN clients using the current token will lose access. '
-          'You will need to give them the new token.',
+          'Existing LAN clients using the current token will lose access and must be updated.',
         ),
         actions: [
           TextButton(
@@ -441,24 +831,18 @@ class _LanApiTokenCardState extends ConsumerState<_LanApiTokenCard> {
       await regenerateServerBearerToken();
 
       if (status.running && lan) {
-        await controller.start(
-          port: status.port,
-          lanMode: true,
-        );
+        await controller.start(port: status.port, lanMode: true);
       }
 
       ref.invalidate(serverBearerTokenProvider);
 
       if (mounted) {
         setState(() => _showToken = false);
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('API token regenerated'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -472,292 +856,859 @@ class _LanApiTokenCardState extends ConsumerState<_LanApiTokenCard> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shareIp = widget.lanIp ?? widget.deviceIp;
     final tokenAsync = ref.watch(serverBearerTokenProvider);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: tokenAsync.when(
-          loading: () => const Row(
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Share on Local Network (LAN)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.5,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.enabled
+                          ? 'Other computers on this Wi-Fi can reach the API'
+                          : 'Only apps running directly on this phone can reach 127.0.0.1',
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(width: 12),
-              Text('Loading API token...'),
+              Switch(
+                value: widget.enabled,
+                activeThumbColor: const Color(0xFF2CA048),
+                onChanged: widget.onChanged,
+              ),
             ],
           ),
-          error: (error, _) => Text(
-            'Unable to load API token',
-            style: TextStyle(color: scheme.error),
-          ),
-          data: (token) {
-            if (token == null || token.isEmpty) {
-              return const Text(
-                'LAN authentication token has not been generated yet.',
-              );
-            }
-
-            final masked =
-                '${token.substring(0, 6)}••••••••••••••••${token.substring(token.length - 6)}';
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.key_rounded,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'LAN API authentication',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  'Use this bearer token when connecting from another device.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: SelectableText(
-                    _showToken ? token : masked,
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() => _showToken = !_showToken);
-                      },
-                      icon: Icon(
-                        _showToken
-                            ? Icons.visibility_off_rounded
-                            : Icons.visibility_rounded,
-                      ),
-                      label: Text(_showToken ? 'Hide' : 'Show'),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    FilledButton.icon(
-                      onPressed: () => _copyToken(token),
-                      icon: const Icon(Icons.copy_rounded),
-                      label: const Text('Copy'),
-                    ),
-
-                    const Spacer(),
-
-                    IconButton(
-                      tooltip: 'Regenerate token',
-                      onPressed: _regenerating ? null : _regenerate,
-                      icon: _regenerating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeInOutCubic,
+            child: widget.enabled
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      children: [
+                        if (widget.running && shareIp != null) ...[
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF131722)
+                                  : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : scheme.outlineVariant.withValues(alpha: 0.4),
                               ),
-                            )
-                          : const Icon(Icons.refresh_rounded),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'LAN URL: ',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: SelectableText(
+                                    'http://$shareIp:${widget.port}',
+                                    style: TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.copy_rounded,
+                                      size: 15, color: Color(0xFF2CA048)),
+                                  tooltip: 'Copy LAN URL',
+                                  padding: EdgeInsets.zero,
+                                  constraints:
+                                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                                  onPressed: () => _copy(
+                                      'http://$shareIp:${widget.port}', 'LAN URL'),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        tokenAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                          data: (token) {
+                            if (token == null || token.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            final masked =
+                                '${token.substring(0, 6)}••••••••••••${token.substring(token.length - 6)}';
+
+                            return Container(
+                              padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF131722)
+                                    : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.06)
+                                      : scheme.outlineVariant.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Token: ',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: SelectableText(
+                                      _showToken ? token : masked,
+                                      style: const TextStyle(
+                                        fontFamily: 'monospace',
+                                        fontSize: 11.5,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      _showToken
+                                          ? Icons.visibility_off_rounded
+                                          : Icons.visibility_rounded,
+                                      size: 15,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    constraints:
+                                        const BoxConstraints(minWidth: 26, minHeight: 26),
+                                    onPressed: () =>
+                                        setState(() => _showToken = !_showToken),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.copy_rounded,
+                                        size: 15, color: Color(0xFF2CA048)),
+                                    padding: EdgeInsets.zero,
+                                    constraints:
+                                        const BoxConstraints(minWidth: 26, minHeight: 26),
+                                    onPressed: () => _copy(token, 'Bearer token'),
+                                  ),
+                                  IconButton(
+                                    icon: _regenerating
+                                        ? const SizedBox(
+                                            width: 12,
+                                            height: 12,
+                                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                                          )
+                                        : const Icon(Icons.refresh_rounded, size: 15),
+                                    padding: EdgeInsets.zero,
+                                    constraints:
+                                        const BoxConstraints(minWidth: 26, minHeight: 26),
+                                    onPressed: _regenerating ? null : _regenerate,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 4),
-
-                Text(
-                  'Anyone with this token can access the LAN API.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: scheme.error,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Introduces the API reference and keeps the base URL one tap from the
-/// clipboard, so the reference itself can stay folded away.
-class _ApiReferenceHeader extends StatelessWidget {
-  const _ApiReferenceHeader({required this.base});
+// ─── 4. FULL-WIDTH DEVELOPER QUICK CONNECT ───────────────────────────────────
 
+class _DeveloperQuickStartCard extends StatefulWidget {
   final String base;
+  final String apiHost;
+  final int port;
+  final String chatId;
+  final bool lanShare;
+
+  const _DeveloperQuickStartCard({
+    required this.base,
+    required this.apiHost,
+    required this.port,
+    required this.chatId,
+    required this.lanShare,
+  });
+
+  @override
+  State<_DeveloperQuickStartCard> createState() =>
+      _DeveloperQuickStartCardState();
+}
+
+class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
+  int _tabIndex = 0;
+
+  void _copy(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied $label to clipboard'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Row(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final openAiBase = 'http://${widget.apiHost}:${widget.port}/v1';
+    final ollamaBase = 'http://${widget.apiHost}:${widget.port}';
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Developer Quick Start',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Direct configuration snippets for coding assistants & scripts',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Structured Assistant Switcher Tabs (Freely scrollable edge-to-edge without UI limits)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildTab(0, 'VS Code', Icons.code_rounded),
+                const SizedBox(width: 8),
+                _buildTab(1, 'Python', Icons.terminal_rounded),
+                const SizedBox(width: 8),
+                _buildTab(2, 'cURL', Icons.alt_route_rounded),
+                const SizedBox(width: 8),
+                _buildTab(3, 'Chat JSON', Icons.data_object_rounded),
+                const SizedBox(width: 8),
+                _buildTab(4, 'Ollama', Icons.cloud_sync_rounded),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Active Structured View
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: switch (_tabIndex) {
+              0 => _buildVsCodeTab(scheme, openAiBase, isDark),
+              1 => _buildPythonTab(scheme, openAiBase, isDark),
+              2 => _buildCurlTab(scheme, openAiBase, isDark),
+              3 => _buildChatJsonTab(scheme, openAiBase, isDark),
+              _ => _buildOllamaTab(scheme, ollamaBase, isDark),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(int index, String title, IconData icon) {
+    final selected = _tabIndex == index;
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () => setState(() => _tabIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFF2CA048)
+              : (isDark ? const Color(0xFF131926) : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFF2CA048)
+                : (isDark ? const Color(0xFF1E2838) : const Color(0xFFE2E8F0)),
+            width: 1,
+          ),
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x352CA048),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: selected ? Colors.white : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: selected ? Colors.white : scheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVsCodeTab(ColorScheme scheme, String openAiBase, bool isDark) {
+    final configJson = '''{
+  "models": [
+    {
+      "title": "Thinai Local",
+      "provider": "openai",
+      "model": "${widget.chatId}",
+      "apiBase": "$openAiBase",
+      "apiKey": "thinai"
+    }
+  ]
+}''';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: scheme.primaryContainer,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.terminal_rounded,
-            size: 18,
-            color: scheme.onPrimaryContainer,
-          ),
+        Text(
+          'For Continue.dev or Cline extensions in VS Code:',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'API reference',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              Text(
-                'Tap a section for paths and curl examples',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 8),
+        _VsCodeTerminalBox(
+          tabs: [
+            _VsCodeFileTab(
+              filename: 'config.json',
+              language: 'json',
+              code: configJson,
+              icon: Icons.data_object_rounded,
+            ),
+          ],
+          onCopy: () => _copy(configJson, 'VS Code Config'),
         ),
-        IconButton(
-          tooltip: 'Copy base URL',
-          icon: const Icon(Icons.content_copy_rounded, size: 18),
-          onPressed: () {
-            Clipboard.setData(ClipboardData(text: base));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Copied base URL'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
-          },
+      ],
+    );
+  }
+
+  Widget _buildPythonTab(ColorScheme scheme, String openAiBase, bool isDark) {
+    final pyCode = '''from openai import OpenAI
+
+client = OpenAI(
+    base_url="$openAiBase",
+    api_key="thinai",
+)
+
+response = client.chat.completions.create(
+    model="${widget.chatId}",
+    messages=[{"role": "user", "content": "Hello on-device AI!"}],
+)
+print(response.choices[0].message.content)''';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Query with official OpenAI Python SDK:',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        _VsCodeTerminalBox(
+          tabs: [
+            _VsCodeFileTab(
+              filename: 'client.py',
+              language: 'python',
+              code: pyCode,
+              icon: Icons.code_rounded,
+            ),
+          ],
+          onCopy: () => _copy(pyCode, 'Python Script'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCurlTab(ColorScheme scheme, String openAiBase, bool isDark) {
+    final curlCode = '''curl $openAiBase/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${widget.chatId}",
+    "messages": [{"role": "user", "content": "Hello on-device AI!"}],
+    "stream": false
+  }' ''';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Direct terminal HTTP request with standard JSON payload:',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        _VsCodeTerminalBox(
+          tabs: [
+            _VsCodeFileTab(
+              filename: 'request.sh',
+              language: 'bash',
+              code: curlCode,
+              icon: Icons.terminal_rounded,
+            ),
+          ],
+          onCopy: () => _copy(curlCode, 'cURL Command'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChatJsonTab(ColorScheme scheme, String openAiBase, bool isDark) {
+    final chatJson = '''{
+  "model": "${widget.chatId}",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello on-device AI!"
+    }
+  ],
+  "temperature": 0.7,
+  "stream": false
+}''';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'OpenAI standard chat payload (/v1/chat/completions):',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        _VsCodeTerminalBox(
+          tabs: [
+            _VsCodeFileTab(
+              filename: 'payload.json',
+              language: 'json',
+              code: chatJson,
+              icon: Icons.data_object_rounded,
+            ),
+          ],
+          onCopy: () => _copy(chatJson, 'Chat JSON Payload'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOllamaTab(ColorScheme scheme, String ollamaBase, bool isDark) {
+    final envCmd = 'export OLLAMA_HOST=$ollamaBase';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Point any Ollama client (Open-WebUI, Chatbox, CLI) to Thinai:',
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        _VsCodeTerminalBox(
+          tabs: [
+            _VsCodeFileTab(
+              filename: 'env.sh',
+              language: 'bash',
+              code: envCmd,
+              icon: Icons.terminal_rounded,
+            ),
+          ],
+          onCopy: () => _copy(envCmd, 'Ollama Host Env'),
         ),
       ],
     );
   }
 }
 
-/// One protocol family, folded to a single row until tapped.
-///
-/// Expanded by default the three groups filled several screens of curl
-/// snippets, which buried the controls a user actually comes to this page
-/// for. Collapsed, the page is the server plus a short index.
-class _EndpointGroup extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<_EndpointCard> cards;
+// ─── 5. FULL-WIDTH CLEAN API ENDPOINTS SECTION ───────────────────────────────
 
-  const _EndpointGroup({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.cards,
+class _ApiEndpointsSection extends StatefulWidget {
+  final String base;
+  final String chatId;
+
+  const _ApiEndpointsSection({
+    required this.base,
+    required this.chatId,
   });
 
   @override
-  State<_EndpointGroup> createState() => _EndpointGroupState();
+  State<_ApiEndpointsSection> createState() => _ApiEndpointsSectionState();
 }
 
-class _EndpointGroupState extends State<_EndpointGroup> {
-  bool _open = false;
+class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
+  int? _expandedIndex;
+  final Map<int, int> _endpointFormatIndices = {};
+
+  void _copy(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied $label'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final endpoints = [
+      _EndpointItem(
+        method: 'POST',
+        path: '/v1/chat/completions',
+        title: 'OpenAI Chat Completions',
+        curl: 'curl ${widget.base}/v1/chat/completions \\\n'
+            '  -H "Content-Type: application/json" \\\n'
+            '  -d \'{\n'
+            '    "model": "${widget.chatId}",\n'
+            '    "messages": [{"role": "user", "content": "Hello!"}],\n'
+            '    "stream": false\n'
+            '  }\'',
+        requestJson: '{\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "messages": [\n'
+            '    {"role": "system", "content": "You are a helpful assistant."},\n'
+            '    {"role": "user", "content": "Hello!"}\n'
+            '  ],\n'
+            '  "temperature": 0.7,\n'
+            '  "stream": false\n'
+            '}',
+        responseJson: '{\n'
+            '  "id": "chatcmpl-thinai",\n'
+            '  "object": "chat.completion",\n'
+            '  "created": 1728400000,\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "choices": [\n'
+            '    {\n'
+            '      "index": 0,\n'
+            '      "message": {\n'
+            '        "role": "assistant",\n'
+            '        "content": "Hello! How can I assist you today?"\n'
+            '      },\n'
+            '      "finish_reason": "stop"\n'
+            '    }\n'
+            '  ],\n'
+            '  "usage": {\n'
+            '    "prompt_tokens": 12,\n'
+            '    "completion_tokens": 9,\n'
+            '    "total_tokens": 21\n'
+            '  }\n'
+            '}',
       ),
-      clipBehavior: Clip.antiAlias,
+      _EndpointItem(
+        method: 'POST',
+        path: '/api/chat',
+        title: 'Ollama Native Chat',
+        curl: 'curl ${widget.base}/api/chat \\\n'
+            '  -H "Content-Type: application/json" \\\n'
+            '  -d \'{\n'
+            '    "model": "${widget.chatId}",\n'
+            '    "messages": [{"role": "user", "content": "Why is the sky blue?"}],\n'
+            '    "stream": false\n'
+            '  }\'',
+        requestJson: '{\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "messages": [\n'
+            '    {"role": "user", "content": "Why is the sky blue?"}\n'
+            '  ],\n'
+            '  "stream": false\n'
+            '}',
+        responseJson: '{\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "created_at": "2026-10-08T17:30:00Z",\n'
+            '  "message": {\n'
+            '    "role": "assistant",\n'
+            '    "content": "The sky is blue due to Rayleigh scattering."\n'
+            '  },\n'
+            '  "done": true,\n'
+            '  "total_duration": 482000000,\n'
+            '  "eval_count": 28\n'
+            '}',
+      ),
+      _EndpointItem(
+        method: 'POST',
+        path: '/v1/embeddings',
+        title: 'Vector Embeddings',
+        curl: 'curl ${widget.base}/v1/embeddings \\\n'
+            '  -H "Content-Type: application/json" \\\n'
+            '  -d \'{\n'
+            '    "model": "${widget.chatId}",\n'
+            '    "input": "Search query text"\n'
+            '  }\'',
+        requestJson: '{\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "input": "Search query text"\n'
+            '}',
+        responseJson: '{\n'
+            '  "object": "list",\n'
+            '  "data": [\n'
+            '    {\n'
+            '      "object": "embedding",\n'
+            '      "index": 0,\n'
+            '      "embedding": [0.01248, -0.04582, 0.08912, -0.01734]\n'
+            '    }\n'
+            '  ],\n'
+            '  "model": "${widget.chatId}",\n'
+            '  "usage": {\n'
+            '    "prompt_tokens": 4,\n'
+            '    "total_tokens": 4\n'
+            '  }\n'
+            '}',
+      ),
+      _EndpointItem(
+        method: 'GET',
+        path: '/v1/models',
+        title: 'Installed Models Catalog',
+        curl: 'curl ${widget.base}/v1/models',
+        requestJson: null,
+        responseJson: '{\n'
+            '  "object": "list",\n'
+            '  "data": [\n'
+            '    {\n'
+            '      "id": "${widget.chatId}",\n'
+            '      "object": "model",\n'
+            '      "created": 1728400000,\n'
+            '      "owned_by": "thinai-local"\n'
+            '    }\n'
+            '  ]\n'
+            '}',
+      ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'API Endpoints',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Standard OpenAI & Ollama compatible HTTP routes',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Copy Base URL',
+                  icon: const Icon(Icons.link_rounded, size: 18),
+                  color: const Color(0xFF2CA048),
+                  onPressed: () => _copy(widget.base, 'Base URL: ${widget.base}'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < endpoints.length; i++) ...[
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: scheme.outlineVariant.withValues(alpha: 0.25),
+                ),
+              ),
+            _buildEndpointRow(scheme, isDark, endpoints[i], i),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEndpointRow(
+      ColorScheme scheme, bool isDark, _EndpointItem item, int index) {
+    final expanded = _expandedIndex == index;
+    final isPost = item.method == 'POST';
+
+    final tabs = [
+      _VsCodeFileTab(
+        filename: 'curl.sh',
+        language: 'bash',
+        code: item.curl,
+        icon: Icons.terminal_rounded,
+      ),
+      if (item.requestJson != null)
+        _VsCodeFileTab(
+          filename: 'request.json',
+          language: 'json',
+          code: item.requestJson!,
+          icon: Icons.data_object_rounded,
+        ),
+      _VsCodeFileTab(
+        filename: 'response.json',
+        language: 'json',
+        code: item.responseJson,
+        icon: Icons.data_object_rounded,
+      ),
+    ];
+
+    final maxTabIndex = tabs.length - 1;
+    final activeTabIndex = (_endpointFormatIndices[index] ?? 0).clamp(0, maxTabIndex);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
           InkWell(
-            onTap: () => setState(() => _open = !_open),
+            onTap: () => setState(() => _expandedIndex = expanded ? null : index),
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                     decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(9),
+                      color: isPost
+                          ? const Color(0xFF2CA048).withValues(alpha: 0.14)
+                          : Colors.blueAccent.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      size: 16,
-                      color: scheme.onPrimaryContainer,
+                    child: Text(
+                      item.method,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        fontFamily: 'monospace',
+                        color: isPost
+                            ? const Color(0xFF2CA048)
+                            : (isDark ? Colors.lightBlueAccent : Colors.blue),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          widget.title,
+                          item.path,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
+                            fontFamily: 'monospace',
                           ),
                         ),
                         Text(
-                          widget.subtitle,
+                          item.title,
                           style: TextStyle(
                             fontSize: 11,
                             color: scheme.onSurfaceVariant,
@@ -766,20 +1717,23 @@ class _EndpointGroupState extends State<_EndpointGroup> {
                       ],
                     ),
                   ),
-                  Text(
-                    '${widget.cards.length}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.onSurfaceVariant,
-                    ),
+                  IconButton(
+                    tooltip: 'Copy cURL',
+                    icon: const Icon(Icons.copy_rounded, size: 14),
+                    color: scheme.onSurfaceVariant,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 28),
+                    onPressed: () => _copy(item.curl, '${item.path} cURL command'),
                   ),
+                  const SizedBox(width: 4),
                   AnimatedRotation(
-                    turns: _open ? 0.5 : 0,
+                    turns: expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 180),
                     child: Icon(
                       Icons.expand_more_rounded,
-                      color: scheme.onSurfaceVariant,
+                      size: 18,
+                      color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -787,22 +1741,24 @@ class _EndpointGroupState extends State<_EndpointGroup> {
             ),
           ),
           AnimatedSize(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            alignment: Alignment.topCenter,
-            child: _open
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            child: expanded
                 ? Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Column(
-                      children: [
-                        for (var i = 0; i < widget.cards.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 10),
-                          widget.cards[i],
-                        ],
-                      ],
+                    padding: const EdgeInsets.only(top: 4, bottom: 12),
+                    child: _VsCodeTerminalBox(
+                      tabs: tabs,
+                      initialTabIndex: activeTabIndex,
+                      onTabChanged: (newIdx) {
+                        setState(() => _endpointFormatIndices[index] = newIdx);
+                      },
+                      onCopy: () {
+                        final tab = tabs[(_endpointFormatIndices[index] ?? 0).clamp(0, maxTabIndex)];
+                        _copy(tab.code, '${item.path} ${tab.filename}');
+                      },
                     ),
                   )
-                : const SizedBox(width: double.infinity),
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -810,199 +1766,632 @@ class _EndpointGroupState extends State<_EndpointGroup> {
   }
 }
 
-// ─── hero ──────────────────────────────────────────────────────────────────
+class _EndpointItem {
+  final String method;
+  final String path;
+  final String title;
+  final String curl;
+  final String? requestJson;
+  final String responseJson;
 
-class _HeroCard extends StatelessWidget {
-  final bool running;
-  final int port;
-  final bool lan;
-  final String? lanIp;
-  final String? activeId;
-  final TextEditingController portController;
-  final VoidCallback onStart;
-  final VoidCallback onStop;
+  const _EndpointItem({
+    required this.method,
+    required this.path,
+    required this.title,
+    required this.curl,
+    this.requestJson,
+    required this.responseJson,
+  });
+}
 
-  const _HeroCard({
-    required this.running,
-    required this.port,
-    required this.lan,
-    required this.lanIp,
-    required this.activeId,
-    required this.portController,
-    required this.onStart,
-    required this.onStop,
+// ─── VS CODE TERMINAL & EDITOR WIDGETS ───────────────────────────────────────
+
+class _VsCodeFileTab {
+  final String filename;
+  final String language; // 'bash', 'json', 'python', 'text'
+  final String code;
+  final IconData? icon;
+
+  const _VsCodeFileTab({
+    required this.filename,
+    required this.language,
+    required this.code,
+    this.icon,
+  });
+}
+
+class _VsCodeSyntaxHighlighter {
+  static const Color background = Color(0xFF1E1E1E);
+  static const Color defaultText = Color(0xFFD4D4D4);
+
+  // VS Code Dark+ Color Palette
+  static const Color keywordColor = Color(0xFF569CD6);     // VS Code blue (curl, export)
+  static const Color pyKeywordColor = Color(0xFFC586C0);   // VS Code purple (from, import)
+  static const Color stringColor = Color(0xFFCE9178);      // VS Code orange
+  static const Color jsonKeyColor = Color(0xFF9CDCFE);     // VS Code light blue property
+  static const Color numberColor = Color(0xFFB5CEA8);      // VS Code number light green
+  static const Color functionColor = Color(0xFFDCDCAA);    // VS Code function yellow
+  static const Color urlColor = Color(0xFF4EC9B0);         // VS Code teal
+  static const Color commentColor = Color(0xFF6A9955);     // VS Code comment green
+  static const Color backslashColor = Color(0xFF808080);   // Gray
+
+  static List<TextSpan> highlight(String code, String language) {
+    switch (language.toLowerCase()) {
+      case 'json':
+        return _highlightJson(code);
+      case 'bash':
+      case 'sh':
+      case 'curl':
+        return _highlightBash(code);
+      case 'python':
+      case 'py':
+        return _highlightPython(code);
+      default:
+        return [TextSpan(text: code, style: const TextStyle(color: defaultText))];
+    }
+  }
+
+  static List<TextSpan> _highlightJson(String code) {
+    final pattern = RegExp(
+      r'''("(?:\\.|[^"\\])*")(?=\s*:)|("(?:\\.|[^"\\])*")|(-?\b\d+(?:\.\d+)?\b)|(\b(?:true|false|null)\b)|([{}[\],:])''',
+    );
+    final spans = <TextSpan>[];
+    int lastIndex = 0;
+
+    for (final match in pattern.allMatches(code)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: code.substring(lastIndex, match.start),
+          style: const TextStyle(color: defaultText),
+        ));
+      }
+
+      if (match.group(1) != null) {
+        spans.add(TextSpan(
+          text: match.group(1),
+          style: const TextStyle(color: jsonKeyColor, fontWeight: FontWeight.w600),
+        ));
+      } else if (match.group(2) != null) {
+        spans.add(TextSpan(
+          text: match.group(2),
+          style: const TextStyle(color: stringColor),
+        ));
+      } else if (match.group(3) != null) {
+        spans.add(TextSpan(
+          text: match.group(3),
+          style: const TextStyle(color: numberColor),
+        ));
+      } else if (match.group(4) != null) {
+        spans.add(TextSpan(
+          text: match.group(4),
+          style: const TextStyle(color: keywordColor, fontWeight: FontWeight.w600),
+        ));
+      } else if (match.group(5) != null) {
+        spans.add(TextSpan(
+          text: match.group(5),
+          style: const TextStyle(color: defaultText),
+        ));
+      }
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < code.length) {
+      spans.add(TextSpan(
+        text: code.substring(lastIndex),
+        style: const TextStyle(color: defaultText),
+      ));
+    }
+    return spans;
+  }
+
+  static List<TextSpan> _highlightBash(String code) {
+    final pattern = RegExp(
+      r'''(#[^\r\n]*)|(\b(?:curl|export)\b)|(-[A-Za-z0-9_-]+|--[A-Za-z0-9_-]+)|(https?://[^\s\\'"\)]+)|("(?:\\.|[^"\\])*")|('(?:\\.|[^'\\])*')|(\\[\r\n]?)|(\$[A-Za-z0-9_]+)''',
+    );
+    final spans = <TextSpan>[];
+    int lastIndex = 0;
+
+    for (final match in pattern.allMatches(code)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: code.substring(lastIndex, match.start),
+          style: const TextStyle(color: defaultText),
+        ));
+      }
+
+      if (match.group(1) != null) {
+        spans.add(TextSpan(
+          text: match.group(1),
+          style: const TextStyle(color: commentColor, fontStyle: FontStyle.italic),
+        ));
+      } else if (match.group(2) != null) {
+        spans.add(TextSpan(
+          text: match.group(2),
+          style: const TextStyle(color: keywordColor, fontWeight: FontWeight.w700),
+        ));
+      } else if (match.group(3) != null) {
+        spans.add(TextSpan(
+          text: match.group(3),
+          style: const TextStyle(color: jsonKeyColor),
+        ));
+      } else if (match.group(4) != null) {
+        spans.add(TextSpan(
+          text: match.group(4),
+          style: const TextStyle(color: urlColor),
+        ));
+      } else if (match.group(5) != null) {
+        spans.add(TextSpan(
+          text: match.group(5),
+          style: const TextStyle(color: stringColor),
+        ));
+      } else if (match.group(6) != null) {
+        final text = match.group(6)!;
+        if (text.startsWith("'{") || text.contains('"')) {
+          spans.add(const TextSpan(text: "'", style: TextStyle(color: stringColor)));
+          spans.addAll(_highlightJson(text.substring(1, text.length - 1)));
+          spans.add(const TextSpan(text: "'", style: TextStyle(color: stringColor)));
+        } else {
+          spans.add(TextSpan(
+            text: text,
+            style: const TextStyle(color: stringColor),
+          ));
+        }
+      } else if (match.group(7) != null) {
+        spans.add(TextSpan(
+          text: match.group(7),
+          style: const TextStyle(color: backslashColor),
+        ));
+      } else if (match.group(8) != null) {
+        spans.add(TextSpan(
+          text: match.group(8),
+          style: const TextStyle(color: functionColor),
+        ));
+      }
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < code.length) {
+      spans.add(TextSpan(
+        text: code.substring(lastIndex),
+        style: const TextStyle(color: defaultText),
+      ));
+    }
+    return spans;
+  }
+
+  static List<TextSpan> _highlightPython(String code) {
+    final pattern = RegExp(
+      r'''(#[^\r\n]*)|(\b(?:from|import|def|class|return|if|else|elif|for|in|while|as|with|try|except)\b)|(\b(?:print|OpenAI|create)\b)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*(?=\s*=))''',
+    );
+    final spans = <TextSpan>[];
+    int lastIndex = 0;
+
+    for (final match in pattern.allMatches(code)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: code.substring(lastIndex, match.start),
+          style: const TextStyle(color: defaultText),
+        ));
+      }
+
+      if (match.group(1) != null) {
+        spans.add(TextSpan(
+          text: match.group(1),
+          style: const TextStyle(color: commentColor, fontStyle: FontStyle.italic),
+        ));
+      } else if (match.group(2) != null) {
+        spans.add(TextSpan(
+          text: match.group(2),
+          style: const TextStyle(color: pyKeywordColor, fontWeight: FontWeight.w600),
+        ));
+      } else if (match.group(3) != null) {
+        spans.add(TextSpan(
+          text: match.group(3),
+          style: const TextStyle(color: functionColor),
+        ));
+      } else if (match.group(4) != null) {
+        spans.add(TextSpan(
+          text: match.group(4),
+          style: const TextStyle(color: stringColor),
+        ));
+      } else if (match.group(5) != null) {
+        spans.add(TextSpan(
+          text: match.group(5),
+          style: const TextStyle(color: numberColor),
+        ));
+      } else if (match.group(6) != null) {
+        spans.add(TextSpan(
+          text: match.group(6),
+          style: const TextStyle(color: jsonKeyColor),
+        ));
+      }
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < code.length) {
+      spans.add(TextSpan(
+        text: code.substring(lastIndex),
+        style: const TextStyle(color: defaultText),
+      ));
+    }
+    return spans;
+  }
+}
+
+class _VsCodeTerminalBox extends StatefulWidget {
+  final List<_VsCodeFileTab> tabs;
+  final int initialTabIndex;
+  final ValueChanged<int>? onTabChanged;
+  final VoidCallback? onCopy;
+
+  const _VsCodeTerminalBox({
+    required this.tabs,
+    this.initialTabIndex = 0,
+    this.onTabChanged,
+    this.onCopy,
   });
 
   @override
+  State<_VsCodeTerminalBox> createState() => _VsCodeTerminalBoxState();
+}
+
+class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
+  late int _activeTabIndex;
+  bool _copied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeTabIndex = widget.initialTabIndex.clamp(0, widget.tabs.length - 1);
+  }
+
+  @override
+  void didUpdateWidget(_VsCodeTerminalBox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTabIndex != oldWidget.initialTabIndex) {
+      _activeTabIndex = widget.initialTabIndex.clamp(0, widget.tabs.length - 1);
+    }
+  }
+
+  void _handleCopy() {
+    final activeTab = widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
+    Clipboard.setData(ClipboardData(text: activeTab.code));
+    HapticFeedback.lightImpact();
+    setState(() => _copied = true);
+    widget.onCopy?.call();
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  IconData _getDefaultTabIcon(String language) {
+    switch (language.toLowerCase()) {
+      case 'json':
+        return Icons.data_object_rounded;
+      case 'python':
+      case 'py':
+        return Icons.code_rounded;
+      case 'bash':
+      case 'sh':
+      case 'curl':
+      default:
+        return Icons.terminal_rounded;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeTab = widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
+    final lines = activeTab.code.split('\n');
+    const double codeFontSize = 11.5;
+    const double codeLineHeight = 1.48;
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
       decoration: BoxDecoration(
-        // Same tinted "Quick start" card in both stopped and running states
-        // (matches the Models page; no teal), so the page reads as one design.
-        gradient: LinearGradient(
-          colors: [
-            Color.alphaBlend(
-              scheme.primaryContainer.withValues(alpha: 0.72),
-              scheme.surface,
-            ),
-            Color.alphaBlend(
-              scheme.tertiaryContainer.withValues(alpha: 0.70),
-              scheme.surface,
-            ),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: _VsCodeSyntaxHighlighter.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : const Color(0xFF334155),
+          width: 1,
         ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.55)),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.08),
+            color: Color(0x28000000),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              _StatusDot(running: running),
-              const SizedBox(width: 10),
-              Text(
-                running ? 'Running' : 'Stopped',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                  color: scheme.onSurface,
-                ),
+          // ─── VS Code Tab Bar / Window Header ─────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF181818),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
+              border: Border(
+                bottom: BorderSide(color: Color(0xFF2B2B2B), width: 1),
               ),
-              const Spacer(),
-              if (running)
+            ),
+            child: Row(
+              children: [
+                // macOS Traffic Light Dots
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF5F56),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFBD2E),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF27C93F),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'LIVE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
-                      color: scheme.primary,
+                  height: 18,
+                  width: 1,
+                  color: const Color(0xFF2E2E2E),
+                ),
+                // File Tabs
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: List.generate(widget.tabs.length, (idx) {
+                        final tab = widget.tabs[idx];
+                        final isActive = idx == _activeTabIndex;
+                        return InkWell(
+                          onTap: () {
+                            setState(() => _activeTabIndex = idx);
+                            widget.onTabChanged?.call(idx);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? const Color(0xFF1E1E1E)
+                                  : const Color(0xFF252526),
+                              border: Border(
+                                top: BorderSide(
+                                  color: isActive
+                                      ? const Color(0xFF2CA048)
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                                right: const BorderSide(
+                                  color: Color(0xFF2B2B2B),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  tab.icon ?? _getDefaultTabIcon(tab.language),
+                                  size: 13,
+                                  color: isActive
+                                      ? (tab.language == 'bash'
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF9CDCFE))
+                                      : const Color(0xFF858585),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  tab.filename,
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11,
+                                    fontWeight: isActive
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isActive
+                                        ? Colors.white
+                                        : const Color(0xFF858585),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (running) ...[
-            SelectableText(
-              lan && lanIp != null
-                  ? 'http://$lanIp:$port'
-                  : 'http://127.0.0.1:$port',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: scheme.primary,
-                fontFamily: 'monospace',
-              ),
-            ),
-            if (lan && lanIp != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                'On this device · http://127.0.0.1:$port',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: scheme.onSurfaceVariant,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ],
-            const SizedBox(height: 4),
-            Text(
-              activeId == null ? 'No model loaded' : 'Model · $activeId',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ] else ...[
-            Text(
-              'Starts a local HTTP server other apps can call.',
-              style: TextStyle(
-                fontSize: 13,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              activeId == null ? 'No model loaded' : 'Model · $activeId',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    // Frosted fill tinted to the Quick start card so the field
-                    // belongs to the card instead of a grey box.
-                    color: scheme.surface.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  child: TextField(
-                    controller: portController,
-                    enabled: !running,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Port',
-                      labelStyle: TextStyle(
-                        color: scheme.onSurfaceVariant,
+                // Copy Button with Animated Feedback
+                InkWell(
+                  onTap: _handleCopy,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    decoration: BoxDecoration(
+                      color: _copied
+                          ? const Color(0xFF2CA048).withValues(alpha: 0.22)
+                          : Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: _copied
+                            ? const Color(0xFF2CA048)
+                            : Colors.white.withValues(alpha: 0.10),
+                        width: 1,
                       ),
-                      border: InputBorder.none,
-                      isDense: true,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _copied ? Icons.check_rounded : Icons.copy_rounded,
+                          size: 12,
+                          color: _copied
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFFCBD5E1),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _copied ? 'Copied' : 'Copy',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: _copied
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
-                icon: Icon(
-                  running ? Icons.stop_rounded : Icons.play_arrow_rounded,
+              ],
+            ),
+          ),
+
+          // ─── Code Editor Body: Line Numbers + Syntax Highlighted Code ───
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Line Number Gutter
+                Container(
+                  padding: const EdgeInsets.only(left: 10, right: 10),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      right: BorderSide(color: Color(0xFF2D2D2D), width: 1),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (int i = 1; i <= lines.length; i++)
+                        Text(
+                          '$i',
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: codeFontSize,
+                            color: Color(0xFF6E7681),
+                            height: codeLineHeight,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                label: Text(running ? 'Stop' : 'Start'),
-                style: FilledButton.styleFrom(
-                  // Solid brand navy CTA in both states/themes so it matches
-                  // the Quick start card's colour scheme (no teal).
-                  backgroundColor: _brandDeep,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 22, vertical: 16),
+                const SizedBox(width: 10),
+                // Code View (Horizontally Scrollable)
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: SelectableText.rich(
+                        TextSpan(
+                          children: _VsCodeSyntaxHighlighter.highlight(
+                            activeTab.code,
+                            activeTab.language,
+                          ),
+                        ),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: codeFontSize,
+                          height: codeLineHeight,
+                          color: Color(0xFFD4D4D4),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                onPressed: running ? onStop : onStart,
+              ],
+            ),
+          ),
+
+          // ─── VS Code Mini Status Bar ─────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: const BoxDecoration(
+              color: Color(0xFF141A17),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(11)),
+              border: Border(
+                top: BorderSide(color: Color(0xFF252E28), width: 1),
               ),
-            ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.code_rounded, size: 10, color: Color(0xFF2CA048)),
+                const SizedBox(width: 4),
+                Text(
+                  'Ln ${lines.length}, Col 1',
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 9.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('•', style: TextStyle(fontSize: 8, color: Color(0xFF64748B))),
+                const SizedBox(width: 8),
+                Text(
+                  activeTab.language.toUpperCase(),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF4ADE80),
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2CA048),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                const Text(
+                  'Thinai :11434',
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 9.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1010,173 +2399,9 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
-/// Toggles LAN sharing and, when the server is running and reachable, shows
-/// the address other devices on the same network can call.
-class _NetworkShareCard extends StatelessWidget {
-  final bool enabled;
-  final bool running;
-  final String? lanIp;
-  final String? deviceIp;
-  final int port;
-  final ValueChanged<bool> onChanged;
 
-  const _NetworkShareCard({
-    required this.enabled,
-    required this.running,
-    required this.lanIp,
-    required this.deviceIp,
-    required this.port,
-    required this.onChanged,
-  });
 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    // The address other devices would use: the live bound IP when running,
-    // otherwise the detected device IP so the URL is visible before starting.
-    final shareIp = lanIp ?? deviceIp;
-    return Material(
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          SwitchListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-            secondary: Icon(
-              enabled ? Icons.wifi_rounded : Icons.wifi_off_rounded,
-              color: enabled ? scheme.primary : scheme.onSurfaceVariant,
-            ),
-            title: const Text(
-              'Share on local network',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              enabled
-                  ? 'Other devices on this Wi-Fi can reach the API.'
-                  : 'Off. Only apps on this phone can reach the API.',
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
-            ),
-            value: enabled,
-            onChanged: onChanged,
-          ),
-          // Device IP is always shown (when known) so the address is never a
-          // mystery, regardless of the toggle or whether the server is up.
-          // Padding(
-          //   padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-          //   child: Row(
-          //     children: [
-          //       Icon(Icons.smartphone_rounded,
-          //           size: 16, color: scheme.onSurfaceVariant),
-          //       const SizedBox(width: 8),
-          //       Expanded(
-          //         child: Text(
-          //           deviceIp != null
-          //               ? 'This device: $deviceIp'
-          //               : 'Not connected to Wi-Fi/LAN.',
-          //           style: TextStyle(
-          //             fontSize: 12,
-          //             color: scheme.onSurfaceVariant,
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          if (enabled && running && shareIp != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              child: _shareRow(context, scheme, 'http://$shareIp:$port'),
-            ),
-          if (enabled && running && shareIp == null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline_rounded,
-                      size: 16, color: scheme.error),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'No Wi-Fi/LAN address found. Connect to Wi-Fi and restart the server.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          if (enabled && !running)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline_rounded,
-                      size: 16, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Start the server to expose it at this address.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _shareRow(BuildContext context, ColorScheme scheme, String url) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SelectableText(
-              url,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurface,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.content_copy_rounded, size: 18),
-            tooltip: 'Copy address',
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: url));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Copied network address'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ─── 6. STATUS DOT ───────────────────────────────────────────────────────────
 
 class _StatusDot extends StatefulWidget {
   final bool running;
@@ -1188,8 +2413,6 @@ class _StatusDot extends StatefulWidget {
 
 class _StatusDotState extends State<_StatusDot>
     with SingleTickerProviderStateMixin {
-  // Created on first use: build() only needs a ticker while the server is
-  // running, and an idle repeating controller would drive frames forever.
   AnimationController? _controller;
 
   AnimationController get _c =>
@@ -1200,192 +2423,97 @@ class _StatusDotState extends State<_StatusDot>
 
   @override
   void dispose() {
-    // Must not go through the _c getter: if the dot was never shown in the
-    // running state the controller was never created, and creating one here
-    // would build a Ticker against an already-deactivated element
-    // ("Looking up a deactivated widget's ancestor is unsafe").
     _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.running) {
-      return Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.outline,
-          shape: BoxShape.circle,
-        ),
-      );
-    }
     return SizedBox(
-      width: 16,
-      height: 16,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (context, _) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 16 * (0.6 + _c.value * 0.4),
-                height: 16 * (0.6 + _c.value * 0.4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.3 * (1 - _c.value)),
-                  shape: BoxShape.circle,
+      width: 20,
+      height: 20,
+      child: Center(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          child: widget.running
+              ? AnimatedBuilder(
+                  key: const ValueKey('running_dot'),
+                  animation: _c,
+                  builder: (context, _) {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 20 * (0.65 + _c.value * 0.35),
+                          height: 20 * (0.65 + _c.value * 0.35),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.35 * (1 - _c.value)),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.25),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                )
+              : Container(
+                  key: const ValueKey('stopped_dot'),
+                  width: 11,
+                  height: 11,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.outline,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              ),
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          );
-        },
+        ),
       ),
     );
   }
 }
 
-// ─── endpoints ─────────────────────────────────────────────────────────────
+// ─── 7. FULL-WIDTH SECURITY NOTICE BANNER ────────────────────────────────────
 
-class _EndpointCard extends StatelessWidget {
-  final IconData icon;
-  final Color accent;
-  final String title;
-  final String protocol;
-  final String path;
-  final String curl;
+class _SecurityNoticeBanner extends StatelessWidget {
+  final bool lanShare;
+  final int port;
 
-  const _EndpointCard({
-    required this.icon,
-    required this.accent,
-    required this.title,
-    required this.protocol,
-    required this.path,
-    required this.curl,
+  const _SecurityNoticeBanner({
+    required this.lanShare,
+    required this.port,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 20, color: accent),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              path,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: accent,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            protocol,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.content_copy_rounded, size: 18),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: curl));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Copied curl command'),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              curl,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 11,
-                color: scheme.onSurface,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Text(
+        lanShare
+            ? 'Wi-Fi Network Serving Active · Any device on this local subnet can query the API on port $port with your Bearer token.'
+            : 'Local Loopback Active · Only apps executing directly on this hardware can query localhost:$port.',
+        style: TextStyle(
+          fontSize: 11.5,
+          color: scheme.onSurfaceVariant,
+          height: 1.35,
+        ),
       ),
     );
   }

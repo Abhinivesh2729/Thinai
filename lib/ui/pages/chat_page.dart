@@ -1,12 +1,13 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../chat/document_attachment.dart';
@@ -16,10 +17,10 @@ import '../../llm/generation_settings.dart';
 import '../../llm/llm_engine.dart';
 import '../../state/providers.dart';
 import '../../web/web_search.dart';
+import '../widgets/chat_drawer.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/markdown_text.dart';
 import '../widgets/model_settings_sheet.dart';
-import 'chat_history_page.dart';
 
 /// Builds the message list sent to the model, with same-role neighbours merged.
 ///
@@ -41,7 +42,8 @@ List<ChatMessage> _promptFrom(
   // name" after an answer about the latest models — is asked of a history
   // that holds the question and the reply but not what they were based on, so
   // they go back in unless this turn ran a search of its own.
-  final recall = search == null && turns.isNotEmpty && turns.last.role == 'assistant'
+  final recall =
+      search == null && turns.isNotEmpty && turns.last.role == 'assistant'
       ? turns.last.sources
       : const <WebResult>[];
   final messages = <ChatMessage>[];
@@ -204,8 +206,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (!mounted) return;
       setState(() => _document = document);
       if (document.truncated) {
-        _toast('Attached the first ${document.sizeLabel}. '
-            'The rest did not fit the context window.');
+        _toast(
+          'Attached the first ${document.sizeLabel}. '
+          'The rest did not fit the context window.',
+        );
       }
     } on FormatException catch (e) {
       if (mounted) _toast(e.message);
@@ -243,7 +247,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final bytes = await shot.readAsBytes();
       // The camera hands back a JPEG; a name without a usable extension would
       // only fail the format check for no reason.
-      final name = mimeTypeForImage(shot.name) == null ? 'photo.jpg' : shot.name;
+      final name = mimeTypeForImage(shot.name) == null
+          ? 'photo.jpg'
+          : shot.name;
       final image = readImage(name, bytes);
       if (!mounted) return;
       setState(() => _image = image);
@@ -313,10 +319,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (cancel.isCancelled) return null;
       if (results.isEmpty) {
         if (mounted) {
-          _toast(results.blocked
-              ? 'Search engines are rate-limiting this network right now. '
-                  'Answering without the web.'
-              : 'No web results for that. Answering from the model itself.');
+          _toast(
+            results.blocked
+                ? 'Search engines are rate-limiting this network right now. '
+                      'Answering without the web.'
+                : 'No web results for that. Answering from the model itself.',
+          );
         }
         return null;
       }
@@ -358,13 +366,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return;
     }
 
+    // Tactile pulse on send — makes the interaction feel physical.
+    HapticFeedback.lightImpact();
+
     final history = ref.read(chatSessionsProvider.notifier);
 
     // Decided here rather than asked: web search is on unless it was turned
     // off, and each question is judged on whether it wants live information.
     // An attachment answers its own questions, so neither the document nor the
     // photo in front of the model is a reason to go to the internet.
-    final searchWeb = ref.read(webSearchEnabledProvider) &&
+    final searchWeb =
+        ref.read(webSearchEnabledProvider) &&
         _document == null &&
         _image == null &&
         needsWebSearch(text);
@@ -494,44 +506,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final next = !ref.read(webSearchEnabledProvider);
     await ref.read(webSearchEnabledProvider.notifier).set(next);
     if (!mounted) return;
-    _toast(
-      next ? 'Web search on.' : 'Web search off.',
-    );
+    _toast(next ? 'Web search on.' : 'Web search off.');
   }
 
-  /// Deletes the conversation on screen after confirming, since it is also
-  /// being removed from the history list.
-  Future<void> _deleteCurrent() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete this chat?'),
-        content: const Text('It is removed from your chat history too.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(c).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await ref.read(chatSessionsProvider.notifier).deleteActive();
-  }
 
-  void _openHistory() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ChatHistoryPage()));
-  }
 
   /// Keeps the newest message in view as tokens arrive, but only while the
   /// user has not scrolled away to read something earlier.
@@ -630,52 +608,46 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
-        actions: [
-          // Only offered once there is something to leave behind: on a blank
-          // chat it would do nothing.
-          if (messages.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.add_comment_rounded),
-              tooltip: 'New chat',
-              onPressed: _generating
-                  ? null
-                  : () =>
-                        ref.read(chatSessionsProvider.notifier).startNewChat(),
-            ),
-          if (activeId != null)
-            IconButton(
-              icon: const Icon(Icons.tune_rounded),
-              tooltip: 'Context & temperature',
-              onPressed: () async {
-                final model =
-                    await ref.read(modelStoreProvider).findById(activeId);
-                if (model == null || !context.mounted) return;
-                await showModelSettingsSheet(context, model);
-              },
-            ),
-          IconButton(
-            icon: const Icon(Icons.history_rounded),
-            tooltip: 'Chat history',
-            onPressed: _openHistory,
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          tooltip: 'Menu & Chats',
+          onPressed: () {
+            if (shellScaffoldKey.currentState != null) {
+              shellScaffoldKey.currentState!.openDrawer();
+            } else {
+              Scaffold.maybeOf(context)?.openDrawer();
+            }
+          },
+        ),
+        title: Text(
+          sessions.active?.title ?? 'Thinai',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
           ),
-          if (messages.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Delete this chat',
-              onPressed: _generating ? null : _deleteCurrent,
-            ),
-          const SizedBox(width: 4),
+        ),
+        centerTitle: false,
+        actions: [
+          _ModelSwitcherAction(activeId: activeId),
         ],
       ),
       body: Column(
         children: [
-          _ModelBanner(activeId: activeId),
+          if (activeId == null) const _NoModelWarningBanner(),
           Expanded(
             child: messages.isEmpty
                 ? _EmptyChat(
                     activeId: activeId,
                     webSearch: ref.watch(webSearchEnabledProvider),
+                    onSuggestion: (text) {
+                      _input.text = text;
+                      _input.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _input.text.length),
+                      );
+                    },
                   )
                 : Stack(
                     children: [
@@ -737,78 +709,368 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 }
 
-class _ModelBanner extends ConsumerWidget {
-  final String? activeId;
-  const _ModelBanner({required this.activeId});
+/// Red warning banner displayed at the top of the chat page when no local model
+/// is loaded into memory or downloaded in the app.
+class _NoModelWarningBanner extends ConsumerWidget {
+  const _NoModelWarningBanner();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    if (activeId == null) {
-      return Container(
-        width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: scheme.errorContainer,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: scheme.onErrorContainer,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'No model loaded. Open the Models tab first.',
-                style: TextStyle(color: scheme.onErrorContainer, fontSize: 13),
-              ),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton(
-              onPressed: () {
-                ref.read(shellTabIndexProvider.notifier).state = 1;
-              },
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 34),
-                side: BorderSide(color: scheme.onErrorContainer),
-                foregroundColor: scheme.onErrorContainer,
-              ),
-              child: const Text('Open Models'),
-            ),
-          ],
-        ),
-      );
-    }
+    final models = ref.watch(modelListProvider).valueOrNull ?? const [];
+    final hasInstalled = models.isNotEmpty;
+
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: scheme.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.bolt_rounded, size: 16, color: scheme.onPrimaryContainer),
-          const SizedBox(width: 6),
+          Icon(
+            Icons.warning_amber_rounded,
+            color: scheme.onErrorContainer,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              activeId!,
-              overflow: TextOverflow.ellipsis,
+              hasInstalled
+                  ? 'No model loaded — tap to select or browse.'
+                  : 'No model downloaded — tap to download.',
               style: TextStyle(
-                color: scheme.onPrimaryContainer,
+                color: scheme.onErrorContainer,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: () {
+              ref.read(shellTabIndexProvider.notifier).state = 1;
+            },
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              backgroundColor: scheme.error,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              hasInstalled ? 'Select' : 'Download',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+/// Top-right AppBar action button to switch between installed models.
+class _ModelSwitcherAction extends ConsumerWidget {
+  final String? activeId;
+  const _ModelSwitcherAction({required this.activeId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    const logoGreen = Color(0xFF2CA048);
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: IconButton(
+        icon: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: activeId != null
+                    ? logoGreen.withValues(alpha: 0.12)
+                    : scheme.errorContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                activeId != null ? Icons.memory_rounded : Icons.warning_amber_rounded,
+                size: 20,
+                color: activeId != null ? logoGreen : scheme.error,
+              ),
+            ),
+            // Live status indicator dot
+            Positioned(
+              top: -1,
+              right: -1,
+              child: Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: activeId != null ? logoGreen : scheme.error,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        tooltip: activeId != null
+            ? 'Active model: $activeId (tap to switch)'
+            : 'No model loaded (tap to choose)',
+        onPressed: () => _showModelSwitchSheet(context, ref),
+      ),
+    );
+  }
+}
+
+Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
+  HapticFeedback.lightImpact();
+  final activeId = ref.read(activeModelIdProvider);
+  final store = ref.read(modelStoreProvider);
+  final installedModels = await store.list();
+  if (!context.mounted) return;
+
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  final scheme = theme.colorScheme;
+  const logoGreen = Color(0xFF2CA048);
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: isDark ? const Color(0xFF131722) : Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (modalContext) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: scheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: logoGreen.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.memory_rounded,
+                      size: 20,
+                      color: logoGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Switch Model',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                            color: scheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          installedModels.isEmpty
+                              ? 'No models installed'
+                              : '${installedModels.length} installed on device',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.of(modalContext).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (installedModels.isEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.explore_outlined, size: 36, color: scheme.onSurfaceVariant),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No models downloaded yet',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onSurface),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Download an open model from the catalogue to begin chatting.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                        label: const Text('Browse Models'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: logoGreen,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          Navigator.of(modalContext).pop();
+                          ref.read(shellTabIndexProvider.notifier).state = 1;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.45,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: installedModels.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final m = installedModels[index];
+                      final isSelected = m.id == activeId;
+                      return Material(
+                        color: isSelected
+                            ? logoGreen.withValues(alpha: isDark ? 0.16 : 0.08)
+                            : scheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () async {
+                            HapticFeedback.selectionClick();
+                            await ref.read(activeModelIdProvider.notifier).set(m);
+                            if (modalContext.mounted) Navigator.of(modalContext).pop();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? logoGreen : scheme.outlineVariant,
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isSelected
+                                      ? Icons.radio_button_checked_rounded
+                                      : Icons.radio_button_unchecked_rounded,
+                                  color: isSelected ? logoGreen : scheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        m.displayName,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: isSelected
+                                              ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                              : scheme.onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${m.sizeFormatted} · ${m.id}',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.tune_rounded, size: 18),
+                                    color: logoGreen,
+                                    tooltip: 'Model Parameters',
+                                    onPressed: () async {
+                                      Navigator.of(modalContext).pop();
+                                      await showModelSettingsSheet(context, m);
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Download More Models'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: scheme.onSurface,
+                    side: BorderSide(color: scheme.outlineVariant),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.of(modalContext).pop();
+                    ref.read(shellTabIndexProvider.notifier).state = 1;
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 /// Puts the user back on the newest message after they have scrolled away.
@@ -839,66 +1101,217 @@ class _JumpToLatest extends StatelessWidget {
   }
 }
 
-class _EmptyChat extends StatelessWidget {
+class _EmptyChat extends ConsumerWidget {
   final String? activeId;
 
-  /// Whether questions will be looked up before they are answered. Worth
-  /// saying here: "runs entirely on-device" stops being true the moment it is
-  /// on, and a promise that quietly lapses is worse than no promise.
+  /// Whether questions will be looked up before they are answered.
   final bool webSearch;
 
-  const _EmptyChat({required this.activeId, this.webSearch = false});
+  /// Callback when a quick starter chip is selected.
+  final ValueChanged<String>? onSuggestion;
+
+  const _EmptyChat({
+    required this.activeId,
+    this.webSearch = false,
+    this.onSuggestion,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // High-resolution removed-background logo (white text for dark, black text for light)
+            Image.asset(
+              isDark
+                  ? 'assets/images/logo_dark.png'
+                  : 'assets/images/logo_transparent.png',
+              width: activeId == null ? 200 : 170,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+            const SizedBox(height: 14),
+            if (activeId == null) ...[
+              const Text(
+                'Private Offline AI',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Chat privately with AI models that run 100% on your phone. '
+                'No internet required, zero cloud tracking, and your data never leaves your device.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                icon: const Icon(Icons.explore_rounded, size: 18),
+                label: const Text('Browse & Download Models'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: logoGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () {
+                  ref.read(shellTabIndexProvider.notifier).state = 1;
+                },
+              ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: logoGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: logoGreen.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: logoGreen,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      webSearch ? 'AI Ready · Web Search On' : 'AI Ready · 100% Offline',
+                      style: const TextStyle(
+                        color: logoGreen,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Running privately on your phone silicon.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 22),
+              // Starter prompt suggestions
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  _StarterChip(
+                    icon: Icons.lightbulb_outline_rounded,
+                    label: 'Brainstorm ideas',
+                    onTap: () => onSuggestion?.call(
+                      'Give me 5 creative ideas to build an on-device AI app',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.code_rounded,
+                    label: 'Write Python code',
+                    onTap: () => onSuggestion?.call(
+                      'Write a Python script to sort and deduplicate a list of items',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.summarize_outlined,
+                    label: 'Summarize text',
+                    onTap: () => onSuggestion?.call(
+                      'Summarize the key takeaways from the following:\n\n',
+                    ),
+                  ),
+                  _StarterChip(
+                    icon: Icons.speed_rounded,
+                    label: 'Measure speed',
+                    onTap: () => onSuggestion?.call(
+                      'What is your generation speed on this phone?',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StarterChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _StarterChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [scheme.primary, scheme.tertiary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    return Material(
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: const Color(0xFF2CA048)),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: scheme.onSurface,
                 ),
-                borderRadius: BorderRadius.circular(24),
               ),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                size: 40,
-                color: scheme.onPrimary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              activeId == null ? 'Ready when you are' : 'Say hi 👋',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              activeId == null
-                  ? 'Load a model, then start chatting.'
-                  : webSearch
-                  ? 'Answers run on-device, with live results from the web.'
-                  : 'Your conversation runs entirely on-device.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: scheme.onSurfaceVariant,
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -993,86 +1406,84 @@ class _Composer extends StatelessWidget {
                 ),
               ),
             Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // One control for everything a message can carry. It rides 4pt off
-            // the bottom so its centre lines up with the text on a one-line
-            // field, while still travelling down as the field grows to five.
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: _ComposerSpeedDial(
-                enabled: enabled,
-                visionReady: visionReady,
-                webSearch: webSearch,
-                onCamera: onAttachCamera,
-                onImage: onAttachImage,
-                onDocument: onAttachDocument,
-                onToggleWebSearch: onToggleWebSearch,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Container(
-                key: CoachMarkTargets.chatComposer,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: controller,
-                  enabled: enabled,
-                  minLines: 1,
-                  maxLines: 5,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => onSubmit(),
-                  decoration: InputDecoration(
-                    hintText: generating ? 'Generating…' : 'Message your model',
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // One control for everything a message can carry. It rides 4pt off
+                // the bottom so its centre lines up with the text on a one-line
+                // field, while still travelling down as the field grows to five.
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _ComposerSpeedDial(
+                    enabled: enabled,
+                    visionReady: visionReady,
+                    webSearch: webSearch,
+                    onCamera: onAttachCamera,
+                    onImage: onAttachImage,
+                    onDocument: onAttachDocument,
+                    onToggleWebSearch: onToggleWebSearch,
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                // Solid red while generating so the button reads as stop, and
-                // the brand gradient otherwise.
-                color: generating ? scheme.error : null,
-                gradient: generating
-                    ? null
-                    : LinearGradient(
-                        colors: enabled
-                            ? [scheme.primary, scheme.tertiary]
-                            : [
-                                scheme.surfaceContainerHigh,
-                                scheme.surfaceContainerHigh,
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Container(
+                    key: CoachMarkTargets.chatComposer,
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: controller,
+                      enabled: enabled,
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => onSubmit(),
+                      decoration: InputDecoration(
+                        hintText: generating
+                            ? 'Generating…'
+                            : 'Message your model',
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+                        hintStyle: TextStyle(color: scheme.onSurfaceVariant),
                       ),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                iconSize: 22,
-                tooltip: generating ? 'Stop' : 'Send',
-                onPressed: generating ? onStop : (enabled ? onSubmit : null),
-                icon: Icon(
-                  generating ? Icons.stop_rounded : Icons.arrow_upward_rounded,
-                  color: generating
-                      ? scheme.onError
-                      : (enabled ? scheme.onPrimary : scheme.onSurfaceVariant),
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.all(12),
-              ),
+                const SizedBox(width: 8),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    color: generating
+                        ? scheme.error
+                        : (enabled
+                              ? const Color(0xFF2CA048)
+                              : scheme.surfaceContainerHigh),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    iconSize: 22,
+                    tooltip: generating ? 'Stop' : 'Send',
+                    onPressed: generating
+                        ? onStop
+                        : (enabled ? onSubmit : null),
+                    icon: Icon(
+                      generating
+                          ? Icons.stop_rounded
+                          : Icons.arrow_upward_rounded,
+                      color: generating
+                          ? Colors.white
+                          : (enabled ? Colors.white : scheme.onSurfaceVariant),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
           ],
         ),
       ),
@@ -1097,105 +1508,224 @@ class _MessageBubble extends StatelessWidget {
     this.searching = false,
   });
 
-  /// Left inset of everything under an assistant bubble: the avatar's width
-  /// plus the gap after it, so the sources line up with the reply they belong
-  /// to rather than with the avatar.
-  static const double _gutter = 36;
+
+  void _copyText(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Copied to clipboard'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _shareText(BuildContext context, String text) {
+    HapticFeedback.lightImpact();
+    SharePlus.instance.share(ShareParams(text: text));
+  }
+
+  void _showUserOptions(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: scheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 14),
+              ListTile(
+                leading: const Icon(Icons.copy_rounded, size: 20),
+                title: const Text(
+                  'Copy text',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  _copyText(context, msg.content);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.share_rounded, size: 20),
+                title: const Text(
+                  'Share text',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  _shareText(context, msg.content);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUser = msg.role == 'user';
-
-    final bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        gradient: isUser
-            ? LinearGradient(
-                colors: [scheme.primary, scheme.tertiary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: isUser ? null : scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(isUser ? 18 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 18),
-        ),
-      ),
-      child: msg.content.isEmpty && !isUser
-          ? (searching
-                ? _SearchingLine(color: scheme.onSurfaceVariant)
-                : pending
-                ? _TypingDots(color: scheme.onSurfaceVariant)
-                : Text(
-                    'Stopped',
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ))
-          // Model replies arrive as Markdown; a user's own message is
-          // whatever they typed, so it stays literal.
-          : isUser
-          ? SelectableText(
-              msg.content,
-              style: TextStyle(color: scheme.onPrimary, height: 1.35),
-            )
-          : MarkdownText(
-              data: msg.content,
-              style: TextStyle(color: scheme.onSurface, height: 1.35),
-              codeBackground: scheme.surfaceContainerHighest,
-              mutedColor: scheme.onSurfaceVariant,
-            ),
-    );
 
     if (isUser) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.only(top: 8, bottom: 4, right: 14, left: 48),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [Flexible(child: bubble)],
+          children: [
+            Flexible(
+              child: GestureDetector(
+                onLongPress: () => _showUserOptions(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF262C38) : const Color(0xFFE9ECEF),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: SelectableText(
+                    msg.content,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      height: 1.45,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    // The avatar belongs to the bubble, so it sits in a row with it rather
-    // than beside the whole block — otherwise a reply carrying sources leaves
-    // it stranded at the bottom, level with the links instead of the reply.
+    // Assistant Reply: Pure ChatGPT style — borderless, seamless, full width markdown
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: scheme.primary,
-                child: Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 14,
-                  color: scheme.onPrimary,
-                ),
-              ),
-              const SizedBox(width: _gutter - 28),
-              Flexible(child: bubble),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: msg.content.isEmpty
+                ? (searching
+                      ? _SearchingLine(
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        )
+                      : pending
+                      ? _TypingDots(
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        )
+                      : Text(
+                          'Stopped',
+                          style: TextStyle(
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ))
+                : MarkdownText(
+                    data: msg.content,
+                    style: TextStyle(
+                      color: isDark
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF0F172A),
+                      height: 1.55,
+                      fontSize: 15.0,
+                    ),
+                    codeBackground: isDark
+                        ? const Color(0xFF1E2638)
+                        : const Color(0xFFE2E8F0),
+                    mutedColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                    streamingCursor: pending,
+                    cursorColor: const Color(0xFF2CA048),
+                  ),
           ),
-          // Held back until the reply has words in it. Five links under an
-          // empty bubble read as the answer itself, which is what a list of
-          // headlines above three dots looked like.
-          if (msg.sources.isNotEmpty && msg.content.isNotEmpty)
+          // Action row: Minimalist icon buttons like ChatGPT
+          if (msg.content.isNotEmpty && !pending)
             Padding(
-              padding: const EdgeInsets.only(left: _gutter, top: 6, right: 8),
-              child: _SourcesPill(sources: msg.sources),
+              padding: const EdgeInsets.only(left: 12, top: 4, right: 16),
+              child: Row(
+                children: [
+                  _BubbleIconButton(
+                    icon: Icons.copy_rounded,
+                    tooltip: 'Copy',
+                    onTap: () => _copyText(context, msg.content),
+                  ),
+                  const SizedBox(width: 4),
+                  _BubbleIconButton(
+                    icon: Icons.share_rounded,
+                    tooltip: 'Share',
+                    onTap: () => _shareText(context, msg.content),
+                  ),
+                  if (msg.sources.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    _SourcesPill(sources: msg.sources),
+                  ],
+                ],
+              ),
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Minimalist icon button under assistant messages (ChatGPT style)
+class _BubbleIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _BubbleIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon, size: 16),
+      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(),
+      splashRadius: 18,
+      onPressed: onTap,
     );
   }
 }
@@ -1272,7 +1802,6 @@ class _TypingDotsState extends State<_TypingDots>
     );
   }
 }
-
 
 /// Everything a message can carry, behind one button.
 ///
@@ -1373,6 +1902,21 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    final buttonBg = _open
+        ? (isDark ? const Color(0xFF2E3A4E) : const Color(0xFFE2E8F0))
+        : (isDark ? const Color(0xFF202736) : const Color(0xFFF1F5F9));
+
+    final buttonBorder = widget.webSearch
+        ? logoGreen.withValues(alpha: 0.7)
+        : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1));
+
+    final iconColor = _open
+        ? (isDark ? Colors.white : const Color(0xFF0F172A))
+        : (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155));
+
     return OverlayPortal(
       controller: _portal,
       overlayChildBuilder: (context) => Stack(
@@ -1383,9 +1927,7 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
               onTap: _close,
               child: FadeTransition(
                 opacity: _anim,
-                child: ColoredBox(
-                  color: scheme.scrim.withValues(alpha: 0.32),
-                ),
+                child: ColoredBox(color: scheme.scrim.withValues(alpha: 0.32)),
               ),
             ),
           ),
@@ -1407,26 +1949,34 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         child: SizedBox(
           width: kComposerButton,
           height: kComposerButton,
-          child: IconButton(
-            onPressed: _toggle,
-            iconSize: kComposerIcon,
-            padding: EdgeInsets.zero,
-            tooltip: _open ? 'Close' : 'Add to this message',
-            style: IconButton.styleFrom(
-              backgroundColor: _open || widget.webSearch
-                  ? scheme.primaryContainer
-                  : null,
-              foregroundColor: _open || widget.webSearch
-                  ? scheme.onPrimaryContainer
-                  : scheme.onSurfaceVariant,
-            ),
-            // The plus turns into a close as the items come out, so the same
-            // button always undoes what it just did.
-            icon: AnimatedRotation(
-              turns: _open ? 0.125 : 0,
-              duration: const Duration(milliseconds: 190),
-              curve: Curves.easeOut,
-              child: const Icon(Icons.add_circle_outline_rounded),
+          child: Material(
+            color: buttonBg,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _toggle,
+              child: Container(
+                width: kComposerButton,
+                height: kComposerButton,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: buttonBorder,
+                    width: 1.0,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: AnimatedRotation(
+                  turns: _open ? 0.125 : 0,
+                  duration: const Duration(milliseconds: 190),
+                  curve: Curves.easeOut,
+                  child: Icon(
+                    Icons.add_rounded,
+                    size: 22,
+                    color: iconColor,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -1448,7 +1998,9 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         key: dialCameraKey,
         icon: Icons.photo_camera_outlined,
         label: 'Camera',
-        detail: widget.visionReady ? 'Take a photo now' : 'Needs a vision model',
+        detail: widget.visionReady
+            ? 'Take a photo now'
+            : 'Needs a vision model',
         enabled: widget.enabled,
         onTap: () => _choose(widget.onCamera),
       ),
@@ -1456,9 +2008,7 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         key: dialImageKey,
         icon: Icons.image_outlined,
         label: 'Image',
-        detail: widget.visionReady
-            ? 'PNG, JPEG, WebP'
-            : 'Needs a vision model',
+        detail: widget.visionReady ? 'PNG, JPEG, WebP' : 'Needs a vision model',
         enabled: widget.enabled,
         onTap: () => _choose(widget.onImage),
       ),
@@ -1481,35 +2031,35 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          for (var i = 0; i < entries.length; i++)
-            // Staggered from the bottom up, so the items read as coming out of
-            // the button rather than appearing all at once.
-            AnimatedBuilder(
-              animation: _anim,
-              builder: (context, child) {
-                final start = 0.08 * (entries.length - 1 - i);
-                final t = CurvedAnimation(
-                  parent: _anim,
-                  curve: Interval(start, 1, curve: Curves.easeOutBack),
-                  reverseCurve: const Interval(0, 1, curve: Curves.easeIn),
-                ).value;
-                return Opacity(
-                  opacity: t.clamp(0.0, 1.0),
-                  child: Transform.translate(
-                    offset: Offset(0, (1 - t) * 12),
-                    child: Transform.scale(
-                      scale: 0.9 + 0.1 * t.clamp(0.0, 1.0),
-                      alignment: Alignment.bottomLeft,
-                      child: child,
+            for (var i = 0; i < entries.length; i++)
+              // Staggered from the bottom up, so the items read as coming out of
+              // the button rather than appearing all at once.
+              AnimatedBuilder(
+                animation: _anim,
+                builder: (context, child) {
+                  final start = 0.08 * (entries.length - 1 - i);
+                  final t = CurvedAnimation(
+                    parent: _anim,
+                    curve: Interval(start, 1, curve: Curves.easeOutBack),
+                    reverseCurve: const Interval(0, 1, curve: Curves.easeIn),
+                  ).value;
+                  return Opacity(
+                    opacity: t.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - t) * 12),
+                      child: Transform.scale(
+                        scale: 0.9 + 0.1 * t.clamp(0.0, 1.0),
+                        alignment: Alignment.bottomLeft,
+                        child: child,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: entries[i],
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: entries[i],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -1541,58 +2091,115 @@ class _DialItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fg = enabled ? scheme.onSurface : scheme.onSurfaceVariant;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const logoGreen = Color(0xFF2CA048);
+
+    final cardBg = isDark ? const Color(0xFF1E2636) : Colors.white;
+    final borderColor = active
+        ? logoGreen.withValues(alpha: 0.7)
+        : (isDark ? const Color(0xFF2E384D) : const Color(0xFFE2E8F0));
+    final fg = enabled ? scheme.onSurface : scheme.onSurfaceVariant.withValues(alpha: 0.6);
+
     return Material(
-      color: active ? scheme.primaryContainer : scheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 3,
-      shadowColor: scheme.shadow.withValues(alpha: 0.3),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: active ? scheme.onPrimaryContainer : fg,
-              ),
-              const SizedBox(width: 12),
-              // Flexible, so a long second line ellipsises instead of pushing
-              // the item off the side of a narrow phone.
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: active ? scheme.onPrimaryContainer : fg,
-                      ),
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: borderColor,
+            width: active ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: enabled ? onTap : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? logoGreen.withValues(alpha: 0.15)
+                          : (isDark ? const Color(0xFF283245) : const Color(0xFFF1F5F9)),
+                      borderRadius: BorderRadius.circular(9),
                     ),
-                    Text(
-                      detail,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: active
-                            ? scheme.onPrimaryContainer.withValues(alpha: 0.8)
-                            : scheme.onSurfaceVariant,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      icon,
+                      size: 19,
+                      color: active ? logoGreen : fg,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Flexible, so a long second line ellipsises instead of pushing
+                  // the item off the side of a narrow phone.
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: active ? scheme.onSurface : fg,
+                          ),
+                        ),
+                        const SizedBox(height: 1.5),
+                        Text(
+                          detail,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: active
+                                ? logoGreen
+                                : scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (active) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: logoGreen.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'ON',
+                        style: TextStyle(
+                          color: logoGreen,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
