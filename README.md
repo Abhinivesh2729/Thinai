@@ -70,7 +70,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 | Engine | `lib/llm/llm_engine.dart` (`embedBatch`) |
 | Routes | `lib/server/routes/{ollama,openai}_routes.dart` |
 
-`fllama_embed.cpp` posts `SERVER_TASK_TYPE_EMBEDDING` tasks to llama.cpp's `server_context`: the same mechanism `llama-server` uses for its `/embedding` endpoint. `third_party/fllama` is committed in-tree so a clean checkout and CI can both build without an external private remote.
+`fllama_embed.cpp` posts `SERVER_TASK_TYPE_EMBEDDING` tasks to llama.cpp's `server_context`: the same mechanism `llama-server` uses for its `/embedding` endpoint. `third_party/fllama` is committed in-tree so a clean checkout and CI can both build without an external private remote. The llama.cpp version it vendors, and the local patches on it, are listed in [`third_party/fllama/LLAMA_CPP.md`](third_party/fllama/LLAMA_CPP.md).
 
 ---
 

@@ -7,7 +7,7 @@ The implementation can be found in the `common/jinja` directory.
 ## Key Features
 
 - Input marking: security against special token injection
-- Decoupled from `nlohmann::json`: this dependency is only used for JSON-to-internal type translation and is completely optional
+- Decoupled from the JSON library: `common_json` is only used for JSON-to-internal type translation and is completely optional
 - Minimal primitive types: int, float, bool, string, array, object, none, undefined
 - Detailed logging: allow source tracing on error
 - Clean architecture: workarounds are applied to input data before entering the runtime (see `common/chat.cpp`)
@@ -63,7 +63,7 @@ The llama.cpp Jinja engine introduces `jinja::string` (see `jinja/string.h`), wh
   - **One-to-many** (e.g., split): result is marked `is_input` **only if ALL** input parts are marked `is_input`
   - **Many-to-one** (e.g., join): same as one-to-many
 
-For string concatenation, string parts will be appended to the new string as-is, while perserving the `is_input` flag.
+For string concatenation, string parts will be appended to the new string as-is, while preserving the `is_input` flag.
 
 **Enabling Input Marking:**
 

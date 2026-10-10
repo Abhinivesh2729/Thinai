@@ -66,6 +66,27 @@ void main() {
       }
     });
 
+    test('EmbeddingGemma 2 is a 768-dim, 8K text embedder from ggml-org', () {
+      final m = modelCatalog.firstWhere((m) => m.id == 'embeddinggemma-2-q8_0');
+      expect(m.kind, ModelKind.embedding);
+      expect(m.dimensions, 768);
+      expect(m.contextTokens, 8192);
+      expect(m.author, 'Google');
+      expect(m.url, startsWith('https://huggingface.co/ggml-org/embeddinggemma-2-GGUF/'));
+      // Text-only: the multimodal projector is not wired into fllama_embed.
+      expect(m.supportsVision, isFalse);
+      expect(m.servedId, 'embeddinggemma-2-q8_0');
+      expect(embeddingCatalog, contains(m));
+      expect(chatCatalog, isNot(contains(m)));
+    });
+
+    test('EmbeddingGemma 2 sits alongside v1 rather than replacing it', () {
+      // v1 stays: anyone with it downloaded keeps a catalog entry, and its
+      // vectors are not interchangeable with v2's.
+      final ids = embeddingCatalog.map((m) => m.id);
+      expect(ids, containsAll(['embeddinggemma-300m-q8_0', 'embeddinggemma-2-q8_0']));
+    });
+
     test('approxSize renders MB below 1 GB and GB above', () {
       final small = modelCatalog.firstWhere((m) => m.approxBytes < 1024 * 1024 * 1024);
       expect(small.approxSize, endsWith('MB'));

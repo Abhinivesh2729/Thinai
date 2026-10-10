@@ -637,6 +637,27 @@ const modelCatalog = <CatalogModel>[
     kind: ModelKind.embedding,
     dimensions: 768,
   ),
+  // Text-only weights. The GGUF repo also ships a vision/audio projector
+  // (mmproj-embeddinggemma-2-*.gguf), but fllama_embed has no multimodal
+  // input path, so only text embeddings are offered.
+  CatalogModel(
+    id: 'embeddinggemma-2-q8_0',
+    displayName: 'EmbeddingGemma 2 · 270M',
+    author: 'Google',
+    url:
+        'https://huggingface.co/ggml-org/embeddinggemma-2-GGUF/resolve/main/embeddinggemma-2-Q8_0.gguf',
+    filename: 'embeddinggemma-2-Q8_0.gguf',
+    approxBytes: 296 * 1024 * 1024,
+    parameters: '270 M',
+    contextTokens: 8192,
+    description:
+        'Google\'s newest embedder: 4x the context of v1 and much stronger on code. '
+        'Shortens to 512/256/128 via `dimensions`. Needs ~600 MB RAM; on 3 GB phones prefer Nomic.',
+    accent: Color(0xFF10B981),
+    emoji: '💎',
+    kind: ModelKind.embedding,
+    dimensions: 768,
+  ),
   CatalogModel(
     id: 'qwen3-embedding-0.6b-q8_0',
     displayName: 'Qwen 3 Embedding · 0.6B',

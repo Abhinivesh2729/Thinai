@@ -1,5 +1,28 @@
 # Release notes
 
+## Unreleased
+
+### EmbeddingGemma 2
+
+Google's second-generation embedder is in the catalog as
+**EmbeddingGemma 2 · 270M** (296 MB, Q8_0). Against v1 it has four times the
+context (8K tokens) and is much stronger on code retrieval. Its 768-dimension
+vectors can be shortened to 512, 256 or 128 with the `dimensions` parameter on
+`/v1/embeddings`, cutting vector storage up to 6x.
+
+It needs about 600 MB of RAM at the default 2K embedding context. On 3 GB
+phones, Nomic Embed Text v1.5 remains the better pick.
+
+EmbeddingGemma 300M (v1) stays in the catalog. The two models' vectors are not
+interchangeable, so re-embed an index when switching.
+
+Only text embeddings are supported. The model can also embed images and audio,
+but that needs its separate projector file and a multimodal embedding path
+that fllama does not have yet.
+
+Supporting it needed a newer llama.cpp: the vendored copy moves from early
+March to `b11452`.
+
 ## v2.3.12 branch
 
 ### GPU inference that falls back instead of crashing
