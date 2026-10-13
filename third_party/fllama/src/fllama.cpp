@@ -363,7 +363,7 @@ static void run_inference(fllama_inference_request request,
     if (request.openai_request_json_string) {
       is_oai = true;
       try {
-        auto body = nlohmann::ordered_json::parse(
+        auto body = json::parse(
             request.openai_request_json_string);
 
         std::string jinja_tmpl;
@@ -544,7 +544,6 @@ static void run_inference(fllama_inference_request request,
           last_json = j.is_null() ? "" : j.dump();
           log_message("[JPZ] final to_json() is_null=" +
                           std::to_string(j.is_null()) +
-                          " type=" + std::to_string((int)j.type()) +
                           " size=" + std::to_string(j.size()) +
                           " dump=" + last_json.substr(0, 200),
                       request.dart_logger);

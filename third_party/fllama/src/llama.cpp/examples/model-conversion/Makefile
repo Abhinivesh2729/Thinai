@@ -52,6 +52,10 @@ causal-convert-mm-model:
 	METADATA_OVERRIDE="$(METADATA_OVERRIDE)" \
 	./scripts/causal/convert-model.sh
 
+	$(MAKE) causal-convert-mmproj MM_OUTTYPE="$(MM_OUTTYPE)"
+
+causal-convert-mmproj:
+	$(call validate_model_path,causal-convert-mmproj)
 	@MODEL_NAME="$(MODEL_NAME)" OUTTYPE="$(MM_OUTTYPE)" MODEL_PATH="$(MODEL_PATH)" \
 	METADATA_OVERRIDE="$(METADATA_OVERRIDE)" \
 	./scripts/causal/convert-model.sh --mmproj
@@ -64,6 +68,9 @@ causal-run-converted-model:
 	@CONVERTED_MODEL="$(CONVERTED_MODEL)" ./scripts/causal/run-converted-model.sh
 
 causal-verify-logits: causal-run-original-model causal-run-converted-model
+	$(MAKE) causal-compare-logits
+
+causal-compare-logits:
 	@MODEL_PATH="$(MODEL_PATH)" ./scripts/causal/compare-logits.py
 	@MODEL_PATH="$(MODEL_PATH)" ./scripts/utils/check-nmse.py -m ${MODEL_PATH}
 

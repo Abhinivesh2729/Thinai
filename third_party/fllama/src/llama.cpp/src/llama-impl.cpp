@@ -1,8 +1,11 @@
 #include "llama-impl.h"
+#include "llama-mmap.h"
 
+#include "ggml-backend.h"
 #include "gguf.h"
 #include "llama.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <climits>
 #include <cstdarg>
@@ -16,6 +19,26 @@ struct llama_logger_state {
 };
 
 static llama_logger_state g_logger_state;
+
+void llama_prefetch_rows(const ggml_tensor * tensor, const int32_t * rows, size_t n_rows) {
+    if (!tensor || !tensor->data || !tensor->buffer || !ggml_backend_buffer_is_host(tensor->buffer) || n_rows == 0) {
+        return;
+    }
+
+    GGML_ASSERT(ggml_is_matrix(tensor));
+
+    const size_t row_bytes = ggml_row_size(tensor->type, tensor->ne[0]);
+    const auto * base = (const char *) tensor->data;
+
+    std::vector<llama_memory_range> mr;
+    mr.reserve(n_rows);
+    for (size_t i = 0; i < n_rows; ++i) {
+        GGML_ASSERT(rows[i] >= 0 && rows[i] < tensor->ne[1]);
+        mr.push_back({ base + (size_t) rows[i] * tensor->nb[1], row_bytes });
+    }
+
+    llama_prefetch(std::move(mr));
+}
 
 time_meas::time_meas(int64_t & t_acc, bool disable) : t_start_us(disable ? -1 : ggml_time_us()), t_acc(t_acc) {}
 
@@ -66,6 +89,16 @@ void llama_log_callback_default(ggml_log_level level, const char * text, void * 
     fflush(stderr);
 }
 
+void llama_clear_tensor_data(ggml_tensor * t, size_t offset, size_t size) {
+    static const std::vector<uint8_t> zeros(1024*1024, 0);
+
+    // not all backend buffers implement ggml_backend_tensor_memset(), so write zeros instead
+    // TODO: make this a generic fallback in `ggml_backend_tensor_memset` when `set_tensor` is available
+    for (size_t ofs = 0; ofs < size; ofs += zeros.size()) {
+        ggml_backend_tensor_set(t, zeros.data(), offset + ofs, std::min(size - ofs, zeros.size()));
+    }
+}
+
 void replace_all(std::string & s, const std::string & search, const std::string & replace) {
     if (search.empty()) {
         return;
@@ -100,9 +133,9 @@ std::string format(const char * fmt, ...) {
 
 std::string llama_format_tensor_shape(const std::vector<int64_t> & ne) {
     char buf[256];
-    snprintf(buf, sizeof(buf), "%5" PRId64, ne.at(0));
+    snprintf(buf, sizeof(buf), "%6" PRId64, ne.at(0));
     for (size_t i = 1; i < ne.size(); i++) {
-        snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ", %5" PRId64, ne.at(i));
+        snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ", %6" PRId64, ne.at(i));
     }
     return buf;
 }
@@ -128,7 +161,7 @@ static std::string gguf_data_to_str(enum gguf_type type, const void * data, int 
         case GGUF_TYPE_INT64:   return std::to_string(((const int64_t  *)data)[i]);
         case GGUF_TYPE_FLOAT32: return std::to_string(((const float    *)data)[i]);
         case GGUF_TYPE_FLOAT64: return std::to_string(((const double   *)data)[i]);
-        case GGUF_TYPE_BOOL:    return ((const bool *)data)[i] ? "true" : "false";
+        case GGUF_TYPE_BOOL:    return ((const int8_t *)data)[i] != 0 ? "true" : "false";
         default:                return format("unknown type %d", type);
     }
 }

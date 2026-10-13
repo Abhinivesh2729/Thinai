@@ -143,7 +143,8 @@ fllama_embed(struct fllama_embed_request *request) {
     const llama_vocab *vocab = llama_model_get_vocab(model);
 
     // mctx is null: these are text embeddings, with no multimodal path.
-    auto tokenized = tokenize_input_prompts(vocab, nullptr, prompt, true, true);
+    auto tokenized = tokenize_input_prompts(vocab, nullptr, prompt, true, true,
+                                            mtmd_helper_init_opt_default());
     for (const auto &tokens : tokenized) {
       if (tokens.empty()) {
         return make_error("Input content cannot be empty");

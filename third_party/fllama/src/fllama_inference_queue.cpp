@@ -121,7 +121,14 @@ ServerManager::get_or_create(const std::string &model_path,
   res->model_path = model_path;
   res->srv_ctx = std::make_unique<server_context>();
 
-  if (!res->srv_ctx->load_model(params)) {
+  // load_model() takes a non-const reference but only copies from it.
+  common_params load_params = params;
+  // llama-server resolves "-1 = auto" thread counts while parsing its CLI;
+  // fllama builds common_params by hand, so do the same here. Unresolved, the
+  // threadpool is created with n_threads = -1 and crashes on first decode.
+  postprocess_cpu_params(load_params.cpuparams, nullptr);
+  postprocess_cpu_params(load_params.cpuparams_batch, &load_params.cpuparams);
+  if (!res->srv_ctx->load_model(load_params)) {
     std::cerr << "[ServerManager] load_model failed: " << model_path << "\n";
     return nullptr;
   }

@@ -107,7 +107,7 @@ std::shared_ptr<llama_model> _get_or_load_model(const std::string &model_path) {
     // Initialize model params with defaults
     llama_model_params mparams = llama_model_default_params();
     mparams.vocab_only = true;
-    mparams.use_mmap = true;
+    mparams.load_mode = LLAMA_LOAD_MODE_MMAP;
     mparams.n_gpu_layers = 0;
     llama_backend_init();
     // Using llama_load_model_from_file instead of llama_init_from_gpt_params

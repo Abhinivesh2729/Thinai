@@ -180,50 +180,55 @@ inline float32x4_t madd(float32x4_t a, float32x4_t b, float32x4_t c) {
 }
 #endif
 
-#if defined(__riscv_zvfh)
-template <>
-inline vfloat32m1_t madd(vfloat16mf2_t a, vfloat16mf2_t b, vfloat32m1_t c) {
-    return __riscv_vfwmacc_vv_f32m1(c, a, b, __riscv_vsetvlmax_e32m1());
-}
-inline vfloat32m2_t madd(vfloat16m1_t a, vfloat16m1_t b, vfloat32m2_t c) {
-    return __riscv_vfwmacc_vv_f32m2(c, a, b, __riscv_vsetvlmax_e32m2());
-}
-inline vfloat32m4_t madd(vfloat16m2_t a, vfloat16m2_t b, vfloat32m4_t c) {
-    return __riscv_vfwmacc_vv_f32m4(c, a, b, __riscv_vsetvlmax_e32m4());
-}
-inline vfloat32m8_t madd(vfloat16m4_t a, vfloat16m4_t b, vfloat32m8_t c) {
-    return __riscv_vfwmacc_vv_f32m8(c, a, b, __riscv_vsetvlmax_e32m8());
-}
-inline vfloat32m1_t madd(vfloat32m1_t a, vfloat32m1_t b, vfloat32m1_t c) {
+#if defined(__riscv_v_intrinsic)
+template <> inline vfloat32m1_t madd(vfloat32m1_t a, vfloat32m1_t b, vfloat32m1_t c) {
     return __riscv_vfmacc_vv_f32m1(c, a, b, __riscv_vsetvlmax_e32m1());
 }
-inline vfloat32m2_t madd(vfloat32m2_t a, vfloat32m2_t b, vfloat32m2_t c) {
+template <> inline vfloat32m2_t madd(vfloat32m2_t a, vfloat32m2_t b, vfloat32m2_t c) {
     return __riscv_vfmacc_vv_f32m2(c, a, b, __riscv_vsetvlmax_e32m2());
 }
-inline vfloat32m4_t madd(vfloat32m4_t a, vfloat32m4_t b, vfloat32m4_t c) {
+template <> inline vfloat32m4_t madd(vfloat32m4_t a, vfloat32m4_t b, vfloat32m4_t c) {
     return __riscv_vfmacc_vv_f32m4(c, a, b, __riscv_vsetvlmax_e32m4());
 }
-inline vfloat32m8_t madd(vfloat32m8_t a, vfloat32m8_t b, vfloat32m8_t c) {
+template <> inline vfloat32m8_t madd(vfloat32m8_t a, vfloat32m8_t b, vfloat32m8_t c) {
     return __riscv_vfmacc_vv_f32m8(c, a, b, __riscv_vsetvlmax_e32m8());
 }
 #endif
 
+#if defined(__riscv_zvfh)
+template <> inline vfloat32m1_t madd(vfloat16mf2_t a, vfloat16mf2_t b, vfloat32m1_t c) {
+    return __riscv_vfwmacc_vv_f32m1(c, a, b, __riscv_vsetvlmax_e32m1());
+}
+template <> inline vfloat32m2_t madd(vfloat16m1_t a, vfloat16m1_t b, vfloat32m2_t c) {
+    return __riscv_vfwmacc_vv_f32m2(c, a, b, __riscv_vsetvlmax_e32m2());
+}
+template <> inline vfloat32m4_t madd(vfloat16m2_t a, vfloat16m2_t b, vfloat32m4_t c) {
+    return __riscv_vfwmacc_vv_f32m4(c, a, b, __riscv_vsetvlmax_e32m4());
+}
+template <> inline vfloat32m8_t madd(vfloat16m4_t a, vfloat16m4_t b, vfloat32m8_t c) {
+    return __riscv_vfwmacc_vv_f32m8(c, a, b, __riscv_vsetvlmax_e32m8());
+}
+#endif
+
 #if defined(__riscv_zvfbfwma)
-inline vfloat32m1_t madd(vbfloat16mf2_t a, vbfloat16mf2_t b, vfloat32m1_t c) {
+template <> inline vfloat32m1_t madd(vbfloat16mf2_t a, vbfloat16mf2_t b, vfloat32m1_t c) {
     return __riscv_vfwmaccbf16_vv_f32m1(c, a, b, __riscv_vsetvlmax_e32m1());
 }
-inline vfloat32m2_t madd(vbfloat16m1_t a, vbfloat16m1_t b, vfloat32m2_t c) {
+template <> inline vfloat32m2_t madd(vbfloat16m1_t a, vbfloat16m1_t b, vfloat32m2_t c) {
     return __riscv_vfwmaccbf16_vv_f32m2(c, a, b, __riscv_vsetvlmax_e32m2());
 }
-inline vfloat32m4_t madd(vbfloat16m2_t a, vbfloat16m2_t b, vfloat32m4_t c) {
+template <> inline vfloat32m4_t madd(vbfloat16m2_t a, vbfloat16m2_t b, vfloat32m4_t c) {
     return __riscv_vfwmaccbf16_vv_f32m4(c, a, b, __riscv_vsetvlmax_e32m4());
+}
+template <> inline vfloat32m8_t madd(vbfloat16m4_t a, vbfloat16m4_t b, vfloat32m8_t c) {
+    return __riscv_vfwmaccbf16_vv_f32m8(c, a, b, __riscv_vsetvlmax_e32m8());
 }
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // VECTORIZED HORIZONTAL SUM
 
-#if defined(__ARM_NEON)
+#if defined(__ARM_NEON) || defined(_M_ARM64) || defined(_M_ARM64EC)
 inline float hsum(float32x4_t x) {
     return vaddvq_f32(x);
 }
@@ -272,7 +277,7 @@ inline float hsum(__m512 x) {
 }
 #endif // __AVX512F__
 
-#if defined(__riscv_zvfh)
+#if defined(__riscv_v_intrinsic)
 inline float hsum(vfloat32m1_t x) {
     return __riscv_vfmv_f_s_f32m1_f32(
         __riscv_vfredusum_vs_f32m1_f32m1(x, __riscv_vfmv_v_f_f32m1(0, 1), __riscv_vsetvlmax_e32m1()));
@@ -379,19 +384,81 @@ template <> inline __m256bh load(const float *p) {
 }
 #endif
 
-#if defined(__riscv_zvfh)
-template <> inline vfloat16mf2_t load(const ggml_fp16_t *p) {
-    return __riscv_vle16_v_f16mf2(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16mf2());
+#if defined(__AVX__) || defined(__AVX2__) || defined(__AVX512F__)
+template <typename T, typename U> T load_partial(const U *, int);
+template <typename T> T load_partial_u16(const void *, int);
+
+template <> inline __m128i load_partial_u16(const void *p, int n) {
+#if defined(__AVX512BW__) && defined(__AVX512VL__)
+    return _mm_maskz_loadu_epi16((1u << n) - 1, p);
+#else
+    const __m128i index = _mm_setr_epi32(0, 1, 2, 3);
+    const __m128i pairs = _mm_set1_epi32(n / 2);
+    __m128i v = _mm_castps_si128(_mm_maskload_ps((const float *)p, _mm_cmpgt_epi32(pairs, index)));
+    if (n & 1) {
+        uint16_t last;
+        memcpy(&last, (const char *)p + 2*(n - 1), sizeof(last));
+        v = _mm_or_si128(v, _mm_and_si128(_mm_cmpeq_epi32(pairs, index), _mm_set1_epi32(last)));
+    }
+    return v;
+#endif
 }
-template <> inline vfloat16m1_t load(const ggml_fp16_t *p) {
-    return __riscv_vle16_v_f16m1(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m1());
+
+template <> inline __m256 load_partial(const float *p, int n) {
+    const __m256 index = _mm256_setr_ps(0, 1, 2, 3, 4, 5, 6, 7);
+    return _mm256_maskload_ps(p, _mm256_castps_si256(_mm256_cmp_ps(index, _mm256_set1_ps(n), _CMP_LT_OQ)));
 }
-template <> inline vfloat16m2_t load(const ggml_fp16_t *p) {
-    return __riscv_vle16_v_f16m2(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m2());
+
+#if defined(__F16C__)
+template <> inline __m256 load_partial(const ggml_fp16_t *p, int n) {
+    return _mm256_cvtph_ps(load_partial_u16<__m128i>(p, n));
 }
-template <> inline vfloat16m4_t load(const ggml_fp16_t *p) {
-    return __riscv_vle16_v_f16m4(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m4());
+#endif
+
+#if defined(__AVX2__) || defined(__AVX512F__)
+template <> inline __m256 load_partial(const ggml_bf16_t *p, int n) {
+    return _mm256_castsi256_ps(_mm256_slli_epi32(_mm256_cvtepu16_epi32(load_partial_u16<__m128i>(p, n)), 16));
 }
+#endif
+
+#if defined(__AVX512F__)
+template <> inline __m256i load_partial_u16(const void *p, int n) {
+#if defined(__AVX512BW__) && defined(__AVX512VL__)
+    return _mm256_maskz_loadu_epi16((1u << n) - 1, p);
+#else
+    const __m256i index = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
+    const __m256i pairs = _mm256_set1_epi32(n / 2);
+    __m256i v = _mm256_maskload_epi32((const int *)p, _mm256_cmpgt_epi32(pairs, index));
+    if (n & 1) {
+        uint16_t last;
+        memcpy(&last, (const char *)p + 2*(n - 1), sizeof(last));
+        v = _mm256_or_si256(v, _mm256_and_si256(_mm256_cmpeq_epi32(pairs, index), _mm256_set1_epi32(last)));
+    }
+    return v;
+#endif
+}
+
+template <> inline __m512 load_partial(const float *p, int n) {
+    return _mm512_maskz_loadu_ps((1u << n) - 1, p);
+}
+
+template <> inline __m512 load_partial(const ggml_fp16_t *p, int n) {
+    return _mm512_cvtph_ps(load_partial_u16<__m256i>(p, n));
+}
+
+template <> inline __m512 load_partial(const ggml_bf16_t *p, int n) {
+    return _mm512_castsi512_ps(_mm512_slli_epi32(_mm512_cvtepu16_epi32(load_partial_u16<__m256i>(p, n)), 16));
+}
+#endif
+
+#if defined(__AVX512BF16__)
+template <> inline __m512bh load_partial(const ggml_bf16_t *p, int n) {
+    return (__m512bh) _mm512_maskz_loadu_epi16((uint64_t(1) << n) - 1, p);
+}
+#endif
+#endif
+
+#if defined(__riscv_v_intrinsic)
 template <> inline vfloat32m1_t load(const float *p) {
     return __riscv_vle32_v_f32m1(p, __riscv_vsetvlmax_e32m1());
 }
@@ -406,6 +473,21 @@ template <> inline vfloat32m8_t load(const float *p) {
 }
 #endif
 
+#if defined(__riscv_zvfh)
+template <> inline vfloat16mf2_t load(const ggml_fp16_t *p) {
+    return __riscv_vle16_v_f16mf2(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16mf2());
+}
+template <> inline vfloat16m1_t load(const ggml_fp16_t *p) {
+    return __riscv_vle16_v_f16m1(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m1());
+}
+template <> inline vfloat16m2_t load(const ggml_fp16_t *p) {
+    return __riscv_vle16_v_f16m2(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m2());
+}
+template <> inline vfloat16m4_t load(const ggml_fp16_t *p) {
+    return __riscv_vle16_v_f16m4(reinterpret_cast<const _Float16 *>(p), __riscv_vsetvlmax_e16m4());
+}
+#endif
+
 #if defined(__riscv_zvfbfwma)
 template <> inline vbfloat16mf2_t load(const ggml_bf16_t *p) {
     return __riscv_vle16_v_bf16mf2(reinterpret_cast<const __bf16*>(p), __riscv_vsetvlmax_e16mf2());
@@ -416,23 +498,14 @@ template <> inline vbfloat16m1_t load(const ggml_bf16_t *p) {
 template <> inline vbfloat16m2_t load(const ggml_bf16_t *p) {
     return __riscv_vle16_v_bf16m2(reinterpret_cast<const __bf16*>(p), __riscv_vsetvlmax_e16m2());
 }
+template <> inline vbfloat16m4_t load(const ggml_bf16_t *p) {
+    return __riscv_vle16_v_bf16m4(reinterpret_cast<const __bf16*>(p), __riscv_vsetvlmax_e16m4());
+}
 #endif
 
-#if defined(__riscv_zvfh)
+#if defined(__riscv_v_intrinsic)
 template <typename T> T set_zero();
 
-template <> inline vfloat16mf2_t set_zero() {
-    return __riscv_vfmv_v_f_f16mf2(0, __riscv_vsetvlmax_e16mf2());
-}
-template <> inline vfloat16m1_t set_zero() {
-    return __riscv_vfmv_v_f_f16m1(0, __riscv_vsetvlmax_e16m1());
-}
-template <> inline vfloat16m2_t set_zero() {
-    return __riscv_vfmv_v_f_f16m2(0, __riscv_vsetvlmax_e16m2());
-}
-template <> inline vfloat16m4_t set_zero() {
-    return __riscv_vfmv_v_f_f16m4(0, __riscv_vsetvlmax_e16m4());
-}
 template <> inline vfloat32m1_t set_zero() {
     return __riscv_vfmv_v_f_f32m1(0.0f, __riscv_vsetvlmax_e32m1());
 }
@@ -449,14 +522,22 @@ template <> inline vfloat32m8_t set_zero() {
 
 #if defined(__riscv_v_intrinsic)
 template <typename T> size_t vlmax() {
-    if constexpr (std::is_same_v<T, vfloat16mf2_t>) { return  __riscv_vsetvlmax_e16mf2(); }
-    else if constexpr (std::is_same_v<T, vfloat16m1_t>) { return  __riscv_vsetvlmax_e16m1(); }
-    else if constexpr (std::is_same_v<T, vfloat16m2_t>) { return  __riscv_vsetvlmax_e16m2(); }
-    else if constexpr (std::is_same_v<T, vfloat16m4_t>) { return  __riscv_vsetvlmax_e16m4(); }
-    else if constexpr (std::is_same_v<T, vfloat32m1_t>) { return  __riscv_vsetvlmax_e32m1(); }
+    if constexpr (std::is_same_v<T, vfloat32m1_t>) { return  __riscv_vsetvlmax_e32m1(); }
     else if constexpr (std::is_same_v<T, vfloat32m2_t>) { return  __riscv_vsetvlmax_e32m2(); }
     else if constexpr (std::is_same_v<T, vfloat32m4_t>) { return  __riscv_vsetvlmax_e32m4(); }
     else if constexpr (std::is_same_v<T, vfloat32m8_t>) { return  __riscv_vsetvlmax_e32m8(); }
+    #if defined (__riscv_zvfh)
+    else if constexpr (std::is_same_v<T, vfloat16mf2_t>) { return  __riscv_vsetvlmax_e16mf2(); }
+    else if constexpr (std::is_same_v<T, vfloat16m1_t>) { return  __riscv_vsetvlmax_e16m1(); }
+    else if constexpr (std::is_same_v<T, vfloat16m2_t>) { return  __riscv_vsetvlmax_e16m2(); }
+    else if constexpr (std::is_same_v<T, vfloat16m4_t>) { return  __riscv_vsetvlmax_e16m4(); }
+    #endif
+    #if defined (__riscv_zvfbfwma)
+    else if constexpr (std::is_same_v<T, vbfloat16mf2_t>) { return  __riscv_vsetvlmax_e16mf2(); }
+    else if constexpr (std::is_same_v<T, vbfloat16m1_t>) { return  __riscv_vsetvlmax_e16m1(); }
+    else if constexpr (std::is_same_v<T, vbfloat16m2_t>) { return  __riscv_vsetvlmax_e16m2(); }
+    else if constexpr (std::is_same_v<T, vbfloat16m4_t>) { return  __riscv_vsetvlmax_e16m4(); }
+    #endif
     return 0;
 }
 #endif
@@ -485,8 +566,10 @@ class tinyBLAS {
     }
 
     bool matmul(int64_t m, int64_t n) {
+#if !defined(__AVX__) && !defined(__AVX2__) && !defined(__AVX512F__)
         if (k % KN != 0)
             return false;
+#endif
         // compute RM for only need tile with size RM&RM-1
 #if VECTOR_REGISTERS == 32
         if (m % 16 == 0 && (m/16 >= params->nth)) {
@@ -533,7 +616,7 @@ class tinyBLAS {
         if constexpr (RN > 1) {
             return mnpack<RM, RN-1, BM>(m, n, SIZE_N, BN);
         } else {
-            GGML_LOG_ERROR("mnpack<%d, %d> bloc size not supported\n", RM, (int)SIZE_N);
+            GGML_LOG_ERROR("mnpack<%d, %d> block size not supported\n", RM, (int)SIZE_N);
             GGML_ASSERT(false); // we have miss something.
         }
     }
@@ -541,7 +624,7 @@ class tinyBLAS {
     template <int RM, int RN>
     inline void gemm_bloc(int64_t ii, int64_t jj) {
         D Cv[RN][RM] = {};
-        for (int64_t l = 0; l < k; l += KN) {
+        for (int64_t l = 0; l + KN <= k; l += KN) {
             // help compiler for op order.
             if constexpr (RM <= RN) {
                 V Av[RM];
@@ -567,6 +650,21 @@ class tinyBLAS {
                 }
             }
         }
+#if defined(__AVX__) || defined(__AVX2__) || defined(__AVX512F__)
+        const int64_t rem = k % KN;
+        if (rem != 0) {
+            V Av[RM];
+            for (int64_t i = 0; i < RM; ++i) {
+                Av[i] = load_partial<V>(A + lda * (ii + i) + k - rem, rem);
+            }
+            for (int64_t j = 0; j < RN; ++j) {
+                V Bv = load_partial<V>(B + ldb * (jj + j) + k - rem, rem);
+                for (int64_t i = 0; i < RM; ++i) {
+                    Cv[j][i] = madd(Av[i], Bv, Cv[j][i]);
+                }
+            }
+        }
+#endif
         for (int64_t j = 0; j < RN; ++j)
             for (int64_t i = 0; i < RM; ++i)
                 C[ldc * (jj + j) + (ii + i)] = hsum(Cv[j][i]);
@@ -711,7 +809,7 @@ class tinyBLAS_RVV {
         if constexpr (RN > 1) {
             return mnpack<RM, RN-1, BM>(m, n, SIZE_N, BN);
         } else {
-            GGML_LOG_ERROR("mnpack<%d, %d> bloc size not supported\n", RM, (int)SIZE_N);
+            GGML_LOG_ERROR("mnpack<%d, %d> block size not supported\n", RM, (int)SIZE_N);
             GGML_ASSERT(false); // we have miss something.
         }
     }
@@ -1790,14 +1888,6 @@ class tinyBLAS_Q0_AVX {
 //PPC Implementation
 #if defined(__MMA__)
 
-#define SAVE_ACC(ACC, ii, jj) \
-   __builtin_mma_disassemble_acc(vec_C, ACC); \
-   for (int I = 0; I < 4; I++) { \
-      for (int J = 0; J < 4; J++) { \
-         *((float*)(C+ii+((jj+J)*ldc)+I)) = *((float*)&vec_C[I]+J); \
-      } \
-   } \
-
 template<typename T>
 struct mma_instr;
 
@@ -1827,10 +1917,49 @@ class tinyBLAS_HP16_PPC {
     }
 
     void matmul(int64_t m, int64_t n) {
-        mnpack(0, m, 0, n);
+        int64_t mc = 256;
+        int64_t nc = 256;
+        int64_t kc = 256;
+    #if defined(_AIX) || defined(__BIG_ENDIAN__)
+        mc = 128;
+        nc = 128;
+        kc = 128;
+    #endif
+        if (k < kc) {
+            kc = k;
+        }
+        bool can_use_tiled = (m % mc == 0) && (n % nc == 0) && (k % kc == 0);
+        if (can_use_tiled) {
+            matmul_tiled(m, n, mc, nc, kc);
+        } else {
+            mnpack(0, m, 0, n);
+        }
     }
 
   private:
+    __attribute__((always_inline))
+    inline void save_acc(acc_t * ACC, int64_t ii, int64_t jj) {
+        vec_t vec_C[4];
+        __builtin_mma_disassemble_acc(vec_C, ACC);
+        for (int I = 0; I < 4; I++) {
+            for (int J = 0; J < 4; J++) {
+                *((float *)(C+ii+((jj+J)*ldc)+I)) = *((float *)&vec_C[I]+J);
+            }
+        }
+    }
+
+    __attribute__((always_inline))
+    inline void add_save_acc(acc_t * ACC, int64_t ii, int64_t jj) {
+        vec_t vec_C[4];
+        __builtin_mma_disassemble_acc(vec_C, ACC);
+        for (int I = 0; I < 4; I++) {
+            for (int J = 0; J < 4; J++) {
+                float * c_ptr = (float *)(C+ii+((jj+J)*ldc)+I);
+                *c_ptr += *((float *)&vec_C[I]+J);
+            }
+        }
+    }
+
     void vector_permute_store(vec_t *c, int numVec, unsigned char *vecOffset) {
         vec_t t[8], s[8];
         vec_t swiz1 = {0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23};
@@ -1889,6 +2018,7 @@ class tinyBLAS_HP16_PPC {
         j = (rows >> 3);
         if (j > 0) {
             do {
+                aoffsets[0] = aoffset;
                 if (cols == 4) {
                     aoffsets[0] = aoffset;
                     for (int it = 1; it < 4; ++it)
@@ -1903,17 +2033,17 @@ class tinyBLAS_HP16_PPC {
                 }
                 i = (cols >> 3);
                 if (i > 0) {
-                    aoffsets[0] = aoffset;
                     for (int it = 1; it < 8; ++it) {
                         aoffsets[it] = aoffsets[it-1] + lda;
                     }
                     aoffset += 8 * lda;
+
                     do {
                         for (int it = 0; it < 8; ++it)
                             c_arr[it] = vec_xl(0, (vector unsigned char*)aoffsets[it]);
                         vector_permute_store(c_arr, 8, vecOffset);
                         for (int it = 0; it < 8; ++it)
-                            aoffsets[it] = aoffsets[it] + 8*lda;
+                            aoffsets[it] = aoffsets[it] + 8;
                         vecOffset += 128;
                         i--;
                     } while(i > 0);
@@ -2140,8 +2270,8 @@ class tinyBLAS_HP16_PPC {
                 mma_instr<TA>::outer_product(&acc_1, vec_A[x], vec_B[x+4]);
             }
         }
-        SAVE_ACC(&acc_0, ii, jj);
-        SAVE_ACC(&acc_1, ii, jj+4);
+        save_acc(&acc_0, ii, jj);
+        save_acc(&acc_1, ii, jj+4);
     }
 
     void KERNEL_8x4(int64_t ii, int64_t jj) {
@@ -2157,8 +2287,8 @@ class tinyBLAS_HP16_PPC {
                 mma_instr<TA>::outer_product(&acc_1, vec_A[x+4], vec_B[x]);
             }
         }
-        SAVE_ACC(&acc_0, ii, jj);
-        SAVE_ACC(&acc_1, ii+4, jj);
+        save_acc(&acc_0, ii, jj);
+        save_acc(&acc_1, ii+4, jj);
     }
 
 
@@ -2179,13 +2309,64 @@ class tinyBLAS_HP16_PPC {
                 mma_instr<TA>::outer_product(&acc_3, vec_A[x+4], vec_B[x+4]);
             }
         }
-
-        SAVE_ACC(&acc_0, ii, jj);
-        SAVE_ACC(&acc_1, ii, jj+4);
-        SAVE_ACC(&acc_2, ii+4, jj);
-        SAVE_ACC(&acc_3, ii+4, jj+4);
+        save_acc(&acc_0, ii, jj);
+        save_acc(&acc_1, ii, jj+4);
+        save_acc(&acc_2, ii+4, jj);
+        save_acc(&acc_3, ii+4, jj+4);
     }
 
+    inline void MMA_16x8(vec_t * vec_A0, vec_t * vec_A1, vec_t * vec_B, acc_t * acc) {
+        for (int x = 0; x < 4; x ++) {
+             mma_instr<TA>::outer_product(&acc[0], vec_A0[x], vec_B[x]);
+             mma_instr<TA>::outer_product(&acc[1], vec_A0[x], vec_B[x+4]);
+             mma_instr<TA>::outer_product(&acc[2], vec_A0[x+4], vec_B[x]);
+             mma_instr<TA>::outer_product(&acc[3], vec_A0[x+4], vec_B[x+4]);
+             mma_instr<TA>::outer_product(&acc[4], vec_A1[x], vec_B[x]);
+             mma_instr<TA>::outer_product(&acc[5], vec_A1[x], vec_B[x+4]);
+             mma_instr<TA>::outer_product(&acc[6], vec_A1[x+4], vec_B[x]);
+             mma_instr<TA>::outer_product(&acc[7], vec_A1[x+4], vec_B[x+4]);
+        }
+    }
+    void KERNEL(int64_t ii, int64_t jj, int64_t mc, int64_t nc, int64_t kc, vec_t * vec_A, vec_t * vec_B, int64_t kk) {
+        for (int64_t i = 0; i < mc; i += 16) {
+            int A_base_addr = (mc / 8) * (i / 8) * 8;
+            for (int64_t j = 0; j < nc; j += 8) {
+                 int B_base_addr = (nc / 8) * (j / 8) * 8;
+                 acc_t acc[8];
+                 vec_t A0_block[8]; vec_t A1_block[8];
+                 for (int x = 0; x < 8; x++)
+                     __builtin_mma_xxsetaccz(&acc[x]);
+                 for (int64_t l = 0; l < kc; l += 8) {
+                     int A0_block_idx = A_base_addr + (l / 8) * 8;
+                     int A1_block_idx = A0_block_idx + (mc / 8) * 8;
+                     int B_block_idx = B_base_addr + (l / 8) * 8;
+                     vec_t* A0_block = &vec_A[A0_block_idx];
+                     vec_t* A1_block = &vec_A[A1_block_idx];
+                     vec_t* B_block = &vec_B[B_block_idx];
+                     MMA_16x8(A0_block, A1_block, B_block, acc);
+                 }
+                 if (kk == 0) {
+                     save_acc(&acc[0], ii + i, jj + j);
+                     save_acc(&acc[1], ii + i, jj + j + 4);
+                     save_acc(&acc[2], ii + i + 4, jj + j);
+                     save_acc(&acc[3], ii + i + 4, jj + j + 4);
+                     save_acc(&acc[4], ii + i + 8, jj + j);
+                     save_acc(&acc[5], ii + i + 8, jj + j + 4);
+                     save_acc(&acc[6], ii + i + 12, jj + j);
+                     save_acc(&acc[7], ii + i + 12, jj + j + 4);
+                 } else {
+                     add_save_acc(&acc[0], ii + i, jj + j);
+                     add_save_acc(&acc[1], ii + i, jj + j + 4);
+                     add_save_acc(&acc[2], ii + i + 4, jj + j);
+                     add_save_acc(&acc[3], ii + i + 4, jj + j + 4);
+                     add_save_acc(&acc[4], ii + i + 8, jj + j);
+                     add_save_acc(&acc[5], ii + i + 8, jj + j + 4);
+                     add_save_acc(&acc[6], ii + i + 12, jj + j);
+                     add_save_acc(&acc[7], ii + i + 12, jj + j + 4);
+                 }
+            }
+        }
+    }
     template<int RM, int RN>
     void gemm_small(int64_t m0, int64_t m, int64_t n0, int64_t n) {
         int64_t ytiles = (m - m0) / RM;
@@ -2274,6 +2455,29 @@ class tinyBLAS_HP16_PPC {
        }
     }
 
+    void matmul_tiled(int64_t m, int64_t n, int64_t mc, int64_t nc, int64_t kc) {
+        int64_t ytiles = m / mc;
+        int64_t xtiles = n / nc;
+        int64_t tiles = xtiles * ytiles;
+        int64_t duty = (tiles + nth - 1) / nth;
+        int64_t start = duty * ith;
+        int64_t end = start + duty;
+        if (end > tiles) {
+            end = tiles;
+        }
+        for (int64_t job = start; job < end; ++job) {
+            int64_t ii = (job / xtiles) * mc;
+            int64_t jj = (job % xtiles) * nc;
+            for (int64_t kk = 0; kk < k; kk += kc) {
+                 vec_t A_pack[kc * mc / 8];
+                 vec_t B_pack[kc * nc / 8];
+                 packNormal(A + (ii * lda) + kk, lda, kc, mc, (uint8_t *)A_pack);
+                 packNormal(B + (jj * ldb) + kk, ldb, kc, nc, (uint8_t *)B_pack);
+                 KERNEL(ii, jj, mc, nc, kc, A_pack, B_pack, kk);
+            }
+        }
+    }
+
     template <int RM, int RN>
     NOINLINE void gemm(int64_t m0, int64_t m, int64_t n0, int64_t n) {
         int64_t ytiles = (m - m0) / RM;
@@ -2314,29 +2518,35 @@ class tinyBLAS_Q0_PPC {
     }
 
     void matmul(int64_t m, int64_t n) {
-        const int64_t mc = 64;
-        const int64_t kc = 64;
+        int64_t mc = 64;
         int64_t nc = 64;
+        int64_t kc = 64;
+        int64_t n_chunk = 64;
+    #if defined(_AIX) || defined(__BIG_ENDIAN__)
+        mc = 32;
+        nc = 32;
+        kc = 32;
+        n_chunk = 32;
+    #endif
         int64_t n_aligned = 0;
-        if (n % 64 == 0) {
+        if (n % n_chunk == 0) {
             n_aligned = n;
         } else if (n == 4) {
             n_aligned = 4;
-        } else if (n < 64) {
+        } else if (n < n_chunk) {
             n_aligned = (n / 8) * 8;
         } else {
-            n_aligned = (n / 64) * 64;
+            n_aligned = (n / n_chunk) * n_chunk;
         }
-
         if (n_aligned > 0) {
-            if (n_aligned % 64 == 0)      nc = 64;
+            if (n_aligned % n_chunk == 0) nc = n_chunk;
             else if (n_aligned == n)      nc = n;
             else if (n_aligned % 32 == 0) nc = 32;
             else if (n_aligned % 24 == 0) nc = 24;
             else if (n_aligned % 16 == 0) nc = 16;
             else                          nc = 8;
         }
-        bool can_use_tiled = n_aligned > 0 && (m % mc == 0) && (k % kc == 0);
+        bool can_use_tiled = n_aligned > 0 && (m % mc == 0);
         if (can_use_tiled) {
             matmul_tiled(m, n_aligned, mc, nc, kc);
             if (n > n_aligned) {
@@ -2497,7 +2707,7 @@ class tinyBLAS_Q0_PPC {
                 for (int r = 0; r < 8; r++) {
                     const block_q4_0 * current_blk = rows_base[r] + blk;
                     vector float v_scale = vec_extract_fp32_from_shorth(vec_splats(current_blk->d));
-                    vector signed char v_qs = reinterpret_cast<vector signed char>(vec_xl(0, current_blk->qs));
+                    vector signed char v_qs = vec_xl(0, (const vector signed char *)current_blk->qs);
                     vector signed char c1, c2;
                     unpack_q4_to_q8(v_qs, c1, c2);
                     convert_and_scale_q8(c1, v_scale, hp_res[r][0], hp_res[r][1]);
@@ -2611,14 +2821,14 @@ class tinyBLAS_Q0_PPC {
                 i = (cols >> 2);
                 if (i > 0) {
                     do {
-                        c1[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset1->qs));
-                        c2[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset2->qs));
-                        c3[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset3->qs));
-                        c4[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset4->qs));
-                        c5[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset5->qs));
-                        c6[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset6->qs));
-                        c7[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset7->qs));
-                        c8[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset8->qs));
+                        c1[1] = vec_xl(0, (const vector signed char *)aoffset1->qs);
+                        c2[1] = vec_xl(0, (const vector signed char *)aoffset2->qs);
+                        c3[1] = vec_xl(0, (const vector signed char *)aoffset3->qs);
+                        c4[1] = vec_xl(0, (const vector signed char *)aoffset4->qs);
+                        c5[1] = vec_xl(0, (const vector signed char *)aoffset5->qs);
+                        c6[1] = vec_xl(0, (const vector signed char *)aoffset6->qs);
+                        c7[1] = vec_xl(0, (const vector signed char *)aoffset7->qs);
+                        c8[1] = vec_xl(0, (const vector signed char *)aoffset8->qs);
 
                         process_q4_elements(c1, & comparray[0]);
                         process_q4_elements(c2, & comparray[1]);
@@ -2657,10 +2867,10 @@ class tinyBLAS_Q0_PPC {
             i = (cols >> 2);
             if (i > 0) {
                 do {
-                    c1[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset1->qs));
-                    c2[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset2->qs));
-                    c3[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset3->qs));
-                    c4[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset4->qs));
+                    c1[1] = vec_xl(0, (const vector signed char *)aoffset1->qs);
+                    c2[1] = vec_xl(0, (const vector signed char *)aoffset2->qs);
+                    c3[1] = vec_xl(0, (const vector signed char *)aoffset3->qs);
+                    c4[1] = vec_xl(0, (const vector signed char *)aoffset4->qs);
 
                     process_q4_elements(c1, & comparray[0]);
                     process_q4_elements(c2, & comparray[1]);
@@ -2686,9 +2896,9 @@ class tinyBLAS_Q0_PPC {
             if (i > 0) {
                 do {
                     switch(rows) {
-                        case 3: c3[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset3->qs));
-                        case 2: c2[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset2->qs));
-                        case 1: c1[1] = reinterpret_cast<vector signed char>(vec_xl(0, aoffset1->qs));
+                        case 3: c3[1] = vec_xl(0, (const vector signed char *)aoffset3->qs);
+                        case 2: c2[1] = vec_xl(0, (const vector signed char *)aoffset2->qs);
+                        case 1: c1[1] = vec_xl(0, (const vector signed char *)aoffset1->qs);
                             break;
                     }
                     process_q4_elements(c1, & comparray[0]);
@@ -3053,13 +3263,14 @@ class tinyBLAS_Q0_PPC {
             int64_t ii = (job / xtiles) * mc;
             int64_t jj = (job % xtiles) * nc;
             for (int64_t kk = 0; kk < k; kk += kc) {
+                int64_t k_cur = MIN(kc, k - kk);
                 if constexpr(is_Ablock_q4) {
-                    packNormal_q4_fp16(A + ii * lda + kk, lda, mc, kc, (uint8_t *)A_pack);
+                    packNormal_q4_fp16(A + ii * lda + kk, lda, mc, k_cur, (uint8_t *)A_pack);
                 } else {
-                    packNormal_q8_fp16(A + ii * lda + kk, lda, mc, kc, (uint8_t *)A_pack);
+                    packNormal_q8_fp16(A + ii * lda + kk, lda, mc, k_cur, (uint8_t *)A_pack);
                 }
-                packNormal_q8_fp16(B + jj * ldb + kk, ldb, nc, kc, (uint8_t *)B_pack);
-                KERNEL_Q0(ii, jj, mc, nc, kc, kk, A_pack, B_pack);
+                packNormal_q8_fp16(B + jj * ldb + kk, ldb, nc, k_cur, (uint8_t *)B_pack);
+                KERNEL_Q0(ii, jj, mc, nc, k_cur, kk, A_pack, B_pack);
             }
         }
     }
@@ -3184,7 +3395,14 @@ class tinyBLAS_PPC {
     }
 
     void matmul(int64_t m, int64_t n) {
-        int64_t mc = 256; int64_t nc = 256; int64_t kc = 256;
+        int64_t mc = 256;
+        int64_t nc = 256;
+        int64_t kc = 256;
+    #if defined(_AIX) || defined(__BIG_ENDIAN__)
+        mc = 128;
+        nc = 128;
+        kc = 128;
+    #endif
         if (m % mc == 0 && n % nc == 0 && k % kc == 0) {
             matmul_tiled(m, n, mc, nc, kc);
         } else {
@@ -3194,6 +3412,7 @@ class tinyBLAS_PPC {
 
   private:
 
+    __attribute__((always_inline))
     inline void save_acc(acc_t * ACC, int64_t ii, int64_t jj) {
         vec_t vec_C[4];
         __builtin_mma_disassemble_acc(vec_C, ACC);
@@ -3204,6 +3423,7 @@ class tinyBLAS_PPC {
         }
     }
 
+    __attribute__((always_inline))
     inline void add_save_acc(acc_t * ACC, int64_t ii, int64_t jj) {
         vec_t vec_C[4];
         __builtin_mma_disassemble_acc(vec_C, ACC);
@@ -3738,7 +3958,7 @@ bool llamafile_sgemm(const struct ggml_compute_params * params, int64_t m, int64
             params->ith, params->nth};
         tb.matmul(m, n);
         return true;
-#elif defined(__riscv_zvfh)
+#elif defined(__riscv_v_intrinsic)
     #if LMUL == 1
         tinyBLAS_RVV<vfloat32m1_t, vfloat32m1_t, float, float, float> tb{ params,
             k, (const float *)A, lda,
@@ -3802,23 +4022,25 @@ bool llamafile_sgemm(const struct ggml_compute_params * params, int64_t m, int64
             return true;
         }
 #elif defined(__riscv_zvfbfwma)
-        #if LMUL == 1
-            tinyBLAS_RVV<vfloat32m1_t, vbfloat16mf2_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
-                k, (const ggml_bf16_t *)A, lda,
-                (const ggml_bf16_t *)B, ldb,
-                (float *)C, ldc};
-        #elif LMUL == 2
-            tinyBLAS_RVV<vfloat32m2_t, vbfloat16m1_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
-                k, (const ggml_bf16_t *)A, lda,
-                (const ggml_bf16_t *)B, ldb,
-                (float *)C, ldc};
-        #else // LMUL = 4
-            tinyBLAS_RVV<vfloat32m4_t, vbfloat16m2_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
-                k, (const ggml_bf16_t *)A, lda,
-                (const ggml_bf16_t *)B, ldb,
-                (float *)C, ldc};
-        #endif
-            return tb.matmul(m, n);
+        if (Btype == GGML_TYPE_BF16) {
+            #if LMUL == 1
+                tinyBLAS_RVV<vfloat32m1_t, vbfloat16mf2_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
+                    k, (const ggml_bf16_t *)A, lda,
+                    (const ggml_bf16_t *)B, ldb,
+                    (float *)C, ldc};
+            #elif LMUL == 2
+                tinyBLAS_RVV<vfloat32m2_t, vbfloat16m1_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
+                    k, (const ggml_bf16_t *)A, lda,
+                    (const ggml_bf16_t *)B, ldb,
+                    (float *)C, ldc};
+            #else // LMUL = 4
+                tinyBLAS_RVV<vfloat32m4_t, vbfloat16m2_t, ggml_bf16_t, ggml_bf16_t, float> tb{ params,
+                    k, (const ggml_bf16_t *)A, lda,
+                    (const ggml_bf16_t *)B, ldb,
+                    (float *)C, ldc};
+            #endif
+                return tb.matmul(m, n);
+        }
 #endif
         return false;
     }

@@ -151,9 +151,13 @@ if(NOT DEFINED LLAMA_INSTALL_VERSION OR LLAMA_INSTALL_VERSION STREQUAL "")
   set(LLAMA_INSTALL_VERSION "0.0.0")
 endif()
 
+# llama.cpp adds common/ and tools/mtmd/ itself when asked to; adding them
+# from here instead would configure them outside llama.cpp's scope and lose
+# LLAMA_BUILD_NUMBER/COMMIT, which common/build-info.cpp is generated from.
+set(LLAMA_BUILD_COMMON ON CACHE BOOL "Build llama-common" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "Disable tools (server needs httplib)" FORCE)
+set(LLAMA_BUILD_MTMD ON CACHE BOOL "Build mtmd (vision projectors)" FORCE)
 add_subdirectory("llama.cpp")
-add_subdirectory("llama.cpp/common")
-add_subdirectory("llama.cpp/tools/mtmd")
 
 # Build the server-context library directly from source files.
 # We cannot use add_subdirectory(tools/server) because it also defines the
@@ -161,10 +165,16 @@ add_subdirectory("llama.cpp/tools/mtmd")
 find_package(Threads REQUIRED)
 set(SERVER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp/tools/server")
 add_library(server-context STATIC
+  ${SERVER_SRC_DIR}/server-chat.cpp
   ${SERVER_SRC_DIR}/server-task.cpp
   ${SERVER_SRC_DIR}/server-queue.cpp
   ${SERVER_SRC_DIR}/server-common.cpp
+  ${SERVER_SRC_DIR}/server-decision.cpp
   ${SERVER_SRC_DIR}/server-context.cpp
+  ${SERVER_SRC_DIR}/server-stream.cpp
+  ${SERVER_SRC_DIR}/server-tools.cpp
+  ${SERVER_SRC_DIR}/server-mcp.cpp
+  ${SERVER_SRC_DIR}/server-schema.cpp
 )
 target_include_directories(server-context PUBLIC  ${SERVER_SRC_DIR})
 target_include_directories(server-context PRIVATE
@@ -174,7 +184,7 @@ target_include_directories(server-context PRIVATE
 if (BUILD_SHARED_LIBS)
   set_target_properties(server-context PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-target_link_libraries(server-context PUBLIC common mtmd ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(server-context PUBLIC llama-common mtmd ${CMAKE_THREAD_LIBS_INIT})
 
 add_library(fllama SHARED
   "fllama_chat_template.cpp"
@@ -199,7 +209,7 @@ if (ANDROID)
   target_link_options(fllama PRIVATE "-Wl,-z,max-page-size=16384")
 endif()
 target_include_directories(fllama PUBLIC .)
-target_link_libraries(fllama PUBLIC llama common mtmd server-context)
+target_link_libraries(fllama PUBLIC llama llama-common mtmd server-context)
 
 # Apple: link system frameworks for Metal, Accelerate, etc.
 # These are needed because we statically link ggml-metal into this shared lib.

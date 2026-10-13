@@ -1,7 +1,7 @@
 set(TARGET llama-eval-callback)
 add_executable(${TARGET} eval-callback.cpp)
 install(TARGETS ${TARGET} RUNTIME)
-target_link_libraries(${TARGET} PRIVATE common llama ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TARGET} PRIVATE llama-common llama ${CMAKE_THREAD_LIBS_INIT})
 target_compile_features(${TARGET} PRIVATE cxx_std_17)
 
 if(LLAMA_BUILD_TESTS)
@@ -18,7 +18,7 @@ if(LLAMA_BUILD_TESTS)
         -DDEST=${MODEL_DEST}
         -DNAME=${MODEL_NAME}
         -DHASH=${MODEL_HASH}
-        -P ${CMAKE_SOURCE_DIR}/cmake/download-models.cmake
+        -P ${PROJECT_SOURCE_DIR}/cmake/download-models.cmake
     )
     set_tests_properties(${TEST_TARGET}-download-model PROPERTIES FIXTURES_SETUP ${TEST_TARGET}-download-model)
     add_test(NAME ${TEST_TARGET} COMMAND llama-eval-callback -m "${MODEL_DEST}" --prompt hello --seed 42 -ngl 0)
