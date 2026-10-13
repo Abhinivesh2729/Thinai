@@ -57,11 +57,53 @@ class DocumentAttachment {
 /// mojibake that looks like a working attachment right up until the answer is
 /// nonsense.
 const kTextExtensions = <String>{
-  'txt', 'md', 'markdown', 'rst', 'log', 'csv', 'tsv', 'json', 'jsonl',
-  'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'xml', 'html', 'htm', 'srt',
-  'vtt', 'tex', 'dart', 'py', 'js', 'ts', 'jsx', 'tsx', 'java', 'kt', 'kts',
-  'c', 'h', 'cpp', 'hpp', 'cs', 'go', 'rs', 'rb', 'php', 'swift', 'sh',
-  'bash', 'zsh', 'sql', 'gradle', 'properties', 'env',
+  'txt',
+  'md',
+  'markdown',
+  'rst',
+  'log',
+  'csv',
+  'tsv',
+  'json',
+  'jsonl',
+  'yaml',
+  'yml',
+  'toml',
+  'ini',
+  'cfg',
+  'conf',
+  'xml',
+  'html',
+  'htm',
+  'srt',
+  'vtt',
+  'tex',
+  'dart',
+  'py',
+  'js',
+  'ts',
+  'jsx',
+  'tsx',
+  'java',
+  'kt',
+  'kts',
+  'c',
+  'h',
+  'cpp',
+  'hpp',
+  'cs',
+  'go',
+  'rs',
+  'rb',
+  'php',
+  'swift',
+  'sh',
+  'bash',
+  'zsh',
+  'sql',
+  'gradle',
+  'properties',
+  'env',
 };
 
 /// Formats worth naming in the error, because they are what someone actually
@@ -164,7 +206,7 @@ DocumentAttachment readDocument(String filename, Uint8List bytes) {
 String documentSystemMessage(DocumentAttachment attachment) {
   final truncationNote = attachment.truncated
       ? '\n\n[The document was truncated to fit the context window. '
-          'Say so if the answer depends on the part that was cut.]'
+            'Say so if the answer depends on the part that was cut.]'
       : '';
   return 'The user attached a document named '
       '"${neutralizeUntrusted(attachment.name)}". '

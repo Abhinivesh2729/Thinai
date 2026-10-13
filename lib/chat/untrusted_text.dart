@@ -86,9 +86,7 @@ String neutralizeUntrusted(String text) {
     if (next == out) break;
     out = next;
   }
-  out = out
-      .replaceAll(_tripleOpen, '<<')
-      .replaceAll(_tripleClose, '>>');
+  out = out.replaceAll(_tripleOpen, '<<').replaceAll(_tripleClose, '>>');
 
   // Then the tokens. Each insertion puts the space right after the opening
   // bracket, so none of them can create a new match for another pattern.

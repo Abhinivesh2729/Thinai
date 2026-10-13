@@ -671,7 +671,8 @@ List<String> queryTerms(String query) {
   final terms = <String>[];
   for (final raw in query.split(_nonWord)) {
     final word = raw.toLowerCase();
-    final meaningful = (word.length >= 4 && !_stopWords.contains(word)) ||
+    final meaningful =
+        (word.length >= 4 && !_stopWords.contains(word)) ||
         _acronym.hasMatch(raw);
     if (!meaningful || terms.contains(word)) continue;
     terms.add(word);
@@ -759,8 +760,9 @@ List<WebResult> keepRelevant(List<WebResult> results, String query) {
 
   final kept = scored.where((s) => s.$3 >= needed).toList()
     // Dart's sort is not stable, so the original position breaks ties.
-    ..sort((a, b) =>
-        a.$1 != b.$1 ? b.$1.compareTo(a.$1) : a.$2.compareTo(b.$2));
+    ..sort(
+      (a, b) => a.$1 != b.$1 ? b.$1.compareTo(a.$1) : a.$2.compareTo(b.$2),
+    );
   return [for (final (_, _, _, result) in kept) result];
 }
 
@@ -793,7 +795,11 @@ const Set<String> _lowSignalVerbs = {'won', 'win', 'wins', 'happened'};
 /// leading words, and "yesterday's IPL match" returned song lyrics where
 /// "IPL match yesterday" returned the scorecards.
 const Set<String> _timeWords = {
-  'today', 'tonight', 'yesterday', 'tomorrow', 'now',
+  'today',
+  'tonight',
+  'yesterday',
+  'tomorrow',
+  'now',
 };
 
 /// "yesterday's" → "yesterday", with either apostrophe.
@@ -997,11 +1003,15 @@ List<String> _paragraphsAbout(
   // the paragraphs that said which version is current.
   final best = scores.isEmpty ? 0 : scores.reduce(max);
   final floor = best >= 2 ? 2 : 1;
-  final order = [
-    for (var i = 0; i < candidates.length; i++)
-      if (scores[i] >= floor) i,
-  ]..sort((a, b) =>
-      scores[a] != scores[b] ? scores[b].compareTo(scores[a]) : a.compareTo(b));
+  final order =
+      [
+        for (var i = 0; i < candidates.length; i++)
+          if (scores[i] >= floor) i,
+      ]..sort(
+        (a, b) => scores[a] != scores[b]
+            ? scores[b].compareTo(scores[a])
+            : a.compareTo(b),
+      );
 
   final picked = <int>[];
   var length = 0;
@@ -1086,8 +1096,18 @@ String extractReadableText(
 // ─── prompt ─────────────────────────────────────────────────────────────────
 
 const List<String> _months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 /// "2 September 2026". Written out rather than numeric so no model has to guess
@@ -1124,7 +1144,8 @@ String webSearchContext(
   int snippetBudget = kWebSnippetCharBudget,
 }) {
   final today = formatSearchDate(results.fetchedAt);
-  final header = 'Today is $today. Web search results for "${results.query}", '
+  final header =
+      'Today is $today. Web search results for "${results.query}", '
       'fetched just now:';
   final block = StringBuffer();
 
@@ -1136,8 +1157,10 @@ String webSearchContext(
       snippet = '${snippet.substring(0, snippetBudget).trimRight()}…';
     }
     final entry = StringBuffer()
-      ..write('[${i + 1}] ${neutralizeUntrusted(result.title)} '
-          '(${neutralizeUntrusted(result.displayUrl)})\n');
+      ..write(
+        '[${i + 1}] ${neutralizeUntrusted(result.title)} '
+        '(${neutralizeUntrusted(result.displayUrl)})\n',
+      );
     if (snippet.isNotEmpty) entry.write('${neutralizeUntrusted(snippet)}\n');
     entry.write('\n');
 
@@ -1151,8 +1174,10 @@ String webSearchContext(
 
   if (results.leadText.isNotEmpty && results.results.isNotEmpty) {
     block
-      ..write('From [1] '
-          '${neutralizeUntrusted(results.results.first.displayUrl)}:\n')
+      ..write(
+        'From [1] '
+        '${neutralizeUntrusted(results.results.first.displayUrl)}:\n',
+      )
       ..write(neutralizeUntrusted(results.leadText));
   }
 
@@ -1193,8 +1218,10 @@ String webRecallContext(
     }
     // Stored sources are the same strangers' text as a fresh search, read back
     // out of the history, so they get the same treatment on the way back in.
-    final entry = StringBuffer('[${i + 1}] ${neutralizeUntrusted(source.title)} '
-        '(${neutralizeUntrusted(source.displayUrl)})\n');
+    final entry = StringBuffer(
+      '[${i + 1}] ${neutralizeUntrusted(source.title)} '
+      '(${neutralizeUntrusted(source.displayUrl)})\n',
+    );
     if (snippet.isNotEmpty) entry.write('${neutralizeUntrusted(snippet)}\n');
     entry.write('\n');
 
@@ -1286,16 +1313,17 @@ class WebSearch {
     Dio? dio,
     List<SearchEndpoint>? endpoints,
     DateTime Function()? now,
-  })  : _dio = dio ??
-            Dio(
-              BaseOptions(
-                connectTimeout: const Duration(seconds: 10),
-                sendTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 12),
-              ),
-            ),
-        _endpoints = endpoints ?? WebSearch.endpoints,
-        _now = now ?? DateTime.now;
+  }) : _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 10),
+               sendTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 12),
+             ),
+           ),
+       _endpoints = endpoints ?? WebSearch.endpoints,
+       _now = now ?? DateTime.now;
 
   final Dio _dio;
   final DateTime Function() _now;
