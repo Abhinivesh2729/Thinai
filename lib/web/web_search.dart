@@ -1122,7 +1122,6 @@ String webSearchContext(
   WebSearchResults results, {
   int charBudget = kWebResultCharBudget,
   int snippetBudget = kWebSnippetCharBudget,
-  Random? random,
 }) {
   final today = formatSearchDate(results.fetchedAt);
   final header = 'Today is $today. Web search results for "${results.query}", '
@@ -1159,7 +1158,7 @@ String webSearchContext(
 
   final body = block.toString().trimRight();
   if (body.isEmpty) return header;
-  return '$header\n\n${fenceUntrusted('WEB_RESULTS', body, random: random)}';
+  return '$header\n\n${fenceUntrusted('WEB_RESULTS', body)}';
 }
 
 /// Characters spent re-showing results from an earlier turn. Smaller than a
@@ -1181,7 +1180,6 @@ String webRecallContext(
   int charBudget = kWebRecallCharBudget,
   int maxResults = kMaxRecallResults,
   int snippetBudget = 200,
-  Random? random,
 }) {
   if (sources.isEmpty) return '';
   final block = StringBuffer();
@@ -1206,7 +1204,7 @@ String webRecallContext(
     spent += text.length;
   }
   return 'Web results from earlier in this conversation, still relevant:\n\n'
-      '${fenceUntrusted('WEB_RESULTS', block.toString().trimRight(), random: random)}';
+      '${fenceUntrusted('WEB_RESULTS', block.toString().trimRight())}';
 }
 
 /// A follow-up question, with the earlier results behind it.
@@ -1214,10 +1212,8 @@ String webRecallPrompt(
   List<WebResult> sources,
   String question, {
   int charBudget = kWebRecallCharBudget,
-  Random? random,
 }) {
-  final context =
-      webRecallContext(sources, charBudget: charBudget, random: random);
+  final context = webRecallContext(sources, charBudget: charBudget);
   if (context.isEmpty) return question;
   return '$context\n\n'
       'The question below follows on from those results. Answer it from them '
@@ -1243,13 +1239,11 @@ String webSearchPrompt(
   String question, {
   int charBudget = kWebResultCharBudget,
   int snippetBudget = kWebSnippetCharBudget,
-  Random? random,
 }) {
   final context = webSearchContext(
     results,
     charBudget: charBudget,
     snippetBudget: snippetBudget,
-    random: random,
   );
   return '$context\n\n'
       'Answer the question below in your own words, using the results above. '

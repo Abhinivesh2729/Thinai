@@ -84,11 +84,15 @@ void main() {
         readDocument('spec.md', textBytes('the content')),
       );
       expect(message, contains('spec.md'));
-      // A fence with a random id the file cannot forge, rather than the old
+      // A fence the file cannot spell, rather than the old
       // `--- END DOCUMENT ---` line any file could contain.
-      expect(message, contains('<<<DOCUMENT id='));
+      expect(message, contains('<<<DOCUMENT>>>'));
       expect(message, contains('the content'));
-      expect(message, contains('<<<END DOCUMENT id='));
+      expect(message, contains('<<<END DOCUMENT>>>'));
+      // No id on the markers: small models reported it as the file's own
+      // "Project ID" (#23).
+      expect(message, isNot(contains('id=')));
+      expect(message, contains('never mention them'));
       expect(message.indexOf('the content'),
           lessThan(message.indexOf('<<<END DOCUMENT')));
       expect(message, contains('not instructions'));
