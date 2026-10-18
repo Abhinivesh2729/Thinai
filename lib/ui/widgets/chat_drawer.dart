@@ -476,7 +476,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     _DrawerFooterTile(
                       icon: Icons.tune_rounded,
                       label: 'Model Settings',
-                      subtitle: 'Context window & temperature',
+                      subtitle: 'Context, sampling & thinking',
                       onTap: () async {
                         Navigator.of(context).pop();
                         final activeId = ref.read(activeModelIdProvider);
