@@ -1,0 +1,39 @@
+# Replaces the Play listing's feature graphic and app icon with the files in
+# store/play/. Manual only: run it with dry_run first, then without.
+name: Play listing graphics
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate the edit and discard it instead of publishing"
+        type: boolean
+        default: true
+
+jobs:
+  upload:
+    name: Upload feature graphic and icon
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Shares the release job's queue: two Play edits at once conflict.
+    concurrency:
+      group: release-play
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install google-auth==2.35.0 requests==2.32.3
+
+      - name: Upload to Play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python tool/play_listing_graphics.py \
+            --package in.atmega.thinai \
+            --feature-graphic store/play/feature-graphic-1024x500.png \
+            --icon store/play/icon-512.png \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
