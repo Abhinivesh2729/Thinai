@@ -71,7 +71,8 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: production
           status: completed
-          # "What's new" text, one file per language (whatsnew-en-US, ...), 500 characters max.
+          # "What's new" text, one file per language (whatsnew-en-GB, whatsnew-en-US, ...), 500 characters max.
+          # en-GB is the listing's default language, so keep that one in step with the others.
           whatsNewDirectory: distribution/whatsnew
 
       - name: Summary
