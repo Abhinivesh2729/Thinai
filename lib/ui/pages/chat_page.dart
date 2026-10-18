@@ -1009,8 +1009,9 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                             await ref
                                 .read(activeModelIdProvider.notifier)
                                 .set(m);
-                            if (modalContext.mounted)
+                            if (modalContext.mounted) {
                               Navigator.of(modalContext).pop();
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
