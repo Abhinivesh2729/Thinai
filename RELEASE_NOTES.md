@@ -1,5 +1,23 @@
 # Release notes
 
+## v2.4.0
+
+### Safer model management
+Starting a download, cancelling one, and deleting a model each ask first, so
+a stray tap no longer throws away a half-finished download.
+
+### A fresh chat every launch
+Opening Thinai lands on a new chat, like ChatGPT and Gemini. Earlier chats are
+still in the drawer.
+
+### Your own system prompt
+Settings → System Prompt sets the instructions every chat starts with. Leave
+it empty to use the model's own default, or reset to Thinai's.
+
+### Top-K, Top-P and thinking
+The model settings sheet gains Top-K and Top-P, and for models with a thinking
+mode (Qwen3, SmolLM3, ...) a switch to answer without the reasoning preamble.
+
 ## v2.3.12 branch
 
 ### GPU inference that falls back instead of crashing
