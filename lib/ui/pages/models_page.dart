@@ -79,31 +79,80 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     }
   }
 
-  Future<void> _delete(LocalModel m) async {
-    final confirm = await showDialog<bool>(
+  /// Asks before an action a stray tap should not be able to take: starting a
+  /// download, cancelling one (there is no resume, so progress is lost) or
+  /// deleting a model. Dismissing the dialog in any way counts as "no".
+  Future<bool> _confirm({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    String cancelLabel = 'Cancel',
+    bool destructive = false,
+  }) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete model?'),
-        content: Text(
-          'Are you sure you want to delete ${m.displayName}? This frees ${_fmtSize(m.sizeBytes)} of space.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
+            child: Text(cancelLabel),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(c).colorScheme.error,
-            ),
+            style: destructive
+                ? FilledButton.styleFrom(
+                    backgroundColor: Theme.of(c).colorScheme.error,
+                  )
+                : null,
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
     );
-    if (confirm != true) return;
+    return confirmed == true;
+  }
+
+  Future<void> _download(CatalogModel m) async {
+    // A vision model fetches its image encoder too, so the size asked about
+    // is what will actually land on the phone.
+    final encoder = m.supportsVision ? (m.mmprojBytes ?? 0) : 0;
+    final size = encoder > 0 ? _fmtSize(m.approxBytes + encoder) : m.approxSize;
+    final confirmed = await _confirm(
+      title: 'Download model?',
+      message: 'Do you want to download ${m.displayName} ($size)?',
+      confirmLabel: 'Download',
+    );
+    if (!confirmed || !mounted) return;
+    await ref.read(downloadsProvider.notifier).start(m);
+  }
+
+  Future<void> _cancelDownload(String catalogId) async {
+    final handle = ref.read(downloadsProvider)[catalogId];
+    if (handle == null) return;
+    final confirmed = await _confirm(
+      title: 'Cancel download?',
+      message: 'Do you want to cancel the download of ${handle.label}? '
+          'The progress so far will be lost.',
+      confirmLabel: 'Cancel download',
+      cancelLabel: 'Keep downloading',
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    ref.read(downloadsProvider.notifier).cancel(catalogId);
+  }
+
+  Future<void> _delete(LocalModel m) async {
+    final confirm = await _confirm(
+      title: 'Delete model?',
+      message: 'Do you want to delete ${m.displayName}? This frees '
+          '${_fmtSize(m.sizeBytes)} of space.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    );
+    if (!confirm || !mounted) return;
     await ref.read(modelStoreProvider).delete(m);
     if (ref.read(activeModelIdProvider) == m.id) {
       await ref.read(activeModelIdProvider.notifier).set(null);
@@ -151,8 +200,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           Navigator.pop(ctx);
         },
         onDelete: (m) => _delete(m),
-        onCancelDownload: (id) =>
-            ref.read(downloadsProvider.notifier).cancel(id),
+        onCancelDownload: _cancelDownload,
         onBrowseCatalog: () {
           Navigator.pop(ctx);
           setState(() {
@@ -462,8 +510,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           onAddVision: () =>
               ref.read(downloadsProvider.notifier).addVisionSupport(m),
           download: downloads[m.id],
-          onDownload: () => ref.read(downloadsProvider.notifier).start(m),
-          onCancel: () => ref.read(downloadsProvider.notifier).cancel(m.id),
+          onDownload: () => _download(m),
+          onCancel: () => _cancelDownload(m.id),
           actionKey: actionKey,
         );
 
@@ -554,8 +602,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onAddVision: () =>
                 ref.read(downloadsProvider.notifier).addVisionSupport(featured),
             download: downloads[featured.id],
-            onDownload: () => ref.read(downloadsProvider.notifier).start(featured),
-            onCancel: () => ref.read(downloadsProvider.notifier).cancel(featured.id),
+            onDownload: () => _download(featured),
+            onCancel: () => _cancelDownload(featured.id),
             actionKey: CoachMarkTargets.firstCatalogAction,
           ),
           const SizedBox(height: 16),
