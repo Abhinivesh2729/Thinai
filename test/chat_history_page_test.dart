@@ -49,7 +49,9 @@ void main() {
       ], activeId: 'a'),
     });
 
-    await _pump(tester);
+    final container = await _pump(tester);
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
 
     expect(find.text('What is a GGUF?'), findsOneWidget);
     expect(find.text('Explain embeddings'), findsOneWidget);
@@ -68,7 +70,11 @@ void main() {
     });
 
     final container = await _pump(tester);
-    expect(container.read(chatSessionsProvider).activeId, 'a');
+    expect(
+      container.read(chatSessionsProvider).activeId,
+      isNull,
+      reason: 'a launch starts on a new chat',
+    );
 
     await tester.tap(find.text('Beta'));
     await tester.pump();
@@ -88,6 +94,8 @@ void main() {
     });
 
     final container = await _pump(tester);
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
     await tester.tap(find.text('New chat'));
     await tester.pump();
 

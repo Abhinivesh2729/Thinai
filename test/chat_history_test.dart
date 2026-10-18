@@ -61,7 +61,7 @@ void main() {
       expect(c.state.activeTurns, isEmpty);
     });
 
-    test('restores conversations and reopens the last one', () async {
+    test('restores conversations but opens a new chat', () async {
       SharedPreferences.setMockInitialValues({
         _key: _encodeSessions([
           ('a', [('user', 'Hi'), ('assistant', 'Hello!')]),
@@ -69,9 +69,28 @@ void main() {
         ], activeId: 'b'),
       });
       final c = await _controller();
-      expect(c.state.conversations.length, 2);
-      expect(c.state.activeId, 'b');
+      expect(c.state.conversations.length, 2, reason: 'history is kept');
+      expect(
+        c.state.activeId,
+        isNull,
+        reason: 'a launch starts blank, not on the last chat',
+      );
+      expect(c.state.activeTurns, isEmpty);
+
+      c.open('b');
       expect(c.state.activeTurns.single.content, 'Second');
+    });
+
+    test('the blank chat from a launch is not stored', () async {
+      SharedPreferences.setMockInitialValues({
+        _key: _encodeSessions([
+          ('a', [('user', 'Hi'), ('assistant', 'Hello!')]),
+        ], activeId: 'a'),
+      });
+      await _controller();
+      final reloaded = await _controller();
+      expect(reloaded.state.conversations, hasLength(1));
+      expect(await _storedConversations(), hasLength(1));
     });
 
     test('drops a reply cut off by the app being killed', () async {
@@ -107,7 +126,7 @@ void main() {
       });
       final c = await _controller();
       expect(c.state.conversations.length, 1);
-      expect(c.state.activeTurns.first.content, 'Old chat');
+      expect(c.state.conversations.single.turns.first.content, 'Old chat');
 
       final prefs = await SharedPreferences.getInstance();
       expect(
@@ -204,6 +223,7 @@ void main() {
         ], activeId: 'a'),
       });
       final c = await _controller();
+      c.open('a');
       await c.deleteActive();
       expect(c.state.activeId, isNull);
       expect(c.state.conversations.single.id, 'b');
@@ -262,7 +282,7 @@ void main() {
       await first.finishExchange();
 
       final reloaded = await _controller();
-      final restored = reloaded.state.activeTurns.last.sources;
+      final restored = reloaded.state.conversations.single.turns.last.sources;
       expect(restored, hasLength(1));
       expect(restored.single.url, 'https://www.vikatan.com/live');
       expect(restored.single.displayUrl, 'vikatan.com');
@@ -275,6 +295,7 @@ void main() {
         ], activeId: 'a'),
       });
       final c = await _controller();
+      c.open('a');
       expect(c.state.activeTurns, hasLength(2));
       expect(c.state.activeTurns.last.sources, isEmpty);
     });
