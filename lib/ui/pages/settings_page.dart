@@ -50,7 +50,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'Appearance',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AppearanceSettingsPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const AppearanceSettingsPage(),
+                      ),
                     );
                   },
                 ),
@@ -60,7 +62,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'System Prompt',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SystemPromptPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const SystemPromptPage(),
+                      ),
                     );
                   },
                 ),
@@ -70,7 +74,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'Hardware & Acceleration',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const HardwareSettingsPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const HardwareSettingsPage(),
+                      ),
                     );
                   },
                 ),
@@ -80,7 +86,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'Model & Storage',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ModelStorageSettingsPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const ModelStorageSettingsPage(),
+                      ),
                     );
                   },
                 ),
@@ -90,7 +98,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'Local Server & API',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LocalServerSettingsPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const LocalServerSettingsPage(),
+                      ),
                     );
                   },
                 ),
@@ -100,7 +110,9 @@ class SettingsPage extends ConsumerWidget {
                   title: 'About & Guidance',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AboutGuidanceSettingsPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const AboutGuidanceSettingsPage(),
+                      ),
                     );
                   },
                 ),
@@ -152,11 +164,7 @@ class _SectionNavTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Center(
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: const Color(0xFF2CA048),
-                  ),
+                  child: Icon(icon, size: 20, color: const Color(0xFF2CA048)),
                 ),
               ),
               const SizedBox(width: 14),
@@ -198,9 +206,7 @@ class AppearanceSettingsPage extends ConsumerWidget {
     final webSearchEnabled = ref.watch(webSearchEnabledProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appearance'),
-      ),
+      appBar: AppBar(title: const Text('Appearance')),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -210,82 +216,111 @@ class AppearanceSettingsPage extends ConsumerWidget {
             child: Column(
               children: [
                 _DropdownListRow<int>(
-                    icon: Icons.start_rounded,
-                    title: 'Open page on startup',
-                    value: startPage,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 0,
-                        child: Text('Chat', style: TextStyle(fontWeight: FontWeight.w600)),
+                  icon: Icons.start_rounded,
+                  title: 'Open page on startup',
+                  value: startPage,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 0,
+                      child: Text(
+                        'Chat',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: 1,
-                        child: Text('Models', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 1,
+                      child: Text(
+                        'Models',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: 2,
-                        child: Text('Server', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 2,
+                      child: Text(
+                        'Server',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: 3,
-                        child: Text('Settings', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 3,
+                      child: Text(
+                        'Settings',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        ref.read(startPageProvider.notifier).set(val);
-                      }
-                    },
-                  ),
-                  const _TileDivider(),
-                  _DropdownListRow<ThemeMode>(
-                    icon: Icons.brightness_4_rounded,
-                    title: 'Theme mode',
-                    value: mode,
-                    items: const [
-                      DropdownMenuItem(
-                        value: ThemeMode.system,
-                        child: Text('System', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      ref.read(startPageProvider.notifier).set(val);
+                    }
+                  },
+                ),
+                const _TileDivider(),
+                _DropdownListRow<ThemeMode>(
+                  icon: Icons.brightness_4_rounded,
+                  title: 'Theme mode',
+                  value: mode,
+                  items: const [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text(
+                        'System',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: ThemeMode.dark,
-                        child: Text('Dark', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text(
+                        'Dark',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: ThemeMode.light,
-                        child: Text('Light', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text(
+                        'Light',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        ref.read(themeModeProvider.notifier).set(val);
-                      }
-                    },
-                  ),
-                  const _TileDivider(),
-                  _DropdownListRow<bool>(
-                    icon: Icons.travel_explore_rounded,
-                    title: 'Web search in chat',
-                    value: webSearchEnabled,
-                    items: const [
-                      DropdownMenuItem(
-                        value: true,
-                        child: Text('Enabled', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      ref.read(themeModeProvider.notifier).set(val);
+                    }
+                  },
+                ),
+                const _TileDivider(),
+                _DropdownListRow<bool>(
+                  icon: Icons.travel_explore_rounded,
+                  title: 'Web search in chat',
+                  value: webSearchEnabled,
+                  items: const [
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text(
+                        'Enabled',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: false,
-                        child: Text('Disabled', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text(
+                        'Disabled',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        unawaited(ref.read(webSearchEnabledProvider.notifier).set(val));
-                      }
-                    },
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      unawaited(
+                        ref.read(webSearchEnabledProvider.notifier).set(val),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -328,11 +363,7 @@ class _DropdownListRow<T> extends StatelessWidget {
               color: const Color(0xFF2CA048).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              size: 19,
-              color: const Color(0xFF2CA048),
-            ),
+            child: Icon(icon, size: 19, color: const Color(0xFF2CA048)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -350,9 +381,7 @@ class _DropdownListRow<T> extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF161C26)
-                  : const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF161C26) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isDark
@@ -430,9 +459,7 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
     final currentGpu = GenerationSettingsStore.instance.settings.gpu;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hardware & Acceleration'),
-      ),
+      appBar: AppBar(title: const Text('Hardware & Acceleration')),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -442,93 +469,112 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
             child: Column(
               children: [
                 _DropdownListRow<GpuBackend>(
-                    icon: Icons.memory_rounded,
-                    title: 'GPU acceleration',
-                    value: currentGpu,
-                    items: const [
-                      DropdownMenuItem(
-                        value: GpuBackend.none,
-                        child: Text('CPU', style: TextStyle(fontWeight: FontWeight.w600)),
+                  icon: Icons.memory_rounded,
+                  title: 'GPU acceleration',
+                  value: currentGpu,
+                  items: const [
+                    DropdownMenuItem(
+                      value: GpuBackend.none,
+                      child: Text(
+                        'CPU',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: GpuBackend.auto,
-                        child: Text('Auto', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: GpuBackend.auto,
+                      child: Text(
+                        'Auto',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: GpuBackend.vulkan,
-                        child: Text('Vulkan', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: GpuBackend.vulkan,
+                      child: Text(
+                        'Vulkan',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      DropdownMenuItem(
-                        value: GpuBackend.opencl,
-                        child: Text('OpenCL', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: GpuBackend.opencl,
+                      child: Text(
+                        'OpenCL',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        unawaited(GenerationSettingsStore.instance.setGpu(val));
-                      }
-                    },
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.speed_rounded,
-                    title: 'Benchmark device',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const BenchmarkPage()),
-                      );
-                    },
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.query_stats_rounded,
-                    title: 'GPU speed diagnostics',
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: isDark ? const Color(0xFF131722) : Colors.white,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        builder: (_) => const SafeArea(
-                          child: SingleChildScrollView(
-                            child: GpuSettingsCard(embedded: true),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  if (deviceProfile != null) ...[
-                    const _TileDivider(),
-                    _SettingsTile(
-                      icon: Icons.developer_board_rounded,
-                      title: 'Device hardware specs',
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.07)
-                              : Colors.black.withValues(alpha: 0.045),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          deviceProfile.totalRamBytes != null
-                              ? '${deviceProfile.cores} Cores • ${(deviceProfile.totalRamBytes! / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB RAM'
-                              : '${deviceProfile.cores} CPU Cores',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      onTap: null,
                     ),
                   ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      unawaited(GenerationSettingsStore.instance.setGpu(val));
+                    }
+                  },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.speed_rounded,
+                  title: 'Benchmark device',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const BenchmarkPage()),
+                    );
+                  },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.query_stats_rounded,
+                  title: 'GPU speed diagnostics',
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: isDark
+                          ? const Color(0xFF131722)
+                          : Colors.white,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (_) => const SafeArea(
+                        child: SingleChildScrollView(
+                          child: GpuSettingsCard(embedded: true),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (deviceProfile != null) ...[
+                  const _TileDivider(),
+                  _SettingsTile(
+                    icon: Icons.developer_board_rounded,
+                    title: 'Device hardware specs',
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.07)
+                            : Colors.black.withValues(alpha: 0.045),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        deviceProfile.totalRamBytes != null
+                            ? '${deviceProfile.cores} Cores • ${(deviceProfile.totalRamBytes! / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB RAM'
+                            : '${deviceProfile.cores} CPU Cores',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    onTap: null,
+                  ),
                 ],
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -671,9 +717,7 @@ class _ModelStorageSettingsPageState
     final activeModel = models.where((m) => m.id == activeId).firstOrNull;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Model & Storage'),
-      ),
+      appBar: AppBar(title: const Text('Model & Storage')),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -683,91 +727,101 @@ class _ModelStorageSettingsPageState
             child: Column(
               children: [
                 if (activeModel != null)
-                    _SettingsTile(
-                      icon: Icons.tune_rounded,
-                      title: activeModel.displayName,
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2CA048).withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.tune_rounded, size: 14, color: Color(0xFF2CA048)),
-                            SizedBox(width: 4),
-                            Text(
-                              'Tune',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF2CA048),
-                              ),
-                            ),
-                          ],
-                        ),
+                  _SettingsTile(
+                    icon: Icons.tune_rounded,
+                    title: activeModel.displayName,
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
                       ),
-                      onTap: () => showModelSettingsSheet(context, activeModel),
-                    )
-                  else
-                    _SettingsTile(
-                      icon: Icons.tune_rounded,
-                      title: 'No active model loaded',
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.07)
-                              : Colors.black.withValues(alpha: 0.045),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Catalog',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: scheme.onSurfaceVariant,
-                              ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2CA048).withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.tune_rounded,
+                            size: 14,
+                            color: Color(0xFF2CA048),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Tune',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2CA048),
                             ),
-                            const SizedBox(width: 3),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              size: 15,
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () => showModelSettingsSheet(context, activeModel),
+                  )
+                else
+                  _SettingsTile(
+                    icon: Icons.tune_rounded,
+                    title: 'No active model loaded',
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.07)
+                            : Colors.black.withValues(alpha: 0.045),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Catalog',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                               color: scheme.onSurfaceVariant,
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 3),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 15,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ],
                       ),
-                      onTap: () {
-                        ref.read(shellTabIndexProvider.notifier).state = 1;
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      },
                     ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.file_upload_outlined,
-                    title: 'Import local .gguf',
-                    onTap: _busy ? null : _importModel,
+                    onTap: () {
+                      ref.read(shellTabIndexProvider.notifier).state = 1;
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                   ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.link_rounded,
-                    title: 'Download model from URL',
-                    onTap: _busy ? null : _downloadByUrl,
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.delete_outline_rounded,
-                    title: 'Clear downloaded models',
-                    onTap: _busy ? null : _clearAllDownloads,
-                  ),
-                ],
-              ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.file_upload_outlined,
+                  title: 'Import local .gguf',
+                  onTap: _busy ? null : _importModel,
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.link_rounded,
+                  title: 'Download model from URL',
+                  onTap: _busy ? null : _downloadByUrl,
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.delete_outline_rounded,
+                  title: 'Clear downloaded models',
+                  onTap: _busy ? null : _clearAllDownloads,
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -826,7 +880,9 @@ class LocalServerSettingsPage extends ConsumerWidget {
         SnackBar(
           content: Text('Server port set to $newPort'),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -842,9 +898,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
     final serverPort = ref.watch(savedServerPortProvider).valueOrNull ?? 11434;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Local Server & API'),
-      ),
+      appBar: AppBar(title: const Text('Local Server & API')),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -854,104 +908,120 @@ class LocalServerSettingsPage extends ConsumerWidget {
             child: Column(
               children: [
                 _DropdownListRow<bool>(
-                    icon: Icons.wifi_tethering_rounded,
-                    title: 'Share API over Wi-Fi',
-                    value: lanShare,
-                    items: const [
-                      DropdownMenuItem(
-                        value: true,
-                        child: Text('Enabled', style: TextStyle(fontWeight: FontWeight.w600)),
-                      ),
-                      DropdownMenuItem(
-                        value: false,
-                        child: Text('Disabled', style: TextStyle(fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                    onChanged: (val) async {
-                      if (val != null) {
-                        await ref.read(lanShareProvider.notifier).set(val);
-                      }
-                    },
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.lan_rounded,
-                    title: 'Server port',
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.07)
-                            : Colors.black.withValues(alpha: 0.045),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            ':$serverPort',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(Icons.edit_rounded, size: 14, color: scheme.onSurfaceVariant),
-                        ],
+                  icon: Icons.wifi_tethering_rounded,
+                  title: 'Share API over Wi-Fi',
+                  value: lanShare,
+                  items: const [
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text(
+                        'Enabled',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    onTap: () => _showPortDialog(context, ref),
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text(
+                        'Disabled',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) async {
+                    if (val != null) {
+                      await ref.read(lanShareProvider.notifier).set(val);
+                    }
+                  },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.lan_rounded,
+                  title: 'Server port',
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.07)
+                          : Colors.black.withValues(alpha: 0.045),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ':$serverPort',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.edit_rounded,
+                          size: 14,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
                   ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.power_settings_new_rounded,
-                    title: 'Server status',
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: serverStatus.running
-                            ? const Color(0xFF2CA048).withValues(alpha: 0.15)
-                            : (isDark
+                  onTap: () => _showPortDialog(context, ref),
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.power_settings_new_rounded,
+                  title: 'Server status',
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: serverStatus.running
+                          ? const Color(0xFF2CA048).withValues(alpha: 0.15)
+                          : (isDark
                                 ? Colors.white.withValues(alpha: 0.07)
                                 : Colors.black.withValues(alpha: 0.045)),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: serverStatus.running
-                                  ? const Color(0xFF2CA048)
-                                  : scheme.outline,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            serverStatus.running ? 'Active' : 'Offline',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: serverStatus.running
-                                  ? const Color(0xFF2CA048)
-                                  : scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    onTap: () {
-                      ref.read(shellTabIndexProvider.notifier).state = 2;
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: serverStatus.running
+                                ? const Color(0xFF2CA048)
+                                : scheme.outline,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          serverStatus.running ? 'Active' : 'Offline',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: serverStatus.running
+                                ? const Color(0xFF2CA048)
+                                : scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                  onTap: () {
+                    ref.read(shellTabIndexProvider.notifier).state = 2;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -1050,9 +1120,7 @@ class _AboutGuidanceSettingsPageState
     final version = ref.watch(appVersionProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About & Guidance'),
-      ),
+      appBar: AppBar(title: const Text('About & Guidance')),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -1062,66 +1130,66 @@ class _AboutGuidanceSettingsPageState
             child: Column(
               children: [
                 _SettingsTile(
-                    icon: Icons.explore_outlined,
-                    title: 'Start app tour',
-                    onTap: () {
-                      ref.read(coachTourRequestProvider.notifier).state++;
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.system_update_alt_rounded,
-                    title: 'Check for updates',
-                    trailing: version != null
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
+                  icon: Icons.explore_outlined,
+                  title: 'Start app tour',
+                  onTap: () {
+                    ref.read(coachTourRequestProvider.notifier).state++;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.system_update_alt_rounded,
+                  title: 'Check for updates',
+                  trailing: version != null
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.07)
+                                : Colors.black.withValues(alpha: 0.045),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'v$version',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: scheme.onSurfaceVariant,
                             ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.07)
-                                  : Colors.black.withValues(alpha: 0.045),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'v$version',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          )
-                        : null,
-                    onTap: _busy ? null : _checkForUpdates,
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.chat_bubble_outline_rounded,
-                    title: 'Contact support',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ContactSupportPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  const _TileDivider(),
-                  _SettingsTile(
-                    icon: Icons.info_outline_rounded,
-                    title: 'About Thinai',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AboutPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                          ),
+                        )
+                      : null,
+                  onTap: _busy ? null : _checkForUpdates,
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: 'Contact support',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ContactSupportPage(),
+                      ),
+                    );
+                  },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About Thinai',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AboutPage()),
+                    );
+                  },
+                ),
+              ],
             ),
+          ),
           const SizedBox(height: 24),
           const MadeInErode(compact: true),
         ],
@@ -1185,11 +1253,7 @@ class _SettingsTile extends StatelessWidget {
                   color: const Color(0xFF2CA048).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  size: 19,
-                  color: const Color(0xFF2CA048),
-                ),
+                child: Icon(icon, size: 19, color: const Color(0xFF2CA048)),
               ),
               const SizedBox(width: 14),
               Expanded(

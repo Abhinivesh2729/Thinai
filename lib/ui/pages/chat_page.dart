@@ -522,8 +522,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _toast(next ? 'Web search on.' : 'Web search off.');
   }
 
-
-
   /// Keeps the newest message in view as tokens arrive, but only while the
   /// user has not scrolled away to read something earlier.
   void _stickToBottom({int settleFrames = 8}) {
@@ -643,9 +641,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          _ModelSwitcherAction(activeId: activeId),
-        ],
+        actions: [_ModelSwitcherAction(activeId: activeId)],
       ),
       body: Column(
         children: [
@@ -816,7 +812,9 @@ class _ModelSwitcherAction extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                activeId != null ? Icons.memory_rounded : Icons.warning_amber_rounded,
+                activeId != null
+                    ? Icons.memory_rounded
+                    : Icons.warning_amber_rounded,
                 size: 20,
                 color: activeId != null ? logoGreen : scheme.error,
               ),
@@ -945,17 +943,27 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.explore_outlined, size: 36, color: scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.explore_outlined,
+                        size: 36,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'No models downloaded yet',
-                        style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onSurface),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: scheme.onSurface,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Download an open model from the catalogue to begin chatting.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       FilledButton.icon(
@@ -964,7 +972,9 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                         style: FilledButton.styleFrom(
                           backgroundColor: logoGreen,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         onPressed: () {
                           Navigator.of(modalContext).pop();
@@ -996,15 +1006,23 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                           borderRadius: BorderRadius.circular(12),
                           onTap: () async {
                             HapticFeedback.selectionClick();
-                            await ref.read(activeModelIdProvider.notifier).set(m);
-                            if (modalContext.mounted) Navigator.of(modalContext).pop();
+                            await ref
+                                .read(activeModelIdProvider.notifier)
+                                .set(m);
+                            if (modalContext.mounted)
+                              Navigator.of(modalContext).pop();
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? logoGreen : scheme.outlineVariant,
+                                color: isSelected
+                                    ? logoGreen
+                                    : scheme.outlineVariant,
                                 width: isSelected ? 1.5 : 1,
                               ),
                             ),
@@ -1014,13 +1032,16 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                                   isSelected
                                       ? Icons.radio_button_checked_rounded
                                       : Icons.radio_button_unchecked_rounded,
-                                  color: isSelected ? logoGreen : scheme.onSurfaceVariant,
+                                  color: isSelected
+                                      ? logoGreen
+                                      : scheme.onSurfaceVariant,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         m.displayName,
@@ -1028,7 +1049,9 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
                                           color: isSelected
-                                              ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                              ? (isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF0F172A))
                                               : scheme.onSurface,
                                         ),
                                       ),
@@ -1045,7 +1068,10 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                                 ),
                                 if (isSelected) ...[
                                   IconButton(
-                                    icon: const Icon(Icons.tune_rounded, size: 18),
+                                    icon: const Icon(
+                                      Icons.tune_rounded,
+                                      size: 18,
+                                    ),
                                     color: logoGreen,
                                     tooltip: 'Model Parameters',
                                     onPressed: () async {
@@ -1069,7 +1095,9 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: scheme.onSurface,
                     side: BorderSide(color: scheme.outlineVariant),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
@@ -1217,7 +1245,9 @@ class _EmptyChat extends ConsumerWidget {
                     ),
                     const SizedBox(width: 7),
                     Text(
-                      webSearch ? 'AI Ready · Web Search On' : 'AI Ready · 100% Offline',
+                      webSearch
+                          ? 'AI Ready · Web Search On'
+                          : 'AI Ready · 100% Offline',
                       style: const TextStyle(
                         color: logoGreen,
                         fontSize: 11.5,
@@ -1232,10 +1262,7 @@ class _EmptyChat extends ConsumerWidget {
               Text(
                 'Running privately on your phone silicon.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: scheme.onSurfaceVariant,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
               ),
               const SizedBox(height: 22),
               // Starter prompt suggestions
@@ -1521,7 +1548,6 @@ class _MessageBubble extends StatelessWidget {
     this.searching = false,
   });
 
-
   void _copyText(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact();
@@ -1614,9 +1640,14 @@ class _MessageBubble extends StatelessWidget {
               child: GestureDetector(
                 onLongPress: () => _showUserOptions(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF262C38) : const Color(0xFFE9ECEF),
+                    color: isDark
+                        ? const Color(0xFF262C38)
+                        : const Color(0xFFE9ECEF),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: SelectableText(
@@ -1973,21 +2004,14 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
                 height: kComposerButton,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: buttonBorder,
-                    width: 1.0,
-                  ),
+                  border: Border.all(color: buttonBorder, width: 1.0),
                 ),
                 alignment: Alignment.center,
                 child: AnimatedRotation(
                   turns: _open ? 0.125 : 0,
                   duration: const Duration(milliseconds: 190),
                   curve: Curves.easeOut,
-                  child: Icon(
-                    Icons.add_rounded,
-                    size: 22,
-                    color: iconColor,
-                  ),
+                  child: Icon(Icons.add_rounded, size: 22, color: iconColor),
                 ),
               ),
             ),
@@ -2111,7 +2135,9 @@ class _DialItem extends StatelessWidget {
     final borderColor = active
         ? logoGreen.withValues(alpha: 0.7)
         : (isDark ? const Color(0xFF2E384D) : const Color(0xFFE2E8F0));
-    final fg = enabled ? scheme.onSurface : scheme.onSurfaceVariant.withValues(alpha: 0.6);
+    final fg = enabled
+        ? scheme.onSurface
+        : scheme.onSurfaceVariant.withValues(alpha: 0.6);
 
     return Material(
       color: Colors.transparent,
@@ -2119,10 +2145,7 @@ class _DialItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: borderColor,
-            width: active ? 1.5 : 1,
-          ),
+          border: Border.all(color: borderColor, width: active ? 1.5 : 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
@@ -2148,15 +2171,13 @@ class _DialItem extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: active
                           ? logoGreen.withValues(alpha: 0.15)
-                          : (isDark ? const Color(0xFF283245) : const Color(0xFFF1F5F9)),
+                          : (isDark
+                                ? const Color(0xFF283245)
+                                : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(9),
                     ),
                     alignment: Alignment.center,
-                    child: Icon(
-                      icon,
-                      size: 19,
-                      color: active ? logoGreen : fg,
-                    ),
+                    child: Icon(icon, size: 19, color: active ? logoGreen : fg),
                   ),
                   const SizedBox(width: 12),
                   // Flexible, so a long second line ellipsises instead of pushing
@@ -2183,9 +2204,7 @@ class _DialItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
-                            color: active
-                                ? logoGreen
-                                : scheme.onSurfaceVariant,
+                            color: active ? logoGreen : scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -2194,7 +2213,10 @@ class _DialItem extends StatelessWidget {
                   if (active) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2.5,
+                      ),
                       decoration: BoxDecoration(
                         color: logoGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
