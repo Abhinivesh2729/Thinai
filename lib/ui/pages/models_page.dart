@@ -17,7 +17,6 @@ enum ModelFilter { all, chat, vision, embedding, installed }
 
 const _brandGreen = Color(0xFF2CA048);
 
-
 class ModelsPage extends ConsumerStatefulWidget {
   const ModelsPage({super.key});
 
@@ -79,31 +78,82 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     }
   }
 
-  Future<void> _delete(LocalModel m) async {
-    final confirm = await showDialog<bool>(
+  /// Asks before an action a stray tap should not be able to take: starting a
+  /// download, cancelling one (there is no resume, so progress is lost) or
+  /// deleting a model. Dismissing the dialog in any way counts as "no".
+  Future<bool> _confirm({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    String cancelLabel = 'Cancel',
+    bool destructive = false,
+  }) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete model?'),
-        content: Text(
-          'Are you sure you want to delete ${m.displayName}? This frees ${_fmtSize(m.sizeBytes)} of space.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
+            child: Text(cancelLabel),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(c).colorScheme.error,
-            ),
+            style: destructive
+                ? FilledButton.styleFrom(
+                    backgroundColor: Theme.of(c).colorScheme.error,
+                  )
+                : null,
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
     );
-    if (confirm != true) return;
+    return confirmed == true;
+  }
+
+  Future<void> _download(CatalogModel m) async {
+    // A vision model fetches its image encoder too, so the size asked about
+    // is what will actually land on the phone.
+    final encoder = m.supportsVision ? (m.mmprojBytes ?? 0) : 0;
+    final size = encoder > 0 ? _fmtSize(m.approxBytes + encoder) : m.approxSize;
+    final confirmed = await _confirm(
+      title: 'Download model?',
+      message: 'Do you want to download ${m.displayName} ($size)?',
+      confirmLabel: 'Download',
+    );
+    if (!confirmed || !mounted) return;
+    await ref.read(downloadsProvider.notifier).start(m);
+  }
+
+  Future<void> _cancelDownload(String catalogId) async {
+    final handle = ref.read(downloadsProvider)[catalogId];
+    if (handle == null) return;
+    final confirmed = await _confirm(
+      title: 'Cancel download?',
+      message:
+          'Do you want to cancel the download of ${handle.label}? '
+          'The progress so far will be lost.',
+      confirmLabel: 'Cancel download',
+      cancelLabel: 'Keep downloading',
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    ref.read(downloadsProvider.notifier).cancel(catalogId);
+  }
+
+  Future<void> _delete(LocalModel m) async {
+    final confirm = await _confirm(
+      title: 'Delete model?',
+      message:
+          'Do you want to delete ${m.displayName}? This frees '
+          '${_fmtSize(m.sizeBytes)} of space.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    );
+    if (!confirm || !mounted) return;
     await ref.read(modelStoreProvider).delete(m);
     if (ref.read(activeModelIdProvider) == m.id) {
       await ref.read(activeModelIdProvider.notifier).set(null);
@@ -151,8 +201,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           Navigator.pop(ctx);
         },
         onDelete: (m) => _delete(m),
-        onCancelDownload: (id) =>
-            ref.read(downloadsProvider.notifier).cancel(id),
+        onCancelDownload: _cancelDownload,
         onBrowseCatalog: () {
           Navigator.pop(ctx);
           setState(() {
@@ -205,9 +254,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             tooltip: 'Benchmark',
             icon: const Icon(Icons.speed_rounded),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BenchmarkPage()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const BenchmarkPage()));
             },
           ),
           IconButton(
@@ -215,8 +264,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             tooltip: isDownloading
                 ? 'Downloading (${downloads.length}) · Model Manager'
                 : (installedCount > 0
-                    ? 'Model Manager ($installedCount installed)'
-                    : 'Model Manager'),
+                      ? 'Model Manager ($installedCount installed)'
+                      : 'Model Manager'),
             icon: Badge(
               isLabelVisible: isDownloading || installedCount > 0,
               label: Text(
@@ -224,9 +273,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
               ),
               backgroundColor: _brandGreen,
               textColor: Colors.white,
-              child: const Icon(
-                Icons.layers_rounded,
-              ),
+              child: const Icon(Icons.layers_rounded),
             ),
             onPressed: () => _openModelManager(context),
           ),
@@ -384,7 +431,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                 Text(
                   'Browse and download GGUF models from the catalog to run offline on this device.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 FilledButton.icon(
@@ -439,10 +489,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       );
     }
 
-    final missingEncoders = ref.watch(missingProjectorsProvider).maybeWhen(
-          data: (ids) => ids,
-          orElse: () => const <String>{},
-        );
+    final missingEncoders = ref
+        .watch(missingProjectorsProvider)
+        .maybeWhen(data: (ids) => ids, orElse: () => const <String>{});
 
     final device = ref.watch(speedKnowledgeProvider).device;
 
@@ -450,27 +499,25 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       CatalogModel m, {
       Key? actionKey,
       bool isRecommended = false,
-    }) =>
-        _CatalogCard(
-          model: m,
-          fit: fitFor(m, device),
-          runtimeBytes: runtimeBytesFor(m),
-          budgetBytes: device.modelBudgetBytes,
-          installed: isModelInstalled(m),
-          needsVisionEncoder: missingEncoders.contains(m.id),
-          isRecommended: isRecommended,
-          onAddVision: () =>
-              ref.read(downloadsProvider.notifier).addVisionSupport(m),
-          download: downloads[m.id],
-          onDownload: () => ref.read(downloadsProvider.notifier).start(m),
-          onCancel: () => ref.read(downloadsProvider.notifier).cancel(m.id),
-          actionKey: actionKey,
-        );
+    }) => _CatalogCard(
+      model: m,
+      fit: fitFor(m, device),
+      runtimeBytes: runtimeBytesFor(m),
+      budgetBytes: device.modelBudgetBytes,
+      installed: isModelInstalled(m),
+      needsVisionEncoder: missingEncoders.contains(m.id),
+      isRecommended: isRecommended,
+      onAddVision: () =>
+          ref.read(downloadsProvider.notifier).addVisionSupport(m),
+      download: downloads[m.id],
+      onDownload: () => _download(m),
+      onCancel: () => _cancelDownload(m.id),
+      actionKey: actionKey,
+    );
 
     final installedCatalogIds = <String>{
       for (final m in chatCatalog)
-        if (isModelInstalled(m))
-          m.id,
+        if (isModelInstalled(m)) m.id,
     };
 
     final Set<String> recommendedModelIds;
@@ -494,12 +541,16 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         : chatModels;
 
     final isBrowsingDefault =
-        _filter == ModelFilter.all && _query.isEmpty && _selectedUseCase == null;
+        _filter == ModelFilter.all &&
+        _query.isEmpty &&
+        _selectedUseCase == null;
 
-    final CatalogModel? featured =
-        isBrowsingDefault && chatModels.isNotEmpty ? chatModels.first : null;
+    final CatalogModel? featured = isBrowsingDefault && chatModels.isNotEmpty
+        ? chatModels.first
+        : null;
 
-    final List<CatalogModel> regularChatModels = (featured != null && isBrowsingDefault)
+    final List<CatalogModel> regularChatModels =
+        (featured != null && isBrowsingDefault)
         ? chatModels.sublist(1)
         : remainingChatModels;
 
@@ -507,7 +558,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-
         // Active Goal recommendations section
         if (_selectedUseCase != null) ...[
           _ActiveGoalBanner(
@@ -554,8 +604,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onAddVision: () =>
                 ref.read(downloadsProvider.notifier).addVisionSupport(featured),
             download: downloads[featured.id],
-            onDownload: () => ref.read(downloadsProvider.notifier).start(featured),
-            onCancel: () => ref.read(downloadsProvider.notifier).cancel(featured.id),
+            onDownload: () => _download(featured),
+            onCancel: () => _cancelDownload(featured.id),
             actionKey: CoachMarkTargets.firstCatalogAction,
           ),
           const SizedBox(height: 16),
@@ -567,26 +617,29 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             icon: _filter == ModelFilter.vision
                 ? Icons.visibility_rounded
                 : (_filter == ModelFilter.chat
-                    ? Icons.chat_bubble_outline_rounded
-                    : Icons.explore_rounded),
+                      ? Icons.chat_bubble_outline_rounded
+                      : Icons.explore_rounded),
             title: _selectedUseCase != null
                 ? 'Other models'
                 : (_filter == ModelFilter.vision
-                    ? 'Vision models'
-                    : (_filter == ModelFilter.chat
-                        ? 'Chat models'
-                        : (featured != null ? 'Explore Models' : 'Browse catalog'))),
+                      ? 'Vision models'
+                      : (_filter == ModelFilter.chat
+                            ? 'Chat models'
+                            : (featured != null
+                                  ? 'Explore Models'
+                                  : 'Browse catalog'))),
             subtitle: _selectedUseCase != null
                 ? 'All other available models'
                 : (_filter == ModelFilter.vision
-                    ? 'Multimodal · image & visual analysis'
-                    : 'Curated GGUF models · one-tap download'),
+                      ? 'Multimodal · image & visual analysis'
+                      : 'Curated GGUF models · one-tap download'),
           ),
           const SizedBox(height: 10),
           for (final m in regularChatModels) ...[
             catalogCard(
               m,
-              actionKey: (featured == null && identical(m, regularChatModels.first))
+              actionKey:
+                  (featured == null && identical(m, regularChatModels.first))
                   ? CoachMarkTargets.firstCatalogAction
                   : null,
             ),
@@ -619,11 +672,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.offline_pin_rounded,
-                color: _brandGreen,
-                size: 16,
-              ),
+              Icon(Icons.offline_pin_rounded, color: _brandGreen, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -691,7 +740,9 @@ class _SearchBar extends StatelessWidget {
               size: 20,
               color: hasText
                   ? _brandGreen
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  : (isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B)),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -699,11 +750,16 @@ class _SearchBar extends StatelessWidget {
                 controller: controller,
                 textInputAction: TextInputAction.search,
                 onChanged: onChanged,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Search models, makers, architectures…',
                   hintStyle: TextStyle(
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                     fontSize: 13.5,
                   ),
                   border: InputBorder.none,
@@ -799,7 +855,9 @@ class _DropdownFilterBar extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(
-                color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF263040)
+                    : const Color(0xFFE2E8F0),
                 width: 1,
               ),
             ),
@@ -817,13 +875,17 @@ class _DropdownFilterBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: isCategoryFiltered
-                    ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.22 : 0.12)
+                    ? const Color(
+                        0xFF2CA048,
+                      ).withValues(alpha: isDark ? 0.22 : 0.12)
                     : (isDark ? const Color(0xFF131722) : Colors.white),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isCategoryFiltered
                       ? const Color(0xFF2CA048)
-                      : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
+                      : (isDark
+                            ? const Color(0xFF263040)
+                            : const Color(0xFFCBD5E1)),
                   width: isCategoryFiltered ? 1.5 : 1,
                 ),
                 boxShadow: !isDark && !isCategoryFiltered
@@ -844,17 +906,23 @@ class _DropdownFilterBar extends StatelessWidget {
                     size: 15,
                     color: isCategoryFiltered
                         ? const Color(0xFF2CA048)
-                        : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                        : (isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF334155)),
                   ),
                   const SizedBox(width: 7),
                   Text(
                     _filterLabel(selected),
                     style: TextStyle(
                       fontSize: 12.5,
-                      fontWeight: isCategoryFiltered ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: isCategoryFiltered
+                          ? FontWeight.w800
+                          : FontWeight.w600,
                       color: isCategoryFiltered
                           ? const Color(0xFF2CA048)
-                          : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                          : (isDark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF334155)),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -863,7 +931,9 @@ class _DropdownFilterBar extends StatelessWidget {
                     size: 20,
                     color: isCategoryFiltered
                         ? const Color(0xFF2CA048)
-                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                        : (isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B)),
                   ),
                 ],
               ),
@@ -875,7 +945,9 @@ class _DropdownFilterBar extends StatelessWidget {
           // 2. Classical Goals / Smart Match Button
           Material(
             color: selectedUseCase != null
-                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.22 : 0.12)
+                ? const Color(
+                    0xFF2CA048,
+                  ).withValues(alpha: isDark ? 0.22 : 0.12)
                 : (isDark ? const Color(0xFF131722) : Colors.white),
             borderRadius: BorderRadius.circular(10),
             elevation: !isDark && selectedUseCase == null ? 0.5 : 0,
@@ -891,7 +963,9 @@ class _DropdownFilterBar extends StatelessWidget {
                   border: Border.all(
                     color: selectedUseCase != null
                         ? const Color(0xFF2CA048)
-                        : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
+                        : (isDark
+                              ? const Color(0xFF263040)
+                              : const Color(0xFFCBD5E1)),
                     width: selectedUseCase != null ? 1.5 : 1,
                   ),
                 ),
@@ -905,17 +979,25 @@ class _DropdownFilterBar extends StatelessWidget {
                       size: 14.5,
                       color: selectedUseCase != null
                           ? const Color(0xFF2CA048)
-                          : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                          : (isDark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF334155)),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      selectedUseCase != null ? selectedUseCase!.label : 'Goals',
+                      selectedUseCase != null
+                          ? selectedUseCase!.label
+                          : 'Goals',
                       style: TextStyle(
                         fontSize: 12.5,
-                        fontWeight: selectedUseCase != null ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: selectedUseCase != null
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         color: selectedUseCase != null
                             ? const Color(0xFF2CA048)
-                            : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                            : (isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155)),
                       ),
                     ),
                     if (selectedUseCase != null) ...[
@@ -937,7 +1019,9 @@ class _DropdownFilterBar extends StatelessWidget {
                       Icon(
                         Icons.arrow_drop_down_rounded,
                         size: 20,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ],
                   ],
@@ -1024,11 +1108,7 @@ class _DropdownFilterBar extends StatelessWidget {
             ),
           ),
           if (isSelected)
-            const Icon(
-              Icons.check_rounded,
-              size: 17,
-              color: Color(0xFF2CA048),
-            ),
+            const Icon(Icons.check_rounded, size: 17, color: Color(0xFF2CA048)),
         ],
       ),
     );
@@ -1104,7 +1184,10 @@ class _ActiveGoalBanner extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               foregroundColor: primaryBrand,
             ),
-            child: const Text('Change', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Change',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.close_rounded, size: 16),
@@ -1136,14 +1219,15 @@ class _ModelManagerSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final installed = ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
+    final installed =
+        ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
     final activeId = ref.watch(activeModelIdProvider);
     final downloads = ref.watch(downloadsProvider);
     final totalBytes = installed.fold<int>(0, (sum, m) => sum + m.sizeBytes);
     final activeModel = installed.cast<LocalModel?>().firstWhere(
-          (m) => m?.id == activeId,
-          orElse: () => null,
-        );
+      (m) => m?.id == activeId,
+      orElse: () => null,
+    );
 
     final subtitle = downloads.isNotEmpty
         ? '${installed.length} installed · ${downloads.length} downloading · ${_fmtSize(totalBytes)} used'
@@ -1436,7 +1520,10 @@ class _ManagerModelTile extends StatelessWidget {
               onPressed: onActivate,
               style: FilledButton.styleFrom(
                 backgroundColor: scheme.surfaceContainerHigh,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
@@ -1467,10 +1554,7 @@ class _GoalPickerSheet extends StatelessWidget {
   final UseCase? selected;
   final ValueChanged<UseCase?> onSelect;
 
-  const _GoalPickerSheet({
-    required this.selected,
-    required this.onSelect,
-  });
+  const _GoalPickerSheet({required this.selected, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -1508,7 +1592,11 @@ class _GoalPickerSheet extends StatelessWidget {
                     color: _brandGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.tune_rounded, color: _brandGreen, size: 20),
+                  child: const Icon(
+                    Icons.tune_rounded,
+                    color: _brandGreen,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1551,7 +1639,9 @@ class _GoalPickerSheet extends StatelessWidget {
                     label: const Text('Clear Active Goal'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: scheme.error,
-                      side: BorderSide(color: scheme.error.withValues(alpha: 0.4)),
+                      side: BorderSide(
+                        color: scheme.error.withValues(alpha: 0.4),
+                      ),
                     ),
                     onPressed: () => onSelect(null),
                   ),
@@ -1614,9 +1704,7 @@ class _GoalOptionCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? _brandGreen
-                      : scheme.surfaceContainerHigh,
+                  color: isSelected ? _brandGreen : scheme.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -1748,7 +1836,9 @@ class _SectionHeader extends StatelessWidget {
               color: isDark ? const Color(0x242CA048) : const Color(0x141B8738),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isDark ? const Color(0x402CA048) : const Color(0x301B8738),
+                color: isDark
+                    ? const Color(0x402CA048)
+                    : const Color(0x301B8738),
                 width: 1,
               ),
             ),
@@ -1861,7 +1951,9 @@ class _DownloadProgressRow extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: isDone ? 1.0 : fraction,
                 minHeight: 6,
-                backgroundColor: isDark ? const Color(0xFF1E2533) : const Color(0xFFE2E8F0),
+                backgroundColor: isDark
+                    ? const Color(0xFF1E2533)
+                    : const Color(0xFFE2E8F0),
                 color: (isDone && hasError) ? scheme.error : primaryBrand,
               ),
             ),
@@ -1922,10 +2014,7 @@ class _InstalledCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: cardBorder,
-              width: active ? 1.5 : 1,
-            ),
+            border: Border.all(color: cardBorder, width: active ? 1.5 : 1),
             boxShadow: cardShadow,
           ),
           padding: const EdgeInsets.all(15),
@@ -1936,12 +2025,16 @@ class _InstalledCard extends StatelessWidget {
                 height: 46,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A222E) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF1A222E)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(13),
                   border: Border.all(
                     color: active
                         ? primaryBrand.withValues(alpha: 0.45)
-                        : (isDark ? const Color(0xFF2B3647) : const Color(0xFFE2E8F0)),
+                        : (isDark
+                              ? const Color(0xFF2B3647)
+                              : const Color(0xFFE2E8F0)),
                     width: 1,
                   ),
                 ),
@@ -2008,12 +2101,7 @@ class _InstalledCard extends StatelessWidget {
 }
 
 /// Visual taxonomy classification for catalog model cards
-enum _ModelVisualKind {
-  vision,
-  embedding,
-  reasoning,
-  text,
-}
+enum _ModelVisualKind { vision, embedding, reasoning, text }
 
 _ModelVisualKind _classifyModel(CatalogModel model) {
   if (model.supportsVision || model.mmprojUrl != null) {
@@ -2042,34 +2130,31 @@ class _CategoryBadge extends StatelessWidget {
   final _ModelVisualKind kind;
   final bool isDark;
 
-  const _CategoryBadge({
-    required this.kind,
-    required this.isDark,
-  });
+  const _CategoryBadge({required this.kind, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     final (label, icon, color) = switch (kind) {
       _ModelVisualKind.vision => (
-          'VISION',
-          Icons.visibility_rounded,
-          const Color(0xFF6366F1),
-        ),
+        'VISION',
+        Icons.visibility_rounded,
+        const Color(0xFF6366F1),
+      ),
       _ModelVisualKind.embedding => (
-          'EMBED',
-          Icons.hub_rounded,
-          const Color(0xFFF59E0B),
-        ),
+        'EMBED',
+        Icons.hub_rounded,
+        const Color(0xFFF59E0B),
+      ),
       _ModelVisualKind.reasoning => (
-          'REASON',
-          Icons.psychology_rounded,
-          const Color(0xFF0EA5E9),
-        ),
+        'REASON',
+        Icons.psychology_rounded,
+        const Color(0xFF0EA5E9),
+      ),
       _ModelVisualKind.text => (
-          'TEXT',
-          Icons.chat_bubble_outline_rounded,
-          const Color(0xFF2CA048),
-        ),
+        'TEXT',
+        Icons.chat_bubble_outline_rounded,
+        const Color(0xFF2CA048),
+      ),
     };
 
     final bg = color.withValues(alpha: isDark ? 0.16 : 0.10);
@@ -2175,7 +2260,6 @@ class _FeaturedPatternPainter extends CustomPainter {
       oldDelegate.isDark != isDark;
 }
 
-
 /// Atmospheric hero card modeled directly after the user's featured models design
 class _FeaturedHeroCard extends StatelessWidget {
   final CatalogModel model;
@@ -2278,8 +2362,12 @@ class _FeaturedHeroCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF10B981).withValues(alpha: isDark ? 0.22 : 0.12),
-                        const Color(0xFF059669).withValues(alpha: isDark ? 0.10 : 0.05),
+                        const Color(
+                          0xFF10B981,
+                        ).withValues(alpha: isDark ? 0.22 : 0.12),
+                        const Color(
+                          0xFF059669,
+                        ).withValues(alpha: isDark ? 0.10 : 0.05),
                         Colors.transparent,
                       ],
                     ),
@@ -2302,10 +2390,14 @@ class _FeaturedHeroCard extends StatelessWidget {
                         height: 46,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF132B20) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF132B20)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(13),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF235A40) : const Color(0xFF86EFAC),
+                            color: isDark
+                                ? const Color(0xFF235A40)
+                                : const Color(0xFF86EFAC),
                             width: 1,
                           ),
                           boxShadow: const [
@@ -2332,14 +2424,21 @@ class _FeaturedHeroCard extends StatelessWidget {
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.2,
-                                    color: isDark ? const Color(0xFF86EFAC) : const Color(0xFF15803D),
+                                    color: isDark
+                                        ? const Color(0xFF86EFAC)
+                                        : const Color(0xFF15803D),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1.5,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2CA048).withValues(alpha: isDark ? 0.24 : 0.15),
+                                    color: const Color(
+                                      0xFF2CA048,
+                                    ).withValues(alpha: isDark ? 0.24 : 0.15),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -2348,7 +2447,9 @@ class _FeaturedHeroCard extends StatelessWidget {
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.6,
-                                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
+                                      color: isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF15803D),
                                     ),
                                   ),
                                 ),
@@ -2363,7 +2464,9 @@ class _FeaturedHeroCard extends StatelessWidget {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: -0.2,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
                               ),
                             ),
                           ],
@@ -2372,12 +2475,19 @@ class _FeaturedHeroCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       // "🔥 Popular" pill badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4.5,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF133624) : const Color(0xFFDCFCE7),
+                          color: isDark
+                              ? const Color(0xFF133624)
+                              : const Color(0xFFDCFCE7),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF225E3F) : const Color(0xFF86EFAC),
+                            color: isDark
+                                ? const Color(0xFF225E3F)
+                                : const Color(0xFF86EFAC),
                             width: 1,
                           ),
                         ),
@@ -2391,7 +2501,9 @@ class _FeaturedHeroCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF166534),
+                                color: isDark
+                                    ? const Color(0xFFE2E8F0)
+                                    : const Color(0xFF166534),
                               ),
                             ),
                           ],
@@ -2462,7 +2574,9 @@ class _FeaturedHeroCard extends StatelessWidget {
           foregroundColor: const Color(0xFF4ADE80),
           side: const BorderSide(color: Color(0xFF4ADE80), width: 1.2),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
         ),
       );
@@ -2474,15 +2588,16 @@ class _FeaturedHeroCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0x282CA048),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0x552CA048),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0x552CA048), width: 1),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF4ADE80)),
+            Icon(
+              Icons.check_circle_rounded,
+              size: 13,
+              color: Color(0xFF4ADE80),
+            ),
             SizedBox(width: 4),
             Text(
               'Installed',
@@ -2520,7 +2635,9 @@ class _FeaturedHeroCard extends StatelessWidget {
               color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       );
@@ -2537,13 +2654,15 @@ class _FeaturedHeroCard extends StatelessWidget {
         child: Container(
           height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.arrow_downward_rounded, size: 14, color: Colors.white),
+              const Icon(
+                Icons.arrow_downward_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
               const SizedBox(width: 5),
               Text(
                 model.approxSize,
@@ -2554,7 +2673,11 @@ class _FeaturedHeroCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 3),
-              const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
             ],
           ),
         ),
@@ -2629,10 +2752,7 @@ class _CatalogCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: cardBorder,
-          width: isRecommended ? 1.5 : 1,
-        ),
+        border: Border.all(color: cardBorder, width: isRecommended ? 1.5 : 1),
         boxShadow: cardShadow,
       ),
       child: ClipRRect(
@@ -2674,10 +2794,14 @@ class _CatalogCard extends StatelessWidget {
                         height: 44,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A222E) : const Color(0xFFF8FAFC),
+                          color: isDark
+                              ? const Color(0xFF1A222E)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF2A3648) : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? const Color(0xFF2A3648)
+                                : const Color(0xFFE2E8F0),
                             width: 1,
                           ),
                         ),
@@ -2697,7 +2821,9 @@ class _CatalogCard extends StatelessWidget {
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.1,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -2708,7 +2834,10 @@ class _CatalogCard extends StatelessWidget {
                                 if (isRecommended) ...[
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1.5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isDark
                                           ? const Color(0x282CA048)
@@ -2721,7 +2850,9 @@ class _CatalogCard extends StatelessWidget {
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: 0.6,
-                                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
+                                        color: isDark
+                                            ? const Color(0xFF4ADE80)
+                                            : const Color(0xFF15803D),
                                       ),
                                     ),
                                   ),
@@ -2752,7 +2883,9 @@ class _CatalogCard extends StatelessWidget {
                           icon: Icon(
                             Icons.more_horiz_rounded,
                             size: 18,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                           ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -2796,10 +2929,7 @@ class _CatalogCard extends StatelessWidget {
                               label: '${model.contextLabel} ctx',
                               icon: Icons.receipt_long_outlined,
                             ),
-                            _SpecPill(
-                              label: capTag.$2,
-                              icon: capTag.$1,
-                            ),
+                            _SpecPill(label: capTag.$2, icon: capTag.$1),
                             if (model.dimensions != null)
                               _SpecPill(
                                 label: '${model.dimensions} dims',
@@ -2839,7 +2969,9 @@ class _CatalogCard extends StatelessWidget {
           foregroundColor: primaryBrand,
           side: BorderSide(color: primaryBrand, width: 1.2),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
         ),
       );
@@ -2889,7 +3021,11 @@ class _CatalogCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.memory_rounded, size: 12, color: scheme.onSurfaceVariant),
+            Icon(
+              Icons.memory_rounded,
+              size: 12,
+              color: scheme.onSurfaceVariant,
+            ),
             const SizedBox(width: 4),
             Text(
               'Needs RAM',
@@ -2913,8 +3049,13 @@ class _CatalogCard extends StatelessWidget {
           onPressed: onCancel,
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 9),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       );
@@ -2945,7 +3086,11 @@ class _CatalogCard extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.arrow_downward_rounded, size: 13, color: Colors.white),
+              const Icon(
+                Icons.arrow_downward_rounded,
+                size: 13,
+                color: Colors.white,
+              ),
               const SizedBox(width: 5),
               Text(
                 model.approxSize,
@@ -2956,7 +3101,11 @@ class _CatalogCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 3),
-              const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
             ],
           ),
         ),
@@ -2996,7 +3145,9 @@ void _openModelDetailsSheet(
               width: 38,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF263040)
+                    : const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -3009,10 +3160,14 @@ void _openModelDetailsSheet(
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A222E) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF1A222E)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF2A3648) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF2A3648)
+                        : const Color(0xFFE2E8F0),
                     width: 1,
                   ),
                 ),
@@ -3030,7 +3185,9 @@ void _openModelDetailsSheet(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.1,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -3096,8 +3253,13 @@ void _openModelDetailsSheet(
                 style: FilledButton.styleFrom(
                   backgroundColor: _brandGreen,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(ctx);
@@ -3138,7 +3300,11 @@ class _DetailSpecTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          Icon(
+            icon,
+            size: 16,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -3150,7 +3316,9 @@ class _DetailSpecTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 1),
@@ -3255,7 +3423,8 @@ class _SpecPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = isDarkCard || Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        isDarkCard || Theme.of(context).brightness == Brightness.dark;
     final isAccent = tone == _ChipTone.accent;
 
     final bg = isAccent
@@ -3264,7 +3433,8 @@ class _SpecPill extends StatelessWidget {
     final border = isAccent
         ? (isDark ? const Color(0x552CA048) : const Color(0x401B8738))
         : (isDark ? const Color(0xFF263345) : const Color(0xFFE2E8F0));
-    final fg = color ??
+    final fg =
+        color ??
         (isAccent
             ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
             : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)));
@@ -3341,8 +3511,8 @@ class _FitWarning extends StatelessWidget {
 
     final text = blocked
         ? available == null
-            ? 'Too large for this phone.'
-            : 'Needs ${_gb(needs)}, this phone has ${_gb(available)} to spare.'
+              ? 'Too large for this phone.'
+              : 'Needs ${_gb(needs)}, this phone has ${_gb(available)} to spare.'
         : 'A tight fit. Other apps may close while this runs.';
 
     return Container(
