@@ -14,6 +14,7 @@ import '../widgets/model_settings_sheet.dart';
 import 'about_page.dart';
 import 'benchmark_page.dart';
 import 'contact_support_page.dart';
+import 'system_prompt_page.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN SETTINGS HUB PAGE (Apple-Inspired AI Cards Experience)
@@ -50,6 +51,16 @@ class SettingsPage extends ConsumerWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const AppearanceSettingsPage()),
+                    );
+                  },
+                ),
+                const _TileDivider(),
+                _SectionNavTile(
+                  icon: Icons.edit_note_rounded,
+                  title: 'System Prompt',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SystemPromptPage()),
                     );
                   },
                 ),

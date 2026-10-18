@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../chat/document_attachment.dart';
 import '../../chat/image_attachment.dart';
 import '../../chat/prompt_budget.dart';
+import '../../chat/system_prompt.dart';
 import '../../llm/generation_settings.dart';
 import '../../llm/llm_engine.dart';
 import '../../state/providers.dart';
@@ -34,6 +35,7 @@ import '../widgets/model_settings_sheet.dart';
 List<ChatMessage> _promptFrom(
   List<ChatTurn> turns,
   String pending, {
+  String systemPrompt = '',
   DocumentAttachment? document,
   ImageAttachment? image,
   WebSearchResults? search,
@@ -61,7 +63,12 @@ List<ChatMessage> _promptFrom(
     messages.add(ChatMessage(role: role, content: content));
   }
 
-  // The document leads, as a system message: it belongs to the conversation
+  // The user's system prompt opens the conversation. The document and search
+  // lines below merge into the same system message after it, so a template
+  // that allows only one still renders.
+  add('system', systemPrompt.trim());
+
+  // The document follows, as a system message: it belongs to the conversation
   // rather than to one turn, so every follow-up question can still see it
   // without the text being repeated into the history.
   if (document != null) {
@@ -420,9 +427,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // — the same values the API server uses for it.
     final options = await GenerationSettingsStore.instance.optionsFor(model);
 
+    final systemPrompt = await ref
+        .read(systemPromptProvider.notifier)
+        .current();
+    if (!mounted) return;
+
     final prompt = _promptFrom(
       priorTurns,
       text,
+      systemPrompt: systemPrompt,
       document: _document,
       image: _image,
       search: search,
