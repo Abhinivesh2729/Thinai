@@ -144,7 +144,10 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'chat_sessions_v1': _searchedChat(),
     });
-    await _pump(tester);
+    final container = await _pump(tester);
+    // A launch opens a new chat; the stored one has to be picked.
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
 
     // Collapsed into the action row under the reply, the way it stays out of
     // the way of an answer that is only two lines long.
@@ -174,7 +177,10 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'chat_sessions_v1': _searchedChat(answer: ''),
     });
-    await _pump(tester);
+    final container = await _pump(tester);
+    // A launch opens a new chat; the stored one has to be picked.
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
     // Five links under an empty bubble read as the answer itself.
     expect(find.text('Sources'), findsNothing);
   });

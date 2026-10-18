@@ -544,7 +544,6 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     var conversations = <ChatConversation>[];
-    String? activeId;
 
     final raw = prefs.getString(_kChatSessionsKey);
     if (raw != null && raw.isNotEmpty) {
@@ -557,15 +556,12 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
               conversations.add(conversation);
             }
           }
-          final stored = decoded['activeId'];
-          if (stored is String) activeId = stored;
         }
       } catch (_) {
         // Corrupt or from an older shape: start clean rather than crash the
         // Chat tab on every launch.
         await prefs.remove(_kChatSessionsKey);
         conversations = [];
-        activeId = null;
       }
     } else {
       // Single-thread storage from before conversations existed: carry it
@@ -587,7 +583,6 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
                 updatedAt: DateTime.now(),
               );
               conversations = [migrated];
-              activeId = migrated.id;
             }
           }
         } catch (_) {
@@ -604,11 +599,11 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
       for (final c in conversations) _dropTrailingPlaceholder(c),
     ]..removeWhere((c) => c.isEmpty);
 
-    state = ChatSessions(
-      conversations: conversations,
-      activeId: conversations.any((c) => c.id == activeId) ? activeId : null,
-      loaded: true,
-    );
+    // A launch opens a blank chat, as ChatGPT and Gemini do, rather than
+    // dropping the user back into whatever they were last asking about. The
+    // old chats stay in history; the blank one is not stored until it has a
+    // message.
+    state = ChatSessions(conversations: conversations, loaded: true);
     if (raw != null || conversations.isNotEmpty) unawaited(_save());
   }
 
@@ -659,14 +654,15 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
 
   /// Leaves the current chat open in the list and starts a blank one. The new
   /// chat is not stored until it has a message.
+  ///
+  /// Which chat is open is not stored, since every launch starts on a blank
+  /// one, so switching writes nothing.
   void startNewChat() {
     state = state.copyWith(clearActive: true);
-    unawaited(_save());
   }
 
   void open(String id) {
     state = state.copyWith(activeId: id);
-    unawaited(_save());
   }
 
   Future<void> rename(String id, String newTitle) async {
@@ -752,7 +748,6 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     await prefs.setString(
       _kChatSessionsKey,
       jsonEncode({
-        'activeId': state.activeId,
         'conversations': [for (final c in tidied) c.toJson()],
       }),
     );
