@@ -40,6 +40,15 @@ class GenerationOptions {
   final double temperature;
   final double topP;
 
+  /// Sample only from the K likeliest tokens; 0 disables the cut. Null leaves
+  /// llama.cpp's default.
+  final int? topK;
+
+  /// False asks a model with a thinking mode to answer without reasoning
+  /// first. Null leaves the template's default. Models without a thinking
+  /// mode ignore it.
+  final bool? enableThinking;
+
   /// Max tokens to generate. `-1` means "until the model stops" (llama.cpp
   /// `n_predict = -1`), i.e. no artificial output cap. A positive value caps
   /// the response length.
@@ -67,6 +76,8 @@ class GenerationOptions {
   const GenerationOptions({
     this.temperature = 0.7,
     this.topP = 1.0,
+    this.topK,
+    this.enableThinking,
     this.maxTokens = -1,
     this.contextSize = kDefaultContextSize,
     this.numGpuLayers = 0,
@@ -185,12 +196,11 @@ class StopWordFilter {
   var _hit = false;
 
   StopWordFilter(List<String> stops)
-      : _stops = [
-          for (final s in stops)
-            if (s.isNotEmpty) s
-        ],
-        _holdBack =
-            stops.fold<int>(0, (m, s) => math.max(m, s.length)) - 1;
+    : _stops = [
+        for (final s in stops)
+          if (s.isNotEmpty) s,
+      ],
+      _holdBack = stops.fold<int>(0, (m, s) => math.max(m, s.length)) - 1;
 
   /// The reply as the client has seen it: everything before the stop word.
   String get visible => _visible;
@@ -224,8 +234,9 @@ class StopWordFilter {
       }
     }
 
-    final delta =
-        visible.length > _visible.length ? visible.substring(_visible.length) : '';
+    final delta = visible.length > _visible.length
+        ? visible.substring(_visible.length)
+        : '';
     _visible = visible;
     return delta;
   }
@@ -420,7 +431,8 @@ class LlmEngine {
   }
 
   Future<void> _run(_QueuedJob job) async {
-    var onGpu = job.options.gpuBackend != GpuBackend.none &&
+    var onGpu =
+        job.options.gpuBackend != GpuBackend.none &&
         job.options.numGpuLayers > 0;
     // A backend that keeps failing loads rests for a while and the request
     // runs on the CPU; the saved setting is left alone.
@@ -429,12 +441,14 @@ class LlmEngine {
     }
     final request = OpenAiRequest(
       messages: job.messages
-          .map((m) => Message(
-                _roleFromString(m.role),
-                m.content,
-                toolCalls: m.toolCalls,
-                toolResponseName: m.toolName,
-              ))
+          .map(
+            (m) => Message(
+              _roleFromString(m.role),
+              m.content,
+              toolCalls: m.toolCalls,
+              toolResponseName: m.toolName,
+            ),
+          )
           .toList(),
       tools: [
         for (final t in job.tools)
@@ -451,6 +465,8 @@ class LlmEngine {
       mmprojPath: job.mmprojPath,
       temperature: job.options.temperature,
       topP: job.options.topP,
+      topK: job.options.topK,
+      enableThinking: job.options.enableThinking,
       maxTokens: job.options.maxTokens,
       // Guard: a non-positive n_ctx collapses native batch sizing (n_batch =
       // min(n_ctx, 2048) → 0), so fall back to the default window.

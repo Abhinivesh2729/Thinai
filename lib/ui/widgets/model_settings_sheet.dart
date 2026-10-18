@@ -4,7 +4,7 @@ import '../../llm/context_limits.dart';
 import '../../llm/generation_settings.dart';
 import '../../models_repo/model_store.dart';
 
-/// Opens the context window and temperature controls for [model].
+/// Opens the context window, sampling and thinking controls for [model].
 ///
 /// The same sheet from the Chat tab and the Server page, writing to the one
 /// [GenerationSettingsStore] both read, so a model tuned in either place
@@ -33,6 +33,13 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
   ContextLimit? _limit;
   int _context = kMinContextSize;
   double _temperature = kDefaultTemperature;
+  int _topK = kDefaultTopK;
+  double _topP = kDefaultTopP;
+  bool _thinking = true;
+
+  /// Null until the model file has been checked for a thinking mode; the
+  /// switch only appears for a model that has one.
+  bool? _canThink;
 
   @override
   void initState() {
@@ -42,11 +49,16 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
 
   Future<void> _load() async {
     final resolved = await _store.resolve(widget.model);
+    final canThink = await _store.supportsThinkingToggle(widget.model);
     if (!mounted) return;
     setState(() {
       _limit = resolved.limit;
       _context = resolved.contextSize;
       _temperature = resolved.temperature;
+      _topK = resolved.topK.clamp(0, kMaxTopK).toInt();
+      _topP = resolved.topP.clamp(kMinTopP, 1.0).toDouble();
+      _thinking = resolved.thinking;
+      _canThink = canThink;
     });
   }
 
@@ -69,38 +81,50 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                 height: 160,
                 child: Center(child: CircularProgressIndicator()),
               )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Model settings', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 2),
-                  Text(
-                    widget.model.id,
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Used by chat and the API server. Requests can override '
-                    'these, up to the maximum.',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 20),
-                  _contextSection(theme, limit),
-                  const SizedBox(height: 20),
-                  _temperatureSection(theme),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _reset,
-                      icon: const Icon(Icons.restart_alt_rounded),
-                      label: const Text('Reset to defaults'),
+            // Scrolls once the controls outgrow a short phone's sheet.
+            : SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Model settings', style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.model.id,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Used by chat and the API server. Requests can override '
+                      'these, up to the maximum.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _contextSection(theme, limit),
+                    const SizedBox(height: 20),
+                    _temperatureSection(theme),
+                    const SizedBox(height: 20),
+                    _topKSection(theme),
+                    const SizedBox(height: 20),
+                    _topPSection(theme),
+                    if (_canThink == true) ...[
+                      const SizedBox(height: 12),
+                      _thinkingSection(theme),
+                    ],
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: _reset,
+                        icon: const Icon(Icons.restart_alt_rounded),
+                        label: const Text('Reset to defaults'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
       ),
     );
@@ -121,8 +145,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               '${_tokens(_context)} tokens',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -139,14 +164,16 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           ),
         Text(
           _capExplanation(limit),
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           'Longer windows remember more but use more RAM and run slower.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -164,8 +191,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               _temperature.toStringAsFixed(2),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -176,25 +204,121 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           divisions: (kMaxTemperature / 0.05).round(),
           label: _temperature.toStringAsFixed(2),
           onChanged: (v) => setState(() => _temperature = v),
-          onChangeEnd: (v) =>
-              _store.update(widget.model.id, temperature: v),
+          onChangeEnd: (v) => _store.update(widget.model.id, temperature: v),
         ),
         Row(
           children: [
             Text(
               'Precise',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
             const Spacer(),
             Text(
               'Creative',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _topKSection(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    final label = _topK == 0 ? 'Off' : '$_topK';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text('Top-K', style: theme.textTheme.titleSmall)),
+            Text(
+              label,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          key: const ValueKey('modelSettings.topK'),
+          value: _topK.toDouble(),
+          min: 0,
+          max: kMaxTopK.toDouble(),
+          divisions: kMaxTopK,
+          label: label,
+          onChanged: (v) => setState(() => _topK = v.round()),
+          onChangeEnd: (v) => _store.update(widget.model.id, topK: v.round()),
+        ),
+        Text(
+          'Picks each word from only the K likeliest. Lower is more focused; '
+          '0 turns the limit off.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _topPSection(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text('Top-P', style: theme.textTheme.titleSmall)),
+            Text(
+              _topP.toStringAsFixed(2),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          key: const ValueKey('modelSettings.topP'),
+          value: _topP,
+          min: kMinTopP,
+          max: 1.0,
+          divisions: ((1.0 - kMinTopP) / 0.05).round(),
+          label: _topP.toStringAsFixed(2),
+          onChanged: (v) => setState(() => _topP = v),
+          onChangeEnd: (v) => _store.update(widget.model.id, topP: v),
+        ),
+        Text(
+          'Picks from the likeliest words that together make up this share of '
+          'the probability. 1.00 keeps them all.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _thinkingSection(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    return SwitchListTile(
+      key: const ValueKey('modelSettings.thinking'),
+      contentPadding: EdgeInsets.zero,
+      title: Text('Thinking', style: theme.textTheme.titleSmall),
+      subtitle: Text(
+        'Reasons step by step before answering. Off answers sooner.',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+      value: _thinking,
+      onChanged: (v) {
+        setState(() => _thinking = v);
+        _store.update(widget.model.id, thinking: v);
+      },
     );
   }
 
