@@ -328,18 +328,18 @@ final benchmarkStoreProvider = Provider<BenchmarkStore>(
   (ref) => const BenchmarkStore(),
 );
 
-final benchmarkResultsProvider = StateNotifierProvider<
-    BenchmarkResultsController, Map<String, BenchmarkResult>>(
-  (ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)),
-);
+final benchmarkResultsProvider =
+    StateNotifierProvider<
+      BenchmarkResultsController,
+      Map<String, BenchmarkResult>
+    >((ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)));
 
 /// Everything known about speed on this phone: the device class, plus whatever
 /// the Benchmark page has actually measured.
 final speedKnowledgeProvider = Provider<SpeedKnowledge>((ref) {
-  final device = ref.watch(deviceProfileProvider).maybeWhen(
-        data: (d) => d,
-        orElse: () => DeviceProfile.unknownProfile,
-      );
+  final device = ref
+      .watch(deviceProfileProvider)
+      .maybeWhen(data: (d) => d, orElse: () => DeviceProfile.unknownProfile);
   return SpeedKnowledge(
     device: device,
     measurements: ref.watch(benchmarkResultsProvider),
@@ -376,8 +376,7 @@ class ChatTurn {
   Map<String, Object?> toJson() => {
     'role': role,
     'content': content,
-    if (sources.isNotEmpty)
-      'sources': [for (final s in sources) s.toJson()],
+    if (sources.isNotEmpty) 'sources': [for (final s in sources) s.toJson()],
   };
 
   static ChatTurn? fromJson(Object? value) {
@@ -441,13 +440,12 @@ class ChatConversation {
     DateTime? updatedAt,
     String? customTitle,
     bool clearCustomTitle = false,
-  }) =>
-      ChatConversation(
-        id: id,
-        turns: turns ?? this.turns,
-        updatedAt: updatedAt ?? this.updatedAt,
-        customTitle: clearCustomTitle ? null : (customTitle ?? this.customTitle),
-      );
+  }) => ChatConversation(
+    id: id,
+    turns: turns ?? this.turns,
+    updatedAt: updatedAt ?? this.updatedAt,
+    customTitle: clearCustomTitle ? null : (customTitle ?? this.customTitle),
+  );
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -471,9 +469,7 @@ class ChatConversation {
     return ChatConversation(
       id: id,
       turns: turns,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        stamp is int ? stamp : 0,
-      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(stamp is int ? stamp : 0),
       customTitle: customTitle,
     );
   }
@@ -595,9 +591,8 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     conversations = _tidy(conversations);
     // A reply cut off by the app being killed leaves an empty placeholder.
     // Drop it, keep the question.
-    conversations = [
-      for (final c in conversations) _dropTrailingPlaceholder(c),
-    ]..removeWhere((c) => c.isEmpty);
+    conversations = [for (final c in conversations) _dropTrailingPlaceholder(c)]
+      ..removeWhere((c) => c.isEmpty);
 
     // A launch opens a blank chat, as ChatGPT and Gemini do, rather than
     // dropping the user back into whatever they were last asking about. The
@@ -915,12 +910,7 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       handle.cancel();
       state = {...state}..remove(catalogId);
       _ref.read(modelsRefreshProvider.notifier).state++;
-      _emit(
-        DownloadOutcome(
-          label: handle.label,
-          cancelled: true,
-        ),
-      );
+      _emit(DownloadOutcome(label: handle.label, cancelled: true));
     }
   }
 
@@ -945,8 +935,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       }
     }
     _emit(
-      DownloadOutcome(label: '${model.displayName} image encoder',
-          catalogModel: model),
+      DownloadOutcome(
+        label: '${model.displayName} image encoder',
+        catalogModel: model,
+      ),
     );
   }
 
@@ -965,7 +957,9 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     if (await store.projectorPathFor(filename) != null) return;
 
     try {
-      final handle = await _ref.read(modelDownloaderProvider).start(
+      final handle = await _ref
+          .read(modelDownloaderProvider)
+          .start(
             url,
             filename: filename,
             displayName: '${model.displayName} · image encoder',
@@ -1002,7 +996,10 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     if (!_outcomes.isClosed) _outcomes.add(outcome);
   }
 
-  Future<LocalModel?> _findDownloaded(String expectedId, String destPath) async {
+  Future<LocalModel?> _findDownloaded(
+    String expectedId,
+    String destPath,
+  ) async {
     final store = _ref.read(modelStoreProvider);
     final byId = await store.findById(expectedId);
     if (byId != null) return byId;
@@ -1037,7 +1034,6 @@ String _normalizeModelKey(String input) {
   }
   return key;
 }
-
 
 Future<String> _getOrCreateServerBearerToken() async {
   final prefs = await SharedPreferences.getInstance();
@@ -1118,11 +1114,7 @@ class ServerController extends StateNotifier<ServerStatus> {
       }
 
       await _server.start(
-        ApiServerConfig(
-          port: port,
-          lanMode: lanMode,
-          bearerToken: bearerToken,
-        ),
+        ApiServerConfig(port: port, lanMode: lanMode, bearerToken: bearerToken),
       );
 
       final ip = lanMode ? await lanIpv4() : null;
@@ -1134,10 +1126,7 @@ class ServerController extends StateNotifier<ServerStatus> {
         lanIp: ip,
       );
 
-      await _remember(
-        running: true,
-        port: state.port,
-      );
+      await _remember(running: true, port: state.port);
     } catch (e) {
       state = ServerStatus(
         running: false,
@@ -1146,10 +1135,7 @@ class ServerController extends StateNotifier<ServerStatus> {
         error: e.toString(),
       );
 
-      await _remember(
-        running: false,
-        port: port,
-      );
+      await _remember(running: false, port: port);
     }
   }
 
@@ -1257,10 +1243,9 @@ Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
       // lanShareProvider loads its own preference asynchronously, so read the
       // stored value directly instead of racing it.
       final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;
-      await ref.read(serverControllerProvider.notifier).start(
-        port: port,
-        lanMode: lan,
-      );
+      await ref
+          .read(serverControllerProvider.notifier)
+          .start(port: port, lanMode: lan);
       final status = ref.read(serverControllerProvider);
       if (status.running) {
         await ForegroundServiceManager.serverStarted(
