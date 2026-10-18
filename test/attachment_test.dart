@@ -29,11 +29,13 @@ void main() {
       // the user with a file and no next step.
       expect(
         () => readDocument('report.pdf', textBytes('%PDF-1.7')),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          allOf(contains('PDF'), contains('text')),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('PDF'), contains('text')),
+          ),
+        ),
       );
       expect(
         () => readDocument('deck.pptx', textBytes('PK')),
@@ -49,19 +51,25 @@ void main() {
       final binary = Uint8List.fromList([72, 101, 0, 108, 108, 111]);
       expect(
         () => readDocument('sneaky.txt', binary),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('binary'),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('binary'),
+          ),
+        ),
       );
     });
 
     test('rejects empty and whitespace-only files', () {
-      expect(() => readDocument('empty.txt', Uint8List(0)),
-          throwsA(isA<FormatException>()));
-      expect(() => readDocument('blank.txt', textBytes('   \n\n  ')),
-          throwsA(isA<FormatException>()));
+      expect(
+        () => readDocument('empty.txt', Uint8List(0)),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => readDocument('blank.txt', textBytes('   \n\n  ')),
+        throwsA(isA<FormatException>()),
+      );
     });
 
     test('accepts an unfamiliar extension that is plainly text', () {
@@ -73,8 +81,10 @@ void main() {
 
     test('rejects text that is not UTF-8', () {
       final latin1 = Uint8List.fromList([0xFF, 0xFE, 0x41, 0x42]);
-      expect(() => readDocument('odd.txt', latin1),
-          throwsA(isA<FormatException>()));
+      expect(
+        () => readDocument('odd.txt', latin1),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 
@@ -84,13 +94,19 @@ void main() {
         readDocument('spec.md', textBytes('the content')),
       );
       expect(message, contains('spec.md'));
-      // A fence with a random id the file cannot forge, rather than the old
+      // A fence the file cannot spell, rather than the old
       // `--- END DOCUMENT ---` line any file could contain.
-      expect(message, contains('<<<DOCUMENT id='));
+      expect(message, contains('<<<DOCUMENT>>>'));
       expect(message, contains('the content'));
-      expect(message, contains('<<<END DOCUMENT id='));
-      expect(message.indexOf('the content'),
-          lessThan(message.indexOf('<<<END DOCUMENT')));
+      expect(message, contains('<<<END DOCUMENT>>>'));
+      // No id on the markers: small models reported it as the file's own
+      // "Project ID" (#23).
+      expect(message, isNot(contains('id=')));
+      expect(message, contains('never mention them'));
+      expect(
+        message.indexOf('the content'),
+        lessThan(message.indexOf('<<<END DOCUMENT')),
+      );
       expect(message, contains('not instructions'));
     });
 
@@ -124,17 +140,23 @@ void main() {
     });
 
     test('rejects formats and sizes it cannot handle', () {
-      expect(() => readImage('diagram.svg', png),
-          throwsA(isA<FormatException>()));
-      expect(() => readImage('empty.png', Uint8List(0)),
-          throwsA(isA<FormatException>()));
+      expect(
+        () => readImage('diagram.svg', png),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => readImage('empty.png', Uint8List(0)),
+        throwsA(isA<FormatException>()),
+      );
       expect(
         () => readImage('huge.png', Uint8List(kMaxImageBytes + 1)),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('MB'),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('MB'),
+          ),
+        ),
       );
     });
 

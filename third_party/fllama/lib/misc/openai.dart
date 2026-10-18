@@ -61,6 +61,15 @@ class OpenAiRequest {
   final double temperature;
   final int maxTokens;
   final double topP;
+
+  /// Sample only from the K likeliest tokens; 0 disables the cut. Null leaves
+  /// llama.cpp's default (40). Not in OpenAI's API, but llama-server takes it.
+  final int? topK;
+
+  /// Whether a model with a thinking mode (Qwen3, SmolLM3, ...) reasons before
+  /// it answers. Null leaves the template's default, which is on. Models
+  /// without a thinking mode ignore it.
+  final bool? enableThinking;
   final double frequencyPenalty;
   final double presencePenalty;
   // Not in OpenAI, but used by llama.
@@ -109,6 +118,8 @@ class OpenAiRequest {
       'temperature': temperature,
       'max_tokens': maxTokens,
       'top_p': topP,
+      if (topK != null) 'top_k': topK,
+      if (enableThinking != null) 'enable_thinking': enableThinking,
       'frequency_penalty': frequencyPenalty,
       'presence_penalty': presencePenalty,
       if (toolChoice != null) 'tool_choice': toolChoice?.jsonName,
@@ -130,6 +141,8 @@ class OpenAiRequest {
     // Percent of tokens to consider. 1.0 means all tokens are considered.
     // 0.05 means only the top 5% of tokens are considered.
     this.topP = 1.0,
+    this.topK,
+    this.enableThinking,
     this.frequencyPenalty = 0.0,
     // Match default penalty_repeat of 1.1 in llama.cpp.
     this.presencePenalty = 1.1,

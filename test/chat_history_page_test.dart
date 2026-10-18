@@ -8,21 +8,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_llm/state/providers.dart';
 import 'package:local_llm/ui/pages/chat_history_page.dart';
 
-String _sessions(List<(String, List<(String, String)>)> conversations,
-        {String? activeId}) =>
-    jsonEncode({
-      'activeId': activeId,
-      'conversations': [
-        for (final c in conversations)
-          {
-            'id': c.$1,
-            'updatedAt': 1000,
-            'turns': [
-              for (final t in c.$2) {'role': t.$1, 'content': t.$2},
-            ],
-          },
-      ],
-    });
+String _sessions(
+  List<(String, List<(String, String)>)> conversations, {
+  String? activeId,
+}) => jsonEncode({
+  'activeId': activeId,
+  'conversations': [
+    for (final c in conversations)
+      {
+        'id': c.$1,
+        'updatedAt': 1000,
+        'turns': [
+          for (final t in c.$2) {'role': t.$1, 'content': t.$2},
+        ],
+      },
+  ],
+});
 
 Future<ProviderContainer> _pump(WidgetTester tester) async {
   final container = ProviderContainer();
@@ -48,14 +49,16 @@ void main() {
       ], activeId: 'a'),
     });
 
-    await _pump(tester);
+    final container = await _pump(tester);
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
 
     expect(find.text('What is a GGUF?'), findsOneWidget);
     expect(find.text('Explain embeddings'), findsOneWidget);
     // The reply is the preview line for the chat that has one.
     expect(find.text('A file format'), findsOneWidget);
     // The chat currently on the Chat tab is marked.
-    expect(find.text('OPEN'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsOneWidget);
   });
 
   testWidgets('tapping a chat makes it the open one', (tester) async {
@@ -67,14 +70,20 @@ void main() {
     });
 
     final container = await _pump(tester);
-    expect(container.read(chatSessionsProvider).activeId, 'a');
+    expect(
+      container.read(chatSessionsProvider).activeId,
+      isNull,
+      reason: 'a launch starts on a new chat',
+    );
 
     await tester.tap(find.text('Beta'));
     await tester.pump();
 
     expect(container.read(chatSessionsProvider).activeId, 'b');
-    expect(container.read(chatSessionsProvider).activeTurns.single.content,
-        'Beta');
+    expect(
+      container.read(chatSessionsProvider).activeTurns.single.content,
+      'Beta',
+    );
   });
 
   testWidgets('New chat clears the open conversation', (tester) async {
@@ -85,13 +94,18 @@ void main() {
     });
 
     final container = await _pump(tester);
+    container.read(chatSessionsProvider.notifier).open('a');
+    await tester.pump();
     await tester.tap(find.text('New chat'));
     await tester.pump();
 
     final sessions = container.read(chatSessionsProvider);
     expect(sessions.activeId, isNull);
-    expect(sessions.conversations, hasLength(1),
-        reason: 'starting a new chat does not discard the old one');
+    expect(
+      sessions.conversations,
+      hasLength(1),
+      reason: 'starting a new chat does not discard the old one',
+    );
   });
 
   testWidgets('deleting asks first, then removes the chat', (tester) async {
@@ -117,7 +131,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await _pump(tester);
     expect(find.text('No saved chats yet'), findsOneWidget);
-    expect(find.byIcon(Icons.delete_sweep_rounded), findsNothing,
-        reason: 'nothing to delete in bulk');
+    expect(
+      find.byIcon(Icons.delete_sweep_rounded),
+      findsNothing,
+      reason: 'nothing to delete in bulk',
+    );
   });
 }

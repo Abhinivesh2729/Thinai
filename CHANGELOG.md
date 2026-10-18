@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.4.0]
+
+### Added
+- Confirmation dialogs before downloading a model (names the model and size), cancelling a download (progress is lost), and deleting a model (#28).
+- Settings → System Prompt: view, edit and reset the system prompt every chat starts with. Persisted, works offline, chat only (#30).
+- Per-model Top-K, Top-P and a Thinking on/off switch in the model settings sheet. The switch appears only for models whose chat template has a thinking mode; the API server honours the same settings, and a client's own `top_k` / `top_p` / thinking flag still wins (#31).
+
+### Changed
+- The app opens a new, empty chat on launch instead of resuming the last one; past chats stay in history (#29).
+- Default Top-P is now 0.95 (llama.cpp's default), was 1.0.
+
 ### Fixed
 - GPU inference no longer crashes the app on most Android devices: GPU backend registration failures are caught and fall back to CPU, Vulkan device re-enumeration is bounds-checked, and a backend that fails two loads in a row rests for ten minutes while requests run on the CPU.
 

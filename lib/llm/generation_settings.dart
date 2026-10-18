@@ -1,5 +1,5 @@
-/// How each model generates: its context window and temperature, as the user
-/// set them, applied the same way in the Chat tab and by the API server.
+/// How each model generates: its context window and sampling settings, as the
+/// user set them, applied the same way in the Chat tab and by the API server.
 ///
 /// One store behind both on purpose. A model tuned in chat and then served to
 /// a laptop should behave the same on the laptop; two settings screens that
@@ -30,6 +30,21 @@ const double kDefaultTemperature = 0.7;
 /// noise.
 const double kMaxTemperature = 2.0;
 
+/// Top-K when nobody has chosen one: llama.cpp's own default.
+const int kDefaultTopK = 40;
+
+/// Highest Top-K offered. Past this the cut stops removing anything a model
+/// this size would plausibly pick; 0 turns it off altogether.
+const int kMaxTopK = 100;
+
+/// Top-P when nobody has chosen one: llama.cpp's own default, which trims the
+/// long tail of unlikely tokens without flattening the reply.
+const double kDefaultTopP = 0.95;
+
+/// Lowest Top-P offered. Below this the model is all but greedy, which
+/// temperature 0 already says more plainly.
+const double kMinTopP = 0.05;
+
 /// "All layers", as Ollama and llama.cpp spell it.
 const int kAllGpuLayers = 999;
 
@@ -38,20 +53,44 @@ const int kAllGpuLayers = 999;
 class ModelGenerationSettings {
   final int? contextSize;
   final double? temperature;
+  final int? topK;
+  final double? topP;
 
-  const ModelGenerationSettings({this.contextSize, this.temperature});
+  /// Whether a model with a thinking mode reasons before answering. Only
+  /// stored once switched off or back on; never set means the template's
+  /// default, which for every such model this app runs is on.
+  final bool? thinking;
 
-  bool get isDefault => contextSize == null && temperature == null;
+  const ModelGenerationSettings({
+    this.contextSize,
+    this.temperature,
+    this.topK,
+    this.topP,
+    this.thinking,
+  });
+
+  bool get isDefault =>
+      contextSize == null &&
+      temperature == null &&
+      topK == null &&
+      topP == null &&
+      thinking == null;
 
   Map<String, dynamic> toJson() => {
-        if (contextSize != null) 'contextSize': contextSize,
-        if (temperature != null) 'temperature': temperature,
-      };
+    if (contextSize != null) 'contextSize': contextSize,
+    if (temperature != null) 'temperature': temperature,
+    if (topK != null) 'topK': topK,
+    if (topP != null) 'topP': topP,
+    if (thinking != null) 'thinking': thinking,
+  };
 
   factory ModelGenerationSettings.fromJson(Map<String, dynamic> json) =>
       ModelGenerationSettings(
         contextSize: (json['contextSize'] as num?)?.toInt(),
         temperature: (json['temperature'] as num?)?.toDouble(),
+        topK: (json['topK'] as num?)?.toInt(),
+        topP: (json['topP'] as num?)?.toDouble(),
+        thinking: json['thinking'] as bool?,
       );
 }
 
@@ -74,12 +113,12 @@ class GenerationSettings {
       perModel[id] ?? const ModelGenerationSettings();
 
   Map<String, dynamic> toJson() => {
-        'gpu': gpu.storageKey,
-        'perModel': {
-          for (final e in perModel.entries)
-            if (!e.value.isDefault) e.key: e.value.toJson(),
-        },
-      };
+    'gpu': gpu.storageKey,
+    'perModel': {
+      for (final e in perModel.entries)
+        if (!e.value.isDefault) e.key: e.value.toJson(),
+    },
+  };
 
   factory GenerationSettings.fromJson(Map<String, dynamic> json) {
     final raw = json['perModel'];
@@ -103,11 +142,20 @@ class ResolvedGeneration {
   final ContextLimit limit;
   final int contextSize;
   final double temperature;
+  final int topK;
+  final double topP;
+
+  /// Whether thinking is on. Meaningful only for a model whose template has a
+  /// thinking mode; the rest ignore it.
+  final bool thinking;
 
   const ResolvedGeneration({
     required this.limit,
     required this.contextSize,
     required this.temperature,
+    this.topK = kDefaultTopK,
+    this.topP = kDefaultTopP,
+    this.thinking = true,
   });
 }
 
@@ -156,30 +204,51 @@ class GenerationSettingsStore {
     String modelId, {
     int? contextSize,
     double? temperature,
+    int? topK,
+    double? topP,
+    bool? thinking,
   }) async {
     await ensureLoaded();
     final current = _settings.forModel(modelId);
     final next = ModelGenerationSettings(
       contextSize: contextSize ?? current.contextSize,
       temperature: temperature ?? current.temperature,
+      topK: topK ?? current.topK,
+      topP: topP ?? current.topP,
+      thinking: thinking ?? current.thinking,
     );
-    await _save(GenerationSettings(
-      gpu: _settings.gpu,
-      perModel: {..._settings.perModel, modelId: next},
-    ));
+    await _save(
+      GenerationSettings(
+        gpu: _settings.gpu,
+        perModel: {..._settings.perModel, modelId: next},
+      ),
+    );
   }
 
   Future<void> reset(String modelId) async {
     await ensureLoaded();
-    await _save(GenerationSettings(
-      gpu: _settings.gpu,
-      perModel: {..._settings.perModel}..remove(modelId),
-    ));
+    await _save(
+      GenerationSettings(
+        gpu: _settings.gpu,
+        perModel: {..._settings.perModel}..remove(modelId),
+      ),
+    );
   }
 
   Future<void> setGpu(GpuBackend gpu) async {
     await ensureLoaded();
     await _save(GenerationSettings(gpu: gpu, perModel: _settings.perModel));
+  }
+
+  /// Whether [model] has a thinking mode that can be switched off: its chat
+  /// template reads `enable_thinking` (Qwen3, Qwen3.5, SmolLM3, ...).
+  ///
+  /// Read from the file rather than the catalogue so a model imported or
+  /// downloaded by URL gets the switch too, and a reasoning model that cannot
+  /// stop thinking does not get one that does nothing.
+  Future<bool> supportsThinkingToggle(LocalModel model) async {
+    final template = await readGgufChatTemplate(model.path);
+    return template != null && template.contains('enable_thinking');
   }
 
   /// The context cap for [model] on this phone.
@@ -204,18 +273,23 @@ class GenerationSettingsStore {
   /// [model]'s settings, with any per-request values layered on top and the
   /// window clamped to what the model and phone can take.
   ///
-  /// A request naming its own temperature or `num_ctx` wins over the saved
-  /// setting — that is what an API client expects — but never past the cap.
+  /// A request naming its own temperature, Top-K, Top-P, thinking switch or
+  /// `num_ctx` wins over the saved setting — that is what an API client
+  /// expects — but never past the cap.
   Future<ResolvedGeneration> resolve(
     LocalModel model, {
     int? requestedContext,
     double? requestedTemperature,
+    int? requestedTopK,
+    double? requestedTopP,
+    bool? requestedThinking,
   }) async {
     await ensureLoaded();
     final limit = await limitFor(model);
     final saved = _settings.forModel(model.id);
 
-    final wanted = requestedContext ??
+    final wanted =
+        requestedContext ??
         saved.contextSize ??
         (kDefaultContextSize < limit.cap ? kDefaultContextSize : limit.cap);
     final temperature =
@@ -223,10 +297,20 @@ class GenerationSettingsStore {
             .clamp(0.0, kMaxTemperature)
             .toDouble();
 
+    final topK = (requestedTopK ?? saved.topK ?? kDefaultTopK)
+        .clamp(0, 1 << 20)
+        .toInt();
+    final topP = (requestedTopP ?? saved.topP ?? kDefaultTopP)
+        .clamp(0.0, 1.0)
+        .toDouble();
+
     return ResolvedGeneration(
       limit: limit,
       contextSize: limit.clamp(wanted),
       temperature: temperature,
+      topK: topK,
+      topP: topP,
+      thinking: requestedThinking ?? saved.thinking ?? true,
     );
   }
 
@@ -238,7 +322,9 @@ class GenerationSettingsStore {
     LocalModel model, {
     int? requestedContext,
     double? requestedTemperature,
-    double topP = 1.0,
+    int? requestedTopK,
+    double? requestedTopP,
+    bool? requestedThinking,
     int maxTokens = -1,
     List<String> stop = const [],
     GpuBackend? gpu,
@@ -247,6 +333,9 @@ class GenerationSettingsStore {
       model,
       requestedContext: requestedContext,
       requestedTemperature: requestedTemperature,
+      requestedTopK: requestedTopK,
+      requestedTopP: requestedTopP,
+      requestedThinking: requestedThinking,
     );
     var backend = gpu ?? _settings.gpu;
     // A backend that keeps failing loads is rested and the request runs on
@@ -258,7 +347,11 @@ class GenerationSettingsStore {
     }
     return GenerationOptions(
       temperature: resolved.temperature,
-      topP: topP,
+      topP: resolved.topP,
+      topK: resolved.topK,
+      // Sent only to turn thinking off: on is every template's default, and
+      // leaving the field out keeps requests to other models unchanged.
+      enableThinking: resolved.thinking ? null : false,
       maxTokens: maxTokens,
       contextSize: resolved.contextSize,
       // Every layer: llama.cpp caps this at the model's layer count, and a

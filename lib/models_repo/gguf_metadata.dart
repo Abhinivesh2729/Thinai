@@ -79,28 +79,28 @@ class GgufModelInfo {
   }
 
   Map<String, dynamic> toJson() => {
-        if (architecture != null) 'architecture': architecture,
-        if (name != null) 'name': name,
-        if (trainedContext != null) 'trainedContext': trainedContext,
-        if (layers != null) 'layers': layers,
-        if (heads != null) 'heads': heads,
-        if (kvHeads != null) 'kvHeads': kvHeads,
-        if (embeddingLength != null) 'embeddingLength': embeddingLength,
-        if (keyLength != null) 'keyLength': keyLength,
-        if (valueLength != null) 'valueLength': valueLength,
-      };
+    if (architecture != null) 'architecture': architecture,
+    if (name != null) 'name': name,
+    if (trainedContext != null) 'trainedContext': trainedContext,
+    if (layers != null) 'layers': layers,
+    if (heads != null) 'heads': heads,
+    if (kvHeads != null) 'kvHeads': kvHeads,
+    if (embeddingLength != null) 'embeddingLength': embeddingLength,
+    if (keyLength != null) 'keyLength': keyLength,
+    if (valueLength != null) 'valueLength': valueLength,
+  };
 
   factory GgufModelInfo.fromJson(Map<String, dynamic> json) => GgufModelInfo(
-        architecture: json['architecture'] as String?,
-        name: json['name'] as String?,
-        trainedContext: json['trainedContext'] as int?,
-        layers: json['layers'] as int?,
-        heads: json['heads'] as int?,
-        kvHeads: json['kvHeads'] as int?,
-        embeddingLength: json['embeddingLength'] as int?,
-        keyLength: json['keyLength'] as int?,
-        valueLength: json['valueLength'] as int?,
-      );
+    architecture: json['architecture'] as String?,
+    name: json['name'] as String?,
+    trainedContext: json['trainedContext'] as int?,
+    layers: json['layers'] as int?,
+    heads: json['heads'] as int?,
+    kvHeads: json['kvHeads'] as int?,
+    embeddingLength: json['embeddingLength'] as int?,
+    keyLength: json['keyLength'] as int?,
+    valueLength: json['valueLength'] as int?,
+  );
 }
 
 /// Thrown when a file is not a GGUF this reader understands.
@@ -140,6 +140,59 @@ GgufModelInfo readGgufInfoSync(String path) {
   } finally {
     file.closeSync();
   }
+}
+
+final Map<String, String?> _templateCache = {};
+
+/// [path]'s chat template (`tokenizer.chat_template`), read off the UI isolate
+/// and memoised like [readGgufInfo]. Null when the file has none or cannot be
+/// read.
+///
+/// A separate read from [readGgufInfo] because the template sits after the
+/// tokenizer's vocabulary, so finding it means walking past every token
+/// string — a few megabytes, where the sizing keys take a few kilobytes. Only
+/// the settings sheet needs it.
+Future<String?> readGgufChatTemplate(String path) async {
+  try {
+    final stat = await File(path).stat();
+    final key = '$path|${stat.size}|${stat.modified.millisecondsSinceEpoch}';
+    if (_templateCache.containsKey(key)) return _templateCache[key];
+    final template = await Isolate.run(() {
+      final file = File(path).openSync();
+      try {
+        return parseGgufChatTemplate(_FileSource(file));
+      } finally {
+        file.closeSync();
+      }
+    });
+    _templateCache[key] = template;
+    return template;
+  } on Object {
+    return null;
+  }
+}
+
+/// Finds `tokenizer.chat_template` in a GGUF header, or null if it has none.
+String? parseGgufChatTemplate(GgufByteSource source) {
+  final r = _Reader(source);
+  if (r.u32() != 0x46554747) {
+    throw const GgufFormatException('not a GGUF file');
+  }
+  final version = r.u32();
+  if (version < 2) {
+    throw GgufFormatException('GGUF v$version is not supported');
+  }
+  r.u64(); // tensor count
+  final kvCount = r.u64();
+  for (var i = 0; i < kvCount; i++) {
+    final key = r.string();
+    final type = r.u32();
+    if (key == 'tokenizer.chat_template' && type == _tString) {
+      return r.string();
+    }
+    _skipValue(r, type);
+  }
+  return null;
 }
 
 /// Parses header key/values from [source], stopping as soon as everything
@@ -252,24 +305,24 @@ bool _isInteger(int type) =>
     type == _tI64;
 
 int _fixedSize(int type) => switch (type) {
-      _tU8 || _tI8 || _tBool => 1,
-      _tU16 || _tI16 => 2,
-      _tU32 || _tI32 || _tF32 => 4,
-      _tU64 || _tI64 || _tF64 => 8,
-      _ => -1,
-    };
+  _tU8 || _tI8 || _tBool => 1,
+  _tU16 || _tI16 => 2,
+  _tU32 || _tI32 || _tF32 => 4,
+  _tU64 || _tI64 || _tF64 => 8,
+  _ => -1,
+};
 
 int _readInt(_Reader r, int type) => switch (type) {
-      _tU8 => r.bytes(1).getUint8(0),
-      _tI8 => r.bytes(1).getInt8(0),
-      _tU16 => r.bytes(2).getUint16(0, Endian.little),
-      _tI16 => r.bytes(2).getInt16(0, Endian.little),
-      _tU32 => r.u32(),
-      _tI32 => r.bytes(4).getInt32(0, Endian.little),
-      _tU64 => r.u64(),
-      _tI64 => r.bytes(8).getInt64(0, Endian.little),
-      _ => throw GgufFormatException('type $type is not an integer'),
-    };
+  _tU8 => r.bytes(1).getUint8(0),
+  _tI8 => r.bytes(1).getInt8(0),
+  _tU16 => r.bytes(2).getUint16(0, Endian.little),
+  _tI16 => r.bytes(2).getInt16(0, Endian.little),
+  _tU32 => r.u32(),
+  _tI32 => r.bytes(4).getInt32(0, Endian.little),
+  _tU64 => r.u64(),
+  _tI64 => r.bytes(8).getInt64(0, Endian.little),
+  _ => throw GgufFormatException('type $type is not an integer'),
+};
 
 void _skipValue(_Reader r, int type) {
   if (type == _tString) {
@@ -370,9 +423,6 @@ class _Reader {
     }
     if (length == 0) return '';
     final view = bytes(length);
-    return utf8.decode(
-      Uint8List.sublistView(view),
-      allowMalformed: true,
-    );
+    return utf8.decode(Uint8List.sublistView(view), allowMalformed: true);
   }
 }
