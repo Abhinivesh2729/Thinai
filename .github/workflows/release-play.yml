@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    name: Build bundle and upload draft
+    name: Build bundle and publish to production
     runs-on: ubuntu-latest
     timeout-minutes: 50
     # Queue rather than cancel: an upload cut off halfway can leave a half-made Play edit.
@@ -40,9 +40,7 @@ jobs:
       - run: flutter analyze
 
       # Tests tagged `native` need a device and a model download; see dart_test.yaml.
-      # TEMPORARY: skipped once because widget_test.dart still expects the old bottom nav. Revert after fixing the test.
       - run: flutter test --exclude-tags native
-        continue-on-error: true
 
       # versionCode = 10000 + run number: above any code Play has seen (older repo used 100 + commit count) and rising every run; versionName comes from pubspec.yaml.
       - name: Work out version
@@ -73,6 +71,8 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: production
           status: completed
+          # "What's new" text, one file per language (whatsnew-en-US, ...), 500 characters max.
+          whatsNewDirectory: distribution/whatsnew
 
       - name: Summary
         if: ${{ always() }}
