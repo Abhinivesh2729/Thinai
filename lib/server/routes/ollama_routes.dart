@@ -35,8 +35,10 @@ Router ollamaRouter() {
           },
       ],
     };
-    return Response.ok(jsonEncode(body),
-        headers: {'content-type': 'application/json'});
+    return Response.ok(
+      jsonEncode(body),
+      headers: {'content-type': 'application/json'},
+    );
   });
 
   router.get('/api/ps', (Request req) async {
@@ -48,11 +50,13 @@ Router ollamaRouter() {
             'name': _idFromPath(active),
             'model': _idFromPath(active),
             'size': 0,
-          }
+          },
       ],
     };
-    return Response.ok(jsonEncode(body),
-        headers: {'content-type': 'application/json'});
+    return Response.ok(
+      jsonEncode(body),
+      headers: {'content-type': 'application/json'},
+    );
   });
 
   router.post('/api/show', (Request req) async {
@@ -107,8 +111,10 @@ Router ollamaRouter() {
 
     final model = await _resolveModel(modelName);
     if (model == null) {
-      return Response(404,
-          body: jsonEncode({'error': 'model not found: $modelName'}));
+      return Response(
+        404,
+        body: jsonEncode({'error': 'model not found: $modelName'}),
+      );
     }
     LlmEngine.instance.setActiveModel(model.path);
     final options = await _generationOptionsFor(body, model);
@@ -149,14 +155,8 @@ Router ollamaRouter() {
     () async {
       try {
         await for (final t in tokenStream) {
-          final line = '${jsonEncode({
-                'model': model.id,
-                'created_at': DateTime.now().toUtc().toIso8601String(),
-                'response': t.delta,
-                'done': t.done,
-                if (t.done) 'done_reason': t.finishReason ?? 'stop',
-                if (t.done) ..._counters(t.stats, startedAt),
-              })}\n';
+          final line =
+              '${jsonEncode({'model': model.id, 'created_at': DateTime.now().toUtc().toIso8601String(), 'response': t.delta, 'done': t.done, if (t.done) 'done_reason': t.finishReason ?? 'stop', if (t.done) ..._counters(t.stats, startedAt)})}\n';
           controller.add(utf8.encode(line));
         }
       } catch (e) {
@@ -167,10 +167,13 @@ Router ollamaRouter() {
       }
     }();
 
-    return Response.ok(controller.stream, headers: {
-      'content-type': 'application/x-ndjson',
-      'cache-control': 'no-cache',
-    });
+    return Response.ok(
+      controller.stream,
+      headers: {
+        'content-type': 'application/x-ndjson',
+        'cache-control': 'no-cache',
+      },
+    );
   });
 
   // Ollama's current embedding endpoint. `input` is a string or array of
@@ -184,16 +187,20 @@ Router ollamaRouter() {
     try {
       inputs = parseEmbeddingInputs(body['input']);
     } on FormatException catch (e) {
-      return Response(400,
-          body: jsonEncode({'error': e.message}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        400,
+        body: jsonEncode({'error': e.message}),
+        headers: {'content-type': 'application/json'},
+      );
     }
 
     final model = await _resolveModel(modelName);
     if (model == null) {
-      return Response(404,
-          body: jsonEncode({'error': 'model not found: $modelName'}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        404,
+        body: jsonEncode({'error': 'model not found: $modelName'}),
+        headers: {'content-type': 'application/json'},
+      );
     }
 
     final options = _optionsFrom(body);
@@ -216,9 +223,11 @@ Router ollamaRouter() {
         headers: {'content-type': 'application/json'},
       );
     } on EmbeddingException catch (e) {
-      return Response(400,
-          body: jsonEncode({'error': e.message}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        400,
+        body: jsonEncode({'error': e.message}),
+        headers: {'content-type': 'application/json'},
+      );
     }
   });
 
@@ -229,16 +238,20 @@ Router ollamaRouter() {
     final modelName = body['model'] as String?;
     final prompt = body['prompt'];
     if (prompt is! String || prompt.isEmpty) {
-      return Response(400,
-          body: jsonEncode({'error': 'prompt is required'}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        400,
+        body: jsonEncode({'error': 'prompt is required'}),
+        headers: {'content-type': 'application/json'},
+      );
     }
 
     final model = await _resolveModel(modelName);
     if (model == null) {
-      return Response(404,
-          body: jsonEncode({'error': 'model not found: $modelName'}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        404,
+        body: jsonEncode({'error': 'model not found: $modelName'}),
+        headers: {'content-type': 'application/json'},
+      );
     }
 
     final options = _optionsFrom(body);
@@ -254,9 +267,11 @@ Router ollamaRouter() {
         headers: {'content-type': 'application/json'},
       );
     } on EmbeddingException catch (e) {
-      return Response(400,
-          body: jsonEncode({'error': e.message}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        400,
+        body: jsonEncode({'error': e.message}),
+        headers: {'content-type': 'application/json'},
+      );
     }
   });
 
@@ -274,15 +289,19 @@ Router ollamaRouter() {
       );
       tools = parseTools(body['tools']);
     } on FormatException catch (e) {
-      return Response(400,
-          body: jsonEncode({'error': e.message}),
-          headers: {'content-type': 'application/json'});
+      return Response(
+        400,
+        body: jsonEncode({'error': e.message}),
+        headers: {'content-type': 'application/json'},
+      );
     }
 
     final model = await _resolveModel(modelName);
     if (model == null) {
-      return Response(404,
-          body: jsonEncode({'error': 'model not found: $modelName'}));
+      return Response(
+        404,
+        body: jsonEncode({'error': 'model not found: $modelName'}),
+      );
     }
     LlmEngine.instance.setActiveModel(model.path);
     final options = await _generationOptionsFor(body, model);
@@ -331,15 +350,11 @@ Router ollamaRouter() {
       try {
         await for (final t in tokenStream) {
           final toolCalls = t.done ? t.toolCalls : null;
-          final line = '${jsonEncode({
+          final line =
+              '${jsonEncode({
                 'model': model.id,
                 'created_at': DateTime.now().toUtc().toIso8601String(),
-                'message': {
-                  'role': 'assistant',
-                  'content': t.delta,
-                  if (toolCalls != null)
-                    'tool_calls': _ollamaToolCalls(toolCalls),
-                },
+                'message': {'role': 'assistant', 'content': t.delta, if (toolCalls != null) 'tool_calls': _ollamaToolCalls(toolCalls)},
                 'done': t.done,
                 if (t.done) 'done_reason': t.finishReason ?? 'stop',
                 if (t.done) ..._counters(t.stats, startedAt),
@@ -354,10 +369,13 @@ Router ollamaRouter() {
       }
     }();
 
-    return Response.ok(controller.stream, headers: {
-      'content-type': 'application/x-ndjson',
-      'cache-control': 'no-cache',
-    });
+    return Response.ok(
+      controller.stream,
+      headers: {
+        'content-type': 'application/x-ndjson',
+        'cache-control': 'no-cache',
+      },
+    );
   });
 
   return router;
@@ -392,8 +410,9 @@ Future<GenerationOptions> _generationOptionsFor(
   final resolved = await store.resolve(
     model,
     requestedContext: _asIntOrNull(options['num_ctx']),
-    requestedTemperature:
-        _asDoubleOrNull(options['temperature'] ?? body['temperature']),
+    requestedTemperature: _asDoubleOrNull(
+      options['temperature'] ?? body['temperature'],
+    ),
     requestedTopK: _asIntOrNull(options['top_k'] ?? body['top_k']),
     requestedTopP: _asDoubleOrNull(options['top_p'] ?? body['top_p']),
     requestedThinking: body['think'] is bool ? body['think'] as bool : null,
@@ -403,8 +422,7 @@ Future<GenerationOptions> _generationOptionsFor(
   // matters when GPU acceleration is switched on in the app: a client cannot
   // turn on a GPU driver the phone's owner chose to keep off.
   final requestedLayers = _asIntOrNull(options['num_gpu']);
-  final backend =
-      requestedLayers == 0 ? GpuBackend.none : store.settings.gpu;
+  final backend = requestedLayers == 0 ? GpuBackend.none : store.settings.gpu;
   final layers = backend == GpuBackend.none
       ? 0
       : (requestedLayers ?? kAllGpuLayers);
@@ -483,20 +501,20 @@ dynamic _decodeArguments(dynamic arguments) {
 /// The token counters and timings Ollama clients read off a `done` message.
 /// Durations are nanoseconds, as Ollama reports them.
 Map<String, dynamic> _counters(LlmStats stats, DateTime startedAt) => {
-      'total_duration':
-          DateTime.now().difference(startedAt).inMicroseconds * 1000,
-      'load_duration': 0,
-      'prompt_eval_count': stats.promptTokens,
-      'prompt_eval_duration':
-          (stats.timeToFirstToken ?? Duration.zero).inMicroseconds * 1000,
-      'eval_count': stats.predictedTokens ?? stats.tokens,
-      'eval_duration': stats.decodeTime.inMicroseconds * 1000,
-    };
+  'total_duration': DateTime.now().difference(startedAt).inMicroseconds * 1000,
+  'load_duration': 0,
+  'prompt_eval_count': stats.promptTokens,
+  'prompt_eval_duration':
+      (stats.timeToFirstToken ?? Duration.zero).inMicroseconds * 1000,
+  'eval_count': stats.predictedTokens ?? stats.tokens,
+  'eval_duration': stats.decodeTime.inMicroseconds * 1000,
+};
 
 String _idFromPath(String path) {
   final slash = path.replaceAll('\\', '/');
   final name = slash.split('/').last;
-  final stripped =
-      name.toLowerCase().endsWith('.gguf') ? name.substring(0, name.length - 5) : name;
+  final stripped = name.toLowerCase().endsWith('.gguf')
+      ? name.substring(0, name.length - 5)
+      : name;
   return stripped.toLowerCase();
 }

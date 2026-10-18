@@ -30,8 +30,10 @@ Router openAiRouter() {
           },
       ],
     };
-    return Response.ok(jsonEncode(body),
-        headers: {'content-type': 'application/json'});
+    return Response.ok(
+      jsonEncode(body),
+      headers: {'content-type': 'application/json'},
+    );
   });
 
   router.post('/v1/embeddings', (Request req) async {
@@ -143,7 +145,7 @@ Router openAiRouter() {
     if (toolChoice.name != null) {
       tools = [
         for (final t in allTools)
-          if (t.name == toolChoice.name) t
+          if (t.name == toolChoice.name) t,
       ];
       if (tools.isEmpty) {
         return _error(
@@ -165,7 +167,8 @@ Router openAiRouter() {
     // saved one. Top-K and the thinking switch are not OpenAI fields, but
     // llama-server takes them in these spellings and clients send them.
     final kwargs = body['chat_template_kwargs'];
-    final thinking = body['enable_thinking'] ??
+    final thinking =
+        body['enable_thinking'] ??
         (kwargs is Map ? kwargs['enable_thinking'] : null);
     final options = await GenerationSettingsStore.instance.optionsFor(
       model,
@@ -177,7 +180,7 @@ Router openAiRouter() {
       // deprecated one that most clients still send.
       maxTokens:
           _asIntOrNull(body['max_completion_tokens'] ?? body['max_tokens']) ??
-              -1,
+          -1,
       stop: stop,
     );
 
@@ -192,12 +195,12 @@ Router openAiRouter() {
     );
 
     Map<String, dynamic> chunk(Map<String, dynamic> choice) => {
-          'id': id,
-          'object': 'chat.completion.chunk',
-          'created': created,
-          'model': model.id,
-          'choices': [choice],
-        };
+      'id': id,
+      'object': 'chat.completion.chunk',
+      'created': created,
+      'model': model.id,
+      'choices': [choice],
+    };
 
     if (!stream) {
       final buf = StringBuffer();
@@ -277,7 +280,7 @@ Router openAiRouter() {
 
       void fail(String message) {
         send({
-          'error': {'message': message, 'type': 'server_error'}
+          'error': {'message': message, 'type': 'server_error'},
         });
         // Still terminate the stream properly. A client that only watches for
         // the sentinel would otherwise sit waiting on a connection that is
@@ -287,11 +290,13 @@ Router openAiRouter() {
 
       try {
         // Opening role chunk.
-        send(chunk({
-          'index': 0,
-          'delta': {'role': 'assistant'},
-          'finish_reason': null,
-        }));
+        send(
+          chunk({
+            'index': 0,
+            'delta': {'role': 'assistant'},
+            'finish_reason': null,
+          }),
+        );
 
         await for (final t in tokenStream) {
           if (t.isError) {
@@ -308,31 +313,37 @@ Router openAiRouter() {
             final callId = existing is String && existing.isNotEmpty
                 ? existing
                 : callIds.putIfAbsent(index, () => 'call_${_uuid.v4()}');
-            send(chunk({
-              'index': 0,
-              'delta': {
-                'tool_calls': [
-                  {...delta, 'id': callId, 'type': 'function'}
-                ]
-              },
-              'finish_reason': null,
-            }));
+            send(
+              chunk({
+                'index': 0,
+                'delta': {
+                  'tool_calls': [
+                    {...delta, 'id': callId, 'type': 'function'},
+                  ],
+                },
+                'finish_reason': null,
+              }),
+            );
           }
 
           if (t.delta.isNotEmpty) {
-            send(chunk({
-              'index': 0,
-              'delta': {'content': t.delta},
-              'finish_reason': null,
-            }));
+            send(
+              chunk({
+                'index': 0,
+                'delta': {'content': t.delta},
+                'finish_reason': null,
+              }),
+            );
           }
 
           if (t.done) {
-            send(chunk({
-              'index': 0,
-              'delta': {},
-              'finish_reason': t.finishReason ?? 'stop',
-            }));
+            send(
+              chunk({
+                'index': 0,
+                'delta': {},
+                'finish_reason': t.finishReason ?? 'stop',
+              }),
+            );
             break;
           }
         }
@@ -361,11 +372,14 @@ Router openAiRouter() {
       }
     }();
 
-    return Response.ok(controller.stream, headers: {
-      'content-type': 'text/event-stream',
-      'cache-control': 'no-cache',
-      'connection': 'keep-alive',
-    });
+    return Response.ok(
+      controller.stream,
+      headers: {
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache',
+        'connection': 'keep-alive',
+      },
+    );
   });
 
   return router;
@@ -374,12 +388,12 @@ Router openAiRouter() {
 String _sse(Map<String, dynamic> payload) => 'data: ${jsonEncode(payload)}\n\n';
 
 Response _error(int status, String message, String type) => Response(
-      status,
-      body: jsonEncode({
-        'error': {'message': message, 'type': type}
-      }),
-      headers: {'content-type': 'application/json'},
-    );
+  status,
+  body: jsonEncode({
+    'error': {'message': message, 'type': type},
+  }),
+  headers: {'content-type': 'application/json'},
+);
 
 /// A number the client sent, or null when it sent none — so an absent field
 /// falls through to the model's setting rather than to a hardcoded default.

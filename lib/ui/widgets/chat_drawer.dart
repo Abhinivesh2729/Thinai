@@ -124,7 +124,9 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                                     filtered.isNotEmpty) {
                                   _selectedIds.clear();
                                 } else {
-                                  _selectedIds.addAll(filtered.map((c) => c.id));
+                                  _selectedIds.addAll(
+                                    filtered.map((c) => c.id),
+                                  );
                                 }
                               });
                             },
@@ -195,7 +197,10 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
 
               // Prominent "+ New chat" button (ChatGPT / Claude style)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 child: Material(
                   color: scheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(14),
@@ -328,64 +333,63 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                       },
                     )
                   : filtered.isEmpty
-                      ? _DrawerNoResults(query: _searchQuery)
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          itemCount: _flatCount(groups),
-                          itemBuilder: (context, index) {
-                            final item = _flatItem(groups, index);
-                            if (item is String) {
-                              return _DrawerDateHeader(label: item);
-                            }
-                            final conv = item as ChatConversation;
-                            final isActive = conv.id == sessions.activeId;
-                            final isSelected = _selectedIds.contains(conv.id);
+                  ? _DrawerNoResults(query: _searchQuery)
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      itemCount: _flatCount(groups),
+                      itemBuilder: (context, index) {
+                        final item = _flatItem(groups, index);
+                        if (item is String) {
+                          return _DrawerDateHeader(label: item);
+                        }
+                        final conv = item as ChatConversation;
+                        final isActive = conv.id == sessions.activeId;
+                        final isSelected = _selectedIds.contains(conv.id);
 
-                            return _DrawerConversationTile(
-                              conversation: conv,
-                              isActive: isActive,
-                              isManageMode: _isManageMode,
-                              isSelected: isSelected,
-                              onTap: () {
-                                if (_isManageMode) {
-                                  setState(() {
-                                    if (isSelected) {
-                                      _selectedIds.remove(conv.id);
-                                    } else {
-                                      _selectedIds.add(conv.id);
-                                    }
-                                  });
+                        return _DrawerConversationTile(
+                          conversation: conv,
+                          isActive: isActive,
+                          isManageMode: _isManageMode,
+                          isSelected: isSelected,
+                          onTap: () {
+                            if (_isManageMode) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedIds.remove(conv.id);
                                 } else {
-                                  controller.open(conv.id);
-                                  ref
-                                      .read(shellTabIndexProvider.notifier)
-                                      .state = 0;
-                                  Navigator.of(context).pop();
+                                  _selectedIds.add(conv.id);
                                 }
-                              },
-                              onLongPress: () {
-                                if (_isManageMode) {
-                                  setState(() {
-                                    if (isSelected) {
-                                      _selectedIds.remove(conv.id);
-                                    } else {
-                                      _selectedIds.add(conv.id);
-                                    }
-                                  });
-                                } else {
-                                  HapticFeedback.mediumImpact();
-                                  _showConversationOptions(context, ref, conv);
-                                }
-                              },
-                              onOptionsTap: () {
-                                _showConversationOptions(context, ref, conv);
-                              },
-                            );
+                              });
+                            } else {
+                              controller.open(conv.id);
+                              ref.read(shellTabIndexProvider.notifier).state =
+                                  0;
+                              Navigator.of(context).pop();
+                            }
                           },
-                        ),
+                          onLongPress: () {
+                            if (_isManageMode) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedIds.remove(conv.id);
+                                } else {
+                                  _selectedIds.add(conv.id);
+                                }
+                              });
+                            } else {
+                              HapticFeedback.mediumImpact();
+                              _showConversationOptions(context, ref, conv);
+                            }
+                          },
+                          onOptionsTap: () {
+                            _showConversationOptions(context, ref, conv);
+                          },
+                        );
+                      },
+                    ),
             ),
 
             const Divider(height: 1),
@@ -394,9 +398,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
             if (_isManageMode)
               Container(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerLow,
-                ),
+                decoration: BoxDecoration(color: scheme.surfaceContainerLow),
                 child: Row(
                   children: [
                     Expanded(
@@ -487,8 +489,9 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                               .findById(activeId);
                         }
                         if (model == null) {
-                          final installed =
-                              await ref.read(modelStoreProvider).list();
+                          final installed = await ref
+                              .read(modelStoreProvider)
+                              .list();
                           if (installed.isNotEmpty) {
                             model = installed.first;
                           }
@@ -522,9 +525,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const AboutPage(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const AboutPage()),
                         );
                       },
                     ),
@@ -596,9 +597,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
       SnackBar(
         content: Text('Deleted $count chat${count == 1 ? '' : 's'}'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -914,19 +913,19 @@ class _DrawerConversationTile extends StatelessWidget {
 
     final highlight = isManageMode
         ? (isSelected
-            ? (isDark
-                ? logoGreen.withValues(alpha: 0.20)
-                : logoGreen.withValues(alpha: 0.12))
-            : Colors.transparent)
+              ? (isDark
+                    ? logoGreen.withValues(alpha: 0.20)
+                    : logoGreen.withValues(alpha: 0.12))
+              : Colors.transparent)
         : (isActive
-            ? (isDark ? const Color(0xFF202736) : const Color(0xFFEAEFF5))
-            : Colors.transparent);
+              ? (isDark ? const Color(0xFF202736) : const Color(0xFFEAEFF5))
+              : Colors.transparent);
 
     final borderColor = isManageMode && isSelected
         ? logoGreen.withValues(alpha: 0.45)
         : (isActive && !isManageMode
-            ? (isDark ? const Color(0xFF2E384D) : const Color(0xFFCBD5E1))
-            : Colors.transparent);
+              ? (isDark ? const Color(0xFF2E384D) : const Color(0xFFCBD5E1))
+              : Colors.transparent);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1.5),
@@ -941,10 +940,7 @@ class _DrawerConversationTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9.5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(9),
-              border: Border.all(
-                color: borderColor,
-                width: 1,
-              ),
+              border: Border.all(color: borderColor, width: 1),
             ),
             child: Row(
               children: [
@@ -1158,10 +1154,7 @@ class _DrawerNoResults extends StatelessWidget {
         child: Text(
           'No chats found for "$query"',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            color: scheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
         ),
       ),
     );

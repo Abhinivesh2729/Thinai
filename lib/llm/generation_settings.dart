@@ -77,12 +77,12 @@ class ModelGenerationSettings {
       thinking == null;
 
   Map<String, dynamic> toJson() => {
-        if (contextSize != null) 'contextSize': contextSize,
-        if (temperature != null) 'temperature': temperature,
-        if (topK != null) 'topK': topK,
-        if (topP != null) 'topP': topP,
-        if (thinking != null) 'thinking': thinking,
-      };
+    if (contextSize != null) 'contextSize': contextSize,
+    if (temperature != null) 'temperature': temperature,
+    if (topK != null) 'topK': topK,
+    if (topP != null) 'topP': topP,
+    if (thinking != null) 'thinking': thinking,
+  };
 
   factory ModelGenerationSettings.fromJson(Map<String, dynamic> json) =>
       ModelGenerationSettings(
@@ -113,12 +113,12 @@ class GenerationSettings {
       perModel[id] ?? const ModelGenerationSettings();
 
   Map<String, dynamic> toJson() => {
-        'gpu': gpu.storageKey,
-        'perModel': {
-          for (final e in perModel.entries)
-            if (!e.value.isDefault) e.key: e.value.toJson(),
-        },
-      };
+    'gpu': gpu.storageKey,
+    'perModel': {
+      for (final e in perModel.entries)
+        if (!e.value.isDefault) e.key: e.value.toJson(),
+    },
+  };
 
   factory GenerationSettings.fromJson(Map<String, dynamic> json) {
     final raw = json['perModel'];
@@ -217,18 +217,22 @@ class GenerationSettingsStore {
       topP: topP ?? current.topP,
       thinking: thinking ?? current.thinking,
     );
-    await _save(GenerationSettings(
-      gpu: _settings.gpu,
-      perModel: {..._settings.perModel, modelId: next},
-    ));
+    await _save(
+      GenerationSettings(
+        gpu: _settings.gpu,
+        perModel: {..._settings.perModel, modelId: next},
+      ),
+    );
   }
 
   Future<void> reset(String modelId) async {
     await ensureLoaded();
-    await _save(GenerationSettings(
-      gpu: _settings.gpu,
-      perModel: {..._settings.perModel}..remove(modelId),
-    ));
+    await _save(
+      GenerationSettings(
+        gpu: _settings.gpu,
+        perModel: {..._settings.perModel}..remove(modelId),
+      ),
+    );
   }
 
   Future<void> setGpu(GpuBackend gpu) async {
@@ -284,7 +288,8 @@ class GenerationSettingsStore {
     final limit = await limitFor(model);
     final saved = _settings.forModel(model.id);
 
-    final wanted = requestedContext ??
+    final wanted =
+        requestedContext ??
         saved.contextSize ??
         (kDefaultContextSize < limit.cap ? kDefaultContextSize : limit.cap);
     final temperature =

@@ -98,8 +98,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                     Text(
                       'Used by chat and the API server. Requests can override '
                       'these, up to the maximum.',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: scheme.onSurfaceVariant),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     _contextSection(theme, limit),
@@ -144,8 +145,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               '${_tokens(_context)} tokens',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -162,14 +164,16 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           ),
         Text(
           _capExplanation(limit),
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           'Longer windows remember more but use more RAM and run slower.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -187,8 +191,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             ),
             Text(
               _temperature.toStringAsFixed(2),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -199,21 +204,22 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           divisions: (kMaxTemperature / 0.05).round(),
           label: _temperature.toStringAsFixed(2),
           onChanged: (v) => setState(() => _temperature = v),
-          onChangeEnd: (v) =>
-              _store.update(widget.model.id, temperature: v),
+          onChangeEnd: (v) => _store.update(widget.model.id, temperature: v),
         ),
         Row(
           children: [
             Text(
               'Precise',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
             const Spacer(),
             Text(
               'Creative',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -232,8 +238,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             Expanded(child: Text('Top-K', style: theme.textTheme.titleSmall)),
             Text(
               label,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -250,8 +257,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
         Text(
           'Picks each word from only the K likeliest. Lower is more focused; '
           '0 turns the limit off.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -267,8 +275,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
             Expanded(child: Text('Top-P', style: theme.textTheme.titleSmall)),
             Text(
               _topP.toStringAsFixed(2),
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(color: scheme.primary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -285,8 +294,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
         Text(
           'Picks from the likeliest words that together make up this share of '
           'the probability. 1.00 keeps them all.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -300,8 +310,9 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
       title: Text('Thinking', style: theme.textTheme.titleSmall),
       subtitle: Text(
         'Reasons step by step before answering. Off answers sooner.',
-        style: theme.textTheme.bodySmall
-            ?.copyWith(color: scheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
       ),
       value: _thinking,
       onChanged: (v) {
