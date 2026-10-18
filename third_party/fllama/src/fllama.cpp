@@ -359,12 +359,19 @@ static void run_inference(fllama_inference_request request,
     std::string prompt = request.input ? request.input : "";
     common_chat_parser_params parser_params;
     bool is_oai = false;
+    // Sampling knobs the FFI struct has no field for, read from the request
+    // JSON instead. -1 = not sent: keep llama.cpp's default (top_k = 40).
+    int32_t top_k = -1;
 
     if (request.openai_request_json_string) {
       is_oai = true;
       try {
         auto body = nlohmann::ordered_json::parse(
             request.openai_request_json_string);
+
+        if (body.contains("top_k") && body["top_k"].is_number_integer()) {
+          top_k = std::max(0, body["top_k"].get<int32_t>());
+        }
 
         std::string jinja_tmpl;
         if (body.contains("jinja_template") &&
@@ -396,6 +403,19 @@ static void run_inference(fllama_inference_request request,
           // request body to override explicitly.
           inputs.reasoning_format = COMMON_REASONING_FORMAT_AUTO;
           inputs.enable_thinking = true;
+          // Thinking can be switched off per request, as `enable_thinking`
+          // or llama-server's `chat_template_kwargs.enable_thinking`. Only
+          // templates with a thinking mode (Qwen3, SmolLM3, ...) act on it.
+          if (body.contains("enable_thinking") &&
+              body["enable_thinking"].is_boolean()) {
+            inputs.enable_thinking = body["enable_thinking"].get<bool>();
+          } else if (body.contains("chat_template_kwargs") &&
+                     body["chat_template_kwargs"].is_object() &&
+                     body["chat_template_kwargs"].contains("enable_thinking") &&
+                     body["chat_template_kwargs"]["enable_thinking"].is_boolean()) {
+            inputs.enable_thinking =
+                body["chat_template_kwargs"]["enable_thinking"].get<bool>();
+          }
           if (body.contains("reasoning_format") && body["reasoning_format"].is_string()) {
             inputs.reasoning_format = common_reasoning_format_from_name(
                 body["reasoning_format"].get<std::string>());
@@ -471,6 +491,7 @@ static void run_inference(fllama_inference_request request,
     task.params.n_predict    = request.max_tokens;
     task.params.sampling.temp           = request.temperature;
     task.params.sampling.top_p          = request.top_p;
+    if (top_k >= 0) task.params.sampling.top_k = top_k;
     task.params.sampling.penalty_freq   = request.penalty_freq;
     task.params.sampling.penalty_repeat = request.penalty_repeat;
 

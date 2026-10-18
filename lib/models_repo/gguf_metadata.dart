@@ -142,6 +142,59 @@ GgufModelInfo readGgufInfoSync(String path) {
   }
 }
 
+final Map<String, String?> _templateCache = {};
+
+/// [path]'s chat template (`tokenizer.chat_template`), read off the UI isolate
+/// and memoised like [readGgufInfo]. Null when the file has none or cannot be
+/// read.
+///
+/// A separate read from [readGgufInfo] because the template sits after the
+/// tokenizer's vocabulary, so finding it means walking past every token
+/// string — a few megabytes, where the sizing keys take a few kilobytes. Only
+/// the settings sheet needs it.
+Future<String?> readGgufChatTemplate(String path) async {
+  try {
+    final stat = await File(path).stat();
+    final key = '$path|${stat.size}|${stat.modified.millisecondsSinceEpoch}';
+    if (_templateCache.containsKey(key)) return _templateCache[key];
+    final template = await Isolate.run(() {
+      final file = File(path).openSync();
+      try {
+        return parseGgufChatTemplate(_FileSource(file));
+      } finally {
+        file.closeSync();
+      }
+    });
+    _templateCache[key] = template;
+    return template;
+  } on Object {
+    return null;
+  }
+}
+
+/// Finds `tokenizer.chat_template` in a GGUF header, or null if it has none.
+String? parseGgufChatTemplate(GgufByteSource source) {
+  final r = _Reader(source);
+  if (r.u32() != 0x46554747) {
+    throw const GgufFormatException('not a GGUF file');
+  }
+  final version = r.u32();
+  if (version < 2) {
+    throw GgufFormatException('GGUF v$version is not supported');
+  }
+  r.u64(); // tensor count
+  final kvCount = r.u64();
+  for (var i = 0; i < kvCount; i++) {
+    final key = r.string();
+    final type = r.u32();
+    if (key == 'tokenizer.chat_template' && type == _tString) {
+      return r.string();
+    }
+    _skipValue(r, type);
+  }
+  return null;
+}
+
 /// Parses header key/values from [source], stopping as soon as everything
 /// worth having has been seen.
 ///

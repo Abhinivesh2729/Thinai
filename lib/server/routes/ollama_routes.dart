@@ -379,8 +379,8 @@ int? _asIntOrNull(dynamic v) =>
 
 /// Options for a completion on [model].
 ///
-/// `num_ctx` and `temperature` in the request override the model's saved
-/// settings, as Ollama clients expect, but `num_ctx` is clamped to what the
+/// `num_ctx`, `temperature`, `top_k`, `top_p` and `think` in the request
+/// override the model's saved settings, as Ollama clients expect, but `num_ctx` is clamped to what the
 /// model was trained for and this phone's RAM can hold: past the first,
 /// llama.cpp would clamp it anyway, and past the second the app is killed.
 Future<GenerationOptions> _generationOptionsFor(
@@ -394,6 +394,9 @@ Future<GenerationOptions> _generationOptionsFor(
     requestedContext: _asIntOrNull(options['num_ctx']),
     requestedTemperature:
         _asDoubleOrNull(options['temperature'] ?? body['temperature']),
+    requestedTopK: _asIntOrNull(options['top_k'] ?? body['top_k']),
+    requestedTopP: _asDoubleOrNull(options['top_p'] ?? body['top_p']),
+    requestedThinking: body['think'] is bool ? body['think'] as bool : null,
   );
 
   // `num_gpu: 0` asks for the CPU and always gets it. Any other value only
@@ -408,7 +411,9 @@ Future<GenerationOptions> _generationOptionsFor(
 
   return GenerationOptions(
     temperature: resolved.temperature,
-    topP: _asDoubleOrNull(options['top_p'] ?? body['top_p']) ?? 1.0,
+    topP: resolved.topP,
+    topK: resolved.topK,
+    enableThinking: resolved.thinking ? null : false,
     maxTokens: _asIntOrNull(options['num_predict'] ?? body['max_tokens']) ?? -1,
     contextSize: resolved.contextSize,
     numGpuLayers: layers,

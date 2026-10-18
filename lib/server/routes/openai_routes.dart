@@ -160,13 +160,19 @@ Router openAiRouter() {
     }
     LlmEngine.instance.setActiveModel(model.path);
 
-    // Context window and temperature come from the model's settings — the
-    // same ones chat uses — and a temperature the client actually sent wins
-    // over the saved one.
+    // Context window and sampling come from the model's settings — the same
+    // ones chat uses — and a value the client actually sent wins over the
+    // saved one. Top-K and the thinking switch are not OpenAI fields, but
+    // llama-server takes them in these spellings and clients send them.
+    final kwargs = body['chat_template_kwargs'];
+    final thinking = body['enable_thinking'] ??
+        (kwargs is Map ? kwargs['enable_thinking'] : null);
     final options = await GenerationSettingsStore.instance.optionsFor(
       model,
       requestedTemperature: _asDoubleOrNull(body['temperature']),
-      topP: _asDoubleOrNull(body['top_p']) ?? 1.0,
+      requestedTopP: _asDoubleOrNull(body['top_p']),
+      requestedTopK: _asIntOrNull(body['top_k']),
+      requestedThinking: thinking is bool ? thinking : null,
       // `max_completion_tokens` is the current spelling; `max_tokens` is the
       // deprecated one that most clients still send.
       maxTokens:

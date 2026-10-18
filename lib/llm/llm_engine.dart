@@ -40,6 +40,15 @@ class GenerationOptions {
   final double temperature;
   final double topP;
 
+  /// Sample only from the K likeliest tokens; 0 disables the cut. Null leaves
+  /// llama.cpp's default.
+  final int? topK;
+
+  /// False asks a model with a thinking mode to answer without reasoning
+  /// first. Null leaves the template's default. Models without a thinking
+  /// mode ignore it.
+  final bool? enableThinking;
+
   /// Max tokens to generate. `-1` means "until the model stops" (llama.cpp
   /// `n_predict = -1`), i.e. no artificial output cap. A positive value caps
   /// the response length.
@@ -67,6 +76,8 @@ class GenerationOptions {
   const GenerationOptions({
     this.temperature = 0.7,
     this.topP = 1.0,
+    this.topK,
+    this.enableThinking,
     this.maxTokens = -1,
     this.contextSize = kDefaultContextSize,
     this.numGpuLayers = 0,
@@ -451,6 +462,8 @@ class LlmEngine {
       mmprojPath: job.mmprojPath,
       temperature: job.options.temperature,
       topP: job.options.topP,
+      topK: job.options.topK,
+      enableThinking: job.options.enableThinking,
       maxTokens: job.options.maxTokens,
       // Guard: a non-positive n_ctx collapses native batch sizing (n_batch =
       // min(n_ctx, 2048) → 0), so fall back to the default window.
