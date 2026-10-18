@@ -1,0 +1,5 @@
+What's new in 2.4.0
+• Confirm before downloading, cancelling or deleting a model, so a stray tap can't lose a download
+• Every launch opens a fresh chat; past chats stay in the menu
+• Settings > System Prompt: set your own instructions for every chat
+• Model settings: Top-K, Top-P, and a Thinking on/off switch for models like Qwen3
