@@ -20,7 +20,8 @@ class ServerPage extends ConsumerStatefulWidget {
 }
 
 class _ServerPageState extends ConsumerState<ServerPage> {
-  final _portController = TextEditingController(text: '11434');
+  /// The port the next start binds to. The running server keeps its own.
+  int _port = 11434;
   bool _isTransitioning = false;
 
   @override
@@ -32,20 +33,14 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   Future<void> _restorePort() async {
     final port = await ref.read(savedServerPortProvider.future);
     if (!mounted) return;
-    _portController.text = '$port';
-  }
-
-  @override
-  void dispose() {
-    _portController.dispose();
-    super.dispose();
+    setState(() => _port = port);
   }
 
   Future<void> _start() async {
     if (_isTransitioning) return;
     setState(() => _isTransitioning = true);
     try {
-      final port = int.tryParse(_portController.text.trim()) ?? 11434;
+      final port = _port;
       final lan = ref.read(lanShareProvider);
       await _ensurePermissions();
       await ref
@@ -104,7 +99,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   }
 
   Future<void> _showPortDialog() async {
-    final controller = TextEditingController(text: _portController.text);
+    final controller = TextEditingController(text: '$_port');
     final scheme = Theme.of(context).colorScheme;
     final newPort = await showDialog<int>(
       context: context,
@@ -165,15 +160,23 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     );
 
     if (newPort != null && newPort > 0 && newPort <= 65535) {
-      setState(() => _portController.text = '$newPort');
+      setState(() => _port = newPort);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('server_port', newPort);
+      ref.invalidate(savedServerPortProvider);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Settings can change the port too; follow it.
+    ref.listen(savedServerPortProvider, (_, next) {
+      final saved = next.valueOrNull;
+      if (saved != null && saved != _port) setState(() => _port = saved);
+    });
     final status = ref.watch(serverControllerProvider);
+    // A new port only applies on the next start, so show it until then.
+    final port = status.running ? status.port : _port;
     final activeId = ref.watch(activeModelIdProvider);
     final lanShare = ref.watch(lanShareProvider);
     final deviceIp = ref.watch(deviceLanIpProvider).valueOrNull;
@@ -181,7 +184,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     final apiHost = lanShare
         ? (status.lanIp ?? deviceIp ?? '127.0.0.1')
         : '127.0.0.1';
-    final base = 'http://$apiHost:${status.port}';
+    final base = 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
 
     return Scaffold(
@@ -202,7 +205,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           _HeroCard(
             running: status.running,
             isTransitioning: _isTransitioning,
-            port: status.port,
+            port: port,
             lan: status.lan,
             lanIp: status.lanIp,
             onStart: _start,
@@ -232,7 +235,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             running: status.running,
             lanIp: status.running ? status.lanIp : null,
             deviceIp: deviceIp,
-            port: status.port,
+            port: port,
             onChanged: _setLanShare,
           ),
 
@@ -240,7 +243,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           _DeveloperQuickStartCard(
             base: base,
             apiHost: apiHost,
-            port: status.port,
+            port: port,
             chatId: chatId,
             lanShare: lanShare,
           ),
@@ -249,7 +252,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           _ApiEndpointsSection(base: base, chatId: chatId),
 
           // 6. Full-Width Security Notice
-          _SecurityNoticeBanner(lanShare: lanShare, port: status.port),
+          _SecurityNoticeBanner(lanShare: lanShare, port: port),
         ],
       ),
     );

@@ -876,9 +876,15 @@ class LocalServerSettingsPage extends ConsumerWidget {
       await prefs.setInt('server_port', newPort);
       ref.invalidate(savedServerPortProvider);
       if (!context.mounted) return;
+      final status = ref.read(serverControllerProvider);
+      final restart = status.running && status.port != newPort;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Server port set to $newPort'),
+          content: Text(
+            restart
+                ? 'Server port set to $newPort. Restart the server to apply.'
+                : 'Server port set to $newPort',
+          ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
