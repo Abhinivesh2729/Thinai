@@ -268,7 +268,11 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
               action: OutlinedButton.icon(
                 icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: const Text('Try again'),
-                onPressed: () => setState(() => _detail = _load()),
+                // A block, not an arrow: an arrow would hand setState the Future,
+                // which it rejects.
+                onPressed: () => setState(() {
+                  _detail = _load();
+                }),
               ),
             );
           }
