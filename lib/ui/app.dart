@@ -27,8 +27,8 @@ class LocalLlmApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Thinai',
       debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
       themeMode: themeMode,
       home: WithForegroundTask(child: const _Shell()),
     );
@@ -38,7 +38,8 @@ class LocalLlmApp extends ConsumerWidget {
 /// Builds the app theme for the given brightness. Light and dark share the
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
 /// so every screen adapts automatically.
-ThemeData _buildTheme(Brightness brightness) {
+@visibleForTesting
+ThemeData buildAppTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
   // Official Thinai logo leaf green and crisp error red
   const logoGreen = Color(0xFF2CA048);
@@ -153,6 +154,25 @@ ThemeData _buildTheme(Brightness brightness) {
         );
       }),
       height: 68,
+    ),
+    // Material draws an off switch's thumb and border in `outline`, which in
+    // dark is the same colour as the track, so the switch looked empty.
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? scheme.onPrimary
+            : scheme.onSurfaceVariant,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? scheme.primary
+            : scheme.surfaceContainerHighest,
+      ),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? Colors.transparent
+            : scheme.onSurfaceVariant,
+      ),
     ),
     dividerTheme: DividerThemeData(
       color: scheme.outlineVariant,

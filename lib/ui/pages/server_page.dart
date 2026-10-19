@@ -974,11 +974,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                   ],
                 ),
               ),
-              Switch(
-                value: widget.enabled,
-                activeThumbColor: const Color(0xFF2CA048),
-                onChanged: widget.onChanged,
-              ),
+              Switch(value: widget.enabled, onChanged: widget.onChanged),
             ],
           ),
           AnimatedSize(
