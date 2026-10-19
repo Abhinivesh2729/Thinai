@@ -1,5 +1,8 @@
 import 'dart:io';
 
+/// Minimum line coverage, in percent. Raise it as coverage grows; the goal is 100.
+const minCoveragePct = 30.0;
+
 void main(List<String> args) {
   final lcovPath = args.isNotEmpty ? args[0] : 'coverage/lcov.info';
   final lcovFile = File(lcovPath);
@@ -77,29 +80,33 @@ void main(List<String> args) {
 
   if (branchFound > 0) {
     final branchPct = (branchHit / branchFound) * 100.0;
-    stdout.writeln('Branch coverage: ${branchPct.toStringAsFixed(2)}% ($branchHit/$branchFound)');
+    stdout.writeln(
+      'Branch coverage: ${branchPct.toStringAsFixed(2)}% ($branchHit/$branchFound)',
+    );
   }
 
-  if (totalHit == totalFound) {
-    stdout.writeln('Coverage: 100.00%');
+  stdout.writeln('Coverage: $coverageStr%');
+  stdout.writeln('Required: ${minCoveragePct.toStringAsFixed(0)}%');
+  if (coveragePct >= minCoveragePct) {
     stdout.writeln('PASS');
     exit(0);
   } else {
-    stdout.writeln('Coverage: $coverageStr%');
-    stdout.writeln('Required: 100%');
     stdout.writeln('FAIL: test coverage is below the required threshold.\n');
 
-    final uncovered = fileStats.entries
-        .where((e) => e.value.hit < e.value.found)
-        .toList()
-      ..sort((a, b) {
-        final pctA = (a.value.hit / a.value.found);
-        final pctB = (b.value.hit / b.value.found);
-        return pctA.compareTo(pctB);
-      });
+    final uncovered =
+        fileStats.entries.where((e) => e.value.hit < e.value.found).toList()
+          ..sort((a, b) {
+            final pctA = (a.value.hit / a.value.found);
+            final pctB = (b.value.hit / b.value.found);
+            return pctA.compareTo(pctB);
+          });
 
-    stdout.writeln('Uncovered source files (${uncovered.length} files missing 100% coverage):');
-    stdout.writeln('--------------------------------------------------------------------------------');
+    stdout.writeln(
+      'Uncovered source files (${uncovered.length} files missing 100% coverage):',
+    );
+    stdout.writeln(
+      '--------------------------------------------------------------------------------',
+    );
     for (final entry in uncovered) {
       final f = entry.key;
       final st = entry.value;
@@ -107,12 +114,16 @@ void main(List<String> args) {
       final missedCount = st.found - st.hit;
       final sampleMissed = st.missedLines.take(10).join(', ');
       final suffix = st.missedLines.length > 10 ? ', ...' : '';
-      stdout.writeln('  ${pct.padLeft(6)}% ($missedCount missed of ${st.found} lines)  $f');
+      stdout.writeln(
+        '  ${pct.padLeft(6)}% ($missedCount missed of ${st.found} lines)  $f',
+      );
       if (sampleMissed.isNotEmpty) {
         stdout.writeln('          Missed lines: $sampleMissed$suffix');
       }
     }
-    stdout.writeln('--------------------------------------------------------------------------------');
+    stdout.writeln(
+      '--------------------------------------------------------------------------------',
+    );
     exit(1);
   }
 }

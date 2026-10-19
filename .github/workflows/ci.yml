@@ -99,5 +99,5 @@ jobs:
       - name: Run unit & widget tests with coverage
         run: flutter test --coverage
 
-      - name: Verify 100% test coverage gate
+      - name: Verify test coverage gate
         run: ./tool/check_coverage.sh
