@@ -60,15 +60,11 @@ ThemeData _buildTheme(Brightness brightness) {
         ? const Color(0xFF4ADE80)
         : const Color(0xFF14532D),
     error: errorRed,
-    errorContainer: isDark
-        ? const Color(0x28DC2626)
-        : const Color(0x15DC2626),
+    errorContainer: isDark ? const Color(0x28DC2626) : const Color(0x15DC2626),
     onErrorContainer: isDark
         ? const Color(0xFFFCA5A5)
         : const Color(0xFF991B1B),
-    surface: isDark
-        ? const Color(0xFF0B0E14)
-        : const Color(0xFFFFFFFF),
+    surface: isDark ? const Color(0xFF0B0E14) : const Color(0xFFFFFFFF),
     surfaceContainerLow: isDark
         ? const Color(0xFF121620)
         : const Color(0xFFF8FAFC),
@@ -81,18 +77,12 @@ ThemeData _buildTheme(Brightness brightness) {
     surfaceContainerHighest: isDark
         ? const Color(0xFF273142)
         : const Color(0xFFDCE3ED),
-    onSurface: isDark
-        ? const Color(0xFFF8FAFC)
-        : const Color(0xFF0F172A),
+    onSurface: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
     onSurfaceVariant: isDark
         ? const Color(0xFF94A3B8)
         : const Color(0xFF475569),
-    outline: isDark
-        ? const Color(0xFF273242)
-        : const Color(0xFFCBD5E1),
-    outlineVariant: isDark
-        ? const Color(0xFF344256)
-        : const Color(0xFFE2E8F0),
+    outline: isDark ? const Color(0xFF273242) : const Color(0xFFCBD5E1),
+    outlineVariant: isDark ? const Color(0xFF344256) : const Color(0xFFE2E8F0),
   );
 
   return ThemeData(
@@ -127,9 +117,7 @@ ThemeData _buildTheme(Brightness brightness) {
       style: FilledButton.styleFrom(
         backgroundColor: logoGreen,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
       ),
@@ -138,9 +126,7 @@ ThemeData _buildTheme(Brightness brightness) {
       style: OutlinedButton.styleFrom(
         foregroundColor: scheme.onSurface,
         side: BorderSide(color: scheme.outline, width: 1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     ),
@@ -174,7 +160,9 @@ ThemeData _buildTheme(Brightness brightness) {
       space: 1,
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: isDark ? const Color(0xFF1E252E) : const Color(0xFF0F172A),
+      backgroundColor: isDark
+          ? const Color(0xFF1E252E)
+          : const Color(0xFF0F172A),
       contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       behavior: SnackBarBehavior.floating,
@@ -205,7 +193,10 @@ class _ShellState extends ConsumerState<_Shell> {
     super.didChangeDependencies();
     // Pre-warm the splash logos so the very first frame paints immediately without decode blanking.
     precacheImage(const AssetImage('assets/images/logo_dark.png'), context);
-    precacheImage(const AssetImage('assets/images/logo_transparent.png'), context);
+    precacheImage(
+      const AssetImage('assets/images/logo_transparent.png'),
+      context,
+    );
   }
 
   @override
