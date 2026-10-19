@@ -19,7 +19,7 @@ jobs:
     steps:
       - run: echo "START=$(date +%s)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
           channel: stable
           cache: true
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
@@ -71,7 +71,8 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: production
           status: completed
-          # "What's new" text, one file per language (whatsnew-en-US, ...), 500 characters max.
+          # "What's new" text, one file per language (whatsnew-en-GB, whatsnew-en-US, ...), 500 characters max.
+          # en-GB is the listing's default language, so keep that one in step with the others.
           whatsNewDirectory: distribution/whatsnew
 
       - name: Summary

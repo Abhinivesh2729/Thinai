@@ -135,6 +135,20 @@ CatalogModel? get starterModel {
   return chat.isEmpty ? null : chat.first;
 }
 
+/// The model the Models page features at the top of the catalog.
+const featuredModelId = 'lfm2.5-350m-q8_0';
+
+/// The featured chat model, chosen by hand rather than by size. Falls back to
+/// the smallest chat model if the featured one ever leaves the catalog, so the
+/// page never loses its hero card.
+CatalogModel? get featuredModel {
+  final chat = chatCatalog;
+  for (final m in chat) {
+    if (m.id == featuredModelId) return m;
+  }
+  return chat.isEmpty ? null : chat.first;
+}
+
 const modelCatalog = <CatalogModel>[
   CatalogModel(
     id: 'qwen2.5-0.5b-instruct-q4_k_m',

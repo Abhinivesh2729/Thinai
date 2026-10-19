@@ -648,7 +648,12 @@ class _ModelStorageSettingsPageState
           if (!mounted) return;
           ref.read(modelsRefreshProvider.notifier).state++;
           if (progress.error != null) {
-            _toast('Download failed: ${progress.error}');
+            _toast(
+              progress.received > 0
+                  ? 'Download stopped: ${progress.error}. Progress is saved, '
+                        'resume it from the Model Manager.'
+                  : 'Download failed: ${progress.error}',
+            );
             return;
           }
           _toast('Download complete');
@@ -876,9 +881,15 @@ class LocalServerSettingsPage extends ConsumerWidget {
       await prefs.setInt('server_port', newPort);
       ref.invalidate(savedServerPortProvider);
       if (!context.mounted) return;
+      final status = ref.read(serverControllerProvider);
+      final restart = status.running && status.port != newPort;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Server port set to $newPort'),
+          content: Text(
+            restart
+                ? 'Server port set to $newPort. Restart the server to apply.'
+                : 'Server port set to $newPort',
+          ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

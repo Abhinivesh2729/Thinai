@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Coverage check script.
-# Enforces strict 100% line coverage gate from coverage/lcov.info.
+# Enforces the minimum line coverage set in check_coverage.dart, from coverage/lcov.info.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

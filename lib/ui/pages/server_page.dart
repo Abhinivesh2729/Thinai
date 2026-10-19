@@ -12,7 +12,6 @@ import '../widgets/model_settings_sheet.dart';
 
 const _brandDeep = Color(0xFF2CA048);
 
-
 class ServerPage extends ConsumerStatefulWidget {
   const ServerPage({super.key});
 
@@ -21,7 +20,8 @@ class ServerPage extends ConsumerStatefulWidget {
 }
 
 class _ServerPageState extends ConsumerState<ServerPage> {
-  final _portController = TextEditingController(text: '11434');
+  /// The port the next start binds to. The running server keeps its own.
+  int _port = 11434;
   bool _isTransitioning = false;
 
   @override
@@ -33,20 +33,14 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   Future<void> _restorePort() async {
     final port = await ref.read(savedServerPortProvider.future);
     if (!mounted) return;
-    _portController.text = '$port';
-  }
-
-  @override
-  void dispose() {
-    _portController.dispose();
-    super.dispose();
+    setState(() => _port = port);
   }
 
   Future<void> _start() async {
     if (_isTransitioning) return;
     setState(() => _isTransitioning = true);
     try {
-      final port = int.tryParse(_portController.text.trim()) ?? 11434;
+      final port = _port;
       final lan = ref.read(lanShareProvider);
       await _ensurePermissions();
       await ref
@@ -105,7 +99,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   }
 
   Future<void> _showPortDialog() async {
-    final controller = TextEditingController(text: _portController.text);
+    final controller = TextEditingController(text: '$_port');
     final scheme = Theme.of(context).colorScheme;
     final newPort = await showDialog<int>(
       context: context,
@@ -127,7 +121,9 @@ class _ServerPageState extends ConsumerState<ServerPage> {
               autofocus: true,
               decoration: InputDecoration(
                 labelText: 'Port number',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 isDense: true,
               ),
             ),
@@ -164,22 +160,31 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     );
 
     if (newPort != null && newPort > 0 && newPort <= 65535) {
-      setState(() => _portController.text = '$newPort');
+      setState(() => _port = newPort);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('server_port', newPort);
+      ref.invalidate(savedServerPortProvider);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Settings can change the port too; follow it.
+    ref.listen(savedServerPortProvider, (_, next) {
+      final saved = next.valueOrNull;
+      if (saved != null && saved != _port) setState(() => _port = saved);
+    });
     final status = ref.watch(serverControllerProvider);
+    // A new port only applies on the next start, so show it until then.
+    final port = status.running ? status.port : _port;
     final activeId = ref.watch(activeModelIdProvider);
     final lanShare = ref.watch(lanShareProvider);
     final deviceIp = ref.watch(deviceLanIpProvider).valueOrNull;
 
-    final apiHost =
-        lanShare ? (status.lanIp ?? deviceIp ?? '127.0.0.1') : '127.0.0.1';
-    final base = 'http://$apiHost:${status.port}';
+    final apiHost = lanShare
+        ? (status.lanIp ?? deviceIp ?? '127.0.0.1')
+        : '127.0.0.1';
+    final base = 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
 
     return Scaffold(
@@ -200,7 +205,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           _HeroCard(
             running: status.running,
             isTransitioning: _isTransitioning,
-            port: status.port,
+            port: port,
             lan: status.lan,
             lanIp: status.lanIp,
             onStart: _start,
@@ -213,8 +218,9 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             activeId: activeId,
             onConfigure: () async {
               if (activeId == null) return;
-              final model =
-                  await ref.read(modelStoreProvider).findById(activeId);
+              final model = await ref
+                  .read(modelStoreProvider)
+                  .findById(activeId);
               if (model == null || !context.mounted) return;
               await showModelSettingsSheet(context, model);
             },
@@ -229,7 +235,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             running: status.running,
             lanIp: status.running ? status.lanIp : null,
             deviceIp: deviceIp,
-            port: status.port,
+            port: port,
             onChanged: _setLanShare,
           ),
 
@@ -237,22 +243,16 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           _DeveloperQuickStartCard(
             base: base,
             apiHost: apiHost,
-            port: status.port,
+            port: port,
             chatId: chatId,
             lanShare: lanShare,
           ),
 
           // 5. Full-Width Clean API Endpoints List (No bloated categories)
-          _ApiEndpointsSection(
-            base: base,
-            chatId: chatId,
-          ),
+          _ApiEndpointsSection(base: base, chatId: chatId),
 
           // 6. Full-Width Security Notice
-          _SecurityNoticeBanner(
-            lanShare: lanShare,
-            port: status.port,
-          ),
+          _SecurityNoticeBanner(lanShare: lanShare, port: port),
         ],
       ),
     );
@@ -286,8 +286,9 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final serverUrl =
-        lan && lanIp != null ? 'http://$lanIp:$port' : 'http://127.0.0.1:$port';
+    final serverUrl = lan && lanIp != null
+        ? 'http://$lanIp:$port'
+        : 'http://127.0.0.1:$port';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 12),
@@ -304,7 +305,9 @@ class _HeroCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: running
-                ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.16 : 0.08)
+                ? const Color(
+                    0xFF2CA048,
+                  ).withValues(alpha: isDark ? 0.16 : 0.08)
                 : Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
             blurRadius: 18,
             offset: const Offset(0, 6),
@@ -324,44 +327,56 @@ class _HeroCard extends StatelessWidget {
                 animationSpeed: 0.9,
                 linesGradient: running
                     ? (isDark
-                        ? const [
-                            Color(0xFF2CA048),
-                            Color(0xFF4ADE80),
-                            Color(0xFF10B981),
-                            Color(0xFF6EE7B7),
-                            Color(0xFFA7F3D0),
-                          ]
-                        : const [
-                            Color(0xFF15803D),
-                            Color(0xFF16A34A),
-                            Color(0xFF2CA048),
-                            Color(0xFF059669),
-                            Color(0xFF047857),
-                          ])
+                          ? const [
+                              Color(0xFF2CA048),
+                              Color(0xFF4ADE80),
+                              Color(0xFF10B981),
+                              Color(0xFF6EE7B7),
+                              Color(0xFFA7F3D0),
+                            ]
+                          : const [
+                              Color(0xFF15803D),
+                              Color(0xFF16A34A),
+                              Color(0xFF2CA048),
+                              Color(0xFF059669),
+                              Color(0xFF047857),
+                            ])
                     : (isDark
-                        ? const [
-                            Color(0xFF14532D),
-                            Color(0xFF15803D),
-                            Color(0xFF2CA048),
-                            Color(0xFF16A34A),
-                            Color(0xFF22C55E),
-                          ]
-                        : const [
-                            Color(0xFF166534),
-                            Color(0xFF15803D),
-                            Color(0xFF2CA048),
-                            Color(0xFF16A34A),
-                            Color(0xFF22C55E),
-                          ]),
+                          ? const [
+                              Color(0xFF14532D),
+                              Color(0xFF15803D),
+                              Color(0xFF2CA048),
+                              Color(0xFF16A34A),
+                              Color(0xFF22C55E),
+                            ]
+                          : const [
+                              Color(0xFF166534),
+                              Color(0xFF15803D),
+                              Color(0xFF2CA048),
+                              Color(0xFF16A34A),
+                              Color(0xFF22C55E),
+                            ]),
                 backgroundColor: isDark
                     ? const Color(0xFF080D14)
                     : const Color(0xFFF8FAFC),
                 enabledWaves: const ['top', 'middle', 'bottom'],
                 lineCount: const [5, 6, 5],
                 lineDistance: const [4.0, 4.5, 4.0],
-                topWavePosition: const WavePosition(x: 8.0, y: 0.45, rotate: -0.35),
-                middleWavePosition: const WavePosition(x: 4.0, y: 0.0, rotate: 0.18),
-                bottomWavePosition: const WavePosition(x: 1.8, y: -0.55, rotate: 0.35),
+                topWavePosition: const WavePosition(
+                  x: 8.0,
+                  y: 0.45,
+                  rotate: -0.35,
+                ),
+                middleWavePosition: const WavePosition(
+                  x: 4.0,
+                  y: 0.0,
+                  rotate: 0.18,
+                ),
+                bottomWavePosition: const WavePosition(
+                  x: 1.8,
+                  y: -0.55,
+                  rotate: 0.35,
+                ),
                 interactive: true,
                 bendRadius: 4.0,
                 bendStrength: -0.45,
@@ -419,7 +434,9 @@ class _HeroCard extends StatelessWidget {
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.4,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
@@ -431,14 +448,19 @@ class _HeroCard extends StatelessWidget {
                       onTap: running ? null : onEditPort,
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: isDark
                               ? const Color(0xFF162030)
                               : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF263650) : const Color(0xFFCBD5E1),
+                            color: isDark
+                                ? const Color(0xFF263650)
+                                : const Color(0xFFCBD5E1),
                             width: 0.9,
                           ),
                         ),
@@ -448,7 +470,9 @@ class _HeroCard extends StatelessWidget {
                             Icon(
                               Icons.tune_rounded,
                               size: 12,
-                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF475569),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -456,7 +480,9 @@ class _HeroCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
                                 letterSpacing: 0.2,
                               ),
                             ),
@@ -477,8 +503,11 @@ class _HeroCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: (running ? const Color(0xFFE11D48) : _brandDeep)
-                                  .withValues(alpha: 0.30),
+                              color:
+                                  (running
+                                          ? const Color(0xFFE11D48)
+                                          : _brandDeep)
+                                      .withValues(alpha: 0.30),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -505,8 +534,10 @@ class _HeroCard extends StatelessWidget {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: ScaleTransition(
-                                      scale: Tween<double>(begin: 0.85, end: 1.0)
-                                          .animate(animation),
+                                      scale: Tween<double>(
+                                        begin: 0.85,
+                                        end: 1.0,
+                                      ).animate(animation),
                                       child: child,
                                     ),
                                   );
@@ -519,13 +550,16 @@ class _HeroCard extends StatelessWidget {
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.0,
                                           valueColor:
-                                              AlwaysStoppedAnimation<Color>(Colors.white),
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
                                     : Row(
                                         key: ValueKey(running),
                                         mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             running
@@ -568,13 +602,19 @@ class _HeroCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: running
-                          ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.40 : 0.30)
-                          : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+                          ? const Color(
+                              0xFF2CA048,
+                            ).withValues(alpha: isDark ? 0.40 : 0.30)
+                          : (isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFCBD5E1)),
                       width: 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.03),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.20 : 0.03,
+                        ),
                         blurRadius: 4,
                         offset: const Offset(0, 1),
                       ),
@@ -586,7 +626,9 @@ class _HeroCard extends StatelessWidget {
                         Icons.link_rounded,
                         size: 14,
                         color: running
-                            ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
+                            ? (isDark
+                                  ? const Color(0xFF4ADE80)
+                                  : const Color(0xFF16A34A))
                             : scheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 8),
@@ -599,8 +641,12 @@ class _HeroCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             fontFamily: 'monospace',
                             color: running
-                                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
-                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                ? (isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : const Color(0xFF16A34A))
+                                : (isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B)),
                           ),
                         ),
                       ),
@@ -609,10 +655,17 @@ class _HeroCard extends StatelessWidget {
                         icon: const Icon(Icons.copy_rounded, size: 14),
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        constraints: const BoxConstraints(
+                          minWidth: 24,
+                          minHeight: 24,
+                        ),
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(0xFF475569),
                         onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: serverUrl));
+                          await Clipboard.setData(
+                            ClipboardData(text: serverUrl),
+                          );
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -628,9 +681,14 @@ class _HeroCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF151D2A) : const Color(0xFFF1F5F9),
+                          color: isDark
+                              ? const Color(0xFF151D2A)
+                              : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -717,11 +775,19 @@ class _ActiveModelBanner extends StatelessWidget {
                 OutlinedButton(
                   onPressed: onConfigure,
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text('Tune'),
                 ),
@@ -742,11 +808,19 @@ class _ActiveModelBanner extends StatelessWidget {
                 FilledButton.tonal(
                   onPressed: onBrowseModels,
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text('Browse Models'),
                 ),
@@ -842,7 +916,9 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
           SnackBar(
             content: const Text('API token regenerated'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -901,11 +977,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                   ],
                 ),
               ),
-              Switch(
-                value: widget.enabled,
-                activeThumbColor: const Color(0xFF2CA048),
-                onChanged: widget.onChanged,
-              ),
+              Switch(value: widget.enabled, onChanged: widget.onChanged),
             ],
           ),
           AnimatedSize(
@@ -922,12 +994,16 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF131722)
-                                  : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                                  : scheme.surfaceContainerHigh.withValues(
+                                      alpha: 0.5,
+                                    ),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.06)
-                                    : scheme.outlineVariant.withValues(alpha: 0.4),
+                                    : scheme.outlineVariant.withValues(
+                                        alpha: 0.4,
+                                      ),
                               ),
                             ),
                             child: Row(
@@ -952,14 +1028,21 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.copy_rounded,
-                                      size: 15, color: Color(0xFF2CA048)),
+                                  icon: const Icon(
+                                    Icons.copy_rounded,
+                                    size: 15,
+                                    color: Color(0xFF2CA048),
+                                  ),
                                   tooltip: 'Copy LAN URL',
                                   padding: EdgeInsets.zero,
-                                  constraints:
-                                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
                                   onPressed: () => _copy(
-                                      'http://$shareIp:${widget.port}', 'LAN URL'),
+                                    'http://$shareIp:${widget.port}',
+                                    'LAN URL',
+                                  ),
                                 ),
                               ],
                             ),
@@ -981,12 +1064,16 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? const Color(0xFF131722)
-                                    : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                                    : scheme.surfaceContainerHigh.withValues(
+                                        alpha: 0.5,
+                                      ),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: isDark
                                       ? Colors.white.withValues(alpha: 0.06)
-                                      : scheme.outlineVariant.withValues(alpha: 0.4),
+                                      : scheme.outlineVariant.withValues(
+                                          alpha: 0.4,
+                                        ),
                                 ),
                               ),
                               child: Row(
@@ -1016,31 +1103,49 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                                       size: 15,
                                     ),
                                     padding: EdgeInsets.zero,
-                                    constraints:
-                                        const BoxConstraints(minWidth: 26, minHeight: 26),
-                                    onPressed: () =>
-                                        setState(() => _showToken = !_showToken),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 26,
+                                      minHeight: 26,
+                                    ),
+                                    onPressed: () => setState(
+                                      () => _showToken = !_showToken,
+                                    ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.copy_rounded,
-                                        size: 15, color: Color(0xFF2CA048)),
+                                    icon: const Icon(
+                                      Icons.copy_rounded,
+                                      size: 15,
+                                      color: Color(0xFF2CA048),
+                                    ),
                                     padding: EdgeInsets.zero,
-                                    constraints:
-                                        const BoxConstraints(minWidth: 26, minHeight: 26),
-                                    onPressed: () => _copy(token, 'Bearer token'),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 26,
+                                      minHeight: 26,
+                                    ),
+                                    onPressed: () =>
+                                        _copy(token, 'Bearer token'),
                                   ),
                                   IconButton(
                                     icon: _regenerating
                                         ? const SizedBox(
                                             width: 12,
                                             height: 12,
-                                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 1.5,
+                                            ),
                                           )
-                                        : const Icon(Icons.refresh_rounded, size: 15),
+                                        : const Icon(
+                                            Icons.refresh_rounded,
+                                            size: 15,
+                                          ),
                                     padding: EdgeInsets.zero,
-                                    constraints:
-                                        const BoxConstraints(minWidth: 26, minHeight: 26),
-                                    onPressed: _regenerating ? null : _regenerate,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 26,
+                                      minHeight: 26,
+                                    ),
+                                    onPressed: _regenerating
+                                        ? null
+                                        : _regenerate,
                                   ),
                                 ],
                               ),
@@ -1239,7 +1344,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   }
 
   Widget _buildVsCodeTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final configJson = '''{
+    final configJson =
+        '''{
   "models": [
     {
       "title": "Thinai Local",
@@ -1275,7 +1381,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   }
 
   Widget _buildPythonTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final pyCode = '''from openai import OpenAI
+    final pyCode =
+        '''from openai import OpenAI
 
 client = OpenAI(
     base_url="$openAiBase",
@@ -1312,7 +1419,8 @@ print(response.choices[0].message.content)''';
   }
 
   Widget _buildCurlTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final curlCode = '''curl $openAiBase/chat/completions \\
+    final curlCode =
+        '''curl $openAiBase/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "${widget.chatId}",
@@ -1344,7 +1452,8 @@ print(response.choices[0].message.content)''';
   }
 
   Widget _buildChatJsonTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final chatJson = '''{
+    final chatJson =
+        '''{
   "model": "${widget.chatId}",
   "messages": [
     {
@@ -1412,10 +1521,7 @@ class _ApiEndpointsSection extends StatefulWidget {
   final String base;
   final String chatId;
 
-  const _ApiEndpointsSection({
-    required this.base,
-    required this.chatId,
-  });
+  const _ApiEndpointsSection({required this.base, required this.chatId});
 
   @override
   State<_ApiEndpointsSection> createState() => _ApiEndpointsSectionState();
@@ -1446,14 +1552,16 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         method: 'POST',
         path: '/v1/chat/completions',
         title: 'OpenAI Chat Completions',
-        curl: 'curl ${widget.base}/v1/chat/completions \\\n'
+        curl:
+            'curl ${widget.base}/v1/chat/completions \\\n'
             '  -H "Content-Type: application/json" \\\n'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Hello!"}],\n'
             '    "stream": false\n'
             '  }\'',
-        requestJson: '{\n'
+        requestJson:
+            '{\n'
             '  "model": "${widget.chatId}",\n'
             '  "messages": [\n'
             '    {"role": "system", "content": "You are a helpful assistant."},\n'
@@ -1462,7 +1570,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
             '  "temperature": 0.7,\n'
             '  "stream": false\n'
             '}',
-        responseJson: '{\n'
+        responseJson:
+            '{\n'
             '  "id": "chatcmpl-thinai",\n'
             '  "object": "chat.completion",\n'
             '  "created": 1728400000,\n'
@@ -1488,21 +1597,24 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         method: 'POST',
         path: '/api/chat',
         title: 'Ollama Native Chat',
-        curl: 'curl ${widget.base}/api/chat \\\n'
+        curl:
+            'curl ${widget.base}/api/chat \\\n'
             '  -H "Content-Type: application/json" \\\n'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Why is the sky blue?"}],\n'
             '    "stream": false\n'
             '  }\'',
-        requestJson: '{\n'
+        requestJson:
+            '{\n'
             '  "model": "${widget.chatId}",\n'
             '  "messages": [\n'
             '    {"role": "user", "content": "Why is the sky blue?"}\n'
             '  ],\n'
             '  "stream": false\n'
             '}',
-        responseJson: '{\n'
+        responseJson:
+            '{\n'
             '  "model": "${widget.chatId}",\n'
             '  "created_at": "2026-10-08T17:30:00Z",\n'
             '  "message": {\n'
@@ -1518,17 +1630,20 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         method: 'POST',
         path: '/v1/embeddings',
         title: 'Vector Embeddings',
-        curl: 'curl ${widget.base}/v1/embeddings \\\n'
+        curl:
+            'curl ${widget.base}/v1/embeddings \\\n'
             '  -H "Content-Type: application/json" \\\n'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "input": "Search query text"\n'
             '  }\'',
-        requestJson: '{\n'
+        requestJson:
+            '{\n'
             '  "model": "${widget.chatId}",\n'
             '  "input": "Search query text"\n'
             '}',
-        responseJson: '{\n'
+        responseJson:
+            '{\n'
             '  "object": "list",\n'
             '  "data": [\n'
             '    {\n'
@@ -1550,7 +1665,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         title: 'Installed Models Catalog',
         curl: 'curl ${widget.base}/v1/models',
         requestJson: null,
-        responseJson: '{\n'
+        responseJson:
+            '{\n'
             '  "object": "list",\n'
             '  "data": [\n'
             '    {\n'
@@ -1609,7 +1725,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                   tooltip: 'Copy Base URL',
                   icon: const Icon(Icons.link_rounded, size: 18),
                   color: const Color(0xFF2CA048),
-                  onPressed: () => _copy(widget.base, 'Base URL: ${widget.base}'),
+                  onPressed: () =>
+                      _copy(widget.base, 'Base URL: ${widget.base}'),
                 ),
               ],
             ),
@@ -1633,7 +1750,11 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
   }
 
   Widget _buildEndpointRow(
-      ColorScheme scheme, bool isDark, _EndpointItem item, int index) {
+    ColorScheme scheme,
+    bool isDark,
+    _EndpointItem item,
+    int index,
+  ) {
     final expanded = _expandedIndex == index;
     final isPost = item.method == 'POST';
 
@@ -1660,22 +1781,28 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
     ];
 
     final maxTabIndex = tabs.length - 1;
-    final activeTabIndex = (_endpointFormatIndices[index] ?? 0).clamp(0, maxTabIndex);
+    final activeTabIndex = (_endpointFormatIndices[index] ?? 0).clamp(
+      0,
+      maxTabIndex,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _expandedIndex = expanded ? null : index),
+            onTap: () =>
+                setState(() => _expandedIndex = expanded ? null : index),
             borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2.5,
+                    ),
                     decoration: BoxDecoration(
                       color: isPost
                           ? const Color(0xFF2CA048).withValues(alpha: 0.14)
@@ -1722,9 +1849,12 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                     icon: const Icon(Icons.copy_rounded, size: 14),
                     color: scheme.onSurfaceVariant,
                     padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 28, minHeight: 28),
-                    onPressed: () => _copy(item.curl, '${item.path} cURL command'),
+                    constraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                    onPressed: () =>
+                        _copy(item.curl, '${item.path} cURL command'),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -1753,7 +1883,11 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                         setState(() => _endpointFormatIndices[index] = newIdx);
                       },
                       onCopy: () {
-                        final tab = tabs[(_endpointFormatIndices[index] ?? 0).clamp(0, maxTabIndex)];
+                        final tab =
+                            tabs[(_endpointFormatIndices[index] ?? 0).clamp(
+                              0,
+                              maxTabIndex,
+                            )];
                         _copy(tab.code, '${item.path} ${tab.filename}');
                       },
                     ),
@@ -1805,15 +1939,25 @@ class _VsCodeSyntaxHighlighter {
   static const Color defaultText = Color(0xFFD4D4D4);
 
   // VS Code Dark+ Color Palette
-  static const Color keywordColor = Color(0xFF569CD6);     // VS Code blue (curl, export)
-  static const Color pyKeywordColor = Color(0xFFC586C0);   // VS Code purple (from, import)
-  static const Color stringColor = Color(0xFFCE9178);      // VS Code orange
-  static const Color jsonKeyColor = Color(0xFF9CDCFE);     // VS Code light blue property
-  static const Color numberColor = Color(0xFFB5CEA8);      // VS Code number light green
-  static const Color functionColor = Color(0xFFDCDCAA);    // VS Code function yellow
-  static const Color urlColor = Color(0xFF4EC9B0);         // VS Code teal
-  static const Color commentColor = Color(0xFF6A9955);     // VS Code comment green
-  static const Color backslashColor = Color(0xFF808080);   // Gray
+  static const Color keywordColor = Color(
+    0xFF569CD6,
+  ); // VS Code blue (curl, export)
+  static const Color pyKeywordColor = Color(
+    0xFFC586C0,
+  ); // VS Code purple (from, import)
+  static const Color stringColor = Color(0xFFCE9178); // VS Code orange
+  static const Color jsonKeyColor = Color(
+    0xFF9CDCFE,
+  ); // VS Code light blue property
+  static const Color numberColor = Color(
+    0xFFB5CEA8,
+  ); // VS Code number light green
+  static const Color functionColor = Color(
+    0xFFDCDCAA,
+  ); // VS Code function yellow
+  static const Color urlColor = Color(0xFF4EC9B0); // VS Code teal
+  static const Color commentColor = Color(0xFF6A9955); // VS Code comment green
+  static const Color backslashColor = Color(0xFF808080); // Gray
 
   static List<TextSpan> highlight(String code, String language) {
     switch (language.toLowerCase()) {
@@ -1827,7 +1971,12 @@ class _VsCodeSyntaxHighlighter {
       case 'py':
         return _highlightPython(code);
       default:
-        return [TextSpan(text: code, style: const TextStyle(color: defaultText))];
+        return [
+          TextSpan(
+            text: code,
+            style: const TextStyle(color: defaultText),
+          ),
+        ];
     }
   }
 
@@ -1840,46 +1989,66 @@ class _VsCodeSyntaxHighlighter {
 
     for (final match in pattern.allMatches(code)) {
       if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: code.substring(lastIndex, match.start),
-          style: const TextStyle(color: defaultText),
-        ));
+        spans.add(
+          TextSpan(
+            text: code.substring(lastIndex, match.start),
+            style: const TextStyle(color: defaultText),
+          ),
+        );
       }
 
       if (match.group(1) != null) {
-        spans.add(TextSpan(
-          text: match.group(1),
-          style: const TextStyle(color: jsonKeyColor, fontWeight: FontWeight.w600),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(1),
+            style: const TextStyle(
+              color: jsonKeyColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
       } else if (match.group(2) != null) {
-        spans.add(TextSpan(
-          text: match.group(2),
-          style: const TextStyle(color: stringColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(2),
+            style: const TextStyle(color: stringColor),
+          ),
+        );
       } else if (match.group(3) != null) {
-        spans.add(TextSpan(
-          text: match.group(3),
-          style: const TextStyle(color: numberColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(3),
+            style: const TextStyle(color: numberColor),
+          ),
+        );
       } else if (match.group(4) != null) {
-        spans.add(TextSpan(
-          text: match.group(4),
-          style: const TextStyle(color: keywordColor, fontWeight: FontWeight.w600),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(4),
+            style: const TextStyle(
+              color: keywordColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
       } else if (match.group(5) != null) {
-        spans.add(TextSpan(
-          text: match.group(5),
-          style: const TextStyle(color: defaultText),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(5),
+            style: const TextStyle(color: defaultText),
+          ),
+        );
       }
       lastIndex = match.end;
     }
 
     if (lastIndex < code.length) {
-      spans.add(TextSpan(
-        text: code.substring(lastIndex),
-        style: const TextStyle(color: defaultText),
-      ));
+      spans.add(
+        TextSpan(
+          text: code.substring(lastIndex),
+          style: const TextStyle(color: defaultText),
+        ),
+      );
     }
     return spans;
   }
@@ -1893,68 +2062,104 @@ class _VsCodeSyntaxHighlighter {
 
     for (final match in pattern.allMatches(code)) {
       if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: code.substring(lastIndex, match.start),
-          style: const TextStyle(color: defaultText),
-        ));
+        spans.add(
+          TextSpan(
+            text: code.substring(lastIndex, match.start),
+            style: const TextStyle(color: defaultText),
+          ),
+        );
       }
 
       if (match.group(1) != null) {
-        spans.add(TextSpan(
-          text: match.group(1),
-          style: const TextStyle(color: commentColor, fontStyle: FontStyle.italic),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(1),
+            style: const TextStyle(
+              color: commentColor,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        );
       } else if (match.group(2) != null) {
-        spans.add(TextSpan(
-          text: match.group(2),
-          style: const TextStyle(color: keywordColor, fontWeight: FontWeight.w700),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(2),
+            style: const TextStyle(
+              color: keywordColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
       } else if (match.group(3) != null) {
-        spans.add(TextSpan(
-          text: match.group(3),
-          style: const TextStyle(color: jsonKeyColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(3),
+            style: const TextStyle(color: jsonKeyColor),
+          ),
+        );
       } else if (match.group(4) != null) {
-        spans.add(TextSpan(
-          text: match.group(4),
-          style: const TextStyle(color: urlColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(4),
+            style: const TextStyle(color: urlColor),
+          ),
+        );
       } else if (match.group(5) != null) {
-        spans.add(TextSpan(
-          text: match.group(5),
-          style: const TextStyle(color: stringColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(5),
+            style: const TextStyle(color: stringColor),
+          ),
+        );
       } else if (match.group(6) != null) {
         final text = match.group(6)!;
         if (text.startsWith("'{") || text.contains('"')) {
-          spans.add(const TextSpan(text: "'", style: TextStyle(color: stringColor)));
+          spans.add(
+            const TextSpan(
+              text: "'",
+              style: TextStyle(color: stringColor),
+            ),
+          );
           spans.addAll(_highlightJson(text.substring(1, text.length - 1)));
-          spans.add(const TextSpan(text: "'", style: TextStyle(color: stringColor)));
+          spans.add(
+            const TextSpan(
+              text: "'",
+              style: TextStyle(color: stringColor),
+            ),
+          );
         } else {
-          spans.add(TextSpan(
-            text: text,
-            style: const TextStyle(color: stringColor),
-          ));
+          spans.add(
+            TextSpan(
+              text: text,
+              style: const TextStyle(color: stringColor),
+            ),
+          );
         }
       } else if (match.group(7) != null) {
-        spans.add(TextSpan(
-          text: match.group(7),
-          style: const TextStyle(color: backslashColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(7),
+            style: const TextStyle(color: backslashColor),
+          ),
+        );
       } else if (match.group(8) != null) {
-        spans.add(TextSpan(
-          text: match.group(8),
-          style: const TextStyle(color: functionColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(8),
+            style: const TextStyle(color: functionColor),
+          ),
+        );
       }
       lastIndex = match.end;
     }
 
     if (lastIndex < code.length) {
-      spans.add(TextSpan(
-        text: code.substring(lastIndex),
-        style: const TextStyle(color: defaultText),
-      ));
+      spans.add(
+        TextSpan(
+          text: code.substring(lastIndex),
+          style: const TextStyle(color: defaultText),
+        ),
+      );
     }
     return spans;
   }
@@ -1968,51 +2173,73 @@ class _VsCodeSyntaxHighlighter {
 
     for (final match in pattern.allMatches(code)) {
       if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: code.substring(lastIndex, match.start),
-          style: const TextStyle(color: defaultText),
-        ));
+        spans.add(
+          TextSpan(
+            text: code.substring(lastIndex, match.start),
+            style: const TextStyle(color: defaultText),
+          ),
+        );
       }
 
       if (match.group(1) != null) {
-        spans.add(TextSpan(
-          text: match.group(1),
-          style: const TextStyle(color: commentColor, fontStyle: FontStyle.italic),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(1),
+            style: const TextStyle(
+              color: commentColor,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        );
       } else if (match.group(2) != null) {
-        spans.add(TextSpan(
-          text: match.group(2),
-          style: const TextStyle(color: pyKeywordColor, fontWeight: FontWeight.w600),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(2),
+            style: const TextStyle(
+              color: pyKeywordColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
       } else if (match.group(3) != null) {
-        spans.add(TextSpan(
-          text: match.group(3),
-          style: const TextStyle(color: functionColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(3),
+            style: const TextStyle(color: functionColor),
+          ),
+        );
       } else if (match.group(4) != null) {
-        spans.add(TextSpan(
-          text: match.group(4),
-          style: const TextStyle(color: stringColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(4),
+            style: const TextStyle(color: stringColor),
+          ),
+        );
       } else if (match.group(5) != null) {
-        spans.add(TextSpan(
-          text: match.group(5),
-          style: const TextStyle(color: numberColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(5),
+            style: const TextStyle(color: numberColor),
+          ),
+        );
       } else if (match.group(6) != null) {
-        spans.add(TextSpan(
-          text: match.group(6),
-          style: const TextStyle(color: jsonKeyColor),
-        ));
+        spans.add(
+          TextSpan(
+            text: match.group(6),
+            style: const TextStyle(color: jsonKeyColor),
+          ),
+        );
       }
       lastIndex = match.end;
     }
 
     if (lastIndex < code.length) {
-      spans.add(TextSpan(
-        text: code.substring(lastIndex),
-        style: const TextStyle(color: defaultText),
-      ));
+      spans.add(
+        TextSpan(
+          text: code.substring(lastIndex),
+          style: const TextStyle(color: defaultText),
+        ),
+      );
     }
     return spans;
   }
@@ -2054,7 +2281,8 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
   }
 
   void _handleCopy() {
-    final activeTab = widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
+    final activeTab =
+        widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
     Clipboard.setData(ClipboardData(text: activeTab.code));
     HapticFeedback.lightImpact();
     setState(() => _copied = true);
@@ -2082,7 +2310,8 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeTab = widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
+    final activeTab =
+        widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
     final lines = activeTab.code.split('\n');
     const double codeFontSize = 11.5;
     const double codeLineHeight = 1.48;
@@ -2154,11 +2383,7 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                     ],
                   ),
                 ),
-                Container(
-                  height: 18,
-                  width: 1,
-                  color: const Color(0xFF2E2E2E),
-                ),
+                Container(height: 18, width: 1, color: const Color(0xFF2E2E2E)),
                 // File Tabs
                 Expanded(
                   child: SingleChildScrollView(
@@ -2203,8 +2428,8 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                                   size: 13,
                                   color: isActive
                                       ? (tab.language == 'bash'
-                                          ? const Color(0xFF4ADE80)
-                                          : const Color(0xFF9CDCFE))
+                                            ? const Color(0xFF4ADE80)
+                                            : const Color(0xFF9CDCFE))
                                       : const Color(0xFF858585),
                                 ),
                                 const SizedBox(width: 6),
@@ -2234,9 +2459,14 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                   onTap: _handleCopy,
                   borderRadius: BorderRadius.circular(6),
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3.5,
+                    ),
                     decoration: BoxDecoration(
                       color: _copied
                           ? const Color(0xFF2CA048).withValues(alpha: 0.22)
@@ -2350,7 +2580,11 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.code_rounded, size: 10, color: Color(0xFF2CA048)),
+                const Icon(
+                  Icons.code_rounded,
+                  size: 10,
+                  color: Color(0xFF2CA048),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'Ln ${lines.length}, Col 1',
@@ -2361,7 +2595,10 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text('•', style: TextStyle(fontSize: 8, color: Color(0xFF64748B))),
+                const Text(
+                  '•',
+                  style: TextStyle(fontSize: 8, color: Color(0xFF64748B)),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   activeTab.language.toUpperCase(),
@@ -2399,8 +2636,6 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
   }
 }
 
-
-
 // ─── 6. STATUS DOT ───────────────────────────────────────────────────────────
 
 class _StatusDot extends StatefulWidget {
@@ -2415,11 +2650,10 @@ class _StatusDotState extends State<_StatusDot>
     with SingleTickerProviderStateMixin {
   AnimationController? _controller;
 
-  AnimationController get _c =>
-      _controller ??= AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 2),
-      )..repeat();
+  AnimationController get _c => _controller ??= AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  )..repeat();
 
   @override
   void dispose() {
@@ -2447,8 +2681,9 @@ class _StatusDotState extends State<_StatusDot>
                           width: 20 * (0.65 + _c.value * 0.35),
                           height: 20 * (0.65 + _c.value * 0.35),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: 0.35 * (1 - _c.value)),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.35 * (1 - _c.value)),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -2456,8 +2691,9 @@ class _StatusDotState extends State<_StatusDot>
                           width: 14,
                           height: 14,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: 0.25),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.25),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -2494,10 +2730,7 @@ class _SecurityNoticeBanner extends StatelessWidget {
   final bool lanShare;
   final int port;
 
-  const _SecurityNoticeBanner({
-    required this.lanShare,
-    required this.port,
-  });
+  const _SecurityNoticeBanner({required this.lanShare, required this.port});
 
   @override
   Widget build(BuildContext context) {
