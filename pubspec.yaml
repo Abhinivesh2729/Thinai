@@ -57,7 +57,7 @@ dependencies:
   flutter_riverpod: ^2.5.1
 
   # Android foreground service so the API keeps serving when backgrounded
-  flutter_foreground_task: ^10.0.0
+  flutter_foreground_task: ^11.0.3
 
   # Runtime permissions (notifications on Android 13+)
   permission_handler: ^12.0.3
