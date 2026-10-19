@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
+import '../../models_repo/hf_hub.dart';
 import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
@@ -12,6 +14,8 @@ import '../../state/providers.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_brand_logo.dart';
 import 'benchmark_page.dart';
+
+part 'hf_search_page.dart';
 
 enum ModelFilter { all, chat, vision, embedding, installed }
 
@@ -92,32 +96,14 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     required String confirmLabel,
     String cancelLabel = 'Cancel',
     bool destructive = false,
-  }) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: Text(cancelLabel),
-          ),
-          FilledButton(
-            style: destructive
-                ? FilledButton.styleFrom(
-                    backgroundColor: Theme.of(c).colorScheme.error,
-                  )
-                : null,
-            onPressed: () => Navigator.pop(c, true),
-            child: Text(confirmLabel),
-          ),
-        ],
-      ),
-    );
-    return confirmed == true;
-  }
+  }) => _confirmDialog(
+    context,
+    title: title,
+    message: message,
+    confirmLabel: confirmLabel,
+    cancelLabel: cancelLabel,
+    destructive: destructive,
+  );
 
   Future<void> _download(CatalogModel m) async {
     // A vision model fetches its image encoder too, so the size asked about
@@ -499,6 +485,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     if (chatModels.isEmpty && embeddingModels.isEmpty) {
       return _NoResults(
         query: _search.text.trim(),
+        onSearchHub: () => openHubSearch(context, query: _search.text.trim()),
         onClear: () {
           setState(() {
             _filter = ModelFilter.all;
@@ -588,6 +575,14 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
+        if (_query.isNotEmpty) ...[
+          _HubSearchPrompt(
+            query: _search.text.trim(),
+            onTap: () => openHubSearch(context, query: _search.text.trim()),
+          ),
+          const SizedBox(height: 10),
+        ],
+
         // Active Goal recommendations section
         if (_selectedUseCase != null) ...[
           _ActiveGoalBanner(
@@ -695,6 +690,11 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           const SizedBox(height: 14),
         ],
 
+        if (_query.isEmpty) ...[
+          _HubSearchPrompt(query: '', onTap: () => openHubSearch(context)),
+          const SizedBox(height: 14),
+        ],
+
         // Storage & Offline guarantee footer
         Container(
           padding: const EdgeInsets.all(12),
@@ -728,12 +728,18 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onSubmitted;
   final VoidCallback onClear;
+  final String hintText;
+  final bool autofocus;
 
   const _SearchBar({
     required this.controller,
     required this.onChanged,
     required this.onClear,
+    this.onSubmitted,
+    this.hintText = 'Search models, makers, architectures…',
+    this.autofocus = false,
   });
 
   @override
@@ -780,14 +786,16 @@ class _SearchBar extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
+                autofocus: autofocus,
                 textInputAction: TextInputAction.search,
                 onChanged: onChanged,
+                onSubmitted: onSubmitted,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search models, makers, architectures…',
+                  hintText: hintText,
                   hintStyle: TextStyle(
                     color: isDark
                         ? const Color(0xFF64748B)
@@ -1809,8 +1817,9 @@ class _GoalOptionCard extends StatelessWidget {
 class _NoResults extends StatelessWidget {
   final String query;
   final VoidCallback? onClear;
+  final VoidCallback? onSearchHub;
 
-  const _NoResults({required this.query, this.onClear});
+  const _NoResults({required this.query, this.onClear, this.onSearchHub});
 
   @override
   Widget build(BuildContext context) {
@@ -1844,6 +1853,18 @@ class _NoResults extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
             ),
+            if (onSearchHub != null && query.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                icon: const Icon(Icons.travel_explore_rounded, size: 16),
+                label: const Text('Search Hugging Face'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _brandGreen,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: onSearchHub,
+              ),
+            ],
             if (onClear != null) ...[
               const SizedBox(height: 16),
               OutlinedButton.icon(
@@ -3936,4 +3957,40 @@ class _PausedDownloads extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Asks before an action a stray tap should not be able to take. Dismissing
+/// the dialog in any way counts as "no".
+Future<bool> _confirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  String cancelLabel = 'Cancel',
+  bool destructive = false,
+}) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (c) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(c, false),
+          child: Text(cancelLabel),
+        ),
+        FilledButton(
+          style: destructive
+              ? FilledButton.styleFrom(
+                  backgroundColor: Theme.of(c).colorScheme.error,
+                )
+              : null,
+          onPressed: () => Navigator.pop(c, true),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
 }

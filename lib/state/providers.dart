@@ -14,6 +14,7 @@ import '../models_repo/benchmark_store.dart';
 import '../models_repo/catalog.dart';
 import '../models_repo/device_profile.dart';
 import '../models_repo/downloader.dart';
+import '../models_repo/hf_hub.dart';
 import '../models_repo/recommender.dart';
 import '../models_repo/importer.dart';
 import '../models_repo/model_store.dart';
@@ -33,6 +34,9 @@ final modelImporterProvider = Provider<ModelImporter>(
 final modelDownloaderProvider = Provider<ModelDownloader>(
   (ref) => ModelDownloader(),
 );
+
+/// Hugging Face search. Used only from the Hub search pages, on demand.
+final hfHubProvider = Provider<HfHub>((ref) => HfHub());
 
 /// App self-update. Play holds the versions and the APK, so there is no
 /// update server of ours behind this; see [AppUpdater].
@@ -942,7 +946,7 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     if (url == null) return false;
     return start(
       CatalogModel(
-        id: 'file:${partial.filename.toLowerCase()}',
+        id: fileModelId(partial.filename),
         displayName: partial.label,
         author: '',
         url: url,
