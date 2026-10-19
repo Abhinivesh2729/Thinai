@@ -54,7 +54,7 @@ dependencies:
   dio: ^5.11.1
 
   # State management
-  flutter_riverpod: ^2.5.1
+  flutter_riverpod: ^3.4.3
 
   # Android foreground service so the API keeps serving when backgrounded
   flutter_foreground_task: ^11.0.3
