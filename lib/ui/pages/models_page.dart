@@ -562,13 +562,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         _query.isEmpty &&
         _selectedUseCase == null;
 
-    final CatalogModel? featured = isBrowsingDefault && chatModels.isNotEmpty
-        ? chatModels.first
-        : null;
+    final CatalogModel? featured = isBrowsingDefault ? featuredModel : null;
 
-    final List<CatalogModel> regularChatModels =
-        (featured != null && isBrowsingDefault)
-        ? chatModels.sublist(1)
+    final List<CatalogModel> regularChatModels = featured != null
+        ? chatModels.where((m) => m.id != featured.id).toList()
         : remainingChatModels;
 
     return ListView(
@@ -612,11 +609,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             icon: Icons.auto_awesome_rounded,
             title: 'Featured Models',
             subtitle: 'Handpicked for you',
-            trailing: Icon(
-              Icons.arrow_forward_rounded,
-              size: 16,
-              color: scheme.onSurfaceVariant,
-            ),
           ),
           const SizedBox(height: 10),
           _FeaturedHeroCard(
@@ -1922,13 +1914,11 @@ class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
-  final Widget? trailing;
 
   const _SectionHeader({
     required this.icon,
     required this.title,
     this.subtitle,
-    this.trailing,
   });
 
   @override
@@ -1982,7 +1972,6 @@ class _SectionHeader extends StatelessWidget {
               ],
             ),
           ),
-          ?trailing,
         ],
       ),
     );
@@ -2499,7 +2488,7 @@ class _FeaturedHeroCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Row: Brand emblem + GOOGLE + Gemma 3 · 270M Instruct + Popular Badge
+                  // Top Row: brand emblem, maker, model name and the Popular badge
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
