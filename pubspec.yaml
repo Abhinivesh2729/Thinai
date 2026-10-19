@@ -60,7 +60,7 @@ dependencies:
   flutter_foreground_task: ^10.0.0
 
   # Runtime permissions (notifications on Android 13+)
-  permission_handler: ^12.0.3
+  permission_handler: ^13.0.2
 
   # Config persistence
   shared_preferences: ^2.3.2
