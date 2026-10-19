@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:local_llm/models_repo/use_cases.dart';
 import 'package:local_llm/ui/pages/models_page.dart';
+
+import 'helpers/fonts.dart';
 
 /// The Realme RMX3870 is 1080 px wide at 3x: 360 logical pixels, the width
 /// the overflow was first seen at. 320 covers the narrowest phones Android
@@ -39,29 +38,8 @@ Future<void> _pumpBar(
   );
 }
 
-/// Real Roboto from the Flutter SDK. The test default (Ahem) draws every
-/// glyph as a full square, which overflows rows a phone lays out fine.
-Future<void> _loadRoboto() async {
-  // flutter_tester lives under bin/cache/artifacts/engine/<host>/.
-  var dir = File(Platform.resolvedExecutable).parent;
-  while (!Directory('${dir.path}/material_fonts').existsSync() &&
-      dir.parent.path != dir.path) {
-    dir = dir.parent;
-  }
-  final fonts = Directory('${dir.path}/material_fonts');
-  expect(fonts.existsSync(), isTrue, reason: 'Roboto not found in the SDK');
-  final loader = FontLoader('Roboto');
-  for (final weight in ['Regular', 'Medium', 'Bold', 'Black']) {
-    final file = File('${fonts.path}/Roboto-$weight.ttf');
-    if (!file.existsSync()) continue;
-    final bytes = file.readAsBytesSync();
-    loader.addFont(Future.value(ByteData.view(bytes.buffer)));
-  }
-  await loader.load();
-}
-
 void main() {
-  setUpAll(_loadRoboto);
+  setUpAll(loadRoboto);
 
   for (final width in _widths) {
     testWidgets('fits every goal and filter at ${width.toInt()} dp', (
