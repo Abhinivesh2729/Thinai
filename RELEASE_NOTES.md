@@ -1,5 +1,22 @@
 # Release notes
 
+## v2.5.0
+
+### Find any model on Hugging Face
+Search from the Models page to find public GGUF models beyond the catalog.
+Each repo shows its files with size, quantisation and whether your phone has
+the memory for them, and installs through the usual download flow. Thinai
+only goes online while you search.
+
+### Downloads that pick up where they stopped
+Pausing, losing signal or closing the app no longer throws a download away.
+The saved part resumes from the same point, from the model's card or the
+Model Manager.
+
+### Fixes
+Newer Qwen3.5 models load again, the Server tab shows its port before it
+starts, and the LAN switch is readable in dark theme.
+
 ## v2.4.0
 
 ### Safer model management

@@ -1,5 +1,7 @@
-What's new in 2.4.0
-• Confirm before downloading, cancelling or deleting a model, so a stray tap can't lose a download
-• Every launch opens a fresh chat; past chats stay in the menu
-• Settings > System Prompt: set your own instructions for every chat
-• Model settings: Top-K, Top-P, and a Thinking on/off switch for models like Qwen3
+What's new in 2.5.0
+• Search Hugging Face and install any public GGUF model from the Models page
+• Downloads resume after a pause, a lost connection or closing the app
+• Newer Qwen3.5 models load correctly
+• Server tab shows its port before the server starts
+• LAN switch is easier to see in dark theme
+• LFM2.5 350M is the new featured model

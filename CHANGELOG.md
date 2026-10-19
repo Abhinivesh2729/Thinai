@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.5.0]
+
+### Added
+- Search Hugging Face from the Models page and install any public single-file GGUF. Repo pages show the licence, context length, quantisation, size and RAM fit for each file; downloads are pinned to the listed commit. The app goes online only while you search or open a repo (#58).
+- Downloads resume where they stopped after a pause, a lost connection or the app closing, using HTTP Range with If-Range on the ETag. Cancel is now Pause; the Model Manager lists paused downloads with Resume and Discard (#62).
+
+### Changed
+- LFM2.5 350M is the featured model on the Models page.
+- Dependencies: dio 5.11.1, flutter_foreground_task 11.0.3, permission_handler 13.0.2, cupertino_icons 2.0.0, plus patch updates (#64).
+- Test coverage raised from 41% to 77%; the CI coverage gate is now 50%.
+
+### Fixed
+- Qwen3.5 GGUFs re-converted with an MTP block failed to load (#60).
+- The Server tab shows the saved port before the server starts (#41).
+- The LAN switch is visible in dark theme (#54).
+- A long goal name no longer pushes the Reset button off the Models filter row.
+
 ## [2.4.0]
 
 ### Added
