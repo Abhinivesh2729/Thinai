@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'downloader.dart';
+
 class LocalModel {
   final String id;
   final String displayName;
@@ -20,11 +22,54 @@ class LocalModel {
 
   String get sizeFormatted {
     if (sizeBytes < 1024) return '$sizeBytes B';
-    if (sizeBytes < 1024 * 1024) return '${(sizeBytes / 1024).toStringAsFixed(1)} KB';
+    if (sizeBytes < 1024 * 1024) {
+      return '${(sizeBytes / 1024).toStringAsFixed(1)} KB';
+    }
     if (sizeBytes < 1024 * 1024 * 1024) {
       return '${(sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
     return '${(sizeBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+}
+
+/// A download that stopped before it finished, kept on disk so it can resume.
+class PartialDownload {
+  /// The model file this will become, e.g. `qwen2.5-0.5b-instruct-q4_k_m.gguf`.
+  final String filename;
+
+  /// The `.part` file itself.
+  final String path;
+
+  /// Bytes saved so far.
+  final int bytes;
+
+  /// Where it came from and how big it will be, when that was recorded.
+  final PartialMeta? meta;
+
+  const PartialDownload({
+    required this.filename,
+    required this.path,
+    required this.bytes,
+    this.meta,
+  });
+
+  int? get total => meta?.total;
+
+  /// Share already saved, or null when the full size is unknown.
+  double? get fraction {
+    final t = total;
+    if (t == null || t <= 0) return null;
+    return (bytes / t).clamp(0.0, 1.0);
+  }
+
+  /// What to call it on screen: the label it was downloaded under, or the
+  /// file name without `.gguf`.
+  String get label {
+    final saved = meta?.label;
+    if (saved != null && saved.trim().isNotEmpty) return saved;
+    return filename.toLowerCase().endsWith('.gguf')
+        ? filename.substring(0, filename.length - 5)
+        : filename;
   }
 }
 
@@ -90,6 +135,41 @@ class ModelStore {
     return await file.exists() ? file.path : null;
   }
 
+  /// Downloads that stopped part way, newest first. Empty parts are left out:
+  /// there is nothing to resume from them.
+  Future<List<PartialDownload>> listPartial() async {
+    final dir = await modelsDir();
+    final entries = await dir.list().toList();
+    final partials = <(PartialDownload, DateTime)>[];
+    for (final entry in entries) {
+      if (entry is! File) continue;
+      final path = entry.path;
+      if (!path.toLowerCase().endsWith('.gguf.part')) continue;
+      final stat = await entry.stat();
+      if (stat.size <= 0) continue;
+      final name = entry.uri.pathSegments.last;
+      partials.add((
+        PartialDownload(
+          filename: name.substring(0, name.length - '.part'.length),
+          path: path,
+          bytes: stat.size,
+          meta: await readPartialMeta(path),
+        ),
+        stat.modified,
+      ));
+    }
+    partials.sort((a, b) => b.$2.compareTo(a.$2));
+    return [for (final p in partials) p.$1];
+  }
+
+  /// Throws away a paused download and what it knew about itself.
+  Future<void> discardPartial(PartialDownload partial) async {
+    final file = File(partial.path);
+    if (await file.exists()) await file.delete();
+    await deletePartialMeta(partial.path);
+    _changes.add(null);
+  }
+
   Future<LocalModel?> findById(String id) async {
     final all = await list();
     for (final m in all) {
@@ -118,10 +198,15 @@ class ModelStore {
     for (final entry in entries) {
       if (entry is! File) continue;
       final path = entry.path.toLowerCase();
-      if (!path.endsWith('.gguf') && !path.endsWith('.part')) continue;
+      if (!path.endsWith('.gguf') &&
+          !path.endsWith('.part') &&
+          !path.endsWith('.part.json')) {
+        continue;
+      }
       if (await entry.exists()) {
         await entry.delete();
-        removed++;
+        // The sidecar is bookkeeping for a part, not a download of its own.
+        if (!path.endsWith('.part.json')) removed++;
       }
     }
     _changes.add(null);

@@ -648,7 +648,12 @@ class _ModelStorageSettingsPageState
           if (!mounted) return;
           ref.read(modelsRefreshProvider.notifier).state++;
           if (progress.error != null) {
-            _toast('Download failed: ${progress.error}');
+            _toast(
+              progress.received > 0
+                  ? 'Download stopped: ${progress.error}. Progress is saved, '
+                        'resume it from the Model Manager.'
+                  : 'Download failed: ${progress.error}',
+            );
             return;
           }
           _toast('Download complete');

@@ -439,8 +439,8 @@ class _MainShellState extends ConsumerState<_MainShell> {
   }
 
   /// Applies the downloaded build. Play restarts the app to install, which
-  /// takes the process down with it — and a model download has no resume, so
-  /// one in flight would start over from zero. Worth a question first.
+  /// takes the process down with it and pauses any model download in flight.
+  /// The part is kept, but the user should still hear about it first.
   Future<void> _installUpdate() async {
     if (_updateBusy) return;
     if (ref.read(downloadsProvider).isNotEmpty) {
@@ -449,7 +449,8 @@ class _MainShellState extends ConsumerState<_MainShell> {
         builder: (ctx) => AlertDialog(
           title: const Text('Restart now?'),
           content: const Text(
-            'A model is still downloading. Restarting cancels it.',
+            'A model is still downloading. Restarting pauses it, and you can '
+            'resume it from the Models page.',
           ),
           actions: [
             TextButton(

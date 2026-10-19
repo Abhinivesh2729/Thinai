@@ -52,11 +52,16 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   void _reportOutcome(DownloadOutcome outcome) {
     if (!mounted) return;
     if (outcome.cancelled) {
-      _toast('Download cancelled');
+      _toast('Download paused. Tap Resume to continue.');
       return;
     }
     if (!outcome.ok) {
-      _toast('Could not download ${outcome.label}: ${outcome.error}');
+      _toast(
+        outcome.keptBytes > 0
+            ? 'Download of ${outcome.label} stopped: ${outcome.error}. '
+                  'Progress is saved, tap Resume to continue.'
+            : 'Could not download ${outcome.label}: ${outcome.error}',
+      );
       return;
     }
     final loaded =
@@ -79,8 +84,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   }
 
   /// Asks before an action a stray tap should not be able to take: starting a
-  /// download, cancelling one (there is no resume, so progress is lost) or
-  /// deleting a model. Dismissing the dialog in any way counts as "no".
+  /// download, discarding a paused one or deleting a model. Dismissing the
+  /// dialog in any way counts as "no".
   Future<bool> _confirm({
     required String title,
     required String message,
@@ -128,20 +133,34 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     await ref.read(downloadsProvider.notifier).start(m);
   }
 
-  Future<void> _cancelDownload(String catalogId) async {
-    final handle = ref.read(downloadsProvider)[catalogId];
-    if (handle == null) return;
+  /// Pausing loses nothing (the part stays on disk), so it needs no question.
+  void _pauseDownload(String catalogId) {
+    ref.read(downloadsProvider.notifier).cancel(catalogId);
+  }
+
+  /// Carries on from the saved part. The user agreed to this download when it
+  /// started, so it is not asked about again.
+  Future<void> _resume(CatalogModel m) async {
+    await ref.read(downloadsProvider.notifier).start(m);
+  }
+
+  Future<void> _resumePartial(PartialDownload p) async {
+    final ok = await ref.read(downloadsProvider.notifier).resumePartial(p);
+    if (!ok && mounted) _toast('Could not resume ${p.label}');
+  }
+
+  Future<void> _discardPartial(PartialDownload p) async {
     final confirmed = await _confirm(
-      title: 'Cancel download?',
+      title: 'Discard download?',
       message:
-          'Do you want to cancel the download of ${handle.label}? '
-          'The progress so far will be lost.',
-      confirmLabel: 'Cancel download',
-      cancelLabel: 'Keep downloading',
+          'Do you want to discard the paused download of ${p.label}? '
+          'The ${_fmtSize(p.bytes)} saved so far will be deleted.',
+      confirmLabel: 'Discard',
       destructive: true,
     );
     if (!confirmed || !mounted) return;
-    ref.read(downloadsProvider.notifier).cancel(catalogId);
+    await ref.read(modelStoreProvider).discardPartial(p);
+    ref.read(modelsRefreshProvider.notifier).state++;
   }
 
   Future<void> _delete(LocalModel m) async {
@@ -201,7 +220,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           Navigator.pop(ctx);
         },
         onDelete: (m) => _delete(m),
-        onCancelDownload: _cancelDownload,
+        onCancelDownload: _pauseDownload,
+        onResumePartial: _resumePartial,
+        onDiscardPartial: _discardPartial,
         onBrowseCatalog: () {
           Navigator.pop(ctx);
           setState(() {
@@ -495,6 +516,13 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
     final device = ref.watch(speedKnowledgeProvider).device;
 
+    final paused = <String, PartialDownload>{
+      for (final p
+          in ref.watch(partialDownloadsProvider).valueOrNull ??
+              const <PartialDownload>[])
+        p.filename: p,
+    };
+
     Widget catalogCard(
       CatalogModel m, {
       Key? actionKey,
@@ -510,8 +538,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       onAddVision: () =>
           ref.read(downloadsProvider.notifier).addVisionSupport(m),
       download: downloads[m.id],
+      paused: paused[m.filename],
       onDownload: () => _download(m),
-      onCancel: () => _cancelDownload(m.id),
+      onResume: () => _resume(m),
+      onCancel: () => _pauseDownload(m.id),
       actionKey: actionKey,
     );
 
@@ -604,8 +634,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onAddVision: () =>
                 ref.read(downloadsProvider.notifier).addVisionSupport(featured),
             download: downloads[featured.id],
+            paused: paused[featured.filename],
             onDownload: () => _download(featured),
-            onCancel: () => _cancelDownload(featured.id),
+            onResume: () => _resume(featured),
+            onCancel: () => _pauseDownload(featured.id),
             actionKey: CoachMarkTargets.firstCatalogAction,
           ),
           const SizedBox(height: 16),
@@ -1207,12 +1239,16 @@ class _ModelManagerSheet extends ConsumerWidget {
   final ValueChanged<LocalModel> onActivate;
   final ValueChanged<LocalModel> onDelete;
   final ValueChanged<String> onCancelDownload;
+  final ValueChanged<PartialDownload> onResumePartial;
+  final ValueChanged<PartialDownload> onDiscardPartial;
   final VoidCallback onBrowseCatalog;
 
   const _ModelManagerSheet({
     required this.onActivate,
     required this.onDelete,
     required this.onCancelDownload,
+    required this.onResumePartial,
+    required this.onDiscardPartial,
     required this.onBrowseCatalog,
   });
 
@@ -1223,6 +1259,14 @@ class _ModelManagerSheet extends ConsumerWidget {
         ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
     final activeId = ref.watch(activeModelIdProvider);
     final downloads = ref.watch(downloadsProvider);
+    // A download in flight has a part on disk too; show it once, live.
+    final inFlight = {for (final h in downloads.values) '${h.destPath}.part'};
+    final paused = [
+      for (final p
+          in ref.watch(partialDownloadsProvider).valueOrNull ??
+              const <PartialDownload>[])
+        if (!inFlight.contains(p.path)) p,
+    ];
     final totalBytes = installed.fold<int>(0, (sum, m) => sum + m.sizeBytes);
     final activeModel = installed.cast<LocalModel?>().firstWhere(
       (m) => m?.id == activeId,
@@ -1307,7 +1351,7 @@ class _ModelManagerSheet extends ConsumerWidget {
 
           // Content
           Expanded(
-            child: installed.isEmpty && downloads.isEmpty
+            child: installed.isEmpty && downloads.isEmpty && paused.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(28),
@@ -1357,6 +1401,15 @@ class _ModelManagerSheet extends ConsumerWidget {
                         _ActiveDownloads(
                           downloads: downloads,
                           onCancel: onCancelDownload,
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      if (paused.isNotEmpty) ...[
+                        _PausedDownloads(
+                          partials: paused,
+                          onResume: onResumePartial,
+                          onDiscard: onDiscardPartial,
                         ),
                         const SizedBox(height: 14),
                       ],
@@ -2267,7 +2320,11 @@ class _FeaturedHeroCard extends StatelessWidget {
   final bool needsVisionEncoder;
   final VoidCallback? onAddVision;
   final DownloadHandle? download;
+
+  /// A part saved by an earlier attempt, shown as Resume while not in flight.
+  final PartialDownload? paused;
   final VoidCallback onDownload;
+  final VoidCallback onResume;
   final VoidCallback onCancel;
   final Key? actionKey;
   final RamFit fit;
@@ -2280,7 +2337,9 @@ class _FeaturedHeroCard extends StatelessWidget {
     this.needsVisionEncoder = false,
     this.onAddVision,
     required this.download,
+    this.paused,
     required this.onDownload,
+    required this.onResume,
     required this.onCancel,
     this.actionKey,
     this.fit = RamFit.unknown,
@@ -2553,6 +2612,9 @@ class _FeaturedHeroCard extends StatelessWidget {
                   if (download != null) ...[
                     const SizedBox(height: 12),
                     _DownloadProgressRow(handle: download!),
+                  ] else if (paused != null && !installed) ...[
+                    const SizedBox(height: 12),
+                    _PausedProgressRow(partial: paused!),
                   ],
                 ],
               ),
@@ -2617,12 +2679,12 @@ class _FeaturedHeroCard extends StatelessWidget {
         child: OutlinedButton.icon(
           key: actionKey,
           icon: Icon(
-            Icons.close_rounded,
+            Icons.pause_rounded,
             size: 14,
             color: isDark ? Colors.white70 : const Color(0xFF475569),
           ),
           label: Text(
-            'Cancel',
+            'Pause',
             style: TextStyle(
               color: isDark ? Colors.white : const Color(0xFF0F172A),
               fontSize: 11.5,
@@ -2650,7 +2712,7 @@ class _FeaturedHeroCard extends StatelessWidget {
       child: InkWell(
         key: actionKey,
         borderRadius: BorderRadius.circular(16),
-        onTap: onDownload,
+        onTap: paused != null ? onResume : onDownload,
         child: Container(
           height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -2658,14 +2720,16 @@ class _FeaturedHeroCard extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.arrow_downward_rounded,
+              Icon(
+                paused != null
+                    ? Icons.play_arrow_rounded
+                    : Icons.arrow_downward_rounded,
                 size: 14,
                 color: Colors.white,
               ),
               const SizedBox(width: 5),
               Text(
-                model.approxSize,
+                paused != null ? _resumeLabel(paused!) : model.approxSize,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -2693,7 +2757,11 @@ class _CatalogCard extends StatelessWidget {
   final bool isRecommended;
   final VoidCallback? onAddVision;
   final DownloadHandle? download;
+
+  /// A part saved by an earlier attempt, shown as Resume while not in flight.
+  final PartialDownload? paused;
   final VoidCallback onDownload;
+  final VoidCallback onResume;
   final VoidCallback onCancel;
   final Key? actionKey;
   final RamFit fit;
@@ -2707,7 +2775,9 @@ class _CatalogCard extends StatelessWidget {
     this.isRecommended = false,
     this.onAddVision,
     required this.download,
+    this.paused,
     required this.onDownload,
+    required this.onResume,
     required this.onCancel,
     this.actionKey,
     this.fit = RamFit.unknown,
@@ -2945,6 +3015,9 @@ class _CatalogCard extends StatelessWidget {
                   if (download != null) ...[
                     const SizedBox(height: 10),
                     _DownloadProgressRow(handle: download!),
+                  ] else if (paused != null && !installed) ...[
+                    const SizedBox(height: 10),
+                    _PausedProgressRow(partial: paused!),
                   ],
                 ],
               ),
@@ -3044,8 +3117,8 @@ class _CatalogCard extends StatelessWidget {
         height: 32,
         child: OutlinedButton.icon(
           key: actionKey,
-          icon: const Icon(Icons.close_rounded, size: 14),
-          label: const Text('Cancel'),
+          icon: const Icon(Icons.pause_rounded, size: 14),
+          label: const Text('Pause'),
           onPressed: onCancel,
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -3067,7 +3140,7 @@ class _CatalogCard extends StatelessWidget {
       child: InkWell(
         key: actionKey,
         borderRadius: BorderRadius.circular(16),
-        onTap: onDownload,
+        onTap: paused != null ? onResume : onDownload,
         child: Container(
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 11),
@@ -3086,14 +3159,16 @@ class _CatalogCard extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.arrow_downward_rounded,
+              Icon(
+                paused != null
+                    ? Icons.play_arrow_rounded
+                    : Icons.arrow_downward_rounded,
                 size: 13,
                 color: Colors.white,
               ),
               const SizedBox(width: 5),
               Text(
-                model.approxSize,
+                paused != null ? _resumeLabel(paused!) : model.approxSize,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11.5,
@@ -3646,9 +3721,9 @@ class _ActiveDownloadRow extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.only(left: 8),
                     constraints: const BoxConstraints(),
-                    tooltip: 'Cancel download',
+                    tooltip: 'Pause download',
                     onPressed: onCancel,
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.pause_rounded),
                   ),
                 ],
               ),
@@ -3666,6 +3741,199 @@ class _ActiveDownloadRow extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+String _resumeLabel(PartialDownload p) {
+  final f = p.fraction;
+  return f == null ? 'Resume' : 'Resume ${(f * 100).toStringAsFixed(0)}%';
+}
+
+/// The progress bar a paused download leaves behind on its card, so the user
+/// can see the part is still there and how much of it is done.
+class _PausedProgressRow extends StatelessWidget {
+  const _PausedProgressRow({required this.partial});
+
+  final PartialDownload partial;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
+    final fraction = partial.fraction;
+    final total = partial.total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.pause_circle_outline_rounded,
+              size: 14,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              fraction == null
+                  ? 'Paused'
+                  : 'Paused · ${(fraction * 100).toStringAsFixed(0)}%',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              total != null
+                  ? '${_fmtSize(partial.bytes)} / ${_fmtSize(total)}'
+                  : _fmtSize(partial.bytes),
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: fraction ?? 0,
+            minHeight: 6,
+            backgroundColor: isDark
+                ? const Color(0xFF1E2533)
+                : const Color(0xFFE2E8F0),
+            color: primaryBrand.withValues(alpha: 0.55),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Downloads that stopped part way, in the Model Manager. Each can pick up
+/// where it left off or be thrown away to free the space.
+class _PausedDownloads extends StatelessWidget {
+  const _PausedDownloads({
+    required this.partials,
+    required this.onResume,
+    required this.onDiscard,
+  });
+
+  final List<PartialDownload> partials;
+  final ValueChanged<PartialDownload> onResume;
+  final ValueChanged<PartialDownload> onDiscard;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.pause_circle_outline_rounded,
+                size: 16,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                partials.length == 1
+                    ? 'Paused download'
+                    : 'Paused downloads (${partials.length})',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: scheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Saved on this phone. Resume to continue where it stopped.',
+            style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 10),
+          for (final p in partials)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          p.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        p.total != null
+                            ? '${_fmtSize(p.bytes)} / ${_fmtSize(p.total!)}'
+                            : _fmtSize(p.bytes),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      IconButton(
+                        iconSize: 18,
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.only(left: 8),
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Resume download',
+                        color: _brandGreen,
+                        onPressed: () => onResume(p),
+                        icon: const Icon(Icons.play_arrow_rounded),
+                      ),
+                      IconButton(
+                        iconSize: 16,
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.only(left: 8),
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Discard download',
+                        onPressed: () => onDiscard(p),
+                        icon: const Icon(Icons.delete_outline_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: p.fraction ?? 0,
+                      minHeight: 5,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                      color: _brandGreen.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

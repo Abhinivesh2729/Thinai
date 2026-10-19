@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -221,6 +221,16 @@ final coachTourRequestProvider = StateProvider<int>((ref) => 0);
 final modelListProvider = FutureProvider<List<LocalModel>>((ref) async {
   ref.watch(modelsRefreshProvider);
   return ref.watch(modelStoreProvider).list();
+});
+
+/// Downloads that stopped part way and can pick up where they left off.
+/// Includes the part of a download in flight; callers that show both should
+/// prefer the live handle.
+final partialDownloadsProvider = FutureProvider<List<PartialDownload>>((
+  ref,
+) async {
+  ref.watch(modelsRefreshProvider);
+  return ref.watch(modelStoreProvider).listPartial();
 });
 
 /// The model the Chat tab and the completion endpoints use, as its served id.
@@ -794,10 +804,13 @@ class DownloadOutcome {
   final String? error;
   final LocalModel? installed;
 
-  /// The user stopped it. Distinct from a failure: nothing went wrong, and
+  /// The user paused it. Distinct from a failure: nothing went wrong, and
   /// telling them it "failed" reads as the app blaming them for their own
   /// decision.
   final bool cancelled;
+
+  /// Bytes kept on disk for a resume when the download stopped early.
+  final int keptBytes;
 
   const DownloadOutcome({
     required this.label,
@@ -805,6 +818,7 @@ class DownloadOutcome {
     this.error,
     this.installed,
     this.cancelled = false,
+    this.keptBytes = 0,
   });
 
   bool get ok => error == null && !cancelled;
@@ -843,22 +857,15 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
         if (!p.done) return;
         state = {...state}..remove(model.id);
         _ref.read(modelsRefreshProvider.notifier).state++;
-        if (p.cancelled) {
-          _emit(
-            DownloadOutcome(
-              label: model.displayName,
-              catalogModel: model,
-              cancelled: true,
-            ),
-          );
-          return;
-        }
+        // A pause was already reported by [cancel], where the user asked.
+        if (p.cancelled) return;
         if (p.error != null) {
           _emit(
             DownloadOutcome(
               label: model.displayName,
               catalogModel: model,
               error: p.error,
+              keptBytes: p.received,
             ),
           );
           return;
@@ -904,6 +911,8 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
     }
   }
 
+  /// Pauses a download. The part on disk is kept, so [start] or
+  /// [resumePartial] carries on from it.
   void cancel(String catalogId) {
     final handle = state[catalogId];
     if (handle != null) {
@@ -912,6 +921,40 @@ class DownloadsController extends StateNotifier<Map<String, DownloadHandle>> {
       _ref.read(modelsRefreshProvider.notifier).state++;
       _emit(DownloadOutcome(label: handle.label, cancelled: true));
     }
+  }
+
+  /// Resumes a download that stopped part way, from the Model Manager.
+  ///
+  /// Catalog files go back through [start] so they finish exactly as a fresh
+  /// catalog download would (encoder fetched, model loaded). Anything else,
+  /// such as a download by URL, is resumed from the address it recorded.
+  Future<bool> resumePartial(PartialDownload partial) async {
+    for (final m in modelCatalog) {
+      if (m.filename == partial.filename) return start(m);
+    }
+    for (final m in modelCatalog) {
+      if (m.mmprojFilename == partial.filename) {
+        await addVisionSupport(m);
+        return true;
+      }
+    }
+    final url = partial.meta?.url;
+    if (url == null) return false;
+    return start(
+      CatalogModel(
+        id: 'file:${partial.filename.toLowerCase()}',
+        displayName: partial.label,
+        author: '',
+        url: url,
+        filename: partial.filename,
+        approxBytes: partial.total ?? partial.bytes,
+        parameters: '',
+        contextTokens: 0,
+        description: '',
+        accent: const Color(0xFF2CA048),
+        emoji: '',
+      ),
+    );
   }
 
   /// Fetches the image encoder for a vision model whose weights are already
