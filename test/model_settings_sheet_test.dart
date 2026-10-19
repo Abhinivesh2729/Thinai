@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:local_llm/llm/generation_settings.dart';
+import 'package:local_llm/models_repo/device_profile.dart';
 import 'package:local_llm/models_repo/model_store.dart';
 import 'package:local_llm/ui/widgets/model_settings_sheet.dart';
 
@@ -88,6 +89,9 @@ ModelGenerationSettings _saved(LocalModel model) =>
 void main() {
   setUpAll(() {
     _dir = Directory.systemTemp.createTempSync('model_settings_sheet_test');
+    // A phone whose RAM could not be read: the caps below are the model's
+    // own, the same on a Mac and on the Linux CI runner.
+    _store.deviceForTesting = DeviceProfile.unknownProfile;
   });
 
   tearDownAll(() => _dir.deleteSync(recursive: true));

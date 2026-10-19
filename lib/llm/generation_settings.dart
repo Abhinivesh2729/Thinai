@@ -13,6 +13,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models_repo/catalog.dart';
@@ -173,6 +174,11 @@ class GenerationSettingsStore {
 
   Future<void>? _loading;
   DeviceProfile? _device;
+
+  /// Pins the phone the context cap is worked out for. Without it the cap
+  /// follows the RAM of whatever machine runs the tests.
+  @visibleForTesting
+  set deviceForTesting(DeviceProfile? device) => _device = device;
 
   /// Loads the saved settings once. Safe to call from anywhere, any number of
   /// times; later calls wait on the first.
