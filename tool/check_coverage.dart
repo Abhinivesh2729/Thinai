@@ -1,7 +1,7 @@
 import 'dart:io';
 
 /// Minimum line coverage, in percent. Raise it as coverage grows; the goal is 100.
-const minCoveragePct = 30.0;
+const minCoveragePct = 50.0;
 
 void main(List<String> args) {
   final lcovPath = args.isNotEmpty ? args[0] : 'coverage/lcov.info';
