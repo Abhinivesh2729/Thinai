@@ -33,7 +33,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
 
   # LLM runtime (llama.cpp FFI, GGUF models).
   # Vendored fork of https://github.com/Telosnex/fllama, committed in-tree
@@ -51,25 +51,25 @@ dependencies:
   # Filesystem / model management
   path_provider: ^2.1.6
   file_picker: ^8.1.2
-  dio: ^5.10.0
+  dio: ^5.11.1
 
   # State management
   flutter_riverpod: ^2.5.1
 
   # Android foreground service so the API keeps serving when backgrounded
-  flutter_foreground_task: ^10.0.0
+  flutter_foreground_task: ^11.0.3
 
   # Runtime permissions (notifications on Android 13+)
-  permission_handler: ^12.0.3
+  permission_handler: ^13.0.2
 
   # Config persistence
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.6
 
   # Request IDs
   uuid: ^4.6.0
 
   # External links (support/social)
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.3
 
   # In-app updates. Wraps Play's AppUpdateManager, so Play itself holds the
   # version info and the APK; the app runs no update server of its own and
@@ -84,7 +84,7 @@ dependencies:
   # used without declaring the CAMERA permission: the plugin hands the shot to
   # the system camera app, and declaring the permission would oblige the app to
   # request it at runtime for no extra capability.
-  image_picker: ^1.2.3
+  image_picker: ^1.2.4
   share_plus: ^12.0.2
 
 dev_dependencies:
