@@ -824,6 +824,10 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+/// The filter row, exposed so its layout can be tested at phone widths.
+@visibleForTesting
+typedef ModelsFilterBar = _DropdownFilterBar;
+
 class _DropdownFilterBar extends StatelessWidget {
   final ModelFilter selected;
   final UseCase? selectedUseCase;
@@ -883,198 +887,229 @@ class _DropdownFilterBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Row(
-        children: [
-          // 1. Sleek Dropdown Styled Filter Picker
-          PopupMenuButton<ModelFilter>(
-            tooltip: 'Filter Category',
-            initialValue: selected,
-            onSelected: onSelected,
-            offset: const Offset(0, 42),
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: BorderSide(
-                color: isDark
-                    ? const Color(0xFF263040)
-                    : const Color(0xFFE2E8F0),
-                width: 1,
-              ),
+      child: LayoutBuilder(
+        // Below this the Reset label no longer fits beside the two chips on
+        // the narrowest phones, so it shrinks to its icon.
+        builder: (context, constraints) => _buildRow(
+          context,
+          scheme: scheme,
+          isDark: isDark,
+          isCategoryFiltered: isCategoryFiltered,
+          compactReset: constraints.maxWidth < 300,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(
+    BuildContext context, {
+    required ColorScheme scheme,
+    required bool isDark,
+    required bool isCategoryFiltered,
+    required bool compactReset,
+  }) {
+    return Row(
+      children: [
+        // 1. Sleek Dropdown Styled Filter Picker
+        PopupMenuButton<ModelFilter>(
+          tooltip: 'Filter Category',
+          initialValue: selected,
+          onSelected: onSelected,
+          offset: const Offset(0, 42),
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+              width: 1,
             ),
-            color: isDark ? const Color(0xFF131722) : Colors.white,
-            itemBuilder: (context) => [
-              _buildMenuItem(ModelFilter.all, isDark),
-              _buildMenuItem(ModelFilter.chat, isDark),
-              _buildMenuItem(ModelFilter.vision, isDark),
-              _buildMenuItem(ModelFilter.embedding, isDark),
-              _buildMenuItem(ModelFilter.installed, isDark),
-            ],
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 38,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
+          ),
+          color: isDark ? const Color(0xFF131722) : Colors.white,
+          itemBuilder: (context) => [
+            _buildMenuItem(ModelFilter.all, isDark),
+            _buildMenuItem(ModelFilter.chat, isDark),
+            _buildMenuItem(ModelFilter.vision, isDark),
+            _buildMenuItem(ModelFilter.embedding, isDark),
+            _buildMenuItem(ModelFilter.installed, isDark),
+          ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: isCategoryFiltered
+                  ? const Color(
+                      0xFF2CA048,
+                    ).withValues(alpha: isDark ? 0.22 : 0.12)
+                  : (isDark ? const Color(0xFF131722) : Colors.white),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
                 color: isCategoryFiltered
-                    ? const Color(
-                        0xFF2CA048,
-                      ).withValues(alpha: isDark ? 0.22 : 0.12)
-                    : (isDark ? const Color(0xFF131722) : Colors.white),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
+                    ? const Color(0xFF2CA048)
+                    : (isDark
+                          ? const Color(0xFF263040)
+                          : const Color(0xFFCBD5E1)),
+                width: isCategoryFiltered ? 1.5 : 1,
+              ),
+              boxShadow: !isDark && !isCategoryFiltered
+                  ? const [
+                      BoxShadow(
+                        color: Color(0x08000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _filterIcon(selected),
+                  size: 15,
                   color: isCategoryFiltered
                       ? const Color(0xFF2CA048)
                       : (isDark
-                            ? const Color(0xFF263040)
-                            : const Color(0xFFCBD5E1)),
-                  width: isCategoryFiltered ? 1.5 : 1,
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF334155)),
                 ),
-                boxShadow: !isDark && !isCategoryFiltered
-                    ? const [
-                        BoxShadow(
-                          color: Color(0x08000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 1),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _filterIcon(selected),
-                    size: 15,
+                const SizedBox(width: 7),
+                Text(
+                  _filterLabel(selected),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: isCategoryFiltered
+                        ? FontWeight.w800
+                        : FontWeight.w600,
                     color: isCategoryFiltered
                         ? const Color(0xFF2CA048)
                         : (isDark
                               ? const Color(0xFFCBD5E1)
                               : const Color(0xFF334155)),
                   ),
-                  const SizedBox(width: 7),
-                  Text(
-                    _filterLabel(selected),
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: isCategoryFiltered
-                          ? FontWeight.w800
-                          : FontWeight.w600,
-                      color: isCategoryFiltered
-                          ? const Color(0xFF2CA048)
-                          : (isDark
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFF334155)),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_drop_down_rounded,
-                    size: 20,
-                    color: isCategoryFiltered
-                        ? const Color(0xFF2CA048)
-                        : (isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B)),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_drop_down_rounded,
+                  size: 20,
+                  color: isCategoryFiltered
+                      ? const Color(0xFF2CA048)
+                      : (isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B)),
+                ),
+              ],
             ),
           ),
+        ),
 
-          const SizedBox(width: 8),
+        const SizedBox(width: 8),
 
-          // 2. Classical Goals / Smart Match Button
-          Material(
-            color: selectedUseCase != null
-                ? const Color(
-                    0xFF2CA048,
-                  ).withValues(alpha: isDark ? 0.22 : 0.12)
-                : (isDark ? const Color(0xFF131722) : Colors.white),
-            borderRadius: BorderRadius.circular(10),
-            elevation: !isDark && selectedUseCase == null ? 0.5 : 0,
-            shadowColor: const Color(0x08000000),
-            child: InkWell(
+        // 2. Classical Goals / Smart Match Button. Takes whatever width is
+        // left and ellipsizes its label, so a long goal name plus the Reset
+        // button never pushes the row past the screen edge.
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Material(
+              color: selectedUseCase != null
+                  ? const Color(
+                      0xFF2CA048,
+                    ).withValues(alpha: isDark ? 0.22 : 0.12)
+                  : (isDark ? const Color(0xFF131722) : Colors.white),
               borderRadius: BorderRadius.circular(10),
-              onTap: onOpenGoalPicker,
-              child: Container(
-                height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 11),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: selectedUseCase != null
-                        ? const Color(0xFF2CA048)
-                        : (isDark
-                              ? const Color(0xFF263040)
-                              : const Color(0xFFCBD5E1)),
-                    width: selectedUseCase != null ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      selectedUseCase != null
-                          ? selectedUseCase!.icon
-                          : Icons.auto_awesome_rounded,
-                      size: 14.5,
+              elevation: !isDark && selectedUseCase == null ? 0.5 : 0,
+              shadowColor: const Color(0x08000000),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: onOpenGoalPicker,
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 11),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
                       color: selectedUseCase != null
                           ? const Color(0xFF2CA048)
                           : (isDark
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFF334155)),
+                                ? const Color(0xFF263040)
+                                : const Color(0xFFCBD5E1)),
+                      width: selectedUseCase != null ? 1.5 : 1,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      selectedUseCase != null
-                          ? selectedUseCase!.label
-                          : 'Goals',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: selectedUseCase != null
-                            ? FontWeight.w800
-                            : FontWeight.w600,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selectedUseCase != null
+                            ? selectedUseCase!.icon
+                            : Icons.auto_awesome_rounded,
+                        size: 14.5,
                         color: selectedUseCase != null
                             ? const Color(0xFF2CA048)
                             : (isDark
                                   ? const Color(0xFFCBD5E1)
                                   : const Color(0xFF334155)),
                       ),
-                    ),
-                    if (selectedUseCase != null) ...[
-                      const SizedBox(width: 5),
-                      InkWell(
-                        onTap: onClearGoal,
-                        borderRadius: BorderRadius.circular(8),
-                        child: const Padding(
-                          padding: EdgeInsets.all(2),
-                          child: Icon(
-                            Icons.close_rounded,
-                            size: 13,
-                            color: Color(0xFF2CA048),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          selectedUseCase != null
+                              ? selectedUseCase!.label
+                              : 'Goals',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: selectedUseCase != null
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                            color: selectedUseCase != null
+                                ? const Color(0xFF2CA048)
+                                : (isDark
+                                      ? const Color(0xFFCBD5E1)
+                                      : const Color(0xFF334155)),
                           ),
                         ),
                       ),
-                    ] else ...[
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.arrow_drop_down_rounded,
-                        size: 20,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
-                      ),
+                      if (selectedUseCase != null) ...[
+                        const SizedBox(width: 5),
+                        InkWell(
+                          onTap: onClearGoal,
+                          borderRadius: BorderRadius.circular(8),
+                          child: const Padding(
+                            padding: EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 13,
+                              color: Color(0xFF2CA048),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        const SizedBox(width: 2),
+                        Icon(
+                          Icons.arrow_drop_down_rounded,
+                          size: 20,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
+        ),
 
-          const Spacer(),
-
-          // 3. Reset Button (Appears if any filter, goal or search query is active)
-          if (hasActiveFilter)
-            Material(
+        // 3. Reset Button (Appears if any filter, goal or search query is active)
+        if (hasActiveFilter) ...[
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Reset filters and search',
+            child: Material(
               color: scheme.error.withValues(alpha: isDark ? 0.14 : 0.08),
               borderRadius: BorderRadius.circular(10),
               child: InkWell(
@@ -1098,22 +1133,25 @@ class _DropdownFilterBar extends StatelessWidget {
                         size: 14,
                         color: scheme.error,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Reset',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.error,
+                      if (!compactReset) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: scheme.error,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
               ),
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 
