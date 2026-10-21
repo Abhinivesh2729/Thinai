@@ -84,13 +84,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get commonOff => 'ஆஃப்';
 
   @override
-  String get navChat => 'அரட்டை';
+  String get navChat => 'உரையாடல்';
 
   @override
-  String get navModels => 'மாடல்கள்';
+  String get navModels => 'அறிவுருக்கள்';
 
   @override
-  String get navServer => 'சர்வர்';
+  String get navServer => 'சேவகம்';
 
   @override
   String get navSettings => 'அமைப்புகள்';
@@ -105,7 +105,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get serverPortDialogTitle => 'சர்வர் port-ஐ மாற்று';
+  String get serverPortDialogTitle => 'சேவகம் port-ஐ மாற்று';
 
   @override
   String get serverPortDialogBody =>
@@ -133,7 +133,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get serverStop => 'நிறுத்து';
 
   @override
-  String get serverCopyAddressTooltip => 'சர்வர் முகவரியை நகலெடு';
+  String get serverCopyAddressTooltip => 'சேவகம் முகவரியை நகலெடு';
 
   @override
   String serverCopiedToClipboard(String value) {
@@ -146,17 +146,17 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get serverServingModel => 'இயங்கும் மாடல்';
+  String get serverServingModel => 'இயங்கும் அறிவுரு';
 
   @override
   String get serverTune => 'சரிசெய்';
 
   @override
   String get serverNoModelLoaded =>
-      'இன்னும் மாடல் எதுவும் ஏற்றப்படவில்லை. பதில்களைப் பெற ஒரு மாடலை ஏற்றவும்.';
+      'இன்னும் அறிவுரு எதுவும் ஏற்றப்படவில்லை. பதில்களைப் பெற ஒரு அறிவுருவை ஏற்றவும்.';
 
   @override
-  String get serverBrowseModels => 'மாடல்களைப் பார்';
+  String get serverBrowseModels => 'அறிவுருக்களைப் பார்';
 
   @override
   String get serverRegenerateTokenTitle => 'API token-ஐ மீண்டும் உருவாக்கவா?';
@@ -193,7 +193,7 @@ class AppLocalizationsTa extends AppLocalizations {
       'கோடிங் உதவியாளர்கள், ஸ்கிரிப்ட்களுக்கான நேரடி அமைப்புக் குறியீடுகள்';
 
   @override
-  String get serverTabChatJson => 'அரட்டை JSON';
+  String get serverTabChatJson => 'உரையாடல் JSON';
 
   @override
   String get serverVsCodeIntro =>
@@ -209,7 +209,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get serverChatJsonIntro =>
-      'OpenAI நிலையான அரட்டை payload (/v1/chat/completions):';
+      'OpenAI நிலையான உரையாடல் payload (/v1/chat/completions):';
 
   @override
   String get serverOllamaIntro =>
@@ -225,22 +225,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get serverCopyLabelCurlCommand => 'cURL கட்டளை';
 
   @override
-  String get serverCopyLabelChatJson => 'அரட்டை JSON payload';
+  String get serverCopyLabelChatJson => 'உரையாடல் JSON payload';
 
   @override
   String get serverCopyLabelOllamaEnv => 'Ollama host மாறி';
 
   @override
-  String get serverEndpointOpenAiChat => 'OpenAI அரட்டை completions';
+  String get serverEndpointOpenAiChat => 'OpenAI உரையாடல் completions';
 
   @override
-  String get serverEndpointOllamaChat => 'Ollama நேரடி அரட்டை';
+  String get serverEndpointOllamaChat => 'Ollama நேரடி உரையாடல்';
 
   @override
   String get serverEndpointEmbeddings => 'வெக்டர் embeddings';
 
   @override
-  String get serverEndpointModels => 'நிறுவப்பட்ட மாடல்களின் பட்டியல்';
+  String get serverEndpointModels => 'நிறுவப்பட்ட அறிவுருக்களின் பட்டியல்';
 
   @override
   String get serverApiEndpointsTitle => 'API endpoints';
@@ -276,7 +276,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get hfSearchHint => 'Hugging Face-இல் GGUF மாடல்களைத் தேடு';
+  String get hfSearchHint => 'Hugging Face-இல் GGUF அறிவுருக்களைத் தேடு';
 
   @override
   String get hfSearchFailedTitle => 'தேடல் தோல்வியடைந்தது';
@@ -285,7 +285,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get hfTryAgain => 'மீண்டும் முயல்';
 
   @override
-  String get hfEmptyTitle => 'எந்த GGUF மாடலையும் தேடலாம்';
+  String get hfEmptyTitle => 'எந்த GGUF அறிவுருவையும் தேடலாம்';
 
   @override
   String get hfEmptyMessage =>
@@ -293,7 +293,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String hfNoMatchTitle(String query) {
-    return '\"$query\" உடன் பொருந்தும் GGUF மாடல்கள் இல்லை';
+    return '\"$query\" உடன் பொருந்தும் GGUF அறிவுருக்கள் இல்லை';
   }
 
   @override
@@ -314,7 +314,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get hfDownloadTitle => 'மாடலைப் பதிவிறக்கவா?';
+  String get hfDownloadTitle => 'அறிவுருவைப் பதிவிறக்கவா?';
 
   @override
   String get hfTooBigTitle => 'இந்தக் கைப்பேசிக்கு மிகப் பெரியதா?';
@@ -348,14 +348,14 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get hfOpenFailedTitle => 'இந்த மாடலைத் திறக்க முடியவில்லை';
+  String get hfOpenFailedTitle => 'இந்த அறிவுருவைத் திறக்க முடியவில்லை';
 
   @override
   String get hfSignInTitle => 'உள்நுழைவு தேவை';
 
   @override
   String get hfSignInMessage =>
-      'இந்த மாடலைப் பதிவிறக்க Hugging Face கணக்கு தேவை. Thinai இதை இன்னும் ஆதரிக்கவில்லை.';
+      'இந்த அறிவுருவைப் பதிவிறக்க Hugging Face கணக்கு தேவை. Thinai இதை இன்னும் ஆதரிக்கவில்லை.';
 
   @override
   String hfFilesTitle(int count) {
@@ -384,11 +384,11 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get hfNothingMessage =>
-      'Thinai ஏற்றக்கூடிய ஒற்றைக் கோப்பு GGUF மாடல்கள் இந்த repo-வில் இல்லை.';
+      'Thinai ஏற்றக்கூடிய ஒற்றைக் கோப்பு GGUF அறிவுருக்கள் இந்த repo-வில் இல்லை.';
 
   @override
   String get hfNetworkNotice =>
-      'தேடலுக்கு இணையம் தேவை. நீங்கள் இங்கே தேடும்போதோ ஒரு மாடலைத் திறக்கும்போதோ மட்டுமே Thinai huggingface.co-ஐத் தொடர்புகொள்ளும், பின்னணியில் ஒருபோதும் இல்லை. உங்கள் அரட்டைகள் இந்தக் கைப்பேசியிலேயே இருக்கும்.';
+      'தேடலுக்கு இணையம் தேவை. நீங்கள் இங்கே தேடும்போதோ ஒரு அறிவுருவைத் திறக்கும்போதோ மட்டுமே Thinai huggingface.co-ஐத் தொடர்புகொள்ளும், பின்னணியில் ஒருபோதும் இல்லை. உங்கள் உரையாடல்கள் இந்தக் கைப்பேசியிலேயே இருக்கும்.';
 
   @override
   String get hfAgoToday => 'இன்று';
@@ -450,22 +450,22 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get hfPromptSubtitle =>
-      'எந்தப் பொது GGUF மாடலையும் உங்கள் தொகுப்பில் நிறுவலாம். இணையம் தேவை.';
+      'எந்தப் பொது GGUF அறிவுருவையும் உங்கள் தொகுப்பில் நிறுவலாம். இணையம் தேவை.';
 
   @override
   String get settingsAppearance => 'தோற்றம்';
 
   @override
-  String get settingsSystemPrompt => 'சிஸ்டம் ப்ராம்ப்ட்';
+  String get settingsSystemPrompt => 'அமைப்பு செய்தி';
 
   @override
   String get settingsHardware => 'வன்பொருள் & வேகமாக்கல்';
 
   @override
-  String get settingsModelStorage => 'மாடல் & சேமிப்பகம்';
+  String get settingsModelStorage => 'அறிவுரு & சேமிப்பகம்';
 
   @override
-  String get settingsLocalServer => 'லோக்கல் சர்வர் & API';
+  String get settingsLocalServer => 'லோக்கல் சேவகம் & API';
 
   @override
   String get settingsAboutGuidance => 'பற்றி & வழிகாட்டல்';
@@ -486,7 +486,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsThemeLight => 'வெளிர்';
 
   @override
-  String get settingsWebSearch => 'அரட்டையில் இணையத் தேடல்';
+  String get settingsWebSearch => 'உரையாடலில் இணையத் தேடல்';
 
   @override
   String get settingsEnabled => 'இயக்கத்தில்';
@@ -501,7 +501,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsGpuAuto => 'தானியங்கி';
 
   @override
-  String get settingsBenchmarkDevice => 'சாதனத்தை பெஞ்ச்மார்க் செய்';
+  String get settingsBenchmarkDevice => 'சாதனத்தை அளவுகோல் செய்';
 
   @override
   String get settingsGpuDiagnostics => 'GPU வேகச் சோதனை';
@@ -534,7 +534,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String settingsDownloadStopped(String error) {
-    return 'பதிவிறக்கம் நின்றது: $error. முன்னேற்றம் சேமிக்கப்பட்டது, மாடல் மேலாளரில் இருந்து தொடரவும்.';
+    return 'பதிவிறக்கம் நின்றது: $error. முன்னேற்றம் சேமிக்கப்பட்டது, அறிவுரு மேலாளரில் இருந்து தொடரவும்.';
   }
 
   @override
@@ -550,7 +550,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get settingsClearDownloadsBody =>
-      'சாதனச் சேமிப்பகத்தில் இடம் விடுவிக்க, ஆப்பில் பதிவிறக்கப்பட்ட எல்லா மாடல் கோப்புகளும் நீக்கப்படும்.';
+      'சாதனச் சேமிப்பகத்தில் இடம் விடுவிக்க, ஆப்பில் பதிவிறக்கப்பட்ட எல்லா அறிவுரு கோப்புகளும் நீக்கப்படும்.';
 
   @override
   String get settingsClearAll => 'எல்லாம் நீக்கு';
@@ -578,7 +578,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsTune => 'சீரமை';
 
   @override
-  String get settingsNoActiveModel => 'எந்த மாடலும் ஏற்றப்படவில்லை';
+  String get settingsNoActiveModel => 'எந்த அறிவுருவும் ஏற்றப்படவில்லை';
 
   @override
   String get settingsCatalog => 'பட்டியல்';
@@ -587,35 +587,36 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsImportGguf => 'கைப்பேசியில் உள்ள .gguf-ஐ இறக்குமதி செய்';
 
   @override
-  String get settingsDownloadFromUrl => 'URL மூலம் மாடலைப் பதிவிறக்கு';
+  String get settingsDownloadFromUrl => 'URL மூலம் அறிவுருவைப் பதிவிறக்கு';
 
   @override
-  String get settingsClearDownloadedModels => 'பதிவிறக்கப்பட்ட மாடல்களை நீக்கு';
+  String get settingsClearDownloadedModels =>
+      'பதிவிறக்கப்பட்ட அறிவுருக்களை நீக்கு';
 
   @override
-  String get settingsChangePortTitle => 'சர்வர் port-ஐ மாற்று';
+  String get settingsChangePortTitle => 'சேவகம் port-ஐ மாற்று';
 
   @override
   String get settingsPortNumber => 'Port எண்';
 
   @override
   String settingsPortSetRestart(int port) {
-    return 'சர்வர் port $port ஆக அமைக்கப்பட்டது. மாற்றம் நடைமுறைக்கு வர சர்வரை மறுதொடக்கம் செய்யவும்.';
+    return 'சேவகம் port $port ஆக அமைக்கப்பட்டது. மாற்றம் நடைமுறைக்கு வர சேவகத்தை மறுதொடக்கம் செய்யவும்.';
   }
 
   @override
   String settingsPortSet(int port) {
-    return 'சர்வர் port $port ஆக அமைக்கப்பட்டது';
+    return 'சேவகம் port $port ஆக அமைக்கப்பட்டது';
   }
 
   @override
   String get settingsShareApiWifi => 'Wi-Fi வழியாக API-ஐப் பகிர்';
 
   @override
-  String get settingsServerPort => 'சர்வர் port';
+  String get settingsServerPort => 'சேவகம் port';
 
   @override
-  String get settingsServerStatus => 'சர்வர் நிலை';
+  String get settingsServerStatus => 'சேவகம் நிலை';
 
   @override
   String get settingsServerActive => 'இயங்குகிறது';
@@ -665,7 +666,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsAboutThinai => 'Thinai பற்றி';
 
   @override
-  String get settingsDownloadDialogTitle => 'URL மூலம் மாடலைப் பதிவிறக்கு';
+  String get settingsDownloadDialogTitle => 'URL மூலம் அறிவுருவைப் பதிவிறக்கு';
 
   @override
   String get settingsDirectGgufUrl => 'நேரடி GGUF URL';
@@ -681,7 +682,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get gpuDescription =>
-      'மாடலை CPU-க்குப் பதிலாக GPU-வில் இயக்குகிறது. இந்தக் கைப்பேசியில் இது உதவுகிறதா என்று பார்க்க வேகச் சோதனையை இயக்கவும்.';
+      'அறிவுருவை CPU-க்குப் பதிலாக GPU-வில் இயக்குகிறது. இந்தக் கைப்பேசியில் இது உதவுகிறதா என்று பார்க்க வேகச் சோதனையை இயக்கவும்.';
 
   @override
   String gpuCrashedNotice(String backend) {
@@ -716,7 +717,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get gpuLoadModelFirst =>
-      'முதலில் ஒரு மாடலை ஏற்றி, பிறகு சோதனையை இயக்கவும்.';
+      'முதலில் ஒரு அறிவுருவை ஏற்றி, பிறகு சோதனையை இயக்கவும்.';
 
   @override
   String gpuTestFailed(String error) {
@@ -734,7 +735,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get gpuVerdictSame => 'இரண்டிலும் ஏறக்குறைய ஒரே வேகம்.';
 
   @override
-  String get gpuReadingPrompt => 'ப்ராம்ப்ட் படித்தல்';
+  String get gpuReadingPrompt => 'செய்தி படித்தல்';
 
   @override
   String get gpuWritingReply => 'பதில் எழுதுதல்';
@@ -749,7 +750,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get aboutHeroDescription =>
-      'Thinai நவீன open-weights மாடல்களை உங்கள் Android கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. இணையம் தேவையில்லை, கிளவுட் சார்பு இல்லை, உங்கள் தரவு 100% உங்களிடமே.';
+      'Thinai நவீன open-weights அறிவுருக்களை உங்கள் Android கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. இணையம் தேவையில்லை, கிளவுட் சார்பு இல்லை, உங்கள் தரவு 100% உங்களிடமே.';
 
   @override
   String get aboutCorePillars => 'அடிப்படைத் தூண்கள்';
@@ -759,7 +760,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get aboutPrivateBody =>
-      'ஒவ்வொரு token-உம் ஒவ்வொரு ப்ராம்ப்ட்-உம் சாதனத்தின் RAM-க்குள் மட்டுமே கணக்கிடப்படுகின்றன. டெலிமெட்ரி இல்லை, பதிவுகள் இல்லை, கிளவுட் இடைமறிப்பும் இல்லை.';
+      'ஒவ்வொரு token-உம் ஒவ்வொரு செய்தியும் சாதனத்தின் RAM-க்குள் மட்டுமே கணக்கிடப்படுகின்றன. டெலிமெட்ரி இல்லை, பதிவுகள் இல்லை, கிளவுட் இடைமறிப்பும் இல்லை.';
 
   @override
   String get aboutAcceleratedTitle => 'வன்பொருள் வேகமாக்கல்';
@@ -773,14 +774,14 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get aboutApiBody =>
-      'localhost:11434-இல் /v1/chat/completions உடன் உள்ளமைந்த HTTP சர்வரை இயக்கி, உங்கள் கைப்பேசியை மற்ற ஆப்களுக்கும் தானியங்கிச் செயல்களுக்கும் AI இயந்திரமாக மாற்றுகிறது.';
+      'localhost:11434-இல் /v1/chat/completions உடன் உள்ளமைந்த HTTP சேவகத்தை இயக்கி, உங்கள் கைப்பேசியை மற்ற ஆப்களுக்கும் தானியங்கிச் செயல்களுக்கும் AI இயந்திரமாக மாற்றுகிறது.';
 
   @override
   String get aboutVisionTitle => 'படம் புரிதல் & இணையம்';
 
   @override
   String get aboutVisionBody =>
-      'படம் புரியும் மாடல்கள் (Gemma 3, MiniCPM) மூலம் படங்களைப் பற்றி உரையாடலாம், ஆவணங்களைச் சுருக்கலாம், தனியுரிமையைக் காக்கும் நேரலை இணையத் தேடல் மேற்கோள்களைப் பெறலாம்.';
+      'படம் புரியும் அறிவுருக்கள் (Gemma 3, MiniCPM) மூலம் படங்களைப் பற்றி உரையாடலாம், ஆவணங்களைச் சுருக்கலாம், தனியுரிமையைக் காக்கும் நேரலை இணையத் தேடல் மேற்கோள்களைப் பெறலாம்.';
 
   @override
   String get aboutTechSpecs => 'தொழில்நுட்ப விவரங்கள்';
@@ -789,7 +790,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get aboutSpecEngine => 'Inference இயந்திரம்';
 
   @override
-  String get aboutSpecModelFormat => 'மாடல் வடிவம்';
+  String get aboutSpecModelFormat => 'அறிவுரு வடிவம்';
 
   @override
   String get aboutSpecArchitecture => 'இலக்கு கட்டமைப்பு';
@@ -834,7 +835,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get supportHeroBody =>
-      'மாடல்களை இயக்க உதவி வேண்டுமா, பிழை கண்டீர்களா, அல்லது ஏதேனும் பரிந்துரை உள்ளதா? சமூகக் கேள்விகளுக்கு விரைவில் பதிலளிக்கிறோம்.';
+      'அறிவுருக்களை இயக்க உதவி வேண்டுமா, பிழை கண்டீர்களா, அல்லது ஏதேனும் பரிந்துரை உள்ளதா? சமூகக் கேள்விகளுக்கு விரைவில் பதிலளிக்கிறோம்.';
 
   @override
   String get supportChannels => 'நேரடி ஆதரவு வழிகள்';
@@ -844,7 +845,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get supportInstagramBody =>
-      'நேரடிச் செய்திகள், புதிய வசதிகளின் முன்னோட்டம், சிக்கல் தீர்வு மற்றும் அறிவிப்புகள்.';
+      'நேரடி உரைகள், புதிய வசதிகளின் முன்னோட்டம், சிக்கல் தீர்வு மற்றும் அறிவிப்புகள்.';
 
   @override
   String get supportInstagramOpenFailed =>
@@ -879,17 +880,17 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String supportModel(String model) {
-    return 'மாடல்: $model';
+    return 'அறிவுரு: $model';
   }
 
   @override
-  String get supportNoActiveModel => 'செயலில் மாடல் இல்லை';
+  String get supportNoActiveModel => 'செயலில் அறிவுரு இல்லை';
 
   @override
-  String get supportServerActive => 'சர்வர்: இயங்குகிறது';
+  String get supportServerActive => 'சேவகம்: இயங்குகிறது';
 
   @override
-  String get supportServerStopped => 'சர்வர்: நிறுத்தப்பட்டது';
+  String get supportServerStopped => 'சேவகம்: நிறுத்தப்பட்டது';
 
   @override
   String get supportCopyDiagnostics => 'கண்டறிதல் தகவலை நகலெடு';
@@ -903,19 +904,19 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get supportFaqLoadQuestion =>
-      'மாடலை ஏற்றவோ பதிவிறக்கவோ ஏன் நீண்ட நேரம் ஆகிறது?';
+      'அறிவுருவை ஏற்றவோ பதிவிறக்கவோ ஏன் நீண்ட நேரம் ஆகிறது?';
 
   @override
   String get supportFaqLoadAnswer =>
-      'மாடல்கள் பெரிய AI நியூரல் நெட்வொர்க்குகள் (1 GB முதல் 4+ GB வரை). பதிவிறக்க வேகம் உங்கள் Wi-Fi இணைப்பைப் பொறுத்தது. ஏற்றுவதற்கு RAM தேவை; 7B+ மாடல்களை ஏற்றும் முன் பின்னணி ஆப்களை மூடவும்.';
+      'அறிவுருக்கள் பெரிய AI நியூரல் நெட்வொர்க்குகள் (1 GB முதல் 4+ GB வரை). பதிவிறக்க வேகம் உங்கள் Wi-Fi இணைப்பைப் பொறுத்தது. ஏற்றுவதற்கு RAM தேவை; 7B+ அறிவுருக்களை ஏற்றும் முன் பின்னணி ஆப்களை மூடவும்.';
 
   @override
   String get supportFaqPrivacyQuestion =>
-      'Thinai என் அரட்டைகளைக் கிளவுடுக்குக் கசியவிடுகிறதா அல்லது பதிவேற்றுகிறதா?';
+      'Thinai என் உரையாடல்களைக் கிளவுடுக்குக் கசியவிடுகிறதா அல்லது பதிவேற்றுகிறதா?';
 
   @override
   String get supportFaqPrivacyAnswer =>
-      'ஒருபோதும் இல்லை. Thinai முழுக்க முழுக்க 100% தனிப்பட்டதாகவும் ஆஃப்லைனாகவும் உருவாக்கப்பட்டது. மாடல் உங்கள் கைப்பேசியின் CPU/GPU-விலேயே நேரடியாக இயங்குகிறது; எந்த உரையாடல் தரவும் சாதன நினைவகத்தை விட்டு வெளியேறாது.';
+      'ஒருபோதும் இல்லை. Thinai முழுக்க முழுக்க 100% தனிப்பட்டதாகவும் ஆஃப்லைனாகவும் உருவாக்கப்பட்டது. அறிவுரு உங்கள் கைப்பேசியின் CPU/GPU-விலேயே நேரடியாக இயங்குகிறது; எந்த உரையாடல் தரவும் சாதன நினைவகத்தை விட்டு வெளியேறாது.';
 
   @override
   String get supportFaqGpuQuestion =>
@@ -926,19 +927,19 @@ class AppLocalizationsTa extends AppLocalizations {
       'அமைப்புகள் > வன்பொருள் & வேகமாக்கல் என்பதற்குச் சென்று Vulkan அல்லது OpenCL-ஐத் தேர்ந்தெடுக்கவும். Qualcomm Snapdragon Adreno மற்றும் நவீன MediaTek Dimensity GPU-களில் Vulkan சிறப்பாக இயங்கும்.';
 
   @override
-  String get systemPromptTitle => 'சிஸ்டம் ப்ராம்ப்ட்';
+  String get systemPromptTitle => 'அமைப்பு செய்தி';
 
   @override
   String get systemPromptSaved =>
-      'சிஸ்டம் ப்ராம்ப்ட் சேமிக்கப்பட்டது. புதிய செய்திகள் இதைப் பயன்படுத்தும்.';
+      'அமைப்பு செய்தி சேமிக்கப்பட்டது. புதிய உரைகள் இதைப் பயன்படுத்தும்.';
 
   @override
   String get systemPromptResetDone =>
-      'சிஸ்டம் ப்ராம்ப்ட் இயல்புநிலைக்கு மீட்டமைக்கப்பட்டது.';
+      'அமைப்பு செய்தி இயல்புநிலைக்கு மீட்டமைக்கப்பட்டது.';
 
   @override
   String get systemPromptDescription =>
-      'ஒவ்வொரு அரட்டையின் தொடக்கத்திலும் மாடலுக்கு அனுப்பப்படும் அறிவுறுத்தல்கள். நீங்கள் அனுப்பும் அடுத்த செய்தியிலிருந்து மாற்றங்கள் பொருந்தும். மாடலின் சொந்த இயல்புநிலையைப் பயன்படுத்த இதைக் காலியாக விடவும்.';
+      'ஒவ்வொரு உரையாடலின் தொடக்கத்திலும் அறிவுருவுக்கு அனுப்பப்படும் அறிவுறுத்தல்கள். நீங்கள் அனுப்பும் அடுத்த உரையிலிருந்து மாற்றங்கள் பொருந்தும். அறிவுருவின் சொந்த இயல்புநிலையைப் பயன்படுத்த இதைக் காலியாக விடவும்.';
 
   @override
   String get systemPromptHint => 'நீங்கள் உதவிகரமான ஒரு உதவியாளர்…';
@@ -958,7 +959,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get systemPromptResetToDefault => 'இயல்புநிலைக்கு மீட்டமை';
 
   @override
-  String get benchmarkTitle => 'பெஞ்ச்மார்க்';
+  String get benchmarkTitle => 'அளவுகோல்';
 
   @override
   String get benchmarkStop => 'நிறுத்து';
@@ -972,7 +973,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get benchmarkRunning => 'இயங்குகிறது…';
 
   @override
-  String get benchmarkRun => 'பெஞ்ச்மார்க் இயக்கு';
+  String get benchmarkRun => 'அளவுகோல் இயக்கு';
 
   @override
   String benchmarkDescription(int tokens) {
@@ -1000,7 +1001,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get benchmarkWarmingUp => 'தயாராகிறது…';
 
   @override
-  String get benchmarkPlotEmpty => 'வரைபடம் காண பெஞ்ச்மார்க் இயக்கவும்';
+  String get benchmarkPlotEmpty => 'வரைபடம் காண அளவுகோல் இயக்கவும்';
 
   @override
   String get benchmarkFirstToken => 'முதல் token';
@@ -1023,10 +1024,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get benchmarkEmptyTitle => 'அளவிட மாடல்கள் இல்லை';
+  String get benchmarkEmptyTitle => 'அளவிட அறிவுருக்கள் இல்லை';
 
   @override
-  String get benchmarkEmptyBody => 'வேகத்தை அளவிட ஒரு மாடலைப் பதிவிறக்கவும்.';
+  String get benchmarkEmptyBody =>
+      'வேகத்தை அளவிட ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
 
   @override
   String get benchmarkBestForHardware => 'உங்கள் வன்பொருளுக்குச் சிறந்தது';
@@ -1043,12 +1045,12 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String benchmarkEstimateWithDevice(String device) {
-    return '$device · கீழே உள்ள மதிப்பீடுகளை உண்மையான அளவீடுகளாக மாற்ற பெஞ்ச்மார்க் இயக்கவும்';
+    return '$device · கீழே உள்ள மதிப்பீடுகளை உண்மையான அளவீடுகளாக மாற்ற அளவுகோல் இயக்கவும்';
   }
 
   @override
   String get benchmarkCalibratePrompt =>
-      'இவற்றைத் துல்லியமாக்க பெஞ்ச்மார்க் இயக்கவும்';
+      'இவற்றைத் துல்லியமாக்க அளவுகோல் இயக்கவும்';
 
   @override
   String get benchmarkInstalled => 'நிறுவப்பட்டது';
@@ -1072,7 +1074,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get tourPrivateBody =>
-      'Thinai பெரிய மொழி மாடல்களை உங்கள் கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. உங்கள் கேள்விகள், படங்கள், ஆவணங்கள் எதுவும் சாதனத்தை விட்டு வெளியே போவதில்லை.';
+      'Thinai பெரிய மொழி அறிவுருக்களை உங்கள் கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. உங்கள் கேள்விகள், படங்கள், ஆவணங்கள் எதுவும் சாதனத்தை விட்டு வெளியே போவதில்லை.';
 
   @override
   String get tourOnDeviceTitle => 'Thinai (சாதனத்திலேயே)';
@@ -1086,21 +1088,22 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get tourCloudBody =>
-      'உங்கள் கேள்விகளைத் தொலைதூர சர்வர்களில் பதிவுசெய்யும் · அதிவேக இணையம் தேவை · மாதாந்திர API கட்டணம்';
+      'உங்கள் கேள்விகளைத் தொலைதூர சேவகங்களில் பதிவுசெய்யும் · அதிவேக இணையம் தேவை · மாதாந்திர API கட்டணம்';
 
   @override
   String get tourDeviceReady =>
-      'சாதனம் தயார்: உள்ளூர் GGUF மாடல்களுக்கு வன்பொருள் வேகமூட்டல் கிடைக்கிறது.';
+      'சாதனம் தயார்: உள்ளூர் GGUF அறிவுருக்களுக்கு வன்பொருள் வேகமூட்டல் கிடைக்கிறது.';
 
   @override
   String get tourCatalogTag => 'தேர்ந்தெடுத்த GGUF பட்டியல்';
 
   @override
-  String get tourCatalogTitle => 'உலகத்தர மாடல்கள்,\nஉங்கள் RAM-க்கு ஏற்றபடி.';
+  String get tourCatalogTitle =>
+      'உலகத்தர அறிவுருக்கள்,\nஉங்கள் RAM-க்கு ஏற்றபடி.';
 
   @override
   String get tourCatalogBody =>
-      'Alibaba, Meta, Google, Microsoft வழங்கும் open-weight மாடல்களைப் பாருங்கள். எது சீராக இயங்கும் என்று சொல்ல, Thinai உங்கள் கைப்பேசியின் நினைவகத்தைத் தானாகவே சரிபார்க்கிறது.';
+      'Alibaba, Meta, Google, Microsoft வழங்கும் open-weight அறிவுருக்களைப் பாருங்கள். எது சீராக இயங்கும் என்று சொல்ல, Thinai உங்கள் கைப்பேசியின் நினைவகத்தைத் தானாகவே சரிபார்க்கிறது.';
 
   @override
   String get tourMemoryFitTitle => 'நினைவகப் பொருத்த ஆலோசகர்';
@@ -1127,15 +1130,15 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String tourStarterTitle(String model, String size) {
-    return 'பரிந்துரைக்கப்பட்ட தொடக்க மாடல்: $model (~$size)';
+    return 'பரிந்துரைக்கப்பட்ட தொடக்க அறிவுரு: $model (~$size)';
   }
 
   @override
   String get tourStarterBody =>
-      'மிகச் சிறிய, மிக வேகமான அரட்டை மாடல்; எந்தக் கைப்பேசியிலும் உடனே இயங்கும்.';
+      'மிகச் சிறிய, மிக வேகமான உரையாடல் அறிவுரு; எந்தக் கைப்பேசியிலும் உடனே இயங்கும்.';
 
   @override
-  String get tourChatTag => 'அரட்டை ஸ்டுடியோ & படப் புரிதல்';
+  String get tourChatTag => 'உரையாடல் ஸ்டுடியோ & படப் புரிதல்';
 
   @override
   String get tourChatTitle =>
@@ -1143,14 +1146,14 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get tourChatBody =>
-      'தாமதமின்றி அரட்டையடியுங்கள், vision மாடல்களுக்குக் கேமரா படங்களை இணையுங்கள், பதில் குமிழ்களிலேயே உருவாக்க வேகத்தை நேரலையில் பாருங்கள்.';
+      'தாமதமின்றி உரையாடுங்கள், vision அறிவுருக்களுக்குக் கேமரா படங்களை இணையுங்கள், பதில் குமிழ்களிலேயே உருவாக்க வேகத்தை நேரலையில் பாருங்கள்.';
 
   @override
   String get tourDemoPrompt => 'குவாண்டம் சூப்பர்பொசிஷனை எளிமையாக விளக்கு.';
 
   @override
   String get tourDemoReply =>
-      'அளக்கப்படும் வரை ஒரு துகள் ஒரே நேரத்தில் பல நிலைகளில் இருக்கலாம் — கீழே விழும் முன் சுழலும் நாணயம் போல.';
+      'அளக்கப்படும் வரை ஒரு துகள் ஒரே நேரத்தில் பல நிலைகளில் இருக்கலாம், கீழே விழும் முன் சுழலும் நாணயம் போல.';
 
   @override
   String tourDemoSpeed(String speed) {
@@ -1171,11 +1174,11 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get tourServerTitle =>
-      'உங்கள் கைப்பேசியை\nதனிப்பட்ட AI சர்வராக்குங்கள்.';
+      'உங்கள் கைப்பேசியை\nதனிப்பட்ட AI சேவகமாக்குங்கள்.';
 
   @override
   String get tourServerBody =>
-      'Thinai-இல் உள்ளமைந்த HTTP சர்வர் உண்டு. வெளிப்புற டெவலப்பர் கருவிகளுக்கு OpenAI, Ollama API-களுக்கு மாற்றாக, மாடலை உங்கள் சாதனத்திலேயே இயக்குங்கள்.';
+      'Thinai-இல் உள்ளமைந்த HTTP சேவகம் உண்டு. வெளிப்புற டெவலப்பர் கருவிகளுக்கு OpenAI, Ollama API-களுக்கு மாற்றாக, அறிவுருவை உங்கள் சாதனத்திலேயே இயக்குங்கள்.';
 
   @override
   String get tourEndpointsTitle => 'Localhost endpoint-கள்';
@@ -1202,23 +1205,23 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String tourOptionStarterTitle(String model) {
-    return '1. தொடக்க மாடலைப் பதிவிறக்கவும் ($model)';
+    return '1. தொடக்க அறிவுருவைப் பதிவிறக்கவும் ($model)';
   }
 
   @override
   String tourOptionStarterBody(String size) {
-    return 'சரிபார்க்கப்பட்ட மிகச் சிறிய மாடல் (~$size). விரைவாகப் பதிவிறக்கலாம், எந்தச் சாதனத்திலும் சீராக இயங்கும்.';
+    return 'சரிபார்க்கப்பட்ட மிகச் சிறிய அறிவுரு (~$size). விரைவாகப் பதிவிறக்கலாம், எந்தச் சாதனத்திலும் சீராக இயங்கும்.';
   }
 
   @override
-  String get tourOptionStarterButton => 'மாடலைப் பெறு';
+  String get tourOptionStarterButton => 'அறிவுருவைப் பெறு';
 
   @override
   String get tourOptionCatalogTitle => '2. முழுப் பட்டியலையும் பாருங்கள்';
 
   @override
   String get tourOptionCatalogBody =>
-      'Meta, Google, Microsoft, Alibaba வழங்கும் 30+ GGUF மாடல்களைப் பாருங்கள்.';
+      'Meta, Google, Microsoft, Alibaba வழங்கும் 30+ GGUF அறிவுருக்களைப் பாருங்கள்.';
 
   @override
   String get tourOptionCatalogButton => 'பட்டியலைத் திற';
@@ -1254,28 +1257,28 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tourFinishTour => 'முடி';
 
   @override
-  String get tourDockModelsTitle => 'மாடல் பட்டியல் (தாவல் 2)';
+  String get tourDockModelsTitle => 'அறிவுரு பட்டியல் (தாவல் 2)';
 
   @override
   String get tourDockModelsBody =>
-      'சரிபார்க்கப்பட்ட GGUF மாடல்களைப் பாருங்கள். உங்கள் கைப்பேசியில் சீராக இயங்கும் மாடலைத் தேர்வுசெய்ய, RAM பொருத்தக் குறியைக் (பாதுகாப்பானது / நெருக்கம்) கவனியுங்கள்.';
+      'சரிபார்க்கப்பட்ட GGUF அறிவுருக்களைப் பாருங்கள். உங்கள் கைப்பேசியில் சீராக இயங்கும் அறிவுருவைத் தேர்வுசெய்ய, RAM பொருத்தக் குறியைக் (பாதுகாப்பானது / நெருக்கம்) கவனியுங்கள்.';
 
   @override
-  String get tourDockManageTitle => 'நிர்வாகம் & பெஞ்ச்மார்க்';
+  String get tourDockManageTitle => 'நிர்வாகம் & அளவுகோல்';
 
   @override
   String get tourDockManageBody =>
       'பதிவிறக்கங்களை நிர்வகிக்க மேல் வலது ஐகான்களைப் பயன்படுத்தவும். உங்கள் கைப்பேசியின் உண்மையான token உருவாக்க வேகத்தை அளக்க, வேகமானி ஐகானைத் தட்டவும்.';
 
   @override
-  String get tourDockChatTitle => 'அரட்டை ஸ்டுடியோ (தாவல் 1)';
+  String get tourDockChatTitle => 'உரையாடல் ஸ்டுடியோ (தாவல் 1)';
 
   @override
   String get tourDockChatBody =>
-      'முழுத் தனியுரிமையுடன் அரட்டையடிக்கவும். படங்கள் அல்லது ஆவணங்களை இணைத்துப் பகுப்பாய்வு செய்யவும்; நொடிக்கு எத்தனை tokens என்பதை நேரலையில் பார்க்கவும்.';
+      'முழுத் தனியுரிமையுடன் உரையாடவும். படங்கள் அல்லது ஆவணங்களை இணைத்துப் பகுப்பாய்வு செய்யவும்; நொடிக்கு எத்தனை tokens என்பதை நேரலையில் பார்க்கவும்.';
 
   @override
-  String get tourDockServerTitle => 'உள்ளூர் API சர்வர் (தாவல் 3)';
+  String get tourDockServerTitle => 'உள்ளூர் API சேவகம் (தாவல் 3)';
 
   @override
   String tourDockServerBody(String address) {
@@ -1303,22 +1306,22 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get tourWelcomePrivateBody =>
-      'மாடல்கள் உங்கள் கைப்பேசியிலேயே நேரடியாக இயங்குகின்றன. எந்தத் தரவும் சாதனத்தை விட்டு வெளியேறாது, இணையமும் தேவையில்லை.';
+      'அறிவுருக்கள் உங்கள் கைப்பேசியிலேயே நேரடியாக இயங்குகின்றன. எந்தத் தரவும் சாதனத்தை விட்டு வெளியேறாது, இணையமும் தேவையில்லை.';
 
   @override
   String get tourWelcomeCatalogTitle =>
-      'தேர்ந்தெடுத்த open-weight மாடல் பட்டியல்';
+      'தேர்ந்தெடுத்த open-weight அறிவுரு பட்டியல்';
 
   @override
   String get tourWelcomeCatalogBody =>
-      'Meta, Google, Microsoft, Alibaba வழங்கும் சரிபார்க்கப்பட்ட GGUF மாடல்களை ஒரே தட்டலில் பதிவிறக்கவும்.';
+      'Meta, Google, Microsoft, Alibaba வழங்கும் சரிபார்க்கப்பட்ட GGUF அறிவுருக்களை ஒரே தட்டலில் பதிவிறக்கவும்.';
 
   @override
-  String get tourWelcomeChatTitle => 'முழுமையான அரட்டை & மல்டிமோடல்';
+  String get tourWelcomeChatTitle => 'முழுமையான உரையாடல் & மல்டிமோடல்';
 
   @override
   String get tourWelcomeChatBody =>
-      'வேகமாக அரட்டையடிக்கவும், படங்களையோ ஆவணங்களையோ இணைக்கவும், உரையாடல்களை முழுக் கட்டுப்பாட்டுடன் நிர்வகிக்கவும்.';
+      'வேகமாக உரையாடவும், படங்களையோ ஆவணங்களையோ இணைக்கவும், உரையாடல்களை முழுக் கட்டுப்பாட்டுடன் நிர்வகிக்கவும்.';
 
   @override
   String get tourWelcomeStartTour => 'ஆப் அறிமுகத்தைத் தொடங்கு';
@@ -1327,7 +1330,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tourWelcomeBrowseCatalog => 'பட்டியலைப் பார்';
 
   @override
-  String get tourWelcomeSkipToChat => 'நேராக அரட்டைக்கு';
+  String get tourWelcomeSkipToChat => 'நேராக உரையாடலுக்கு';
 
   @override
   String get onboardingLogoLabel => 'Thinai ஆப் லோகோ';
@@ -1341,7 +1344,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardingPrivateBody =>
-      'Thinai பெரிய AI மாடல்களை உங்கள் கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. எந்தத் தரவும் வெளியே போவதில்லை, கண்காணிப்பு இல்லை, கிளவுட் சார்பும் இல்லை.';
+      'Thinai பெரிய AI அறிவுருக்களை உங்கள் கைப்பேசியிலேயே நேரடியாக இயக்குகிறது. எந்தத் தரவும் வெளியே போவதில்லை, கண்காணிப்பு இல்லை, கிளவுட் சார்பும் இல்லை.';
 
   @override
   String get onboardingPrivateGraphic => '100% தனிப்பட்ட, ஆஃப்லைன் AI';
@@ -1359,14 +1362,14 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardingCatalogHeadline =>
-      'சிறந்த open-weight மாடல்கள்\nஒரே தட்டலில்';
+      'சிறந்த open-weight அறிவுருக்கள்\nஒரே தட்டலில்';
 
   @override
   String get onboardingCatalogBody =>
-      'அதிநவீன open மாடல்களை Hugging Face-இலிருந்து நேரடியாகப் பதிவிறக்கவும். கைப்பேசியில் சீராக இயங்கும்படி நுட்பமாக quantize செய்யப்பட்டவை.';
+      'அதிநவீன open அறிவுருக்களை Hugging Face-இலிருந்து நேரடியாகப் பதிவிறக்கவும். கைப்பேசியில் சீராக இயங்கும்படி நுட்பமாக quantize செய்யப்பட்டவை.';
 
   @override
-  String get onboardingCatalogGraphic => 'தேர்ந்தெடுத்த GGUF மாடல் பட்டியல்';
+  String get onboardingCatalogGraphic => 'தேர்ந்தெடுத்த GGUF அறிவுரு பட்டியல்';
 
   @override
   String get onboardingCatalogBullet1 =>
@@ -1406,14 +1409,14 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardingStudioBody =>
-      'vision மாடல்களுடன் புத்திசாலித்தனமாக உரையாடுங்கள், உடனடிச் சுருக்கத்திற்கு PDF, உரைக் கோப்புகளை இணையுங்கள், தேவைப்படும்போது இணையத்தில் தேடுங்கள்.';
+      'vision அறிவுருக்களுடன் புத்திசாலித்தனமாக உரையாடுங்கள், உடனடிச் சுருக்கத்திற்கு PDF, உரைக் கோப்புகளை இணையுங்கள், தேவைப்படும்போது இணையத்தில் தேடுங்கள்.';
 
   @override
   String get onboardingStudioGraphic => 'படம் மற்றும் ஆவணக் கேள்வி-பதில்';
 
   @override
   String get onboardingStudioBullet1 =>
-      'படங்களைப் புரிந்துகொள்ளும் vision மாடல்கள் (Gemma, MiniCPM)';
+      'படங்களைப் புரிந்துகொள்ளும் vision அறிவுருக்கள் (Gemma, MiniCPM)';
 
   @override
   String get onboardingStudioBullet2 =>
@@ -1424,7 +1427,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardingServerHeadline =>
-      'உங்கள் கைப்பேசியை\nஉள்ளூர் AI சர்வராக்குங்கள்';
+      'உங்கள் கைப்பேசியை\nஉள்ளூர் AI சேவகமாக்குங்கள்';
 
   @override
   String onboardingServerBody(String port) {
@@ -1433,7 +1436,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String onboardingServerGraphic(String port) {
-    return 'port $port-இல் உள்ளூர் AI சர்வர்';
+    return 'port $port-இல் உள்ளூர் AI சேவகம்';
   }
 
   @override
@@ -1481,7 +1484,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatErrorNoVision =>
-      'இந்த மாடலால் படங்களைப் படிக்க முடியாது. பதிலாக Gemma 3 4B-ஐ முயற்சிக்கவும்.';
+      'இந்த அறிவுருவால் படங்களைப் படிக்க முடியாது. பதிலாக Gemma 3 4B-ஐ முயற்சிக்கவும்.';
 
   @override
   String chatErrorTakePhoto(String error) {
@@ -1502,7 +1505,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatSearchNoResults =>
-      'இதற்கு இணைய முடிவுகள் இல்லை. மாடலே பதிலளிக்கிறது.';
+      'இதற்கு இணைய முடிவுகள் இல்லை. அறிவுருவே பதிலளிக்கிறது.';
 
   @override
   String chatSearchErrorFallback(String message) {
@@ -1515,11 +1518,11 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatLoadModelFirst =>
-      'முதலில் மாடல்கள் தாவலில் ஒரு மாடலை ஏற்றவும்.';
+      'முதலில் அறிவுருக்கள் தாவலில் ஒரு அறிவுருவை ஏற்றவும்.';
 
   @override
   String get chatActiveModelMissing =>
-      'செயலில் உள்ள மாடல் சேமிப்பகத்தில் இல்லை.';
+      'செயலில் உள்ள அறிவுரு சேமிப்பகத்தில் இல்லை.';
 
   @override
   String chatErrorGeneric(String error) {
@@ -1533,33 +1536,33 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatWebSearchOff => 'இணையத் தேடல் ஆஃப்.';
 
   @override
-  String get chatMenuTooltip => 'மெனு & அரட்டைகள்';
+  String get chatMenuTooltip => 'மெனு & உரையாடல்கள்';
 
   @override
   String get chatBannerNoModelLoaded =>
-      'மாடல் ஏற்றப்படவில்லை — தேர்ந்தெடுக்க அல்லது உலாவ தட்டவும்.';
+      'அறிவுரு ஏற்றப்படவில்லை. தேர்ந்தெடுக்க அல்லது உலாவ தட்டவும்.';
 
   @override
   String get chatBannerNoModelDownloaded =>
-      'மாடல் பதிவிறக்கப்படவில்லை — பதிவிறக்க தட்டவும்.';
+      'அறிவுரு பதிவிறக்கப்படவில்லை. பதிவிறக்க தட்டவும்.';
 
   @override
   String get chatSelect => 'தேர்ந்தெடு';
 
   @override
   String chatActiveModelTooltip(String modelId) {
-    return 'செயலில் உள்ள மாடல்: $modelId (மாற்ற தட்டவும்)';
+    return 'செயலில் உள்ள அறிவுரு: $modelId (மாற்ற தட்டவும்)';
   }
 
   @override
   String get chatNoModelTooltip =>
-      'மாடல் ஏற்றப்படவில்லை (தேர்ந்தெடுக்க தட்டவும்)';
+      'அறிவுரு ஏற்றப்படவில்லை (தேர்ந்தெடுக்க தட்டவும்)';
 
   @override
-  String get chatSwitchModel => 'மாடலை மாற்று';
+  String get chatSwitchModel => 'அறிவுருவை மாற்று';
 
   @override
-  String get chatNoModelsInstalled => 'மாடல்கள் எதுவும் நிறுவப்படவில்லை';
+  String get chatNoModelsInstalled => 'அறிவுருக்கள் எதுவும் நிறுவப்படவில்லை';
 
   @override
   String chatModelsInstalledCount(int count) {
@@ -1574,30 +1577,30 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatNoModelsDownloadedYet =>
-      'இன்னும் மாடல்கள் பதிவிறக்கப்படவில்லை';
+      'இன்னும் அறிவுருக்கள் பதிவிறக்கப்படவில்லை';
 
   @override
   String get chatDownloadFromCatalogue =>
-      'அரட்டையைத் தொடங்க பட்டியலிலிருந்து ஒரு திறந்த மாடலைப் பதிவிறக்கவும்.';
+      'உரையாடலைத் தொடங்க பட்டியலிலிருந்து ஒரு திறந்த அறிவுருவைப் பதிவிறக்கவும்.';
 
   @override
-  String get chatBrowseModels => 'மாடல்களை உலாவு';
+  String get chatBrowseModels => 'அறிவுருக்களை உலாவு';
 
   @override
-  String get chatModelParameters => 'மாடல் அளவுருக்கள்';
+  String get chatModelParameters => 'அறிவுரு அளவுருக்கள்';
 
   @override
-  String get chatDownloadMoreModels => 'மேலும் மாடல்களைப் பதிவிறக்கு';
+  String get chatDownloadMoreModels => 'மேலும் அறிவுருக்களைப் பதிவிறக்கு';
 
   @override
   String get chatEmptyTitle => 'தனிப்பட்ட ஆஃப்லைன் AI';
 
   @override
   String get chatEmptyBody =>
-      'உங்கள் கைப்பேசியில் 100% இயங்கும் AI மாடல்களுடன் தனிப்பட்ட முறையில் அரட்டையடிக்கவும். இணையம் தேவையில்லை, கிளவுட் கண்காணிப்பு இல்லை, உங்கள் தரவு உங்கள் சாதனத்தை விட்டு வெளியேறாது.';
+      'உங்கள் கைப்பேசியில் 100% இயங்கும் AI அறிவுருக்களுடன் தனிப்பட்ட முறையில் உரையாடவும். இணையம் தேவையில்லை, கிளவுட் கண்காணிப்பு இல்லை, உங்கள் தரவு உங்கள் சாதனத்தை விட்டு வெளியேறாது.';
 
   @override
-  String get chatBrowseDownloadModels => 'மாடல்களை உலாவிப் பதிவிறக்கு';
+  String get chatBrowseDownloadModels => 'அறிவுருக்களை உலாவிப் பதிவிறக்கு';
 
   @override
   String get chatReadyWebSearchOn => 'AI தயார் · இணையத் தேடல் ஆன்';
@@ -1630,7 +1633,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatInputHintGenerating => 'உருவாக்குகிறது…';
 
   @override
-  String get chatInputHint => 'உங்கள் மாடலுக்குச் செய்தி அனுப்பவும்';
+  String get chatInputHint => 'உங்கள் அறிவுருவுக்கு உரை அனுப்பவும்';
 
   @override
   String get chatStop => 'நிறுத்து';
@@ -1666,7 +1669,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatDialCameraDetail => 'இப்போது புகைப்படம் எடு';
 
   @override
-  String get chatDialNeedsVision => 'படங்களைப் படிக்கும் மாடல் தேவை';
+  String get chatDialNeedsVision => 'படங்களைப் படிக்கும் அறிவுரு தேவை';
 
   @override
   String get chatDialImage => 'படம்';
@@ -1743,7 +1746,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatDrawerExitManage => 'நிர்வாக முறையிலிருந்து வெளியேறு';
 
   @override
-  String get chatDrawerManageChats => 'அரட்டைகளை நிர்வகி';
+  String get chatDrawerManageChats => 'உரையாடல்களை நிர்வகி';
 
   @override
   String get chatDrawerTapToSelect => 'தேர்ந்தெடுக்க தட்டவும்';
@@ -1763,10 +1766,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatDrawerCloseMenu => 'மெனுவை மூடு';
 
   @override
-  String get chatNewChat => 'புதிய அரட்டை';
+  String get chatNewChat => 'புதிய உரையாடல்';
 
   @override
-  String get chatDrawerSearchHint => 'அரட்டைகளைத் தேடு…';
+  String get chatDrawerSearchHint => 'உரையாடல்களைத் தேடு…';
 
   @override
   String chatDrawerDeleteCount(int count) {
@@ -1785,21 +1788,21 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get chatDrawerModelSettings => 'மாடல் அமைப்புகள்';
+  String get chatDrawerModelSettings => 'அறிவுரு அமைப்புகள்';
 
   @override
   String get chatDrawerModelSettingsSubtitle => 'context, sampling & சிந்தனை';
 
   @override
   String get chatDrawerNoModelSnack =>
-      'இன்னும் மாடல் பதிவிறக்கப்படவில்லை. முதலில் மாடல்கள் தாவலிலிருந்து ஒரு மாடலைப் பதிவிறக்கவும்.';
+      'இன்னும் அறிவுரு பதிவிறக்கப்படவில்லை. முதலில் அறிவுருக்கள் தாவலிலிருந்து ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
 
   @override
   String get chatDrawerAppSettings => 'ஆப் அமைப்புகள்';
 
   @override
   String get chatDrawerAppSettingsSubtitle =>
-      'தீம், GPU, பதிவிறக்கங்கள் & சர்வர்';
+      'தீம், GPU, பதிவிறக்கங்கள் & சேவகம்';
 
   @override
   String get chatDrawerAbout => 'Thinai பற்றி';
@@ -1812,8 +1815,8 @@ class AppLocalizationsTa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count அரட்டைகளை நீக்கவா?',
-      one: '1 அரட்டையை நீக்கவா?',
+      other: '$count உரையாடல்களை நீக்கவா?',
+      one: '1 உரையாடலை நீக்கவா?',
     );
     return '$_temp0';
   }
@@ -1836,8 +1839,8 @@ class AppLocalizationsTa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count அரட்டைகள் நீக்கப்பட்டன',
-      one: '1 அரட்டை நீக்கப்பட்டது',
+      other: '$count உரையாடல்கள் நீக்கப்பட்டன',
+      one: '1 உரையாடல் நீக்கப்பட்டது',
     );
     return '$_temp0';
   }
@@ -1849,16 +1852,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatDrawerRenameTitle => 'தலைப்பை மாற்று';
 
   @override
-  String get chatDeleteChat => 'அரட்டையை நீக்கு';
+  String get chatDeleteChat => 'உரையாடலை நீக்கு';
 
   @override
-  String get chatRenameChat => 'அரட்டையின் பெயரை மாற்று';
+  String get chatRenameChat => 'உரையாடலின் பெயரை மாற்று';
 
   @override
   String get chatConversationTitleHint => 'உரையாடல் தலைப்பு';
 
   @override
-  String get chatDrawerDeleteOneTitle => 'அரட்டையை நீக்கவா?';
+  String get chatDrawerDeleteOneTitle => 'உரையாடலை நீக்கவா?';
 
   @override
   String chatDrawerDeleteOneBody(String title) {
@@ -1870,11 +1873,11 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatDrawerNoHistoryHint =>
-      'வரலாற்றை இங்கே வைத்திருக்க ஒரு அரட்டையைத் தொடங்கவும்.';
+      'வரலாற்றை இங்கே வைத்திருக்க ஒரு உரையாடலைத் தொடங்கவும்.';
 
   @override
   String chatDrawerNoResults(String query) {
-    return '\"$query\"-க்கு அரட்டைகள் எதுவும் இல்லை';
+    return '\"$query\"-க்கு உரையாடல்கள் எதுவும் இல்லை';
   }
 
   @override
@@ -1893,13 +1896,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatGroupOlder => 'பழையவை';
 
   @override
-  String get chatHistoryTitle => 'அரட்டை வரலாறு';
+  String get chatHistoryTitle => 'உரையாடல் வரலாறு';
 
   @override
-  String get chatHistoryDeleteAllTooltip => 'அனைத்து அரட்டைகளையும் நீக்கு';
+  String get chatHistoryDeleteAllTooltip => 'அனைத்து உரையாடல்களையும் நீக்கு';
 
   @override
-  String get chatHistoryDeleteAllTitle => 'அனைத்து அரட்டைகளையும் நீக்கவா?';
+  String get chatHistoryDeleteAllTitle => 'அனைத்து உரையாடல்களையும் நீக்கவா?';
 
   @override
   String get chatHistoryDeleteAllBody =>
@@ -1909,14 +1912,14 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatHistoryDeleteAll => 'அனைத்தையும் நீக்கு';
 
   @override
-  String get chatHistoryDeleteOneTitle => 'இந்த அரட்டையை நீக்கவா?';
+  String get chatHistoryDeleteOneTitle => 'இந்த உரையாடலை நீக்கவா?';
 
   @override
   String get chatHistorySearchHint => 'உரையாடல்களைத் தேடு…';
 
   @override
   String chatHistoryNoResults(String query) {
-    return '\"$query\"-உடன் பொருந்தும் அரட்டைகள் இல்லை';
+    return '\"$query\"-உடன் பொருந்தும் உரையாடல்கள் இல்லை';
   }
 
   @override
@@ -1927,14 +1930,14 @@ class AppLocalizationsTa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count செய்திகள்',
-      one: '1 செய்தி',
+      other: '$count உரைகள்',
+      one: '1 உரை',
     );
     return '$_temp0';
   }
 
   @override
-  String get chatHistoryEmptyTitle => 'இன்னும் சேமிக்கப்பட்ட அரட்டைகள் இல்லை';
+  String get chatHistoryEmptyTitle => 'இன்னும் சேமிக்கப்பட்ட உரையாடல்கள் இல்லை';
 
   @override
   String get chatHistoryEmptyBody =>
@@ -1969,7 +1972,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatAppRestartBody =>
-      'ஒரு மாடல் இன்னும் பதிவிறக்குகிறது. மறுதொடக்கம் செய்தால் அது இடைநிறுத்தப்படும்; மாடல்கள் பக்கத்திலிருந்து அதைத் தொடரலாம்.';
+      'ஒரு அறிவுரு இன்னும் பதிவிறக்குகிறது. மறுதொடக்கம் செய்தால் அது இடைநிறுத்தப்படும்; அறிவுருக்கள் பக்கத்திலிருந்து அதைத் தொடரலாம்.';
 
   @override
   String get chatAppRestart => 'மறுதொடக்கம்';
@@ -2002,7 +2005,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsToastDownloadFailed(String model, String error) {
-    return '$model மாடலைப் பதிவிறக்க முடியவில்லை: $error';
+    return '$model அறிவுருவைப் பதிவிறக்க முடியவில்லை: $error';
   }
 
   @override
@@ -2026,11 +2029,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsConfirmDownloadTitle => 'மாடலைப் பதிவிறக்கவா?';
+  String get modelsConfirmDownloadTitle => 'அறிவுருவைப் பதிவிறக்கவா?';
 
   @override
   String modelsConfirmDownloadMessage(String model, String size) {
-    return '$model ($size) மாடலைப் பதிவிறக்க விரும்புகிறீர்களா?';
+    return '$model ($size) அறிவுருவைப் பதிவிறக்க விரும்புகிறீர்களா?';
   }
 
   @override
@@ -2045,27 +2048,27 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsDiscard => 'நீக்கு';
 
   @override
-  String get modelsConfirmDeleteTitle => 'மாடலை நீக்கவா?';
+  String get modelsConfirmDeleteTitle => 'அறிவுருவை நீக்கவா?';
 
   @override
   String modelsConfirmDeleteMessage(String model, String size) {
-    return '$model மாடலை நீக்க விரும்புகிறீர்களா? இதனால் $size இடம் காலியாகும்.';
+    return '$model அறிவுருவை நீக்க விரும்புகிறீர்களா? இதனால் $size இடம் காலியாகும்.';
   }
 
   @override
-  String get modelsBenchmark => 'பெஞ்ச்மார்க்';
+  String get modelsBenchmark => 'அளவுகோல்';
 
   @override
-  String get modelsManagerTitle => 'மாடல் மேலாளர்';
+  String get modelsManagerTitle => 'அறிவுரு மேலாளர்';
 
   @override
   String modelsManagerTooltipDownloading(int count) {
-    return 'பதிவிறக்குகிறது ($count) · மாடல் மேலாளர்';
+    return 'பதிவிறக்குகிறது ($count) · அறிவுரு மேலாளர்';
   }
 
   @override
   String modelsManagerTooltipInstalled(int count) {
-    return 'மாடல் மேலாளர் ($count நிறுவப்பட்டது)';
+    return 'அறிவுரு மேலாளர் ($count நிறுவப்பட்டது)';
   }
 
   @override
@@ -2074,27 +2077,28 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsNoneInstalledYet => 'இன்னும் எந்த மாடலும் நிறுவப்படவில்லை';
+  String get modelsNoneInstalledYet =>
+      'இன்னும் எந்த அறிவுருவும் நிறுவப்படவில்லை';
 
   @override
   String get modelsNoneInstalledYetBody =>
-      'இந்தச் சாதனத்தில் ஆஃப்லைனில் இயக்க, பட்டியலிலிருந்து GGUF மாடல்களைப் பார்த்துப் பதிவிறக்கவும்.';
+      'இந்தச் சாதனத்தில் ஆஃப்லைனில் இயக்க, பட்டியலிலிருந்து GGUF அறிவுருக்களைப் பார்த்துப் பதிவிறக்கவும்.';
 
   @override
   String get modelsBrowseCatalog => 'பட்டியலைப் பார்';
 
   @override
   String modelsInstalledSectionTitle(int count) {
-    return 'நிறுவப்பட்ட மாடல்கள் ($count)';
+    return 'நிறுவப்பட்ட அறிவுருக்கள் ($count)';
   }
 
   @override
   String get modelsInstalledSectionSubtitle =>
-      'அரட்டைக்கு ஏற்ற ஒரு மாடலைத் தட்டவும்';
+      'உரையாடலுக்கு ஏற்ற ஒரு அறிவுருவைத் தட்டவும்';
 
   @override
   String modelsRecommendedFor(String goal) {
-    return '$goal — பரிந்துரைக்கப்பட்டவை';
+    return 'பரிந்துரை: $goal';
   }
 
   @override
@@ -2102,28 +2106,29 @@ class AppLocalizationsTa extends AppLocalizations {
       'உங்கள் சாதனத்துக்கு ஏற்ற weights தேர்ந்தெடுக்கப்பட்டன';
 
   @override
-  String get modelsFeaturedTitle => 'சிறப்பு மாடல்கள்';
+  String get modelsFeaturedTitle => 'சிறப்பு அறிவுருக்கள்';
 
   @override
   String get modelsFeaturedSubtitle => 'உங்களுக்காகத் தேர்ந்தெடுக்கப்பட்டவை';
 
   @override
-  String get modelsOtherModels => 'பிற மாடல்கள்';
+  String get modelsOtherModels => 'பிற அறிவுருக்கள்';
 
   @override
-  String get modelsVisionModelsTitle => 'பட மாடல்கள்';
+  String get modelsVisionModelsTitle => 'பட அறிவுருக்கள்';
 
   @override
-  String get modelsChatModelsTitle => 'அரட்டை மாடல்கள்';
+  String get modelsChatModelsTitle => 'உரையாடல் அறிவுருக்கள்';
 
   @override
-  String get modelsExploreModels => 'மாடல்களை ஆராய்';
+  String get modelsExploreModels => 'அறிவுருக்களை ஆராய்';
 
   @override
   String get modelsBrowseCatalogTitle => 'பட்டியலைப் பார்';
 
   @override
-  String get modelsOtherModelsSubtitle => 'கிடைக்கும் மற்ற எல்லா மாடல்களும்';
+  String get modelsOtherModelsSubtitle =>
+      'கிடைக்கும் மற்ற எல்லா அறிவுருக்களும்';
 
   @override
   String get modelsVisionModelsSubtitle =>
@@ -2131,10 +2136,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsCatalogSubtitle =>
-      'தேர்ந்தெடுத்த GGUF மாடல்கள் · ஒரே தட்டலில் பதிவிறக்கம்';
+      'தேர்ந்தெடுத்த GGUF அறிவுருக்கள் · ஒரே தட்டலில் பதிவிறக்கம்';
 
   @override
-  String get modelsEmbeddingTitle => 'Embedding மாடல்கள்';
+  String get modelsEmbeddingTitle => 'Embedding அறிவுருக்கள்';
 
   @override
   String get modelsEmbeddingSubtitle =>
@@ -2142,23 +2147,23 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsOfflineFooter =>
-      'பதிவிறக்கப்பட்ட மாடல்கள் 100% சாதனத்திலேயே இருக்கும், முழுவதும் ஆஃப்லைனில் இயங்கும்.';
+      'பதிவிறக்கப்பட்ட அறிவுருக்கள் 100% சாதனத்திலேயே இருக்கும், முழுவதும் ஆஃப்லைனில் இயங்கும்.';
 
   @override
   String get modelsSearchHint =>
-      'மாடல்கள், தயாரிப்பாளர்கள், கட்டமைப்புகளைத் தேடு…';
+      'அறிவுருக்கள், தயாரிப்பாளர்கள், கட்டமைப்புகளைத் தேடு…';
 
   @override
   String get modelsClearSearch => 'தேடலை அழி';
 
   @override
-  String get modelsFilterAll => 'எல்லா மாடல்களும்';
+  String get modelsFilterAll => 'எல்லா அறிவுருக்களும்';
 
   @override
-  String get modelsFilterChat => 'அரட்டை மாடல்கள்';
+  String get modelsFilterChat => 'உரையாடல் அறிவுருக்கள்';
 
   @override
-  String get modelsFilterVision => 'பட மாடல்கள்';
+  String get modelsFilterVision => 'பட அறிவுருக்கள்';
 
   @override
   String get modelsFilterEmbedding => 'Embedding';
@@ -2202,27 +2207,28 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsManagerSubtitle(int count, String size) {
-    return '$count மாடல்கள் · $size சேமிப்பகம் பயன்பாட்டில்';
+    return '$count அறிவுருக்கள் · $size சேமிப்பகம் பயன்பாட்டில்';
   }
 
   @override
-  String get modelsNoneInstalled => 'எந்த மாடலும் நிறுவப்படவில்லை';
+  String get modelsNoneInstalled => 'எந்த அறிவுருவும் நிறுவப்படவில்லை';
 
   @override
   String get modelsNoneInstalledBody =>
-      'ஆஃப்லைனில் அரட்டையடிக்க, பட்டியலிலிருந்து மாடல்களைப் பதிவிறக்கவும்.';
+      'ஆஃப்லைனில் உரையாட, பட்டியலிலிருந்து அறிவுருக்களைப் பதிவிறக்கவும்.';
 
   @override
   String modelsActiveForChat(String model) {
-    return 'அரட்டையில் செயலில்: $model';
+    return 'உரையாடலில் செயலில்: $model';
   }
 
   @override
-  String get modelsNoModelLoaded => 'அரட்டையில் எந்த மாடலும் ஏற்றப்படவில்லை';
+  String get modelsNoModelLoaded =>
+      'உரையாடலில் எந்த அறிவுருவும் ஏற்றப்படவில்லை';
 
   @override
   String get modelsInstalledAppearHere =>
-      'பதிவிறக்கம் முடிந்ததும் நிறுவப்பட்ட மாடல்கள் இங்கே தோன்றும்.';
+      'பதிவிறக்கம் முடிந்ததும் நிறுவப்பட்ட அறிவுருக்கள் இங்கே தோன்றும்.';
 
   @override
   String get modelsActive => 'செயலில்';
@@ -2231,25 +2237,25 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsActivate => 'செயல்படுத்து';
 
   @override
-  String get modelsDeleteModel => 'மாடலை நீக்கு';
+  String get modelsDeleteModel => 'அறிவுருவை நீக்கு';
 
   @override
   String get modelsChooseGoal => 'உங்கள் இலக்கைத் தேர்ந்தெடுக்கவும்';
 
   @override
   String get modelsChooseGoalSubtitle =>
-      'Thinai உங்கள் சாதனத்துக்கு மாடல்களைச் சோதித்துப் பரிந்துரைக்கிறது';
+      'Thinai உங்கள் சாதனத்துக்கு அறிவுருக்களைச் சோதித்துப் பரிந்துரைக்கிறது';
 
   @override
   String get modelsClearActiveGoal => 'தற்போதைய இலக்கை அழி';
 
   @override
   String get modelsNoMatchFilters =>
-      'தற்போதைய வடிகட்டிகளுக்குப் பொருந்தும் மாடல்கள் இல்லை';
+      'தற்போதைய வடிகட்டிகளுக்குப் பொருந்தும் அறிவுருக்கள் இல்லை';
 
   @override
   String modelsNoMatchQuery(String query) {
-    return '\"$query\" உடன் பொருந்தும் மாடல்கள் இல்லை';
+    return '\"$query\" உடன் பொருந்தும் அறிவுருக்கள் இல்லை';
   }
 
   @override
@@ -2275,7 +2281,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsStatusStarting => 'தொடங்குகிறது…';
 
   @override
-  String get modelsActiveInChat => 'அரட்டையில் செயலில்';
+  String get modelsActiveInChat => 'உரையாடலில் செயலில்';
 
   @override
   String get modelsTapToActivate => 'செயல்படுத்தத் தட்டவும்';
@@ -2313,7 +2319,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsTopPick => 'சிறந்த தேர்வு';
 
   @override
-  String get modelsModelDetails => 'மாடல் விவரங்கள்';
+  String get modelsModelDetails => 'அறிவுரு விவரங்கள்';
 
   @override
   String modelsDimensions(String count) {
@@ -2383,8 +2389,8 @@ class AppLocalizationsTa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count மாடல்கள் பதிவிறக்குகின்றன',
-      one: 'மாடல் பதிவிறக்குகிறது',
+      other: '$count அறிவுருக்கள் பதிவிறக்குகின்றன',
+      one: 'அறிவுரு பதிவிறக்குகிறது',
     );
     return '$_temp0';
   }
@@ -2427,7 +2433,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsDiscardDownload => 'பதிவிறக்கத்தை நீக்கு';
 
   @override
-  String get modelsUseCaseFastChat => 'வேகமான அரட்டை';
+  String get modelsUseCaseFastChat => 'வேகமான உரையாடல்';
 
   @override
   String get modelsUseCaseFastChatBlurb =>
@@ -2450,7 +2456,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsUseCaseTamil => 'தமிழ்';
 
   @override
-  String get modelsUseCaseTamilBlurb => 'தமிழில் அரட்டையடித்தல், எழுதுதல்';
+  String get modelsUseCaseTamilBlurb => 'தமிழில் உரையாடுதல், எழுதுதல்';
 
   @override
   String get modelsUseCaseEnglish => 'ஆங்கிலம்';
@@ -2574,25 +2580,25 @@ class AppLocalizationsTa extends AppLocalizations {
   String modelsCaveatNoneFits(String task) {
     String _temp0 = intl.Intl.selectLogic(task, {
       'fastChat':
-          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'reasoning':
-          'படிப்படியான பகுத்தறிவுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'படிப்படியான பகுத்தறிவுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'coding':
-          'நிரல் எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'நிரல் எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'tamil':
-          'தமிழுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'தமிழுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'english':
-          'ஆங்கிலத்துக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'ஆங்கிலத்துக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'vision':
-          'படங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'படங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'translation':
-          'மொழிபெயர்ப்புக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'மொழிபெயர்ப்புக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'summarizing':
-          'சுருக்கி எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'சுருக்கி எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'documents':
-          'நீண்ட ஆவணங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'நீண்ட ஆவணங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
       'other':
-          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் மாடல் எதுவும் பட்டியலில் இல்லை.',
+          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
     });
     return '$_temp0';
   }
@@ -2628,25 +2634,25 @@ class AppLocalizationsTa extends AppLocalizations {
   String modelsCaveatNothingStrong(String task) {
     String _temp0 = intl.Intl.selectLogic(task, {
       'fastChat':
-          'இந்த அளவில் உள்ள எந்த மாடலும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'reasoning':
-          'இந்த அளவில் உள்ள எந்த மாடலும் படிப்படியான பகுத்தறிவுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் படிப்படியான பகுத்தறிவுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'coding':
-          'இந்த அளவில் உள்ள எந்த மாடலும் நிரல் எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் நிரல் எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'tamil':
-          'இந்த அளவில் உள்ள எந்த மாடலும் தமிழுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் தமிழுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'english':
-          'இந்த அளவில் உள்ள எந்த மாடலும் ஆங்கிலத்துக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் ஆங்கிலத்துக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'vision':
-          'இந்த அளவில் உள்ள எந்த மாடலும் படங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் படங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'translation':
-          'இந்த அளவில் உள்ள எந்த மாடலும் மொழிபெயர்ப்புக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் மொழிபெயர்ப்புக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'summarizing':
-          'இந்த அளவில் உள்ள எந்த மாடலும் சுருக்கி எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் சுருக்கி எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'documents':
-          'இந்த அளவில் உள்ள எந்த மாடலும் நீண்ட ஆவணங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் நீண்ட ஆவணங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
       'other':
-          'இந்த அளவில் உள்ள எந்த மாடலும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
     });
     return '$_temp0';
   }
@@ -2690,22 +2696,23 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsAdvisorSubtitleKnown(String device) {
-    return 'உங்கள் கைப்பேசிக்குப் பொருந்தும் மாடலை Thinai தேர்ந்தெடுக்கிறது · $device';
+    return 'உங்கள் கைப்பேசிக்குப் பொருந்தும் அறிவுருவை Thinai தேர்ந்தெடுக்கிறது · $device';
   }
 
   @override
   String get modelsAdvisorSubtitle =>
-      'இந்த வேலைக்கான மாடலை Thinai தேர்ந்தெடுக்கிறது';
+      'இந்த வேலைக்கான அறிவுருவை Thinai தேர்ந்தெடுக்கிறது';
 
   @override
   String get modelsAdvisorNothingFits =>
       'இதற்குப் பொருந்துவது எதுவும் பட்டியலில் இல்லை.';
 
   @override
-  String get modelsAdvisorBestForPhone => 'உங்கள் கைப்பேசிக்குச் சிறந்த மாடல்';
+  String get modelsAdvisorBestForPhone =>
+      'உங்கள் கைப்பேசிக்குச் சிறந்த அறிவுரு';
 
   @override
-  String get modelsAdvisorBestForThis => 'இதற்குச் சிறந்த மாடல்';
+  String get modelsAdvisorBestForThis => 'இதற்குச் சிறந்த அறிவுரு';
 
   @override
   String get modelsAdvisorAlsoConsider => 'இவற்றையும் பரிசீலிக்கலாம்';
@@ -2725,11 +2732,11 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsAdvisorSpeedMeasured =>
-      'இந்தக் கைப்பேசியில் பெஞ்ச்மார்க் அளந்த வேகம்.';
+      'இந்தக் கைப்பேசியில் அளவுகோல் அளந்த வேகம்.';
 
   @override
   String get modelsAdvisorSpeedEstimated =>
-      'மதிப்பிடப்பட்ட வேகம். உண்மையான எண்ணுக்குப் பெஞ்ச்மார்க்கை இயக்கவும்.';
+      'மதிப்பிடப்பட்ட வேகம். உண்மையான எண்ணுக்குப் அளவுகோலை இயக்கவும்.';
 
   @override
   String get modelsAdvisorStartingCancel =>
@@ -2741,11 +2748,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsSettingsTitle => 'மாடல் அமைப்புகள்';
+  String get modelsSettingsTitle => 'அறிவுரு அமைப்புகள்';
 
   @override
   String get modelsSettingsBody =>
-      'அரட்டையும் API சர்வரும் இவற்றைப் பயன்படுத்துகின்றன. கோரிக்கைகள் அதிகபட்ச வரம்பு வரை இவற்றை மாற்றலாம்.';
+      'உரையாடலும் API சேவகமும் இவற்றைப் பயன்படுத்துகின்றன. கோரிக்கைகள் அதிகபட்ச வரம்பு வரை இவற்றை மாற்றலாம்.';
 
   @override
   String get modelsSettingsResetDefaults => 'இயல்புநிலைக்கு மீட்டமை';
@@ -2788,12 +2795,12 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsSettingsCapRam(String max, String trained) {
-    return 'அதிகபட்சம் $max, RAM-ஆல் வரம்பிடப்பட்டது (மாடல் $trained வரை ஆதரிக்கும்).';
+    return 'அதிகபட்சம் $max, RAM-ஆல் வரம்பிடப்பட்டது (அறிவுரு $trained வரை ஆதரிக்கும்).';
   }
 
   @override
   String modelsSettingsCapTraining(String max) {
-    return 'அதிகபட்சம் $max, இந்த மாடலின் பயிற்சி வரம்பு.';
+    return 'அதிகபட்சம் $max, இந்த அறிவுருவின் பயிற்சி வரம்பு.';
   }
 
   @override
@@ -2807,7 +2814,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get chatNoMessagesYet => 'இன்னும் செய்திகள் இல்லை';
+  String get chatNoMessagesYet => 'இன்னும் உரைகள் இல்லை';
 
   @override
   String get chatStarterBrainstormPrompt =>

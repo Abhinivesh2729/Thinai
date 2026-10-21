@@ -1,6 +1,8 @@
 # Tamil UI glossary
 
-The Tamil strings in `lib/l10n/app_ta.arb` use these terms. Keep new strings consistent with them.
+The Tamil strings in `lib/l10n/app_ta.arb` use these terms. Keep new strings consistent with them. The founder chose the chat, model, server, message, prompt, system prompt and benchmark terms on 2026-10-21. The in-app glossary dialog (Settings → Language → Glossary) shows the same pairs.
+
+**No em dashes** in UI text, in either language. Use a full stop, a comma or a colon instead.
 
 **Register.** Use plain modern Tamil, the way Google and Android apps write it. Avoid literary or heavily Sanskritised words. Button labels are short verb roots (சேமி, நீக்கு). Instructions and messages are polite (தட்டவும், பதிவிறக்கவும்).
 
@@ -13,11 +15,12 @@ The Tamil strings in `lib/l10n/app_ta.arb` use these terms. Keep new strings con
 
 | English | Tamil |
 |---|---|
-| Chat (tab) / chat | அரட்டை |
-| Model / Models | மாடல் / மாடல்கள் |
-| Server | சர்வர் |
+| Chat | உரையாடல் |
+| Model / Models | அறிவுரு / அறிவுருக்கள் |
+| Server | சேவகம் |
 | Settings | அமைப்புகள் |
-| Message | செய்தி |
+| Message | உரை |
+| Prompt | செய்தி |
 | Send | அனுப்பு |
 | Download / downloading / downloaded | பதிவிறக்கு / பதிவிறக்குகிறது / பதிவிறக்கப்பட்டது |
 | Install / installed | நிறுவு / நிறுவப்பட்டது |
@@ -37,12 +40,12 @@ The Tamil strings in `lib/l10n/app_ta.arb` use these terms. Keep new strings con
 | Tap | தட்டவும் |
 | Recommended | பரிந்துரைக்கப்பட்டது |
 | Speed | வேகம் |
-| Benchmark | பெஞ்ச்மார்க் |
-| System prompt | சிஸ்டம் ப்ராம்ப்ட் |
+| Benchmark | அளவுகோல் |
+| System prompt | அமைப்பு செய்தி |
 | Context (window) | context |
 | Attachment / image / document | இணைப்பு / படம் / ஆவணம் |
 | History | வரலாறு |
-| New chat | புதிய அரட்டை |
+| New chat | புதிய உரையாடல் |
 | Theme / dark / light | தீம் / இருண்ட / வெளிர் |
 | Update | புதுப்பிப்பு |
 | Restart | மறுதொடக்கம் |

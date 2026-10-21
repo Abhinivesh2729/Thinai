@@ -67,7 +67,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('அமைப்புகள்'), findsOneWidget);
       expect(find.text('தோற்றம்'), findsOneWidget);
-      expect(find.text('சிஸ்டம் ப்ராம்ப்ட்'), findsOneWidget);
+      expect(find.text('அமைப்பு செய்தி'), findsOneWidget);
       expect(find.text('பற்றி & வழிகாட்டல்'), findsOneWidget);
       expect(find.text('Appearance'), findsNothing);
     });
@@ -78,7 +78,7 @@ void main() {
       expect(find.text('தோற்றம்'), findsOneWidget);
       expect(find.text('மொழி'), findsOneWidget);
       expect(find.text('தீம்'), findsOneWidget);
-      expect(find.text('அரட்டையில் இணையத் தேடல்'), findsOneWidget);
+      expect(find.text('உரையாடலில் இணையத் தேடல்'), findsOneWidget);
     });
 
     testWidgets('about', (tester) async {
@@ -98,7 +98,7 @@ void main() {
       await _pumpTamil(tester, const SystemPromptPage());
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(find.text('சிஸ்டம் ப்ராம்ப்ட்'), findsOneWidget);
+      expect(find.text('அமைப்பு செய்தி'), findsOneWidget);
       expect(find.text('சேமி'), findsOneWidget);
       expect(find.text('இயல்புநிலைக்கு மீட்டமை'), findsOneWidget);
       expect(find.textContaining('எழுத்துகள்'), findsOneWidget);
@@ -107,8 +107,8 @@ void main() {
     testWidgets('benchmark with no models', (tester) async {
       await _pumpTamil(tester, const BenchmarkPage());
       expect(tester.takeException(), isNull);
-      expect(find.text('பெஞ்ச்மார்க்'), findsOneWidget);
-      expect(find.text('அளவிட மாடல்கள் இல்லை'), findsOneWidget);
+      expect(find.text('அளவுகோல்'), findsOneWidget);
+      expect(find.text('அளவிட அறிவுருக்கள் இல்லை'), findsOneWidget);
     });
 
     testWidgets('benchmark with a model', (tester) async {
@@ -130,7 +130,7 @@ void main() {
         ],
       );
       expect(tester.takeException(), isNull);
-      expect(find.text('பெஞ்ச்மார்க் இயக்கு'), findsOneWidget);
+      expect(find.text('அளவுகோல் இயக்கு'), findsOneWidget);
       expect(find.text('tokens / வினாடி'), findsOneWidget);
       expect(find.text('சும்மா உள்ளது'), findsOneWidget);
     });

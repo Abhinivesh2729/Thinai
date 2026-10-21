@@ -941,8 +941,8 @@
   "chatWebSearchOn": "Web search on.",
   "chatWebSearchOff": "Web search off.",
   "chatMenuTooltip": "Menu & Chats",
-  "chatBannerNoModelLoaded": "No model loaded — tap to select or browse.",
-  "chatBannerNoModelDownloaded": "No model downloaded — tap to download.",
+  "chatBannerNoModelLoaded": "No model loaded. Tap to select or browse.",
+  "chatBannerNoModelDownloaded": "No model downloaded. Tap to download.",
   "chatSelect": "Select",
   "chatActiveModelTooltip": "Active model: {modelId} (tap to switch)",
   "@chatActiveModelTooltip": {

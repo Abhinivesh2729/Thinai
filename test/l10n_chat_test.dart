@@ -103,11 +103,11 @@ void main() {
 
     expect(find.text('தனிப்பட்ட ஆஃப்லைன் AI'), findsOneWidget);
     expect(
-      find.text('மாடல் பதிவிறக்கப்படவில்லை — பதிவிறக்க தட்டவும்.'),
+      find.text('அறிவுரு பதிவிறக்கப்படவில்லை. பதிவிறக்க தட்டவும்.'),
       findsOneWidget,
     );
-    expect(find.text('மாடல்களை உலாவிப் பதிவிறக்கு'), findsOneWidget);
-    expect(find.text('உங்கள் மாடலுக்குச் செய்தி அனுப்பவும்'), findsOneWidget);
+    expect(find.text('அறிவுருக்களை உலாவிப் பதிவிறக்கு'), findsOneWidget);
+    expect(find.text('உங்கள் அறிவுருவுக்குஉரை அனுப்பவும்'), findsOneWidget);
     expect(find.text('Private Offline AI'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -143,7 +143,7 @@ void main() {
     _scaffoldKey.currentState!.openDrawer();
     await tester.pumpAndSettle();
 
-    expect(find.text('புதிய அரட்டை'), findsOneWidget);
+    expect(find.text('புதிய உரையாடல்'), findsOneWidget);
     expect(find.text('இன்று'), findsOneWidget);
     expect(find.text('2 உரையாடல்கள்'), findsOneWidget);
     expect(find.text('Thinai பற்றி'), findsOneWidget);
@@ -156,10 +156,10 @@ void main() {
     container.read(chatSessionsProvider.notifier).open('a');
     await tester.pumpAndSettle();
 
-    expect(find.text('அரட்டை வரலாறு'), findsOneWidget);
+    expect(find.text('உரையாடல் வரலாறு'), findsOneWidget);
     expect(find.text('செயலில்'), findsOneWidget);
-    expect(find.text('2 செய்திகள்'), findsOneWidget);
-    expect(find.text('1 செய்தி'), findsOneWidget);
+    expect(find.text('2 உரைகள்'), findsOneWidget);
+    expect(find.text('1 உரை'), findsOneWidget);
     expect(find.text('இப்போது'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });

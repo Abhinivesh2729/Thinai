@@ -1505,11 +1505,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatBannerNoModelLoaded =>
-      'No model loaded — tap to select or browse.';
+      'No model loaded. Tap to select or browse.';
 
   @override
   String get chatBannerNoModelDownloaded =>
-      'No model downloaded — tap to download.';
+      'No model downloaded. Tap to download.';
 
   @override
   String get chatSelect => 'Select';

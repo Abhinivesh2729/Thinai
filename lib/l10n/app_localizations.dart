@@ -2602,13 +2602,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatBannerNoModelLoaded.
   ///
   /// In en, this message translates to:
-  /// **'No model loaded — tap to select or browse.'**
+  /// **'No model loaded. Tap to select or browse.'**
   String get chatBannerNoModelLoaded;
 
   /// No description provided for @chatBannerNoModelDownloaded.
   ///
   /// In en, this message translates to:
-  /// **'No model downloaded — tap to download.'**
+  /// **'No model downloaded. Tap to download.'**
   String get chatBannerNoModelDownloaded;
 
   /// No description provided for @chatSelect.

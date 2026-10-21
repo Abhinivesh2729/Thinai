@@ -91,13 +91,13 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('சர்வர்'), findsOneWidget);
+      expect(find.text('சேவகம்'), findsOneWidget);
       expect(find.text('நிறுத்தப்பட்டது'), findsOneWidget);
       expect(find.text('தொடங்கு'), findsOneWidget);
       expect(find.text('உள்ளூர் நெட்வொர்க்கில் பகிர் (LAN)'), findsOneWidget);
       expect(find.text('டெவலப்பர் விரைவுத் தொடக்கம்'), findsOneWidget);
       expect(find.text('API endpoints'), findsOneWidget);
-      expect(find.text('நிறுவப்பட்ட மாடல்களின் பட்டியல்'), findsOneWidget);
+      expect(find.text('நிறுவப்பட்ட அறிவுருக்களின் பட்டியல்'), findsOneWidget);
       expect(
         find.textContaining('இந்தச் சாதனத்தில் இயங்கும் ஆப்ஸ் மட்டுமே'),
         findsOneWidget,
@@ -140,7 +140,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('சர்வர் port-ஐ மாற்று'), findsOneWidget);
+      expect(find.text('சேவகம் port-ஐ மாற்று'), findsOneWidget);
       expect(find.text('Port-ஐச் சேமி'), findsOneWidget);
       expect(find.text('ரத்துசெய்'), findsOneWidget);
     });
@@ -157,7 +157,7 @@ void main() {
       await tester.pumpWidget(_tamil(const HfSearchPage(), overrides: hub()));
 
       expect(tester.takeException(), isNull);
-      expect(find.text('எந்த GGUF மாடலையும் தேடலாம்'), findsOneWidget);
+      expect(find.text('எந்த GGUF அறிவுருவையும் தேடலாம்'), findsOneWidget);
       expect(find.textContaining('தேடலுக்கு இணையம் தேவை'), findsOneWidget);
       expect(find.text('Find any GGUF model'), findsNothing);
     });

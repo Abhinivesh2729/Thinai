@@ -350,7 +350,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
   Widget _results(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
-    String rate(double? v) => v == null ? '—' : '${v.toStringAsFixed(1)} tok/s';
+    String rate(double? v) => v == null ? '-' : '${v.toStringAsFixed(1)} tok/s';
     final cpu = _cpu;
     final gpu = _gpu;
 
