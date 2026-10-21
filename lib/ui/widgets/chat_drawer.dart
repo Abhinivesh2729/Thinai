@@ -54,8 +54,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
         ? allConversations
         : allConversations.where((c) {
             final q = _searchQuery.toLowerCase();
-            return c.title.toLowerCase().contains(q) ||
-                c.preview.toLowerCase().contains(q);
+            return c.localizedTitle(context.l10n).toLowerCase().contains(q) ||
+                c.localizedPreview(context.l10n).toLowerCase().contains(q);
           }).toList();
 
     final l10n = context.l10n;
@@ -662,7 +662,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        conversation.title,
+                        conversation.localizedTitle(context.l10n),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -869,7 +869,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           content: Text(
-            l10n.chatDrawerDeleteOneBody(conversation.title),
+            l10n.chatDrawerDeleteOneBody(conversation.localizedTitle(l10n)),
             style: TextStyle(fontSize: 13.5, color: scheme.onSurfaceVariant),
           ),
           actions: [
@@ -983,7 +983,7 @@ class _DrawerConversationTile extends StatelessWidget {
                 ],
                 Expanded(
                   child: Text(
-                    conversation.title,
+                    conversation.localizedTitle(context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

@@ -651,7 +651,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           },
         ),
         title: Text(
-          sessions.active?.title ?? 'Thinai',
+          sessions.active?.localizedTitle(context.l10n) ?? 'Thinai',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -1300,29 +1300,28 @@ class _EmptyChat extends ConsumerWidget {
                     icon: Icons.lightbulb_outline_rounded,
                     label: context.l10n.chatStarterBrainstorm,
                     onTap: () => onSuggestion?.call(
-                      'Give me 5 creative ideas to build an on-device AI app',
+                      context.l10n.chatStarterBrainstormPrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.code_rounded,
                     label: context.l10n.chatStarterPython,
                     onTap: () => onSuggestion?.call(
-                      'Write a Python script to sort and deduplicate a list of items',
+                      context.l10n.chatStarterPythonPrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.summarize_outlined,
                     label: context.l10n.chatStarterSummarize,
                     onTap: () => onSuggestion?.call(
-                      'Summarize the key takeaways from the following:\n\n',
+                      context.l10n.chatStarterSummarizePrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.speed_rounded,
                     label: context.l10n.chatStarterSpeed,
-                    onTap: () => onSuggestion?.call(
-                      'What is your generation speed on this phone?',
-                    ),
+                    onTap: () =>
+                        onSuggestion?.call(context.l10n.chatStarterSpeedPrompt),
                   ),
                 ],
               ),

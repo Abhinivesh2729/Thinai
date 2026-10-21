@@ -1747,5 +1747,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chatPreviewYou": "You: {text}",
+  "chatNoMessagesYet": "No messages yet",
+  "@chatPreviewYou": {
+    "description": "History row preview of the user's own last message.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatStarterBrainstormPrompt": "Give me 5 creative ideas to build an on-device AI app",
+  "chatStarterPythonPrompt": "Write a Python script to sort and deduplicate a list of items",
+  "chatStarterSummarizePrompt": "Summarize the key takeaways from the following:\n\n",
+  "chatStarterSpeedPrompt": "What is your generation speed on this phone?"
 }

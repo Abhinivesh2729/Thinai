@@ -4384,6 +4384,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum {max}.'**
   String modelsSettingsCap(String max);
+
+  /// History row preview of the user's own last message.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String chatPreviewYou(String text);
+
+  /// No description provided for @chatNoMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatNoMessagesYet;
+
+  /// No description provided for @chatStarterBrainstormPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Give me 5 creative ideas to build an on-device AI app'**
+  String get chatStarterBrainstormPrompt;
+
+  /// No description provided for @chatStarterPythonPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a Python script to sort and deduplicate a list of items'**
+  String get chatStarterPythonPrompt;
+
+  /// No description provided for @chatStarterSummarizePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarize the key takeaways from the following:\n\n'**
+  String get chatStarterSummarizePrompt;
+
+  /// No description provided for @chatStarterSpeedPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your generation speed on this phone?'**
+  String get chatStarterSpeedPrompt;
 }
 
 class _AppLocalizationsDelegate

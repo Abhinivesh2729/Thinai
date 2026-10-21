@@ -11,7 +11,6 @@ import '../../models_repo/hf_hub.dart';
 import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
-import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_brand_logo.dart';

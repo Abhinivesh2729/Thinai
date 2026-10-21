@@ -2800,4 +2800,28 @@ class AppLocalizationsTa extends AppLocalizations {
   String modelsSettingsCap(String max) {
     return 'அதிகபட்சம் $max.';
   }
+
+  @override
+  String chatPreviewYou(String text) {
+    return 'நீங்கள்: $text';
+  }
+
+  @override
+  String get chatNoMessagesYet => 'இன்னும் செய்திகள் இல்லை';
+
+  @override
+  String get chatStarterBrainstormPrompt =>
+      'கைப்பேசியிலேயே இயங்கும் AI app உருவாக்க 5 புதுமையான யோசனைகள் கொடு';
+
+  @override
+  String get chatStarterPythonPrompt =>
+      'ஒரு பட்டியலை வரிசைப்படுத்தி, நகல்களை நீக்கும் Python script எழுது';
+
+  @override
+  String get chatStarterSummarizePrompt =>
+      'பின்வருவதன் முக்கியக் கருத்துகளைச் சுருக்கமாகச் சொல்:\n\n';
+
+  @override
+  String get chatStarterSpeedPrompt =>
+      'இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?';
 }

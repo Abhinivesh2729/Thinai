@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/l10n.dart';
 import '../llm/generation_settings.dart';
 import '../llm/gpu_support.dart';
 import '../llm/llm_engine.dart';
@@ -502,6 +503,26 @@ class ChatConversation {
     }
     return 'No messages yet';
   }
+
+  /// [title] for display: "New chat" in the UI language when there is
+  /// nothing to derive one from.
+  String localizedTitle(AppLocalizations l10n) =>
+      _hasTitle ? title : l10n.chatNewChat;
+
+  /// [preview] for display, in the UI language.
+  String localizedPreview(AppLocalizations l10n) {
+    for (final turn in turns.reversed) {
+      if (turn.content.trim().isEmpty) continue;
+      final line = turn.content.trim().replaceAll(RegExp(r'\s+'), ' ');
+      final body = line.length <= 70 ? line : '${line.substring(0, 69)}…';
+      return turn.role == 'user' ? l10n.chatPreviewYou(body) : body;
+    }
+    return l10n.chatNoMessagesYet;
+  }
+
+  bool get _hasTitle =>
+      (customTitle?.trim().isNotEmpty ?? false) ||
+      turns.any((t) => t.role == 'user' && t.content.trim().isNotEmpty);
 
   bool get isEmpty => turns.isEmpty;
 

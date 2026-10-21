@@ -40,8 +40,8 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
         ? allConversations
         : allConversations.where((c) {
             final q = _query.toLowerCase();
-            return c.title.toLowerCase().contains(q) ||
-                c.preview.toLowerCase().contains(q);
+            return c.localizedTitle(context.l10n).toLowerCase().contains(q) ||
+                c.localizedPreview(context.l10n).toLowerCase().contains(q);
           }).toList();
 
     // Group by date sections
@@ -115,7 +115,7 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                 onRename: () async {
                                   final newTitle = await _showRenameDialog(
                                     context,
-                                    conversation.title,
+                                    conversation.localizedTitle(context.l10n),
                                   );
                                   if (newTitle != null && newTitle.isNotEmpty) {
                                     await controller.rename(
@@ -128,7 +128,7 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                   final ok = await _confirm(
                                     context,
                                     title: l10n.chatHistoryDeleteOneTitle,
-                                    body: conversation.title,
+                                    body: conversation.localizedTitle(context.l10n),
                                     action: l10n.commonDelete,
                                   );
                                   if (ok) {
@@ -330,7 +330,7 @@ class _SwipeableConversationCard extends StatelessWidget {
         return _confirm(
           context,
           title: context.l10n.chatHistoryDeleteOneTitle,
-          body: conversation.title,
+          body: conversation.localizedTitle(context.l10n),
           action: context.l10n.commonDelete,
         );
       },
@@ -534,7 +534,7 @@ class _ConversationCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            conversation.title,
+                            conversation.localizedTitle(context.l10n),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -572,7 +572,7 @@ class _ConversationCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     // Preview
                     Text(
-                      conversation.preview,
+                      conversation.localizedPreview(context.l10n),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

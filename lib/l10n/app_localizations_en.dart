@@ -2747,4 +2747,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String modelsSettingsCap(String max) {
     return 'Maximum $max.';
   }
+
+  @override
+  String chatPreviewYou(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String get chatNoMessagesYet => 'No messages yet';
+
+  @override
+  String get chatStarterBrainstormPrompt =>
+      'Give me 5 creative ideas to build an on-device AI app';
+
+  @override
+  String get chatStarterPythonPrompt =>
+      'Write a Python script to sort and deduplicate a list of items';
+
+  @override
+  String get chatStarterSummarizePrompt =>
+      'Summarize the key takeaways from the following:\n\n';
+
+  @override
+  String get chatStarterSpeedPrompt =>
+      'What is your generation speed on this phone?';
 }
