@@ -720,5 +720,6 @@
   "chatStarterSummarizePrompt": "பின்வருவதன் முக்கியக் கருத்துகளைச் சுருக்கமாகச் சொல்:\n\n",
   "chatStarterSpeedPrompt": "இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?",
   "deviceSummaryRam": "{ram} GB RAM · {cores} கோர்கள்",
-  "deviceSummaryCores": "{cores} கோர்கள்"
+  "deviceSummaryCores": "{cores} கோர்கள்",
+  "settingsGlossary": "சொல்லகராதி"
 }

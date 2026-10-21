@@ -4432,6 +4432,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{cores} cores'**
   String deviceSummaryCores(int cores);
+
+  /// No description provided for @settingsGlossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Glossary'**
+  String get settingsGlossary;
 }
 
 class _AppLocalizationsDelegate

@@ -12,6 +12,7 @@ import '../../update/app_updater.dart';
 import '../widgets/gpu_settings_card.dart';
 import '../widgets/made_in_erode.dart';
 import '../widgets/model_settings_sheet.dart';
+import '../widgets/tamil_glossary_dialog.dart';
 import 'about_page.dart';
 import 'benchmark_page.dart';
 import 'contact_support_page.dart';
@@ -275,11 +276,27 @@ class AppearanceSettingsPage extends ConsumerWidget {
                         ),
                       ),
                   ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref.read(appLanguageProvider.notifier).set(val);
+                  onChanged: (val) async {
+                    if (val == null) return;
+                    final wasTamil = ref.read(isTamilUiProvider);
+                    await ref.read(appLanguageProvider.notifier).set(val);
+                    // Introduce the Tamil words whenever the app turns Tamil.
+                    if (!wasTamil &&
+                        ref.read(isTamilUiProvider) &&
+                        context.mounted) {
+                      await showTamilGlossary(context);
                     }
                   },
+                ),
+                const _TileDivider(),
+                _SettingsTile(
+                  icon: Icons.menu_book_rounded,
+                  title: context.l10n.settingsGlossary,
+                  onTap: () => showTamilGlossary(context),
+                  trailing: Icon(
+                    Icons.chevron_right_rounded,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const _TileDivider(),
                 _DropdownListRow<ThemeMode>(

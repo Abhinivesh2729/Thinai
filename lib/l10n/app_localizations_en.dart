@@ -2781,4 +2781,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String deviceSummaryCores(int cores) {
     return '$cores cores';
   }
+
+  @override
+  String get settingsGlossary => 'Glossary';
 }

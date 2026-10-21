@@ -2841,4 +2841,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String deviceSummaryCores(int cores) {
     return '$cores கோர்கள்';
   }
+
+  @override
+  String get settingsGlossary => 'சொல்லகராதி';
 }
