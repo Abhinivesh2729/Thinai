@@ -879,5 +879,337 @@
   "brandPlace": "Erode, Tamilnadu",
   "@brandPlace": {
     "description": "Place name as it appears inside brandMadeWith; in Tamil it carries the locative case."
-  }
+  },
+  "chatErrorReadFile": "Could not read that file.",
+  "chatDocumentTrimmed": "Attached the first {size}. The rest did not fit the context window.",
+  "@chatDocumentTrimmed": {
+    "description": "Snack bar after a long document was cut to fit. size is like ~1.2K tokens.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "chatErrorAttachFile": "Could not attach that file: {error}",
+  "@chatErrorAttachFile": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatErrorNoVision": "This model cannot read images. Try Gemma 3 4B instead.",
+  "chatErrorTakePhoto": "Could not take that photo: {error}",
+  "@chatErrorTakePhoto": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatErrorReadImage": "Could not read that image.",
+  "chatErrorAttachImage": "Could not attach that image: {error}",
+  "@chatErrorAttachImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSearchBlocked": "Search engines are rate-limiting this network right now. Answering without the web.",
+  "chatSearchNoResults": "No web results for that. Answering from the model itself.",
+  "chatSearchErrorFallback": "{message} Answering without it.",
+  "@chatSearchErrorFallback": {
+    "description": "message is the web search error, which is not localized.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSearchFailed": "Web search failed. Answering without it.",
+  "chatLoadModelFirst": "Load a model from the Models tab first.",
+  "chatActiveModelMissing": "Active model is missing from disk.",
+  "chatErrorGeneric": "Error: {error}",
+  "@chatErrorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatWebSearchOn": "Web search on.",
+  "chatWebSearchOff": "Web search off.",
+  "chatMenuTooltip": "Menu & Chats",
+  "chatBannerNoModelLoaded": "No model loaded — tap to select or browse.",
+  "chatBannerNoModelDownloaded": "No model downloaded — tap to download.",
+  "chatSelect": "Select",
+  "chatActiveModelTooltip": "Active model: {modelId} (tap to switch)",
+  "@chatActiveModelTooltip": {
+    "placeholders": {
+      "modelId": {
+        "type": "String"
+      }
+    }
+  },
+  "chatNoModelTooltip": "No model loaded (tap to choose)",
+  "chatSwitchModel": "Switch Model",
+  "chatNoModelsInstalled": "No models installed",
+  "chatModelsInstalledCount": "{count, plural, other{{count} installed on device}}",
+  "@chatModelsInstalledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatNoModelsDownloadedYet": "No models downloaded yet",
+  "chatDownloadFromCatalogue": "Download an open model from the catalogue to begin chatting.",
+  "chatBrowseModels": "Browse Models",
+  "chatModelParameters": "Model Parameters",
+  "chatDownloadMoreModels": "Download More Models",
+  "chatEmptyTitle": "Private Offline AI",
+  "chatEmptyBody": "Chat privately with AI models that run 100% on your phone. No internet required, zero cloud tracking, and your data never leaves your device.",
+  "chatBrowseDownloadModels": "Browse & Download Models",
+  "chatReadyWebSearchOn": "AI Ready · Web Search On",
+  "chatReadyOffline": "AI Ready · 100% Offline",
+  "chatRunningPrivately": "Running privately on your phone silicon.",
+  "chatStarterBrainstorm": "Brainstorm ideas",
+  "@chatStarterBrainstorm": {
+    "description": "Starter chip label. The prompt it inserts stays English."
+  },
+  "chatStarterPython": "Write Python code",
+  "chatStarterSummarize": "Summarize text",
+  "chatStarterSpeed": "Measure speed",
+  "chatAttachmentTrimmed": "{size} · trimmed",
+  "@chatAttachmentTrimmed": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInputHintGenerating": "Generating…",
+  "chatInputHint": "Message your model",
+  "chatStop": "Stop",
+  "chatSend": "Send",
+  "chatCopiedToClipboard": "Copied to clipboard",
+  "chatCopyText": "Copy text",
+  "chatShareText": "Share text",
+  "chatStopped": "Stopped",
+  "chatSearchingWeb": "Searching the web…",
+  "chatDialWebSearch": "Web search",
+  "chatDialWebSearchAuto": "Automatic, on when needed",
+  "chatDialCamera": "Camera",
+  "chatDialCameraDetail": "Take a photo now",
+  "chatDialNeedsVision": "Needs a vision model",
+  "chatDialImage": "Image",
+  "chatDialDocument": "Document",
+  "chatDialDocumentDetail": "Text, Markdown, CSV, code",
+  "chatSourcesCount": "{count, plural, =1{Source} other{Sources}}",
+  "@chatSourcesCount": {
+    "description": "Label beside the source badges under a searched reply.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatSourcesTitle": "Sources",
+  "chatSearchedQuery": "Searched: \"{query}\"",
+  "@chatSearchedQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "chatRemoveAttachment": "Remove",
+  "chatAttachImageUnsupported": "That image format is not supported. Use PNG, JPEG, WebP, BMP or GIF.",
+  "chatAttachImageEmpty": "That image is empty.",
+  "chatAttachImageTooLarge": "That image is {size} MB. Images up to {limit} MB can be attached.",
+  "@chatAttachImageTooLarge": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "chatAttachPdfUnsupported": "PDF is not supported yet. Copy the text and attach that instead.",
+  "chatAttachBinaryUnsupported": "{kind, select, image{image} audio{audio} other{{kind}}} files are not supported. Attach a text document.",
+  "@chatAttachBinaryUnsupported": {
+    "description": "kind is a format name such as Word, PowerPoint, Excel, EPUB, or the words image/audio.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "chatAttachFileEmpty": "That file is empty.",
+  "chatAttachBinaryFile": "That looks like a binary file, not a text document.",
+  "chatAttachNotUtf8": "Could not read that file as text. UTF-8 documents only.",
+  "chatAttachNoText": "That file has no text in it.",
+  "chatDrawerExitManage": "Exit manage mode",
+  "chatDrawerManageChats": "Manage chats",
+  "chatDrawerTapToSelect": "Tap to select",
+  "chatDrawerSelectedCount": "{selected} of {total} selected",
+  "@chatDrawerSelectedCount": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerDeselectAll": "Deselect all",
+  "chatDrawerSelectAll": "Select all",
+  "chatDrawerCloseMenu": "Close menu",
+  "chatNewChat": "New chat",
+  "chatDrawerSearchHint": "Search chats…",
+  "chatDrawerDeleteCount": "Delete ({count})",
+  "@chatDrawerDeleteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerConversationCount": "{count, plural, =1{1 conversation} other{{count} conversations}}",
+  "@chatDrawerConversationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerModelSettings": "Model Settings",
+  "chatDrawerModelSettingsSubtitle": "Context, sampling & thinking",
+  "chatDrawerNoModelSnack": "No model downloaded yet. Download a model from the Models tab first.",
+  "chatDrawerAppSettings": "App Settings",
+  "chatDrawerAppSettingsSubtitle": "Theme, GPU, downloads & server",
+  "chatDrawerAbout": "About Thinai",
+  "chatDrawerAboutSubtitle": "Version, privacy & details",
+  "chatDrawerDeleteManyTitle": "{count, plural, =1{Delete 1 chat?} other{Delete {count} chats?}}",
+  "@chatDrawerDeleteManyTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerDeleteManyBody": "{count, plural, =1{Are you sure you want to permanently delete 1 selected conversation? This action cannot be undone.} other{Are you sure you want to permanently delete {count} selected conversations? This action cannot be undone.}}",
+  "@chatDrawerDeleteManyBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerDeletedCount": "{count, plural, =1{Deleted 1 chat} other{Deleted {count} chats}}",
+  "@chatDrawerDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatDrawerSelectManage": "Select / Manage",
+  "chatDrawerRenameTitle": "Rename title",
+  "chatDeleteChat": "Delete chat",
+  "chatRenameChat": "Rename chat",
+  "chatConversationTitleHint": "Conversation title",
+  "chatDrawerDeleteOneTitle": "Delete chat?",
+  "chatDrawerDeleteOneBody": "Are you sure you want to delete \"{title}\"? This cannot be undone.",
+  "@chatDrawerDeleteOneBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDrawerNoHistory": "No past conversations",
+  "chatDrawerNoHistoryHint": "Start a chat to keep history here.",
+  "chatDrawerNoResults": "No chats found for \"{query}\"",
+  "@chatDrawerNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "chatGroupToday": "Today",
+  "chatGroupYesterday": "Yesterday",
+  "chatGroupPrevious7Days": "Previous 7 Days",
+  "chatGroupThisMonth": "This Month",
+  "chatGroupOlder": "Older",
+  "chatHistoryTitle": "Chat history",
+  "chatHistoryDeleteAllTooltip": "Delete all chats",
+  "chatHistoryDeleteAllTitle": "Delete all chats?",
+  "chatHistoryDeleteAllBody": "Every saved conversation is removed. This cannot be undone.",
+  "chatHistoryDeleteAll": "Delete all",
+  "chatHistoryDeleteOneTitle": "Delete this chat?",
+  "chatHistorySearchHint": "Search conversations…",
+  "chatHistoryNoResults": "No chats matching \"{query}\"",
+  "@chatHistoryNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "chatHistoryActiveBadge": "ACTIVE",
+  "chatHistoryMessageCount": "{count, plural, =1{1 message} other{{count} messages}}",
+  "@chatHistoryMessageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatHistoryEmptyTitle": "No saved chats yet",
+  "chatHistoryEmptyBody": "Start a conversation and it will appear here.\nEverything stays on this device.",
+  "chatTimeJustNow": "Just now",
+  "chatTimeMinutesAgo": "{minutes}m ago",
+  "@chatTimeMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "chatTimeHoursAgo": "{hours}h ago",
+  "@chatTimeHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "chatTimeDaysAgo": "{days} days ago",
+  "@chatTimeDaysAgo": {
+    "description": "Only used for 2 to 6 days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "chatCodeBlockLabel": "CODE",
+  "@chatCodeBlockLabel": {
+    "description": "Header of a code block whose language is unknown."
+  },
+  "chatCodeCopied": "Copied!",
+  "chatAppRestartTitle": "Restart now?",
+  "chatAppRestartBody": "A model is still downloading. Restarting pauses it, and you can resume it from the Models page.",
+  "chatAppRestart": "Restart",
+  "chatAppUpdateReady": "Update ready",
+  "chatAppUpdateAvailable": "Update available",
+  "chatAppUpdateDownloading": "Downloading in the background…",
+  "chatAppUpdateRestartToInstall": "Restart Thinai to finish installing.",
+  "chatAppUpdateOnPlayStore": "A newer version of Thinai is on Play Store."
 }

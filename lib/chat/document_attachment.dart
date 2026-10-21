@@ -10,6 +10,8 @@ library;
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'attachment_error.dart';
+
 import 'untrusted_text.dart';
 
 /// How much document text goes into the prompt, in characters.
@@ -139,22 +141,31 @@ DocumentAttachment readDocument(String filename, Uint8List bytes) {
 
   final binaryLabel = _knownBinary[extension];
   if (binaryLabel != null) {
-    throw FormatException(
-      extension == 'pdf'
-          ? 'PDF is not supported yet. Copy the text and attach that instead.'
-          : '$binaryLabel files are not supported. Attach a text document.',
-    );
+    throw extension == 'pdf'
+        ? const AttachmentException(
+            AttachmentProblem.pdfUnsupported,
+            'PDF is not supported yet. Copy the text and attach that instead.',
+          )
+        : AttachmentException(
+            AttachmentProblem.binaryFormatUnsupported,
+            '$binaryLabel files are not supported. Attach a text document.',
+            formatName: binaryLabel,
+          );
   }
 
   if (bytes.isEmpty) {
-    throw const FormatException('That file is empty.');
+    throw const AttachmentException(
+      AttachmentProblem.fileEmpty,
+      'That file is empty.',
+    );
   }
 
   // NUL bytes are the giveaway for a binary file wearing an unfamiliar
   // extension. Checking a prefix keeps a large file from being scanned twice.
   final probe = bytes.length > 4096 ? bytes.sublist(0, 4096) : bytes;
   if (probe.contains(0)) {
-    throw const FormatException(
+    throw const AttachmentException(
+      AttachmentProblem.binaryFile,
       'That looks like a binary file, not a text document.',
     );
   }
@@ -163,14 +174,18 @@ DocumentAttachment readDocument(String filename, Uint8List bytes) {
   try {
     decoded = utf8.decode(bytes);
   } on FormatException {
-    throw const FormatException(
+    throw const AttachmentException(
+      AttachmentProblem.notUtf8,
       'Could not read that file as text. UTF-8 documents only.',
     );
   }
 
   final text = decoded.trim();
   if (text.isEmpty) {
-    throw const FormatException('That file has no text in it.');
+    throw const AttachmentException(
+      AttachmentProblem.noText,
+      'That file has no text in it.',
+    );
   }
 
   // An unfamiliar extension that decoded cleanly and holds no NUL bytes is
