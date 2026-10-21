@@ -4,6 +4,7 @@ import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
 import '../../models_repo/hf_hub.dart';

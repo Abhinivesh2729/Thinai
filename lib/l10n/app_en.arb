@@ -28,5 +28,258 @@
   "navChat": "Chat",
   "navModels": "Models",
   "navServer": "Server",
-  "navSettings": "Settings"
+  "navSettings": "Settings",
+  "serverToastLanNoAddress": "Sharing on, but no Wi-Fi/LAN address was found.",
+  "serverToastStartFailed": "Start failed: {error}",
+  "@serverToastStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverPortDialogTitle": "Change Server Port",
+  "serverPortDialogBody": "Select or enter the local TCP port Thinai binds to. Default is 11434 for Ollama, 8080 for standard.",
+  "serverPortNumberLabel": "Port number",
+  "serverPortPresetStandard": "8080 (Standard)",
+  "serverSavePort": "Save Port",
+  "serverStatusRunning": "Running",
+  "serverStatusStopped": "Stopped",
+  "serverStart": "Start",
+  "serverStop": "Stop",
+  "serverCopyAddressTooltip": "Copy Server Address",
+  "serverCopiedToClipboard": "Copied {value} to clipboard",
+  "@serverCopiedToClipboard": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "serverCopiedLabel": "Copied {label}",
+  "@serverCopiedLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "serverServingModel": "SERVING MODEL",
+  "serverTune": "Tune",
+  "serverNoModelLoaded": "No model loaded yet. Load one to enable completions.",
+  "serverBrowseModels": "Browse Models",
+  "serverRegenerateTokenTitle": "Regenerate API token?",
+  "serverRegenerateTokenBody": "Existing LAN clients using the current token will lose access and must be updated.",
+  "serverRegenerate": "Regenerate",
+  "serverTokenRegenerated": "API token regenerated",
+  "serverLanShareTitle": "Share on Local Network (LAN)",
+  "serverLanShareOnSubtitle": "Other computers on this Wi-Fi can reach the API",
+  "serverLanShareOffSubtitle": "Only apps running directly on this phone can reach 127.0.0.1",
+  "serverCopyLanUrlTooltip": "Copy LAN URL",
+  "serverDevQuickStartTitle": "Developer Quick Start",
+  "serverDevQuickStartSubtitle": "Direct configuration snippets for coding assistants & scripts",
+  "serverTabChatJson": "Chat JSON",
+  "serverVsCodeIntro": "For Continue.dev or Cline extensions in VS Code:",
+  "serverPythonIntro": "Query with official OpenAI Python SDK:",
+  "serverCurlIntro": "Direct terminal HTTP request with standard JSON payload:",
+  "serverChatJsonIntro": "OpenAI standard chat payload (/v1/chat/completions):",
+  "serverOllamaIntro": "Point any Ollama client (Open-WebUI, Chatbox, CLI) to Thinai:",
+  "serverCopyLabelVsCodeConfig": "VS Code Config",
+  "serverCopyLabelPythonScript": "Python Script",
+  "serverCopyLabelCurlCommand": "cURL Command",
+  "serverCopyLabelChatJson": "Chat JSON Payload",
+  "serverCopyLabelOllamaEnv": "Ollama Host Env",
+  "serverEndpointOpenAiChat": "OpenAI Chat Completions",
+  "serverEndpointOllamaChat": "Ollama Native Chat",
+  "serverEndpointEmbeddings": "Vector Embeddings",
+  "serverEndpointModels": "Installed Models Catalog",
+  "serverApiEndpointsTitle": "API Endpoints",
+  "serverApiEndpointsSubtitle": "Standard OpenAI & Ollama compatible HTTP routes",
+  "serverCopyBaseUrlTooltip": "Copy Base URL",
+  "serverBaseUrlLabel": "Base URL: {url}",
+  "@serverBaseUrlLabel": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "serverCopyCurlTooltip": "Copy cURL",
+  "serverCurlCommandLabel": "{path} cURL command",
+  "@serverCurlCommandLabel": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "serverSecurityLan": "Wi-Fi Network Serving Active · Any device on this local subnet can query the API on port {port} with your Bearer token.",
+  "@serverSecurityLan": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "serverSecurityLocal": "Local Loopback Active · Only apps executing directly on this hardware can query localhost:{port}.",
+  "@serverSecurityLocal": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "hfSearchHint": "Search GGUF models on Hugging Face",
+  "hfSearchFailedTitle": "Search did not work",
+  "hfTryAgain": "Try again",
+  "hfEmptyTitle": "Find any GGUF model",
+  "hfEmptyMessage": "Search by name or maker, like \"gemma\", \"phi\" or \"unsloth\". Results are public repos with GGUF files.",
+  "hfNoMatchTitle": "No GGUF models match \"{query}\"",
+  "@hfNoMatchTitle": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "hfNoMatchMessage": "Try a shorter name or a different spelling.",
+  "hfResultsTitle": "Results ({count})",
+  "@hfResultsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfResultsSubtitle": "Most downloaded first",
+  "hfShowingUpTo": "Showing up to {limit} results.",
+  "@hfShowingUpTo": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "hfDownloadTitle": "Download model?",
+  "hfTooBigTitle": "Too big for this phone?",
+  "hfDownloadAnyway": "Download anyway",
+  "hfDownloadMessage": "Do you want to download {file} ({size}) from Hugging Face?",
+  "@hfDownloadMessage": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "hfDownloadMessageTooBig": "Do you want to download {file} ({size}) from Hugging Face?\n\nThis is likely too large for this phone and may not load.",
+  "@hfDownloadMessageTooBig": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "hfDownloadMessageTooBigBudget": "Do you want to download {file} ({size}) from Hugging Face?\n\nIt needs about {needs} of memory and this phone has {budget} to spare, so it will probably not load.",
+  "@hfDownloadMessageTooBigBudget": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      },
+      "needs": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "hfDownloadMessageTight": "Do you want to download {file} ({size}) from Hugging Face?\n\nA tight fit. Other apps may close while this runs.",
+  "@hfDownloadMessageTight": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "hfOpenFailedTitle": "Could not open this model",
+  "hfSignInTitle": "Sign-in required",
+  "hfSignInMessage": "This model needs a Hugging Face account to download, which Thinai does not support yet.",
+  "hfFilesTitle": "GGUF files ({count})",
+  "@hfFilesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfFilesSubtitle": "Smaller files load faster and use less memory",
+  "hfSkippedFiles": "{count, plural, =1{1 other GGUF file is hidden: split files, image encoders and helper files cannot be loaded on their own.} other{{count} other GGUF files are hidden: split files, image encoders and helper files cannot be loaded on their own.}}",
+  "@hfSkippedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfNothingTitle": "Nothing to install here",
+  "hfNothingMessage": "This repo has no single-file GGUF models that Thinai can load.",
+  "hfNetworkNotice": "Search uses the internet. Thinai contacts huggingface.co only while you search here or open a model, never in the background. Your chats stay on this phone.",
+  "hfAgoToday": "today",
+  "hfAgoDays": "{count}d ago",
+  "@hfAgoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfAgoMonths": "{count}mo ago",
+  "@hfAgoMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfAgoYears": "{count}y ago",
+  "@hfAgoYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hfByAuthor": "by {author}",
+  "@hfByAuthor": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "hfNoLicence": "No licence listed",
+  "hfInstalled": "Installed",
+  "hfPause": "Pause",
+  "hfFindMore": "Find more on Hugging Face",
+  "hfSearchFor": "Search Hugging Face for \"{query}\"",
+  "@hfSearchFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "hfPromptSubtitle": "Any public GGUF model, installed into your library. Uses the internet."
 }

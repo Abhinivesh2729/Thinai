@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../l10n/l10n.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
 import '../widgets/floating_lines_background.dart';
@@ -54,10 +55,10 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           ip: status.lanIp,
         );
         if (mounted && status.lan && status.lanIp == null) {
-          _toast('Sharing on, but no Wi-Fi/LAN address was found.');
+          _toast(context.l10n.serverToastLanNoAddress);
         }
       } else if (status.error != null && mounted) {
-        _toast('Start failed: ${status.error}');
+        _toast(context.l10n.serverToastStartFailed('${status.error}'));
       }
     } finally {
       if (mounted) setState(() => _isTransitioning = false);
@@ -105,13 +106,13 @@ class _ServerPageState extends ConsumerState<ServerPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Change Server Port'),
+        title: Text(context.l10n.serverPortDialogTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select or enter the local TCP port Thinai binds to. Default is 11434 for Ollama, 8080 for standard.',
+              context.l10n.serverPortDialogBody,
               style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
@@ -120,7 +121,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
               keyboardType: TextInputType.number,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Port number',
+                labelText: context.l10n.serverPortNumberLabel,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -136,7 +137,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
                   onPressed: () => controller.text = '11434',
                 ),
                 ActionChip(
-                  label: const Text('8080 (Standard)'),
+                  label: Text(context.l10n.serverPortPresetStandard),
                   onPressed: () => controller.text = '8080',
                 ),
               ],
@@ -146,14 +147,14 @@ class _ServerPageState extends ConsumerState<ServerPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               final p = int.tryParse(controller.text.trim());
               Navigator.pop(ctx, p);
             },
-            child: const Text('Save Port'),
+            child: Text(context.l10n.serverSavePort),
           ),
         ],
       ),
@@ -189,9 +190,9 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Server',
-          style: TextStyle(
+        title: Text(
+          context.l10n.navServer,
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.4,
@@ -427,16 +428,22 @@ class _HeroCard extends StatelessWidget {
                         duration: const Duration(milliseconds: 250),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(
-                            running ? 'Running' : 'Stopped',
-                            key: ValueKey(running),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.4,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
+                          key: ValueKey(running),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              running
+                                  ? context.l10n.serverStatusRunning
+                                  : context.l10n.serverStatusStopped,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.4,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
                             ),
                           ),
                         ),
@@ -569,13 +576,21 @@ class _HeroCard extends StatelessWidget {
                                             color: Colors.white,
                                           ),
                                           const SizedBox(width: 4),
-                                          Text(
-                                            running ? 'Stop' : 'Start',
-                                            style: const TextStyle(
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.white,
-                                              letterSpacing: 0.2,
+                                          Flexible(
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                running
+                                                    ? context.l10n.serverStop
+                                                    : context.l10n.serverStart,
+                                                maxLines: 1,
+                                                style: const TextStyle(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -651,7 +666,7 @@ class _HeroCard extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Copy Server Address',
+                        tooltip: context.l10n.serverCopyAddressTooltip,
                         icon: const Icon(Icons.copy_rounded, size: 14),
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
@@ -669,7 +684,11 @@ class _HeroCard extends StatelessWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Copied $serverUrl to clipboard'),
+                                content: Text(
+                                  context.l10n.serverCopiedToClipboard(
+                                    serverUrl,
+                                  ),
+                                ),
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -750,7 +769,7 @@ class _ActiveModelBanner extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'SERVING MODEL',
+                        context.l10n.serverServingModel,
                         style: TextStyle(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
@@ -789,7 +808,7 @@ class _ActiveModelBanner extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Tune'),
+                  child: Text(context.l10n.serverTune),
                 ),
               ],
             )
@@ -797,7 +816,7 @@ class _ActiveModelBanner extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'No model loaded yet. Load one to enable completions.',
+                    context.l10n.serverNoModelLoaded,
                     style: TextStyle(
                       fontSize: 12.5,
                       color: scheme.onSurfaceVariant,
@@ -822,7 +841,7 @@ class _ActiveModelBanner extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Browse Models'),
+                  child: Text(context.l10n.serverBrowseModels),
                 ),
               ],
             ),
@@ -861,7 +880,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Copied $label'),
+        content: Text(context.l10n.serverCopiedLabel(label)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -872,18 +891,16 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Regenerate API token?'),
-        content: const Text(
-          'Existing LAN clients using the current token will lose access and must be updated.',
-        ),
+        title: Text(context.l10n.serverRegenerateTokenTitle),
+        content: Text(context.l10n.serverRegenerateTokenBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Regenerate'),
+            child: Text(context.l10n.serverRegenerate),
           ),
         ],
       ),
@@ -914,7 +931,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
         setState(() => _showToken = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('API token regenerated'),
+            content: Text(context.l10n.serverTokenRegenerated),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -956,9 +973,9 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Share on Local Network (LAN)',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.serverLanShareTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14.5,
                         letterSpacing: -0.2,
@@ -967,8 +984,8 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                     const SizedBox(height: 2),
                     Text(
                       widget.enabled
-                          ? 'Other computers on this Wi-Fi can reach the API'
-                          : 'Only apps running directly on this phone can reach 127.0.0.1',
+                          ? context.l10n.serverLanShareOnSubtitle
+                          : context.l10n.serverLanShareOffSubtitle,
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 11.5,
@@ -1033,7 +1050,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                                     size: 15,
                                     color: Color(0xFF2CA048),
                                   ),
-                                  tooltip: 'Copy LAN URL',
+                                  tooltip: context.l10n.serverCopyLanUrlTooltip,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
                                     minWidth: 28,
@@ -1192,7 +1209,7 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Copied $label to clipboard'),
+        content: Text(context.l10n.serverCopiedToClipboard(label)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -1226,9 +1243,9 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Developer Quick Start',
-                  style: TextStyle(
+                Text(
+                  context.l10n.serverDevQuickStartTitle,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
@@ -1236,7 +1253,7 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Direct configuration snippets for coding assistants & scripts',
+                  context.l10n.serverDevQuickStartSubtitle,
                   style: TextStyle(
                     fontSize: 12,
                     color: scheme.onSurfaceVariant,
@@ -1262,7 +1279,11 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
                 const SizedBox(width: 8),
                 _buildTab(2, 'cURL', Icons.alt_route_rounded),
                 const SizedBox(width: 8),
-                _buildTab(3, 'Chat JSON', Icons.data_object_rounded),
+                _buildTab(
+                  3,
+                  context.l10n.serverTabChatJson,
+                  Icons.data_object_rounded,
+                ),
                 const SizedBox(width: 8),
                 _buildTab(4, 'Ollama', Icons.cloud_sync_rounded),
               ],
@@ -1361,7 +1382,7 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'For Continue.dev or Cline extensions in VS Code:',
+          context.l10n.serverVsCodeIntro,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
@@ -1374,7 +1395,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
               icon: Icons.data_object_rounded,
             ),
           ],
-          onCopy: () => _copy(configJson, 'VS Code Config'),
+          onCopy: () =>
+              _copy(configJson, context.l10n.serverCopyLabelVsCodeConfig),
         ),
       ],
     );
@@ -1399,7 +1421,7 @@ print(response.choices[0].message.content)''';
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Query with official OpenAI Python SDK:',
+          context.l10n.serverPythonIntro,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
@@ -1412,7 +1434,7 @@ print(response.choices[0].message.content)''';
               icon: Icons.code_rounded,
             ),
           ],
-          onCopy: () => _copy(pyCode, 'Python Script'),
+          onCopy: () => _copy(pyCode, context.l10n.serverCopyLabelPythonScript),
         ),
       ],
     );
@@ -1432,7 +1454,7 @@ print(response.choices[0].message.content)''';
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Direct terminal HTTP request with standard JSON payload:',
+          context.l10n.serverCurlIntro,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
@@ -1445,7 +1467,8 @@ print(response.choices[0].message.content)''';
               icon: Icons.terminal_rounded,
             ),
           ],
-          onCopy: () => _copy(curlCode, 'cURL Command'),
+          onCopy: () =>
+              _copy(curlCode, context.l10n.serverCopyLabelCurlCommand),
         ),
       ],
     );
@@ -1469,7 +1492,7 @@ print(response.choices[0].message.content)''';
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'OpenAI standard chat payload (/v1/chat/completions):',
+          context.l10n.serverChatJsonIntro,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
@@ -1482,7 +1505,7 @@ print(response.choices[0].message.content)''';
               icon: Icons.data_object_rounded,
             ),
           ],
-          onCopy: () => _copy(chatJson, 'Chat JSON Payload'),
+          onCopy: () => _copy(chatJson, context.l10n.serverCopyLabelChatJson),
         ),
       ],
     );
@@ -1495,7 +1518,7 @@ print(response.choices[0].message.content)''';
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Point any Ollama client (Open-WebUI, Chatbox, CLI) to Thinai:',
+          context.l10n.serverOllamaIntro,
           style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
@@ -1508,7 +1531,7 @@ print(response.choices[0].message.content)''';
               icon: Icons.terminal_rounded,
             ),
           ],
-          onCopy: () => _copy(envCmd, 'Ollama Host Env'),
+          onCopy: () => _copy(envCmd, context.l10n.serverCopyLabelOllamaEnv),
         ),
       ],
     );
@@ -1535,7 +1558,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Copied $label'),
+        content: Text(context.l10n.serverCopiedLabel(label)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -1546,12 +1569,13 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     final endpoints = [
       _EndpointItem(
         method: 'POST',
         path: '/v1/chat/completions',
-        title: 'OpenAI Chat Completions',
+        title: l10n.serverEndpointOpenAiChat,
         curl:
             'curl ${widget.base}/v1/chat/completions \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1596,7 +1620,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'POST',
         path: '/api/chat',
-        title: 'Ollama Native Chat',
+        title: l10n.serverEndpointOllamaChat,
         curl:
             'curl ${widget.base}/api/chat \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1629,7 +1653,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'POST',
         path: '/v1/embeddings',
-        title: 'Vector Embeddings',
+        title: l10n.serverEndpointEmbeddings,
         curl:
             'curl ${widget.base}/v1/embeddings \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1662,7 +1686,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'GET',
         path: '/v1/models',
-        title: 'Installed Models Catalog',
+        title: l10n.serverEndpointModels,
         curl: 'curl ${widget.base}/v1/models',
         requestJson: null,
         responseJson:
@@ -1702,9 +1726,9 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'API Endpoints',
-                        style: TextStyle(
+                      Text(
+                        l10n.serverApiEndpointsTitle,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
@@ -1712,7 +1736,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Standard OpenAI & Ollama compatible HTTP routes',
+                        l10n.serverApiEndpointsSubtitle,
                         style: TextStyle(
                           fontSize: 12,
                           color: scheme.onSurfaceVariant,
@@ -1722,11 +1746,11 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Copy Base URL',
+                  tooltip: l10n.serverCopyBaseUrlTooltip,
                   icon: const Icon(Icons.link_rounded, size: 18),
                   color: const Color(0xFF2CA048),
                   onPressed: () =>
-                      _copy(widget.base, 'Base URL: ${widget.base}'),
+                      _copy(widget.base, l10n.serverBaseUrlLabel(widget.base)),
                 ),
               ],
             ),
@@ -1845,7 +1869,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Copy cURL',
+                    tooltip: context.l10n.serverCopyCurlTooltip,
                     icon: const Icon(Icons.copy_rounded, size: 14),
                     color: scheme.onSurfaceVariant,
                     padding: EdgeInsets.zero,
@@ -1853,8 +1877,10 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       minWidth: 28,
                       minHeight: 28,
                     ),
-                    onPressed: () =>
-                        _copy(item.curl, '${item.path} cURL command'),
+                    onPressed: () => _copy(
+                      item.curl,
+                      context.l10n.serverCurlCommandLabel(item.path),
+                    ),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -2491,7 +2517,9 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _copied ? 'Copied' : 'Copy',
+                          _copied
+                              ? context.l10n.commonCopied
+                              : context.l10n.commonCopy,
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 10.5,
@@ -2740,8 +2768,8 @@ class _SecurityNoticeBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Text(
         lanShare
-            ? 'Wi-Fi Network Serving Active · Any device on this local subnet can query the API on port $port with your Bearer token.'
-            : 'Local Loopback Active · Only apps executing directly on this hardware can query localhost:$port.',
+            ? context.l10n.serverSecurityLan('$port')
+            : context.l10n.serverSecurityLocal('$port'),
         style: TextStyle(
           fontSize: 11.5,
           color: scheme.onSurfaceVariant,
