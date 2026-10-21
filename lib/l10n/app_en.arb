@@ -1211,5 +1211,541 @@
   "chatAppUpdateAvailable": "Update available",
   "chatAppUpdateDownloading": "Downloading in the background…",
   "chatAppUpdateRestartToInstall": "Restart Thinai to finish installing.",
-  "chatAppUpdateOnPlayStore": "A newer version of Thinai is on Play Store."
+  "chatAppUpdateOnPlayStore": "A newer version of Thinai is on Play Store.",
+  "modelsToastDownloadPaused": "Download paused. Tap Resume to continue.",
+  "modelsToastDownloadStopped": "Download of {model} stopped: {error}. Progress is saved, tap Resume to continue.",
+  "@modelsToastDownloadStopped": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsToastDownloadFailed": "Could not download {model}: {error}",
+  "@modelsToastDownloadFailed": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsToastDownloadedAndLoaded": "Downloaded and loaded {model}",
+  "@modelsToastDownloadedAndLoaded": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsToastDownloaded": "Downloaded {model}",
+  "@modelsToastDownloaded": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsToastLoaded": "Loaded {model}",
+  "@modelsToastLoaded": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsToastResumeFailed": "Could not resume {model}",
+  "@modelsToastResumeFailed": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsConfirmDownloadTitle": "Download model?",
+  "modelsConfirmDownloadMessage": "Do you want to download {model} ({size})?",
+  "@modelsConfirmDownloadMessage": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsConfirmDiscardTitle": "Discard download?",
+  "modelsConfirmDiscardMessage": "Do you want to discard the paused download of {model}? The {size} saved so far will be deleted.",
+  "@modelsConfirmDiscardMessage": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsDiscard": "Discard",
+  "modelsConfirmDeleteTitle": "Delete model?",
+  "modelsConfirmDeleteMessage": "Do you want to delete {model}? This frees {size} of space.",
+  "@modelsConfirmDeleteMessage": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsBenchmark": "Benchmark",
+  "modelsManagerTitle": "Model Manager",
+  "modelsManagerTooltipDownloading": "Downloading ({count}) · Model Manager",
+  "@modelsManagerTooltipDownloading": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsManagerTooltipInstalled": "Model Manager ({count} installed)",
+  "@modelsManagerTooltipInstalled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsError": "Error: {error}",
+  "@modelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsNoneInstalledYet": "No models installed yet",
+  "modelsNoneInstalledYetBody": "Browse and download GGUF models from the catalog to run offline on this device.",
+  "modelsBrowseCatalog": "Browse Catalog",
+  "modelsInstalledSectionTitle": "Installed models ({count})",
+  "@modelsInstalledSectionTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsInstalledSectionSubtitle": "Tap a model to load it for chat",
+  "modelsRecommendedFor": "Recommended for {goal}",
+  "@modelsRecommendedFor": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsRecommendedSubtitle": "Optimal weights selected for your device specs",
+  "modelsFeaturedTitle": "Featured Models",
+  "modelsFeaturedSubtitle": "Handpicked for you",
+  "modelsOtherModels": "Other models",
+  "modelsVisionModelsTitle": "Vision models",
+  "modelsChatModelsTitle": "Chat models",
+  "modelsExploreModels": "Explore Models",
+  "modelsBrowseCatalogTitle": "Browse catalog",
+  "modelsOtherModelsSubtitle": "All other available models",
+  "modelsVisionModelsSubtitle": "Multimodal · image & visual analysis",
+  "modelsCatalogSubtitle": "Curated GGUF models · one-tap download",
+  "modelsEmbeddingTitle": "Embedding models",
+  "modelsEmbeddingSubtitle": "For search and RAG · /api/embed · /v1/embeddings",
+  "modelsOfflineFooter": "Downloaded models stay 100% on-device and run entirely offline.",
+  "modelsSearchHint": "Search models, makers, architectures…",
+  "modelsClearSearch": "Clear search",
+  "modelsFilterAll": "All Models",
+  "modelsFilterChat": "Chat Models",
+  "modelsFilterVision": "Vision Models",
+  "modelsFilterEmbedding": "Embedding",
+  "modelsFilterInstalled": "Installed",
+  "modelsFilterInstalledCount": "Installed ({count})",
+  "@modelsFilterInstalledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsFilterCategory": "Filter Category",
+  "modelsGoals": "Goals",
+  "modelsResetFiltersTooltip": "Reset filters and search",
+  "modelsTargeting": "Targeting: {goal}",
+  "@modelsTargeting": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsChange": "Change",
+  "modelsClearGoal": "Clear goal",
+  "modelsManagerSubtitleDownloading": "{installed} installed · {downloading} downloading · {size} used",
+  "@modelsManagerSubtitleDownloading": {
+    "placeholders": {
+      "installed": {
+        "type": "int"
+      },
+      "downloading": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsManagerSubtitle": "{count} models · {size} storage used",
+  "@modelsManagerSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsNoneInstalled": "No models installed",
+  "modelsNoneInstalledBody": "Download models from the catalog to run offline chat.",
+  "modelsActiveForChat": "Active for Chat: {model}",
+  "@modelsActiveForChat": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsNoModelLoaded": "No model loaded in Chat",
+  "modelsInstalledAppearHere": "Installed models will appear here after download completes.",
+  "modelsActive": "Active",
+  "modelsActivate": "Activate",
+  "modelsDeleteModel": "Delete model",
+  "modelsChooseGoal": "Choose Your Goal",
+  "modelsChooseGoalSubtitle": "Thinai benchmarks & recommends models for your device",
+  "modelsClearActiveGoal": "Clear Active Goal",
+  "modelsNoMatchFilters": "No models match current filters",
+  "modelsNoMatchQuery": "No models match \"{query}\"",
+  "@modelsNoMatchQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsNoMatchHint": "Try adjusting your selected filters or search terms.",
+  "modelsSearchHuggingFace": "Search Hugging Face",
+  "modelsResetFiltersAndSearch": "Reset filters & search",
+  "modelsStatusCancelled": "Cancelled",
+  "modelsStatusFailed": "Failed",
+  "modelsStatusCompleted": "100% · Completed",
+  "modelsStatusStarting": "Starting…",
+  "modelsActiveInChat": "Active in Chat",
+  "modelsTapToActivate": "Tap to activate",
+  "modelsBadgeVision": "VISION",
+  "modelsBadgeEmbed": "EMBED",
+  "modelsBadgeReason": "REASON",
+  "modelsBadgeText": "TEXT",
+  "modelsFeaturedBadge": "FEATURED",
+  "modelsPopular": "Popular",
+  "modelsAddVision": "+ Vision ({size})",
+  "@modelsAddVision": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsInstalled": "Installed",
+  "modelsPause": "Pause",
+  "modelsTopPick": "TOP PICK",
+  "modelsModelDetails": "Model details",
+  "modelsDimensions": "{count} dims",
+  "@modelsDimensions": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsNeedsRam": "Needs RAM",
+  "modelsDetailParameters": "Parameters",
+  "modelsDetailContextWindow": "Context Window",
+  "modelsTokensValue": "{count} tokens",
+  "@modelsTokensValue": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsDetailDownloadSize": "Download Size",
+  "modelsDetailCapability": "Capability",
+  "modelsDownloadSize": "Download {size}",
+  "@modelsDownloadSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsCapVisionReady": "Vision Ready",
+  "modelsCapEmbeddings": "Embeddings",
+  "modelsCapLightweight": "Lightweight",
+  "modelsCapFast": "Fast & Efficient",
+  "modelsCapMultilingual": "Multilingual",
+  "modelsCapCodeReasoning": "Code · Reasoning",
+  "modelsCapInstruct": "Instruct",
+  "modelsFitTooLarge": "Too large for this phone.",
+  "modelsFitNeeds": "Needs {needs}, this phone has {available} to spare.",
+  "@modelsFitNeeds": {
+    "placeholders": {
+      "needs": {
+        "type": "String"
+      },
+      "available": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsFitTight": "A tight fit. Other apps may close while this runs.",
+  "modelsDownloadingCount": "{count, plural, =1{Downloading model} other{Downloading {count} models}}",
+  "@modelsDownloadingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsPauseDownload": "Pause download",
+  "modelsResumePercent": "Resume {percent}%",
+  "@modelsResumePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsPaused": "Paused",
+  "modelsPausedPercent": "Paused · {percent}%",
+  "@modelsPausedPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsPausedDownloadsTitle": "{count, plural, =1{Paused download} other{Paused downloads ({count})}}",
+  "@modelsPausedDownloadsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelsPausedDownloadsBody": "Saved on this phone. Resume to continue where it stopped.",
+  "modelsResumeDownload": "Resume download",
+  "modelsDiscardDownload": "Discard download",
+  "modelsUseCaseFastChat": "Fast chat",
+  "modelsUseCaseFastChatBlurb": "Quick back-and-forth, answers as fast as you type",
+  "modelsUseCaseReasoning": "Best reasoning",
+  "modelsUseCaseReasoningBlurb": "Harder questions, maths, step-by-step thinking",
+  "modelsUseCaseCoding": "Coding",
+  "modelsUseCaseCodingBlurb": "Writing and explaining code",
+  "modelsUseCaseTamil": "Tamil",
+  "modelsUseCaseTamilBlurb": "Chatting and writing in Tamil",
+  "modelsUseCaseEnglish": "English",
+  "modelsUseCaseEnglishBlurb": "Everyday English conversation and writing",
+  "modelsUseCaseVision": "Image understanding",
+  "modelsUseCaseVisionBlurb": "Asking questions about a photo or screenshot",
+  "modelsUseCaseTranslation": "Offline translation",
+  "modelsUseCaseTranslationBlurb": "Translating between languages with no signal",
+  "modelsUseCaseSummarizing": "Summarization",
+  "modelsUseCaseSummarizingBlurb": "Shortening long text into the gist",
+  "modelsUseCaseDocuments": "Document analysis",
+  "modelsUseCaseDocumentsBlurb": "Reading long documents and answering about them",
+  "modelsReasonNotSuited": "{task, select, fastChat{Not suited to quick conversations} reasoning{Not suited to step-by-step reasoning} coding{Not suited to code} tamil{Not suited to Tamil} english{Not suited to English} vision{Not suited to images} translation{Not suited to translation} summarizing{Not suited to summarising} documents{Not suited to long documents} other{Not suited to quick conversations}}",
+  "@modelsReasonNotSuited": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsReasonLimited": "{task, select, fastChat{Limited for quick conversations} reasoning{Limited for step-by-step reasoning} coding{Limited for code} tamil{Limited for Tamil} english{Limited for English} vision{Limited for images} translation{Limited for translation} summarizing{Limited for summarising} documents{Limited for long documents} other{Limited for quick conversations}}",
+  "@modelsReasonLimited": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsReasonUsable": "{task, select, fastChat{Usable for quick conversations} reasoning{Usable for step-by-step reasoning} coding{Usable for code} tamil{Usable for Tamil} english{Usable for English} vision{Usable for images} translation{Usable for translation} summarizing{Usable for summarising} documents{Usable for long documents} other{Usable for quick conversations}}",
+  "@modelsReasonUsable": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsReasonGood": "{task, select, fastChat{Good for quick conversations} reasoning{Good for step-by-step reasoning} coding{Good for code} tamil{Good for Tamil} english{Good for English} vision{Good for images} translation{Good for translation} summarizing{Good for summarising} documents{Good for long documents} other{Good for quick conversations}}",
+  "@modelsReasonGood": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsReasonExcellent": "{task, select, fastChat{Excellent for quick conversations} reasoning{Excellent for step-by-step reasoning} coding{Excellent for code} tamil{Excellent for Tamil} english{Excellent for English} vision{Excellent for images} translation{Excellent for translation} summarizing{Excellent for summarising} documents{Excellent for long documents} other{Excellent for quick conversations}}",
+  "@modelsReasonExcellent": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsCaveatNoneFits": "{task, select, fastChat{No model in the catalogue fits this phone for quick conversations.} reasoning{No model in the catalogue fits this phone for step-by-step reasoning.} coding{No model in the catalogue fits this phone for code.} tamil{No model in the catalogue fits this phone for Tamil.} english{No model in the catalogue fits this phone for English.} vision{No model in the catalogue fits this phone for images.} translation{No model in the catalogue fits this phone for translation.} summarizing{No model in the catalogue fits this phone for summarising.} documents{No model in the catalogue fits this phone for long documents.} other{No model in the catalogue fits this phone for quick conversations.}}",
+  "@modelsCaveatNoneFits": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsCaveatNothingFitsWell": "{task, select, fastChat{Nothing fits well for quick conversations. These are closest.} reasoning{Nothing fits well for step-by-step reasoning. These are closest.} coding{Nothing fits well for code. These are closest.} tamil{Nothing fits well for Tamil. These are closest.} english{Nothing fits well for English. These are closest.} vision{Nothing fits well for images. These are closest.} translation{Nothing fits well for translation. These are closest.} summarizing{Nothing fits well for summarising. These are closest.} documents{Nothing fits well for long documents. These are closest.} other{Nothing fits well for quick conversations. These are closest.}}",
+  "@modelsCaveatNothingFitsWell": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsCaveatNothingStrong": "{task, select, fastChat{Nothing at this size is strong at quick conversations. Closest matches shown.} reasoning{Nothing at this size is strong at step-by-step reasoning. Closest matches shown.} coding{Nothing at this size is strong at code. Closest matches shown.} tamil{Nothing at this size is strong at Tamil. Closest matches shown.} english{Nothing at this size is strong at English. Closest matches shown.} vision{Nothing at this size is strong at images. Closest matches shown.} translation{Nothing at this size is strong at translation. Closest matches shown.} summarizing{Nothing at this size is strong at summarising. Closest matches shown.} documents{Nothing at this size is strong at long documents. Closest matches shown.} other{Nothing at this size is strong at quick conversations. Closest matches shown.}}",
+  "@modelsCaveatNothingStrong": {
+    "placeholders": {
+      "task": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsVisionUnavailable": "Image understanding is not available in this build.",
+  "modelsFitComfortable": "Runs well on your phone",
+  "modelsFitTightShort": "Tight fit, may slow other apps",
+  "modelsFitTooBig": "Too big for your phone",
+  "modelsFitUnknown": "Fit unknown",
+  "modelsSpeedUnknown": "speed unknown",
+  "modelsAdvisorGoalCollapsed": "Goal: {goal} · tap to customize",
+  "@modelsAdvisorGoalCollapsed": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsAdvisorPromptCollapsed": "What do you want to do? · tap to pick a goal",
+  "modelsAdvisorPrompt": "What do you want to do?",
+  "modelsClear": "Clear",
+  "modelsAdvisorCollapse": "Collapse guide",
+  "modelsAdvisorSubtitleKnown": "Thinai picks a model that fits your phone · {device}",
+  "@modelsAdvisorSubtitleKnown": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsAdvisorSubtitle": "Thinai picks a model for the job",
+  "modelsAdvisorNothingFits": "Nothing in the catalogue fits this one.",
+  "modelsAdvisorBestForPhone": "Best model for your phone",
+  "modelsAdvisorBestForThis": "Best model for this",
+  "modelsAdvisorAlsoConsider": "Also worth considering",
+  "modelsAdvisorAuthorDownload": "{author} · {size} download",
+  "@modelsAdvisorAuthorDownload": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsAdvisorContext": "{context} context",
+  "@modelsAdvisorContext": {
+    "placeholders": {
+      "context": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsAdvisorAlreadyDownloaded": "Already downloaded",
+  "modelsAdvisorSpeedMeasured": "Speed measured on this phone by Benchmark.",
+  "modelsAdvisorSpeedEstimated": "Estimated speed. Run Benchmark for the real number.",
+  "modelsAdvisorStartingCancel": "Starting… · tap to cancel",
+  "modelsAdvisorDownloadingCancel": "Downloading {percent}% · tap to cancel",
+  "@modelsAdvisorDownloadingCancel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsSettingsTitle": "Model settings",
+  "modelsSettingsBody": "Used by chat and the API server. Requests can override these, up to the maximum.",
+  "modelsSettingsResetDefaults": "Reset to defaults",
+  "modelsSettingsContextWindow": "Context window",
+  "modelsSettingsContextHelp": "Longer windows remember more but use more RAM and run slower.",
+  "modelsSettingsTemperature": "Temperature",
+  "modelsSettingsPrecise": "Precise",
+  "modelsSettingsCreative": "Creative",
+  "modelsSettingsTopKHelp": "Picks each word from only the K likeliest. Lower is more focused; 0 turns the limit off.",
+  "modelsSettingsTopPHelp": "Picks from the likeliest words that together make up this share of the probability. 1.00 keeps them all.",
+  "modelsSettingsThinking": "Thinking",
+  "modelsSettingsThinkingHelp": "Reasons step by step before answering. Off answers sooner.",
+  "modelsSettingsCapPhoneRam": "Maximum {max}, limited by this phone's RAM.",
+  "@modelsSettingsCapPhoneRam": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsSettingsCapRam": "Maximum {max}, limited by RAM (model supports {trained}).",
+  "@modelsSettingsCapRam": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "trained": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsSettingsCapTraining": "Maximum {max}, this model's training limit.",
+  "@modelsSettingsCapTraining": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsSettingsCap": "Maximum {max}.",
+  "@modelsSettingsCap": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  }
 }

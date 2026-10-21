@@ -13,6 +13,7 @@
 /// recommendation.
 library;
 
+import '../l10n/app_localizations.dart';
 import 'catalog.dart';
 import 'use_cases.dart';
 
@@ -29,6 +30,21 @@ extension SkillInfo on Skill {
         Skill.good => 'Good for',
         Skill.excellent => 'Excellent for',
       };
+
+  /// "[word] (use case)" as one translated sentence, for example "Excellent
+  /// for quick conversations". Built from a whole message per rating rather
+  /// than by joining fragments, since word order and case endings differ
+  /// between languages.
+  String localizedReason(AppLocalizations l, UseCase useCase) {
+    final task = useCase.name;
+    return switch (this) {
+      Skill.unsupported => l.modelsReasonNotSuited(task),
+      Skill.weak => l.modelsReasonLimited(task),
+      Skill.ok => l.modelsReasonUsable(task),
+      Skill.good => l.modelsReasonGood(task),
+      Skill.excellent => l.modelsReasonExcellent(task),
+    };
+  }
 
   int get score => switch (this) {
         Skill.unsupported => 0,
@@ -406,7 +422,14 @@ Skill _down(Skill s) => Skill.values[(s.index - 1).clamp(0, Skill.values.length 
 
 /// Short phrases describing what [model] is good at, best first. Used as the
 /// "why this one" line under a recommendation.
-List<String> highlightsFor(CatalogModel model, {int limit = 2}) {
+List<String> highlightsFor(CatalogModel model, {int limit = 2}) => [
+      for (final (useCase, skill) in highlightPairsFor(model, limit: limit))
+        '${skill.word} ${useCase.blurbShort}',
+    ];
+
+/// [highlightsFor] as (use case, rating) pairs, for showing in the app's
+/// language with [SkillInfo.localizedReason].
+List<(UseCase, Skill)> highlightPairsFor(CatalogModel model, {int limit = 2}) {
   final rated = <(UseCase, Skill)>[
     for (final useCase in UseCase.values)
       if (useCase != UseCase.vision || visionUsable)
@@ -415,8 +438,7 @@ List<String> highlightsFor(CatalogModel model, {int limit = 2}) {
 
   return [
     for (final (useCase, skill) in rated.take(limit))
-      if (skill.score >= Skill.good.score)
-        '${skill.word} ${useCase.blurbShort}',
+      if (skill.score >= Skill.good.score) (useCase, skill),
   ];
 }
 
