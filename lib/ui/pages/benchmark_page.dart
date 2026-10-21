@@ -240,15 +240,6 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
                 ),
                 onPressed: _running ? null : _run,
               ),
-              const SizedBox(height: 10),
-              Text(
-                context.l10n.benchmarkDescription(_kBenchmarkTokens),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
-              ),
               if (_error != null) ...[
                 const SizedBox(height: 14),
                 _ErrorCard(message: _error!),

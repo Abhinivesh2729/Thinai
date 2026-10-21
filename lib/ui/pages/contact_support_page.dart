@@ -7,7 +7,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../widgets/made_in_erode.dart';
 
-/// Modern, comprehensive support and community page for Thinai.
+/// Where to reach us, device info to send along, and common questions.
 class ContactSupportPage extends ConsumerWidget {
   const ContactSupportPage({super.key});
 
@@ -15,7 +15,6 @@ class ContactSupportPage extends ConsumerWidget {
     'https://www.instagram.com/27_ai_27/',
   );
   static const String _instagramHandle = '@27_ai_27';
-  static const Color _brandGreen = Color(0xFF2CA048);
 
   Future<void> _launch(
     BuildContext context,
@@ -68,9 +67,7 @@ class ContactSupportPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
 
     final appVersion = ref.watch(appVersionProvider).valueOrNull ?? '1.0.0';
     final deviceProfile = ref.watch(deviceProfileProvider).valueOrNull;
@@ -83,82 +80,10 @@ class ContactSupportPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          // ─── HERO CARD ─────────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E2837), const Color(0xFF151C28)]
-                    : [const Color(0xFFF0FDF4), const Color(0xFFE8F5E9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: _brandGreen.withValues(alpha: isDark ? 0.3 : 0.25),
-                width: 1.2,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _brandGreen.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.support_agent_rounded,
-                      color: _brandGreen,
-                      size: 28,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.supportHeroTitle,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                          color: scheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        l10n.supportHeroBody,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.45,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ─── SECTION: OFFICIAL CHANNELS ────────────────────────────────────
-          _SectionHeader(title: l10n.supportChannels),
-          const SizedBox(height: 10),
-
-          // 1. INSTAGRAM CARD (FEATURED)
           _ChannelCard(
             badgeColor: const Color(0xFFE1306C),
             icon: Icons.camera_alt_rounded,
-            title: l10n.supportInstagramTitle,
+            title: 'Instagram',
             handle: _instagramHandle,
             description: l10n.supportInstagramBody,
             action: Row(
@@ -203,7 +128,6 @@ class ContactSupportPage extends ConsumerWidget {
 
           const SizedBox(height: 24),
 
-          // ─── SECTION: DIAGNOSTICS & SYSTEM INFO ────────────────────────────
           _SectionHeader(title: l10n.supportDiagnostics),
           const SizedBox(height: 6),
           Text(
@@ -303,7 +227,6 @@ class ContactSupportPage extends ConsumerWidget {
 
           const SizedBox(height: 24),
 
-          // ─── SECTION: FREQUENTLY ASKED QUESTIONS ───────────────────────────
           _SectionHeader(title: l10n.supportTroubleshooting),
           const SizedBox(height: 12),
 

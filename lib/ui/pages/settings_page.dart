@@ -333,33 +333,13 @@ class AppearanceSettingsPage extends ConsumerWidget {
                   },
                 ),
                 const _TileDivider(),
-                _DropdownListRow<bool>(
+                _SwitchRow(
                   icon: Icons.travel_explore_rounded,
                   title: context.l10n.settingsWebSearch,
                   value: webSearchEnabled,
-                  items: [
-                    DropdownMenuItem(
-                      value: true,
-                      child: Text(
-                        context.l10n.settingsEnabled,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: false,
-                      child: Text(
-                        context.l10n.settingsDisabled,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      unawaited(
-                        ref.read(webSearchEnabledProvider.notifier).set(val),
-                      );
-                    }
-                  },
+                  onChanged: (val) => unawaited(
+                    ref.read(webSearchEnabledProvider.notifier).set(val),
+                  ),
                 ),
               ],
             ),
@@ -448,7 +428,7 @@ class _DropdownListRow<T> extends StatelessWidget {
                 ),
                 dropdownColor: isDark ? const Color(0xFF161C26) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                style: TextStyle(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: scheme.onSurface,
@@ -460,6 +440,31 @@ class _DropdownListRow<T> extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// An on/off setting: the title and a switch, the whole row tappable.
+class _SwitchRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SwitchRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsTile(
+      icon: icon,
+      title: title,
+      onTap: () => onChanged(!value),
+      trailing: Switch(value: value, onChanged: onChanged),
     );
   }
 }
@@ -721,6 +726,7 @@ class _ModelStorageSettingsPageState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        titleTextStyle: _dialogTitleStyle(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(context.l10n.settingsClearDownloadsTitle),
         content: Text(context.l10n.settingsClearDownloadsBody),
@@ -734,7 +740,7 @@ class _ModelStorageSettingsPageState
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.l10n.settingsClearAll),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),
@@ -895,13 +901,13 @@ class LocalServerSettingsPage extends ConsumerWidget {
     final newPort = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
+        titleTextStyle: _dialogTitleStyle(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(context.l10n.settingsChangePortTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: context.l10n.settingsPortNumber,
+          decoration: const InputDecoration(
             hintText: '11434',
             border: OutlineInputBorder(),
             isDense: true,
@@ -966,31 +972,12 @@ class LocalServerSettingsPage extends ConsumerWidget {
             color: Colors.transparent,
             child: Column(
               children: [
-                _DropdownListRow<bool>(
+                _SwitchRow(
                   icon: Icons.wifi_tethering_rounded,
                   title: context.l10n.settingsShareApiWifi,
                   value: lanShare,
-                  items: [
-                    DropdownMenuItem(
-                      value: true,
-                      child: Text(
-                        context.l10n.settingsEnabled,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: false,
-                      child: Text(
-                        context.l10n.settingsDisabled,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                  onChanged: (val) async {
-                    if (val != null) {
-                      await ref.read(lanShareProvider.notifier).set(val);
-                    }
-                  },
+                  onChanged: (val) =>
+                      unawaited(ref.read(lanShareProvider.notifier).set(val)),
                 ),
                 const _TileDivider(),
                 _SettingsTile(
@@ -1154,6 +1141,7 @@ class _AboutGuidanceSettingsPageState
     final go = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        titleTextStyle: _dialogTitleStyle(ctx),
         title: Text(context.l10n.settingsUpdateReadyTitle),
         content: Text(context.l10n.settingsUpdateReadyBody),
         actions: [
@@ -1260,6 +1248,12 @@ class _AboutGuidanceSettingsPageState
 // ══════════════════════════════════════════════════════════════════════════════
 // SHARED UI HELPER COMPONENTS
 // ══════════════════════════════════════════════════════════════════════════════
+
+/// Dialog titles a size down from Material's default, so a long Tamil word
+/// fits on a line instead of being split.
+TextStyle? _dialogTitleStyle(BuildContext context) => Theme.of(
+  context,
+).textTheme.titleLarge?.copyWith(fontSize: 19, fontWeight: FontWeight.w600);
 
 class _TileDivider extends StatelessWidget {
   const _TileDivider();
@@ -1373,8 +1367,9 @@ class _DownloadDialogState extends State<_DownloadDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      titleTextStyle: _dialogTitleStyle(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: Text(context.l10n.settingsDownloadDialogTitle),
+      title: Text(context.l10n.settingsDownloadFromUrl),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

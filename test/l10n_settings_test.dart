@@ -68,7 +68,7 @@ void main() {
       expect(find.text('அமைப்புகள்'), findsOneWidget);
       expect(find.text('தோற்றம்'), findsOneWidget);
       expect(find.text('அமைப்பு செய்தி'), findsOneWidget);
-      expect(find.text('பற்றி & வழிகாட்டல்'), findsOneWidget);
+      expect(find.text('பற்றி & உதவி'), findsOneWidget);
       expect(find.text('Appearance'), findsNothing);
     });
 
@@ -78,18 +78,15 @@ void main() {
       expect(find.text('தோற்றம்'), findsOneWidget);
       expect(find.text('மொழி'), findsOneWidget);
       expect(find.text('தீம்'), findsOneWidget);
-      expect(find.text('உரையாடலில் இணையத் தேடல்'), findsOneWidget);
+      expect(find.text('இணையத் தேடல்'), findsOneWidget);
     });
 
     testWidgets('about', (tester) async {
       await _pumpTamil(tester, const AboutPage());
       expect(tester.takeException(), isNull);
       expect(find.text('Thinai பற்றி'), findsOneWidget);
-      expect(find.text('அடிப்படைத் தூண்கள்'), findsOneWidget);
-      expect(
-        find.text('v2.4.0 (13) · சாதனத்திலேயே இயங்கும் தனிப்பட்ட AI'),
-        findsOneWidget,
-      );
+      expect(find.text('v2.4.0 (13)'), findsOneWidget);
+      expect(find.text('தனிப்பட்டது, ஆஃப்லைன்'), findsOneWidget);
       // Technical values stay in English.
       expect(find.text('GGUF (Q4_K_M, Q8_0, BF16)'), findsOneWidget);
     });
@@ -132,7 +129,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('அளவுகோல் இயக்கு'), findsOneWidget);
       expect(find.text('tokens / வினாடி'), findsOneWidget);
-      expect(find.text('சும்மா உள்ளது'), findsOneWidget);
+      expect(find.text('தயார்'), findsOneWidget);
     });
   });
 
