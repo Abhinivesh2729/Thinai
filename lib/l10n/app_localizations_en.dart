@@ -30,19 +30,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonDelete => 'Delete';
 
   @override
-  String get commonRetry => 'Retry';
-
-  @override
-  String get commonClose => 'Close';
-
-  @override
   String get commonOk => 'OK';
 
   @override
   String get commonCopy => 'Copy';
-
-  @override
-  String get commonCopied => 'Copied';
 
   @override
   String get commonShare => 'Share';
@@ -70,12 +61,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonLater => 'Later';
-
-  @override
-  String get commonReset => 'Reset';
-
-  @override
-  String get commonRename => 'Rename';
 
   @override
   String get commonOn => 'On';

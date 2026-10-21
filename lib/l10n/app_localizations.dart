@@ -140,18 +140,6 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get commonDelete;
 
-  /// No description provided for @commonRetry.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get commonRetry;
-
-  /// No description provided for @commonClose.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get commonClose;
-
   /// No description provided for @commonOk.
   ///
   /// In en, this message translates to:
@@ -163,12 +151,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy'**
   String get commonCopy;
-
-  /// No description provided for @commonCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Copied'**
-  String get commonCopied;
 
   /// No description provided for @commonShare.
   ///
@@ -223,18 +205,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Later'**
   String get commonLater;
-
-  /// No description provided for @commonReset.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset'**
-  String get commonReset;
-
-  /// No description provided for @commonRename.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename'**
-  String get commonRename;
 
   /// No description provided for @commonOn.
   ///

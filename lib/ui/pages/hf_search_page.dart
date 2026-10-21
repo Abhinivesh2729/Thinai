@@ -778,7 +778,7 @@ class _HfFileTile extends StatelessWidget {
                 Icon(Icons.memory_rounded, size: 13, color: fitColor),
                 const SizedBox(width: 4),
                 Text(
-                  fit.label,
+                  fit.localizedLabel(context.l10n),
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,

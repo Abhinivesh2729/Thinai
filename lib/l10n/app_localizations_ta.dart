@@ -30,19 +30,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get commonDelete => 'நீக்கு';
 
   @override
-  String get commonRetry => 'மீண்டும் முயல்';
-
-  @override
-  String get commonClose => 'மூடு';
-
-  @override
   String get commonOk => 'சரி';
 
   @override
   String get commonCopy => 'நகலெடு';
-
-  @override
-  String get commonCopied => 'நகலெடுக்கப்பட்டது';
 
   @override
   String get commonShare => 'பகிர்';
@@ -70,12 +61,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get commonLater => 'பிறகு';
-
-  @override
-  String get commonReset => 'மீட்டமை';
-
-  @override
-  String get commonRename => 'பெயர்மாற்று';
 
   @override
   String get commonOn => 'ஆன்';
