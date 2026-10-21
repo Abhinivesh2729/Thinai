@@ -438,22 +438,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSystemPrompt => 'System Prompt';
 
   @override
-  String get settingsHardware => 'Hardware & Acceleration';
+  String get settingsHardware => 'Hardware';
 
   @override
   String get settingsModelStorage => 'Model & Storage';
 
   @override
-  String get settingsLocalServer => 'Local Server & API';
+  String get settingsLocalServer => 'Local Server';
 
   @override
-  String get settingsAboutGuidance => 'About & Guidance';
+  String get settingsAboutGuidance => 'About & Help';
 
   @override
-  String get settingsStartPage => 'Open page on startup';
+  String get settingsStartPage => 'Start page';
 
   @override
-  String get settingsThemeMode => 'Theme mode';
+  String get settingsThemeMode => 'Theme';
 
   @override
   String get settingsThemeSystem => 'System';
@@ -465,13 +465,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeLight => 'Light';
 
   @override
-  String get settingsWebSearch => 'Web search in chat';
-
-  @override
-  String get settingsEnabled => 'Enabled';
-
-  @override
-  String get settingsDisabled => 'Disabled';
+  String get settingsWebSearch => 'Web search';
 
   @override
   String get settingsGpuAcceleration => 'GPU acceleration';
@@ -480,22 +474,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGpuAuto => 'Auto';
 
   @override
-  String get settingsBenchmarkDevice => 'Benchmark device';
+  String get settingsBenchmarkDevice => 'Benchmark';
 
   @override
-  String get settingsGpuDiagnostics => 'GPU speed diagnostics';
+  String get settingsGpuDiagnostics => 'GPU speed test';
 
   @override
-  String get settingsDeviceSpecs => 'Device hardware specs';
+  String get settingsDeviceSpecs => 'Device';
 
   @override
   String settingsDeviceSpecsWithRam(int cores, String ramGb) {
-    return '$cores Cores • $ramGb GB RAM';
+    return '$cores cores · $ramGb GB RAM';
   }
 
   @override
   String settingsDeviceSpecsCores(int cores) {
-    return '$cores CPU Cores';
+    return '$cores CPU cores';
   }
 
   @override
@@ -513,7 +507,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsDownloadStopped(String error) {
-    return 'Download stopped: $error. Progress is saved, resume it from the Model Manager.';
+    return 'Download stopped: $error. Resume it from Models.';
   }
 
   @override
@@ -525,25 +519,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDownloadComplete => 'Download complete';
 
   @override
-  String get settingsClearDownloadsTitle => 'Clear all downloads?';
+  String get settingsClearDownloadsTitle => 'Delete all downloads?';
 
   @override
   String get settingsClearDownloadsBody =>
-      'This removes all downloaded model files inside the app to free up device storage.';
+      'Deletes every downloaded model to free up space.';
 
   @override
-  String get settingsClearAll => 'Clear all';
-
-  @override
-  String get settingsNoDownloadsFound => 'No downloaded items found';
+  String get settingsNoDownloadsFound => 'Nothing to clear';
 
   @override
   String settingsClearedDownloads(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Cleared $count downloaded items',
-      one: 'Cleared 1 downloaded item',
+      other: 'Cleared $count downloads',
+      one: 'Cleared 1 download',
     );
     return '$_temp0';
   }
@@ -557,122 +548,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTune => 'Tune';
 
   @override
-  String get settingsNoActiveModel => 'No active model loaded';
+  String get settingsNoActiveModel => 'No model loaded';
 
   @override
   String get settingsCatalog => 'Catalog';
 
   @override
-  String get settingsImportGguf => 'Import local .gguf';
+  String get settingsImportGguf => 'Import .gguf';
 
   @override
-  String get settingsDownloadFromUrl => 'Download model from URL';
+  String get settingsDownloadFromUrl => 'Download from URL';
 
   @override
-  String get settingsClearDownloadedModels => 'Clear downloaded models';
+  String get settingsClearDownloadedModels => 'Clear downloads';
 
   @override
-  String get settingsChangePortTitle => 'Change Server Port';
-
-  @override
-  String get settingsPortNumber => 'Port number';
+  String get settingsChangePortTitle => 'Server port';
 
   @override
   String settingsPortSetRestart(int port) {
-    return 'Server port set to $port. Restart the server to apply.';
+    return 'Port set to $port. Restart the server to apply.';
   }
 
   @override
   String settingsPortSet(int port) {
-    return 'Server port set to $port';
+    return 'Port set to $port';
   }
 
   @override
-  String get settingsShareApiWifi => 'Share API over Wi-Fi';
+  String get settingsShareApiWifi => 'Share on Wi-Fi';
 
   @override
-  String get settingsServerPort => 'Server port';
+  String get settingsServerPort => 'Port';
 
   @override
-  String get settingsServerStatus => 'Server status';
+  String get settingsServerStatus => 'Status';
 
   @override
-  String get settingsServerActive => 'Active';
+  String get settingsServerActive => 'Running';
 
   @override
-  String get settingsServerOffline => 'Offline';
+  String get settingsServerOffline => 'Stopped';
 
   @override
   String get settingsUpToDate => 'Thinai is up to date';
 
   @override
-  String get settingsUpdateUnavailable =>
-      'Play Store could not check for updates';
+  String get settingsUpdateUnavailable => 'Couldn\'t check for updates';
 
   @override
-  String get settingsUpdateAlreadyDownloading =>
-      'An update is already downloading';
+  String get settingsUpdateAlreadyDownloading => 'Update already downloading';
 
   @override
-  String get settingsUpdateDownloading =>
-      'Downloading update in the background';
+  String get settingsUpdateDownloading => 'Downloading update…';
 
   @override
-  String get settingsUpdateFailed =>
-      'Update failed. Try again from Play Store.';
+  String get settingsUpdateFailed => 'Update failed. Try Play Store.';
 
   @override
   String get settingsUpdateReadyTitle => 'Update ready';
 
   @override
-  String get settingsUpdateReadyBody =>
-      'The new version is downloaded. Thinai restarts to install it.';
+  String get settingsUpdateReadyBody => 'Restart Thinai to install it.';
 
   @override
   String get settingsRestart => 'Restart';
 
   @override
-  String get settingsStartTour => 'Start app tour';
+  String get settingsStartTour => 'App tour';
 
   @override
   String get settingsCheckUpdates => 'Check for updates';
 
   @override
-  String get settingsContactSupport => 'Contact support';
+  String get settingsContactSupport => 'Help & support';
 
   @override
   String get settingsAboutThinai => 'About Thinai';
 
   @override
-  String get settingsDownloadDialogTitle => 'Download model by URL';
+  String get settingsDirectGgufUrl => 'GGUF URL';
 
   @override
-  String get settingsDirectGgufUrl => 'Direct GGUF URL';
-
-  @override
-  String get settingsSaveAsOptional => 'Save as (optional)';
+  String get settingsSaveAsOptional => 'Name (optional)';
 
   @override
   String get gpuAcceleration => 'GPU acceleration';
 
   @override
-  String get gpuSubtitle => 'Offloads computation to hardware accelerator';
-
-  @override
-  String get gpuDescription =>
-      'Runs the model on the GPU instead of the CPU. Run the speed test to check if it helps on this phone.';
+  String get gpuDescription => 'Run the speed test to see if it helps.';
 
   @override
   String gpuCrashedNotice(String backend) {
-    return '$backend crashed the app last time, so GPU acceleration was turned off.';
+    return '$backend crashed last time, so the GPU was turned off.';
   }
 
   @override
-  String get gpuCheckPhone => 'Check this phone\'s GPU';
+  String get gpuCheckPhone => 'Find GPU';
 
   @override
-  String get gpuNoneFound =>
-      'No usable GPU found. Thinai will keep using the CPU.';
+  String get gpuNoneFound => 'No usable GPU. Using the CPU.';
 
   @override
   String gpuFound(String devices) {
@@ -694,108 +669,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpuSpeedTest => 'Speed test';
 
   @override
-  String get gpuLoadModelFirst => 'Load a model first, then run the test.';
+  String get gpuLoadModelFirst => 'Load a model first.';
 
   @override
   String gpuTestFailed(String error) {
-    return 'The test failed: $error';
+    return 'Test failed: $error';
   }
 
   @override
-  String get gpuVerdictGpuFaster => 'The GPU is faster on this phone.';
+  String get gpuVerdictGpuFaster => 'GPU is faster here.';
 
   @override
-  String get gpuVerdictCpuFaster =>
-      'The CPU is faster here. Leave GPU acceleration off.';
+  String get gpuVerdictCpuFaster => 'CPU is faster here. Keep the GPU off.';
 
   @override
-  String get gpuVerdictSame => 'About the same either way.';
+  String get gpuVerdictSame => 'About the same.';
 
   @override
-  String get gpuReadingPrompt => 'Reading prompt';
+  String get gpuReadingPrompt => 'Prompt';
 
   @override
-  String get gpuWritingReply => 'Writing reply';
+  String get gpuWritingReply => 'Reply';
 
   @override
   String get aboutTitle => 'About Thinai';
 
   @override
-  String aboutVersionBadge(String version) {
-    return 'v$version · On-Device Sovereign AI';
-  }
-
-  @override
   String get aboutHeroDescription =>
-      'Thinai executes modern open-weights neural models directly on your Android phone silicon. Zero internet required, zero cloud reliance, and 100% data sovereignty.';
+      'Private AI that runs on your phone. No internet needed.';
 
   @override
-  String get aboutCorePillars => 'Core Pillars';
+  String get aboutPrivateTitle => 'Private and offline';
 
   @override
-  String get aboutPrivateTitle => '100% Private & Sovereign';
+  String get aboutAcceleratedTitle => 'GPU acceleration';
 
   @override
-  String get aboutPrivateBody =>
-      'Every model token and user prompt is computed strictly inside device RAM. No telemetry, no logs, and no cloud interception.';
+  String get aboutApiTitle => 'Local OpenAI-compatible API';
 
   @override
-  String get aboutAcceleratedTitle => 'Hardware Accelerated';
+  String get aboutVisionTitle => 'Images, documents, web search';
 
   @override
-  String get aboutAcceleratedBody =>
-      'Built on a high-performance llama.cpp mobile runtime with Vulkan and OpenCL GPU acceleration, tuned for high speed on modern mobile chipsets.';
+  String get aboutSpecEngine => 'Engine';
 
   @override
-  String get aboutApiTitle => 'Local OpenAI-Compatible API';
+  String get aboutSpecModelFormat => 'Format';
 
   @override
-  String get aboutApiBody =>
-      'Runs an embedded HTTP server on localhost:11434 with /v1/chat/completions, transforming your phone into an AI engine for other apps and automations.';
+  String get aboutSpecArchitecture => 'Architecture';
 
   @override
-  String get aboutVisionTitle => 'Multimodal Vision & Web';
+  String get aboutSpecBackends => 'Backends';
 
   @override
-  String get aboutVisionBody =>
-      'Engage in visual reasoning with vision-enabled models (Gemma 3, MiniCPM), document summarization, and privacy-preserving live web search citations.';
+  String get aboutSpecLicense => 'License';
 
   @override
-  String get aboutTechSpecs => 'Technical Specifications';
-
-  @override
-  String get aboutSpecEngine => 'Inference Engine';
-
-  @override
-  String get aboutSpecModelFormat => 'Model Format';
-
-  @override
-  String get aboutSpecArchitecture => 'Target Architecture';
-
-  @override
-  String get aboutSpecBackends => 'Acceleration Backends';
-
-  @override
-  String get aboutSpecLicense => 'Software License';
-
-  @override
-  String get aboutSpecLicenseValue => 'Open Source (MIT)';
-
-  @override
-  String get aboutCommunity => 'Community & Transparency';
-
-  @override
-  String get aboutCommunityBody =>
-      'Thinai is built on sovereign privacy and open-source principles. You can inspect all third-party licenses or contact support for help.';
+  String get aboutSpecLicenseValue => 'MIT';
 
   @override
   String get aboutLicenses => 'Licenses';
 
   @override
-  String get aboutContactSupport => 'Contact Support';
+  String get aboutContactSupport => 'Support';
 
   @override
-  String get supportTitle => 'Contact Support';
+  String get supportTitle => 'Help & Support';
 
   @override
   String supportCouldNotOpenLink(String url) {
@@ -808,44 +748,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get supportHeroTitle => 'How can we help?';
+  String get supportInstagramBody => 'Message us for help or to report a bug.';
 
   @override
-  String get supportHeroBody =>
-      'Need assistance running models, found a bug, or have a suggestion? We respond promptly to community queries.';
-
-  @override
-  String get supportChannels => 'Direct Support Channels';
-
-  @override
-  String get supportInstagramTitle => 'Instagram Support';
-
-  @override
-  String get supportInstagramBody =>
-      'Direct messaging, quick feature sneak-peeks, troubleshooting, and announcements.';
-
-  @override
-  String get supportInstagramOpenFailed => 'Unable to open Instagram link';
+  String get supportInstagramOpenFailed => 'Couldn\'t open Instagram';
 
   @override
   String get supportOpenInstagram => 'Open Instagram';
 
   @override
-  String get supportCopyHandle => 'Copy Instagram handle';
+  String get supportCopyHandle => 'Copy handle';
 
   @override
-  String get supportHandleCopied => 'Instagram handle copied to clipboard';
+  String get supportHandleCopied => 'Handle copied';
 
   @override
-  String get supportDiagnostics => 'Device Diagnostics';
+  String get supportDiagnostics => 'Device info';
 
   @override
-  String get supportDiagnosticsHint =>
-      'Copying this data makes troubleshooting 10x faster when contacting us.';
+  String get supportDiagnosticsHint => 'Include this when you contact us.';
 
   @override
   String supportCpuCores(int cores) {
-    return '$cores CPU Cores';
+    return '$cores CPU cores';
   }
 
   @override
@@ -859,61 +784,56 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get supportNoActiveModel => 'No active model';
+  String get supportNoActiveModel => 'No model loaded';
 
   @override
-  String get supportServerActive => 'Server: Active';
+  String get supportServerActive => 'Server running';
 
   @override
-  String get supportServerStopped => 'Server: Stopped';
+  String get supportServerStopped => 'Server stopped';
 
   @override
-  String get supportCopyDiagnostics => 'Copy Diagnostic Specs';
+  String get supportCopyDiagnostics => 'Copy device info';
 
   @override
-  String get supportDiagnosticsCopied =>
-      'System diagnostics copied to clipboard';
+  String get supportDiagnosticsCopied => 'Device info copied';
 
   @override
-  String get supportTroubleshooting => 'Quick Troubleshooting';
+  String get supportTroubleshooting => 'Common questions';
 
   @override
-  String get supportFaqLoadQuestion =>
-      'Why does a model take long to load or download?';
+  String get supportFaqLoadQuestion => 'Why is loading or downloading slow?';
 
   @override
   String get supportFaqLoadAnswer =>
-      'Models are large AI neural networks (1 GB to 4+ GB). Download speed depends on your Wi-Fi connection. Loading requires allocating RAM; ensure background apps are cleared before loading 7B+ models.';
+      'Models are 1 to 4 GB. Downloads depend on your connection, and loading needs free RAM, so close other apps first.';
 
   @override
-  String get supportFaqPrivacyQuestion =>
-      'Does Thinai leak or upload my chats to the cloud?';
+  String get supportFaqPrivacyQuestion => 'Do my chats leave the phone?';
 
   @override
   String get supportFaqPrivacyAnswer =>
-      'Never. Thinai is built from the ground up to be 100% sovereign and offline. The neural weights run directly on your phone CPU/GPU silicon, and no conversational data leaves device memory.';
+      'No. Models run entirely on your phone, and your chats stay on it.';
 
   @override
-  String get supportFaqGpuQuestion =>
-      'How do I use GPU acceleration (Vulkan / OpenCL)?';
+  String get supportFaqGpuQuestion => 'How do I use the GPU?';
 
   @override
   String get supportFaqGpuAnswer =>
-      'Navigate to Settings > Hardware & Acceleration, and select Vulkan or OpenCL. Vulkan works best on Qualcomm Snapdragon Adreno and modern MediaTek Dimensity GPUs.';
+      'Go to Settings > Hardware > GPU acceleration. Run the speed test to check it is faster.';
 
   @override
   String get systemPromptTitle => 'System Prompt';
 
   @override
-  String get systemPromptSaved =>
-      'System prompt saved. New messages will use it.';
+  String get systemPromptSaved => 'System prompt saved';
 
   @override
-  String get systemPromptResetDone => 'System prompt reset to the default.';
+  String get systemPromptResetDone => 'Reset to default';
 
   @override
   String get systemPromptDescription =>
-      'Instructions sent to the model at the start of every chat. Changes apply from the next message you send. Leave it empty to use the model\'s own default.';
+      'Sent to the model at the start of every chat. Leave empty to use the model\'s default.';
 
   @override
   String get systemPromptHint => 'You are a helpful assistant…';
@@ -950,21 +870,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benchmarkRun => 'Run benchmark';
 
   @override
-  String benchmarkDescription(int tokens) {
-    return 'Generates $tokens tokens and measures decode speed. First token is reported separately.';
-  }
-
-  @override
   String get benchmarkTokensPerSecond => 'tokens / second';
 
   @override
-  String get benchmarkIdle => 'Idle';
+  String get benchmarkIdle => 'Ready';
 
   @override
   String get benchmarkMeasuring => 'MEASURING';
 
   @override
-  String get benchmarkThroughput => 'Throughput over the run';
+  String get benchmarkThroughput => 'Speed';
 
   @override
   String benchmarkPeak(String value) {
@@ -975,7 +890,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benchmarkWarmingUp => 'Warming up…';
 
   @override
-  String get benchmarkPlotEmpty => 'Run a benchmark to plot it';
+  String get benchmarkPlotEmpty => 'No data yet';
 
   @override
   String get benchmarkFirstToken => 'First token';
@@ -987,14 +902,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benchmarkTotal => 'Total';
 
   @override
-  String get benchmarkSampleOutput => 'Sample output';
+  String get benchmarkSampleOutput => 'Output';
 
   @override
   String get benchmarkThisSession => 'This session';
 
   @override
   String benchmarkRunSummary(int tokens, String firstToken, String total) {
-    return '$tokens tokens · first token $firstToken · total $total';
+    return '$tokens tokens · first $firstToken · total $total';
   }
 
   @override
@@ -1004,25 +919,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benchmarkEmptyBody => 'Download a model to measure its speed.';
 
   @override
-  String get benchmarkBestForHardware => 'Best for your hardware';
+  String get benchmarkBestForHardware => 'Best for this phone';
 
   @override
   String benchmarkMeasuredWithDevice(String device, String bandwidth) {
-    return '$device · measured $bandwidth GB/s effective';
+    return '$device · $bandwidth GB/s measured';
   }
 
   @override
   String benchmarkMeasured(String bandwidth) {
-    return 'measured $bandwidth GB/s effective';
+    return '$bandwidth GB/s measured';
   }
 
   @override
   String benchmarkEstimateWithDevice(String device) {
-    return '$device · run a benchmark to replace the estimates below with measurements';
+    return '$device · estimated';
   }
 
   @override
-  String get benchmarkCalibratePrompt => 'Run a benchmark to calibrate these';
+  String get benchmarkCalibratePrompt => 'Estimated';
 
   @override
   String get benchmarkInstalled => 'installed';

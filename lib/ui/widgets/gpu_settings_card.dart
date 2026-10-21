@@ -20,7 +20,15 @@ import '../../state/providers.dart';
 /// models this app runs, and the only honest way to know is to measure.
 class GpuSettingsCard extends ConsumerStatefulWidget {
   final bool embedded;
-  const GpuSettingsCard({super.key, this.embedded = false});
+
+  /// Lists the phone's GPUs. Replaceable so tests can skip the native probe.
+  final Future<List<GpuDevice>> Function() probe;
+
+  const GpuSettingsCard({
+    super.key,
+    this.embedded = false,
+    this.probe = probeGpuDevices,
+  });
 
   @override
   ConsumerState<GpuSettingsCard> createState() => _GpuSettingsCardState();
@@ -74,7 +82,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
   Future<void> _probe() async {
     if (_probing) return;
     setState(() => _probing = true);
-    final devices = await probeGpuDevices();
+    final devices = await widget.probe();
     if (!mounted) return;
     setState(() {
       _devices = devices;
@@ -197,26 +205,15 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
               Icon(Icons.memory_rounded, size: 20, color: scheme.onSurface),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.gpuAcceleration,
-                      style: const TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      l10n.gpuSubtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  l10n.gpuAcceleration,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
@@ -307,23 +304,19 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _testing ? null : _speedTest,
-                  icon: _testing
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.speed_rounded, size: 18),
-                  label: Text(
-                    _testing ? l10n.gpuTesting : l10n.gpuSpeedTest,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
+            OutlinedButton.icon(
+              onPressed: _testing ? null : _speedTest,
+              icon: _testing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.speed_rounded, size: 18),
+              label: Text(
+                _testing ? l10n.gpuTesting : l10n.gpuSpeedTest,
+                style: const TextStyle(fontSize: 13),
+              ),
             ),
             if (_cpu != null || _testError != null) ...[
               const SizedBox(height: 8),

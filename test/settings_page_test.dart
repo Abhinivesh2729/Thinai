@@ -171,10 +171,10 @@ void main() {
       for (final title in [
         'Appearance',
         'System Prompt',
-        'Hardware & Acceleration',
+        'Hardware',
         'Model & Storage',
-        'Local Server & API',
-        'About & Guidance',
+        'Local Server',
+        'About & Help',
       ]) {
         expect(find.text(title), findsOneWidget);
       }
@@ -183,10 +183,10 @@ void main() {
 
     for (final (tile, page) in [
       ('Appearance', AppearanceSettingsPage),
-      ('Hardware & Acceleration', HardwareSettingsPage),
+      ('Hardware', HardwareSettingsPage),
       ('Model & Storage', ModelStorageSettingsPage),
-      ('Local Server & API', LocalServerSettingsPage),
-      ('About & Guidance', AboutGuidanceSettingsPage),
+      ('Local Server', LocalServerSettingsPage),
+      ('About & Help', AboutGuidanceSettingsPage),
     ]) {
       testWidgets('tapping $tile opens its page', (tester) async {
         await _pump(tester, const SettingsPage());
@@ -222,7 +222,7 @@ void main() {
 
       expect(find.text('Server'), findsOneWidget);
       expect(find.text('Dark'), findsOneWidget);
-      expect(find.text('Disabled'), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     });
 
     testWidgets('picking a start page saves it', (tester) async {
@@ -251,7 +251,8 @@ void main() {
     testWidgets('turning web search off saves it', (tester) async {
       final container = await _pump(tester, const AppearanceSettingsPage());
 
-      await _choose(tester, 'Enabled', 'Disabled');
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
 
       expect(container.read(webSearchEnabledProvider), isFalse);
       expect((await _prefs()).getBool('web_search_enabled'), isFalse);
@@ -263,7 +264,7 @@ void main() {
       await _pump(tester, const HardwareSettingsPage());
 
       expect(find.text('CPU'), findsOneWidget);
-      expect(find.text('8 Cores • 8.0 GB RAM'), findsOneWidget);
+      expect(find.text('8 cores · 8.0 GB RAM'), findsOneWidget);
     });
 
     testWidgets('falls back to the core count when RAM is unknown', (
@@ -274,7 +275,7 @@ void main() {
         const HardwareSettingsPage(),
         device: const DeviceProfile(cores: 4),
       );
-      expect(find.text('4 CPU Cores'), findsOneWidget);
+      expect(find.text('4 CPU cores'), findsOneWidget);
     });
 
     testWidgets('picking a GPU backend saves it', (tester) async {
@@ -300,23 +301,21 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('GPU speed diagnostics opens the GPU card in a sheet', (
-      tester,
-    ) async {
+    testWidgets('GPU speed test opens the GPU card in a sheet', (tester) async {
       await _pump(tester, const HardwareSettingsPage());
 
-      await tester.tap(find.text('GPU speed diagnostics'));
+      await tester.tap(find.text('GPU speed test'));
       await tester.pumpAndSettle();
 
       final card = tester.widget<GpuSettingsCard>(find.byType(GpuSettingsCard));
       expect(card.embedded, isTrue);
-      expect(find.text("Check this phone's GPU"), findsOneWidget);
+      expect(find.text('Find GPU'), findsOneWidget);
     });
 
-    testWidgets('Benchmark device opens the benchmark page', (tester) async {
+    testWidgets('Benchmark opens the benchmark page', (tester) async {
       await _pump(tester, const HardwareSettingsPage());
 
-      await tester.tap(find.text('Benchmark device'));
+      await tester.tap(find.text('Benchmark'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
@@ -332,8 +331,8 @@ void main() {
       await tester.tap(find.text('Model & Storage'));
       await tester.pumpAndSettle();
 
-      expect(find.text('No active model loaded'), findsOneWidget);
-      await tester.tap(find.text('No active model loaded'));
+      expect(find.text('No model loaded'), findsOneWidget);
+      await tester.tap(find.text('No model loaded'));
       await tester.pumpAndSettle();
 
       expect(container.read(shellTabIndexProvider), 1);
@@ -377,7 +376,7 @@ void main() {
       );
       final before = container.read(modelsRefreshProvider);
 
-      await tester.tap(find.text('Import local .gguf'));
+      await tester.tap(find.text('Import .gguf'));
       await tester.pump();
       await tester.pump();
 
@@ -394,7 +393,7 @@ void main() {
         ],
       );
 
-      await tester.tap(find.text('Import local .gguf'));
+      await tester.tap(find.text('Import .gguf'));
       await tester.pump();
       await tester.pump();
 
@@ -412,7 +411,7 @@ void main() {
         ],
       );
 
-      await tester.tap(find.text('Import local .gguf'));
+      await tester.tap(find.text('Import .gguf'));
       await tester.pump();
       await tester.pump();
 
@@ -427,21 +426,21 @@ void main() {
         overrides: [modelDownloaderProvider.overrideWithValue(downloader)],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
-      expect(find.text('Download model by URL'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsOneWidget);
 
       await tester.tap(find.text('Download'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Download model by URL'),
+        find.byType(AlertDialog),
         findsOneWidget,
         reason: 'an empty URL keeps the dialog open',
       );
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
-      expect(find.text('Download model by URL'), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
       expect(downloader.calls, isEmpty);
     });
 
@@ -455,14 +454,14 @@ void main() {
         overrides: [modelDownloaderProvider.overrideWithValue(downloader)],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Direct GGUF URL'),
+        find.widgetWithText(TextField, 'GGUF URL'),
         ' https://example.test/m.gguf ',
       );
       await tester.enterText(
-        find.widgetWithText(TextField, 'Save as (optional)'),
+        find.widgetWithText(TextField, 'Name (optional)'),
         'mine.gguf',
       );
       await tester.tap(find.text('Download'));
@@ -498,10 +497,10 @@ void main() {
         overrides: [modelDownloaderProvider.overrideWithValue(downloader)],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Direct GGUF URL'),
+        find.widgetWithText(TextField, 'GGUF URL'),
         'https://example.test/m.gguf',
       );
       await tester.tap(find.text('Download'));
@@ -524,10 +523,10 @@ void main() {
         overrides: [modelDownloaderProvider.overrideWithValue(downloader)],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Direct GGUF URL'),
+        find.widgetWithText(TextField, 'GGUF URL'),
         'https://example.test/m.gguf',
       );
       await tester.tap(find.text('Download'));
@@ -546,10 +545,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text(
-          'Download stopped: connection lost. Progress is saved, '
-          'resume it from the Model Manager.',
-        ),
+        find.text('Download stopped: connection lost. Resume it from Models.'),
         findsOneWidget,
       );
     });
@@ -562,10 +558,10 @@ void main() {
         overrides: [modelDownloaderProvider.overrideWithValue(downloader)],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Direct GGUF URL'),
+        find.widgetWithText(TextField, 'GGUF URL'),
         'https://example.test/m.gguf',
       );
       await tester.tap(find.text('Download'));
@@ -597,10 +593,10 @@ void main() {
         ],
       );
 
-      await tester.tap(find.text('Download model from URL'));
+      await tester.tap(find.text('Download from URL'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Direct GGUF URL'),
+        find.widgetWithText(TextField, 'GGUF URL'),
         'https://example.test/m.txt',
       );
       await tester.tap(find.text('Download'));
@@ -619,9 +615,9 @@ void main() {
         overrides: [modelStoreProvider.overrideWithValue(store)],
       );
 
-      await tester.tap(find.text('Clear downloaded models'));
+      await tester.tap(find.text('Clear downloads'));
       await tester.pumpAndSettle();
-      expect(find.text('Clear all downloads?'), findsOneWidget);
+      expect(find.text('Delete all downloads?'), findsOneWidget);
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
@@ -640,20 +636,20 @@ void main() {
       await container.read(activeModelIdProvider.notifier).set(_qwen);
       await tester.pump();
 
-      await tester.tap(find.text('Clear downloaded models'));
+      await tester.tap(find.text('Clear downloads'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Clear all'));
+      await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
 
       expect(store.clearCalls, 1);
       expect(container.read(activeModelIdProvider), isNull);
       expect((await _prefs()).getString('active_model_id'), isNull);
-      expect(find.text('Cleared 2 downloaded items'), findsOneWidget);
+      expect(find.text('Cleared 2 downloads'), findsOneWidget);
     });
 
     for (final (cleared, message) in [
-      (1, 'Cleared 1 downloaded item'),
-      (0, 'No downloaded items found'),
+      (1, 'Cleared 1 download'),
+      (0, 'Nothing to clear'),
     ]) {
       testWidgets('clearing $cleared downloads says "$message"', (
         tester,
@@ -666,9 +662,9 @@ void main() {
           ],
         );
 
-        await tester.tap(find.text('Clear downloaded models'));
+        await tester.tap(find.text('Clear downloads'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Clear all'));
+        await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
 
         expect(find.text(message), findsOneWidget);
@@ -686,9 +682,9 @@ void main() {
         ],
       );
 
-      await tester.tap(find.text('Clear downloaded models'));
+      await tester.tap(find.text('Clear downloads'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Clear all'));
+      await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
 
       expect(find.text('Clear failed: disk busy'), findsOneWidget);
@@ -703,8 +699,8 @@ void main() {
       await _pump(tester, const LocalServerSettingsPage());
 
       expect(find.text(':9000'), findsOneWidget);
-      expect(find.text('Offline'), findsOneWidget);
-      expect(find.text('Disabled'), findsOneWidget);
+      expect(find.text('Stopped'), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     });
 
     testWidgets('shows a running server as active', (tester) async {
@@ -715,13 +711,14 @@ void main() {
           serverControllerProvider.overrideWith((ref) => _RunningServer()),
         ],
       );
-      expect(find.text('Active'), findsOneWidget);
+      expect(find.text('Running'), findsOneWidget);
     });
 
     testWidgets('turning on Wi-Fi sharing saves it', (tester) async {
       final container = await _pump(tester, const LocalServerSettingsPage());
 
-      await _choose(tester, 'Disabled', 'Enabled');
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
 
       expect(container.read(lanShareProvider), isTrue);
       expect((await _prefs()).getBool('server_lan_share'), isTrue);
@@ -730,40 +727,40 @@ void main() {
     testWidgets('the port dialog rejects an out of range port', (tester) async {
       await _pump(tester, const LocalServerSettingsPage());
 
-      await tester.tap(find.text('Server port'));
+      await tester.tap(find.text('Port'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '70000');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Change Server Port'), findsOneWidget);
+      expect(find.text('Server port'), findsOneWidget);
       expect((await _prefs()).getInt('server_port'), isNull);
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
-      expect(find.text('Change Server Port'), findsNothing);
+      expect(find.text('Server port'), findsNothing);
     });
 
     testWidgets('saving a port while stopped needs no restart', (tester) async {
       await _pump(tester, const LocalServerSettingsPage());
 
-      await tester.tap(find.text('Server port'));
+      await tester.tap(find.text('Port'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), '8080');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
       expect((await _prefs()).getInt('server_port'), 8080);
-      expect(find.text('Server port set to 8080'), findsOneWidget);
+      expect(find.text('Port set to 8080'), findsOneWidget);
       expect(find.text(':8080'), findsOneWidget);
     });
 
     testWidgets('server status jumps to the Server tab', (tester) async {
       final container = await _pump(tester, const SettingsPage());
-      await tester.tap(find.text('Local Server & API'));
+      await tester.tap(find.text('Local Server'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Server status'));
+      await tester.tap(find.text('Status'));
       await tester.pumpAndSettle();
 
       expect(container.read(shellTabIndexProvider), 2);
@@ -779,10 +776,10 @@ void main() {
 
     testWidgets('start app tour asks the shell for the tour', (tester) async {
       final container = await _pump(tester, const SettingsPage());
-      await tester.tap(find.text('About & Guidance'));
+      await tester.tap(find.text('About & Help'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Start app tour'));
+      await tester.tap(find.text('App tour'));
       await tester.pumpAndSettle();
 
       expect(container.read(coachTourRequestProvider), 1);
@@ -791,7 +788,7 @@ void main() {
 
     testWidgets('contact support opens the support page', (tester) async {
       await _pump(tester, const AboutGuidanceSettingsPage());
-      await tester.tap(find.text('Contact support'));
+      await tester.tap(find.text('Help & support'));
       await tester.pumpAndSettle();
       expect(find.byType(ContactSupportPage), findsOneWidget);
     });
@@ -805,8 +802,8 @@ void main() {
 
     for (final (state, message) in [
       (UpdateState.upToDate, 'Thinai is up to date'),
-      (UpdateState.unavailable, 'Play Store could not check for updates'),
-      (UpdateState.downloading, 'An update is already downloading'),
+      (UpdateState.unavailable, "Couldn't check for updates"),
+      (UpdateState.downloading, 'Update already downloading'),
     ]) {
       testWidgets('checking for updates when ${state.name} says so', (
         tester,
@@ -862,7 +859,7 @@ void main() {
       await tester.tap(find.text('Check for updates'));
       await tester.pump();
       await tester.pump();
-      expect(find.text('Downloading update in the background'), findsOneWidget);
+      expect(find.text('Downloading update…'), findsOneWidget);
 
       await tester.pumpAndSettle();
       expect(updater.downloads, 1);
@@ -891,10 +888,7 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Update failed. Try again from Play Store.'),
-        findsOneWidget,
-      );
+      expect(find.text('Update failed. Try Play Store.'), findsOneWidget);
     });
 
     testWidgets('a declined update download stays quiet', (tester) async {
@@ -918,10 +912,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Update ready'), findsNothing);
-      expect(
-        find.text('Update failed. Try again from Play Store.'),
-        findsNothing,
-      );
+      expect(find.text('Update failed. Try Play Store.'), findsNothing);
     });
   });
 }

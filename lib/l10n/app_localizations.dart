@@ -820,7 +820,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsHardware.
   ///
   /// In en, this message translates to:
-  /// **'Hardware & Acceleration'**
+  /// **'Hardware'**
   String get settingsHardware;
 
   /// No description provided for @settingsModelStorage.
@@ -832,25 +832,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLocalServer.
   ///
   /// In en, this message translates to:
-  /// **'Local Server & API'**
+  /// **'Local Server'**
   String get settingsLocalServer;
 
   /// No description provided for @settingsAboutGuidance.
   ///
   /// In en, this message translates to:
-  /// **'About & Guidance'**
+  /// **'About & Help'**
   String get settingsAboutGuidance;
 
   /// No description provided for @settingsStartPage.
   ///
   /// In en, this message translates to:
-  /// **'Open page on startup'**
+  /// **'Start page'**
   String get settingsStartPage;
 
   /// No description provided for @settingsThemeMode.
   ///
   /// In en, this message translates to:
-  /// **'Theme mode'**
+  /// **'Theme'**
   String get settingsThemeMode;
 
   /// No description provided for @settingsThemeSystem.
@@ -874,20 +874,8 @@ abstract class AppLocalizations {
   /// No description provided for @settingsWebSearch.
   ///
   /// In en, this message translates to:
-  /// **'Web search in chat'**
+  /// **'Web search'**
   String get settingsWebSearch;
-
-  /// No description provided for @settingsEnabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Enabled'**
-  String get settingsEnabled;
-
-  /// No description provided for @settingsDisabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Disabled'**
-  String get settingsDisabled;
 
   /// No description provided for @settingsGpuAcceleration.
   ///
@@ -904,31 +892,31 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBenchmarkDevice.
   ///
   /// In en, this message translates to:
-  /// **'Benchmark device'**
+  /// **'Benchmark'**
   String get settingsBenchmarkDevice;
 
   /// No description provided for @settingsGpuDiagnostics.
   ///
   /// In en, this message translates to:
-  /// **'GPU speed diagnostics'**
+  /// **'GPU speed test'**
   String get settingsGpuDiagnostics;
 
   /// No description provided for @settingsDeviceSpecs.
   ///
   /// In en, this message translates to:
-  /// **'Device hardware specs'**
+  /// **'Device'**
   String get settingsDeviceSpecs;
 
   /// No description provided for @settingsDeviceSpecsWithRam.
   ///
   /// In en, this message translates to:
-  /// **'{cores} Cores • {ramGb} GB RAM'**
+  /// **'{cores} cores · {ramGb} GB RAM'**
   String settingsDeviceSpecsWithRam(int cores, String ramGb);
 
   /// No description provided for @settingsDeviceSpecsCores.
   ///
   /// In en, this message translates to:
-  /// **'{cores} CPU Cores'**
+  /// **'{cores} CPU cores'**
   String settingsDeviceSpecsCores(int cores);
 
   /// No description provided for @settingsImported.
@@ -952,7 +940,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDownloadStopped.
   ///
   /// In en, this message translates to:
-  /// **'Download stopped: {error}. Progress is saved, resume it from the Model Manager.'**
+  /// **'Download stopped: {error}. Resume it from Models.'**
   String settingsDownloadStopped(String error);
 
   /// No description provided for @settingsDownloadFailed.
@@ -970,31 +958,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsClearDownloadsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Clear all downloads?'**
+  /// **'Delete all downloads?'**
   String get settingsClearDownloadsTitle;
 
   /// No description provided for @settingsClearDownloadsBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes all downloaded model files inside the app to free up device storage.'**
+  /// **'Deletes every downloaded model to free up space.'**
   String get settingsClearDownloadsBody;
-
-  /// No description provided for @settingsClearAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear all'**
-  String get settingsClearAll;
 
   /// No description provided for @settingsNoDownloadsFound.
   ///
   /// In en, this message translates to:
-  /// **'No downloaded items found'**
+  /// **'Nothing to clear'**
   String get settingsNoDownloadsFound;
 
   /// No description provided for @settingsClearedDownloads.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Cleared 1 downloaded item} other{Cleared {count} downloaded items}}'**
+  /// **'{count, plural, =1{Cleared 1 download} other{Cleared {count} downloads}}'**
   String settingsClearedDownloads(int count);
 
   /// No description provided for @settingsClearFailed.
@@ -1012,7 +994,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsNoActiveModel.
   ///
   /// In en, this message translates to:
-  /// **'No active model loaded'**
+  /// **'No model loaded'**
   String get settingsNoActiveModel;
 
   /// No description provided for @settingsCatalog.
@@ -1024,73 +1006,67 @@ abstract class AppLocalizations {
   /// No description provided for @settingsImportGguf.
   ///
   /// In en, this message translates to:
-  /// **'Import local .gguf'**
+  /// **'Import .gguf'**
   String get settingsImportGguf;
 
   /// No description provided for @settingsDownloadFromUrl.
   ///
   /// In en, this message translates to:
-  /// **'Download model from URL'**
+  /// **'Download from URL'**
   String get settingsDownloadFromUrl;
 
   /// No description provided for @settingsClearDownloadedModels.
   ///
   /// In en, this message translates to:
-  /// **'Clear downloaded models'**
+  /// **'Clear downloads'**
   String get settingsClearDownloadedModels;
 
   /// No description provided for @settingsChangePortTitle.
   ///
   /// In en, this message translates to:
-  /// **'Change Server Port'**
+  /// **'Server port'**
   String get settingsChangePortTitle;
-
-  /// No description provided for @settingsPortNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Port number'**
-  String get settingsPortNumber;
 
   /// No description provided for @settingsPortSetRestart.
   ///
   /// In en, this message translates to:
-  /// **'Server port set to {port}. Restart the server to apply.'**
+  /// **'Port set to {port}. Restart the server to apply.'**
   String settingsPortSetRestart(int port);
 
   /// No description provided for @settingsPortSet.
   ///
   /// In en, this message translates to:
-  /// **'Server port set to {port}'**
+  /// **'Port set to {port}'**
   String settingsPortSet(int port);
 
   /// No description provided for @settingsShareApiWifi.
   ///
   /// In en, this message translates to:
-  /// **'Share API over Wi-Fi'**
+  /// **'Share on Wi-Fi'**
   String get settingsShareApiWifi;
 
   /// No description provided for @settingsServerPort.
   ///
   /// In en, this message translates to:
-  /// **'Server port'**
+  /// **'Port'**
   String get settingsServerPort;
 
   /// No description provided for @settingsServerStatus.
   ///
   /// In en, this message translates to:
-  /// **'Server status'**
+  /// **'Status'**
   String get settingsServerStatus;
 
   /// No description provided for @settingsServerActive.
   ///
   /// In en, this message translates to:
-  /// **'Active'**
+  /// **'Running'**
   String get settingsServerActive;
 
   /// No description provided for @settingsServerOffline.
   ///
   /// In en, this message translates to:
-  /// **'Offline'**
+  /// **'Stopped'**
   String get settingsServerOffline;
 
   /// No description provided for @settingsUpToDate.
@@ -1102,25 +1078,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsUpdateUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Play Store could not check for updates'**
+  /// **'Couldn\'t check for updates'**
   String get settingsUpdateUnavailable;
 
   /// No description provided for @settingsUpdateAlreadyDownloading.
   ///
   /// In en, this message translates to:
-  /// **'An update is already downloading'**
+  /// **'Update already downloading'**
   String get settingsUpdateAlreadyDownloading;
 
   /// No description provided for @settingsUpdateDownloading.
   ///
   /// In en, this message translates to:
-  /// **'Downloading update in the background'**
+  /// **'Downloading update…'**
   String get settingsUpdateDownloading;
 
   /// No description provided for @settingsUpdateFailed.
   ///
   /// In en, this message translates to:
-  /// **'Update failed. Try again from Play Store.'**
+  /// **'Update failed. Try Play Store.'**
   String get settingsUpdateFailed;
 
   /// No description provided for @settingsUpdateReadyTitle.
@@ -1132,7 +1108,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsUpdateReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'The new version is downloaded. Thinai restarts to install it.'**
+  /// **'Restart Thinai to install it.'**
   String get settingsUpdateReadyBody;
 
   /// No description provided for @settingsRestart.
@@ -1144,7 +1120,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsStartTour.
   ///
   /// In en, this message translates to:
-  /// **'Start app tour'**
+  /// **'App tour'**
   String get settingsStartTour;
 
   /// No description provided for @settingsCheckUpdates.
@@ -1156,7 +1132,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsContactSupport.
   ///
   /// In en, this message translates to:
-  /// **'Contact support'**
+  /// **'Help & support'**
   String get settingsContactSupport;
 
   /// No description provided for @settingsAboutThinai.
@@ -1165,22 +1141,16 @@ abstract class AppLocalizations {
   /// **'About Thinai'**
   String get settingsAboutThinai;
 
-  /// No description provided for @settingsDownloadDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Download model by URL'**
-  String get settingsDownloadDialogTitle;
-
   /// No description provided for @settingsDirectGgufUrl.
   ///
   /// In en, this message translates to:
-  /// **'Direct GGUF URL'**
+  /// **'GGUF URL'**
   String get settingsDirectGgufUrl;
 
   /// No description provided for @settingsSaveAsOptional.
   ///
   /// In en, this message translates to:
-  /// **'Save as (optional)'**
+  /// **'Name (optional)'**
   String get settingsSaveAsOptional;
 
   /// No description provided for @gpuAcceleration.
@@ -1189,34 +1159,28 @@ abstract class AppLocalizations {
   /// **'GPU acceleration'**
   String get gpuAcceleration;
 
-  /// No description provided for @gpuSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Offloads computation to hardware accelerator'**
-  String get gpuSubtitle;
-
   /// No description provided for @gpuDescription.
   ///
   /// In en, this message translates to:
-  /// **'Runs the model on the GPU instead of the CPU. Run the speed test to check if it helps on this phone.'**
+  /// **'Run the speed test to see if it helps.'**
   String get gpuDescription;
 
   /// No description provided for @gpuCrashedNotice.
   ///
   /// In en, this message translates to:
-  /// **'{backend} crashed the app last time, so GPU acceleration was turned off.'**
+  /// **'{backend} crashed last time, so the GPU was turned off.'**
   String gpuCrashedNotice(String backend);
 
   /// No description provided for @gpuCheckPhone.
   ///
   /// In en, this message translates to:
-  /// **'Check this phone\'s GPU'**
+  /// **'Find GPU'**
   String get gpuCheckPhone;
 
   /// No description provided for @gpuNoneFound.
   ///
   /// In en, this message translates to:
-  /// **'No usable GPU found. Thinai will keep using the CPU.'**
+  /// **'No usable GPU. Using the CPU.'**
   String get gpuNoneFound;
 
   /// No description provided for @gpuFound.
@@ -1252,43 +1216,43 @@ abstract class AppLocalizations {
   /// No description provided for @gpuLoadModelFirst.
   ///
   /// In en, this message translates to:
-  /// **'Load a model first, then run the test.'**
+  /// **'Load a model first.'**
   String get gpuLoadModelFirst;
 
   /// No description provided for @gpuTestFailed.
   ///
   /// In en, this message translates to:
-  /// **'The test failed: {error}'**
+  /// **'Test failed: {error}'**
   String gpuTestFailed(String error);
 
   /// No description provided for @gpuVerdictGpuFaster.
   ///
   /// In en, this message translates to:
-  /// **'The GPU is faster on this phone.'**
+  /// **'GPU is faster here.'**
   String get gpuVerdictGpuFaster;
 
   /// No description provided for @gpuVerdictCpuFaster.
   ///
   /// In en, this message translates to:
-  /// **'The CPU is faster here. Leave GPU acceleration off.'**
+  /// **'CPU is faster here. Keep the GPU off.'**
   String get gpuVerdictCpuFaster;
 
   /// No description provided for @gpuVerdictSame.
   ///
   /// In en, this message translates to:
-  /// **'About the same either way.'**
+  /// **'About the same.'**
   String get gpuVerdictSame;
 
   /// No description provided for @gpuReadingPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Reading prompt'**
+  /// **'Prompt'**
   String get gpuReadingPrompt;
 
   /// No description provided for @gpuWritingReply.
   ///
   /// In en, this message translates to:
-  /// **'Writing reply'**
+  /// **'Reply'**
   String get gpuWritingReply;
 
   /// No description provided for @aboutTitle.
@@ -1297,125 +1261,71 @@ abstract class AppLocalizations {
   /// **'About Thinai'**
   String get aboutTitle;
 
-  /// No description provided for @aboutVersionBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'v{version} · On-Device Sovereign AI'**
-  String aboutVersionBadge(String version);
-
   /// No description provided for @aboutHeroDescription.
   ///
   /// In en, this message translates to:
-  /// **'Thinai executes modern open-weights neural models directly on your Android phone silicon. Zero internet required, zero cloud reliance, and 100% data sovereignty.'**
+  /// **'Private AI that runs on your phone. No internet needed.'**
   String get aboutHeroDescription;
-
-  /// No description provided for @aboutCorePillars.
-  ///
-  /// In en, this message translates to:
-  /// **'Core Pillars'**
-  String get aboutCorePillars;
 
   /// No description provided for @aboutPrivateTitle.
   ///
   /// In en, this message translates to:
-  /// **'100% Private & Sovereign'**
+  /// **'Private and offline'**
   String get aboutPrivateTitle;
-
-  /// No description provided for @aboutPrivateBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Every model token and user prompt is computed strictly inside device RAM. No telemetry, no logs, and no cloud interception.'**
-  String get aboutPrivateBody;
 
   /// No description provided for @aboutAcceleratedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Hardware Accelerated'**
+  /// **'GPU acceleration'**
   String get aboutAcceleratedTitle;
-
-  /// No description provided for @aboutAcceleratedBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Built on a high-performance llama.cpp mobile runtime with Vulkan and OpenCL GPU acceleration, tuned for high speed on modern mobile chipsets.'**
-  String get aboutAcceleratedBody;
 
   /// No description provided for @aboutApiTitle.
   ///
   /// In en, this message translates to:
-  /// **'Local OpenAI-Compatible API'**
+  /// **'Local OpenAI-compatible API'**
   String get aboutApiTitle;
-
-  /// No description provided for @aboutApiBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Runs an embedded HTTP server on localhost:11434 with /v1/chat/completions, transforming your phone into an AI engine for other apps and automations.'**
-  String get aboutApiBody;
 
   /// No description provided for @aboutVisionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Multimodal Vision & Web'**
+  /// **'Images, documents, web search'**
   String get aboutVisionTitle;
-
-  /// No description provided for @aboutVisionBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Engage in visual reasoning with vision-enabled models (Gemma 3, MiniCPM), document summarization, and privacy-preserving live web search citations.'**
-  String get aboutVisionBody;
-
-  /// No description provided for @aboutTechSpecs.
-  ///
-  /// In en, this message translates to:
-  /// **'Technical Specifications'**
-  String get aboutTechSpecs;
 
   /// No description provided for @aboutSpecEngine.
   ///
   /// In en, this message translates to:
-  /// **'Inference Engine'**
+  /// **'Engine'**
   String get aboutSpecEngine;
 
   /// No description provided for @aboutSpecModelFormat.
   ///
   /// In en, this message translates to:
-  /// **'Model Format'**
+  /// **'Format'**
   String get aboutSpecModelFormat;
 
   /// No description provided for @aboutSpecArchitecture.
   ///
   /// In en, this message translates to:
-  /// **'Target Architecture'**
+  /// **'Architecture'**
   String get aboutSpecArchitecture;
 
   /// No description provided for @aboutSpecBackends.
   ///
   /// In en, this message translates to:
-  /// **'Acceleration Backends'**
+  /// **'Backends'**
   String get aboutSpecBackends;
 
   /// No description provided for @aboutSpecLicense.
   ///
   /// In en, this message translates to:
-  /// **'Software License'**
+  /// **'License'**
   String get aboutSpecLicense;
 
   /// No description provided for @aboutSpecLicenseValue.
   ///
   /// In en, this message translates to:
-  /// **'Open Source (MIT)'**
+  /// **'MIT'**
   String get aboutSpecLicenseValue;
-
-  /// No description provided for @aboutCommunity.
-  ///
-  /// In en, this message translates to:
-  /// **'Community & Transparency'**
-  String get aboutCommunity;
-
-  /// No description provided for @aboutCommunityBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Thinai is built on sovereign privacy and open-source principles. You can inspect all third-party licenses or contact support for help.'**
-  String get aboutCommunityBody;
 
   /// No description provided for @aboutLicenses.
   ///
@@ -1426,13 +1336,13 @@ abstract class AppLocalizations {
   /// No description provided for @aboutContactSupport.
   ///
   /// In en, this message translates to:
-  /// **'Contact Support'**
+  /// **'Support'**
   String get aboutContactSupport;
 
   /// No description provided for @supportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Contact Support'**
+  /// **'Help & Support'**
   String get supportTitle;
 
   /// No description provided for @supportCouldNotOpenLink.
@@ -1447,40 +1357,16 @@ abstract class AppLocalizations {
   /// **'Failed to open link: {error}'**
   String supportFailedToOpenLink(String error);
 
-  /// No description provided for @supportHeroTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'How can we help?'**
-  String get supportHeroTitle;
-
-  /// No description provided for @supportHeroBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Need assistance running models, found a bug, or have a suggestion? We respond promptly to community queries.'**
-  String get supportHeroBody;
-
-  /// No description provided for @supportChannels.
-  ///
-  /// In en, this message translates to:
-  /// **'Direct Support Channels'**
-  String get supportChannels;
-
-  /// No description provided for @supportInstagramTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Instagram Support'**
-  String get supportInstagramTitle;
-
   /// No description provided for @supportInstagramBody.
   ///
   /// In en, this message translates to:
-  /// **'Direct messaging, quick feature sneak-peeks, troubleshooting, and announcements.'**
+  /// **'Message us for help or to report a bug.'**
   String get supportInstagramBody;
 
   /// No description provided for @supportInstagramOpenFailed.
   ///
   /// In en, this message translates to:
-  /// **'Unable to open Instagram link'**
+  /// **'Couldn\'t open Instagram'**
   String get supportInstagramOpenFailed;
 
   /// No description provided for @supportOpenInstagram.
@@ -1492,31 +1378,31 @@ abstract class AppLocalizations {
   /// No description provided for @supportCopyHandle.
   ///
   /// In en, this message translates to:
-  /// **'Copy Instagram handle'**
+  /// **'Copy handle'**
   String get supportCopyHandle;
 
   /// No description provided for @supportHandleCopied.
   ///
   /// In en, this message translates to:
-  /// **'Instagram handle copied to clipboard'**
+  /// **'Handle copied'**
   String get supportHandleCopied;
 
   /// No description provided for @supportDiagnostics.
   ///
   /// In en, this message translates to:
-  /// **'Device Diagnostics'**
+  /// **'Device info'**
   String get supportDiagnostics;
 
   /// No description provided for @supportDiagnosticsHint.
   ///
   /// In en, this message translates to:
-  /// **'Copying this data makes troubleshooting 10x faster when contacting us.'**
+  /// **'Include this when you contact us.'**
   String get supportDiagnosticsHint;
 
   /// No description provided for @supportCpuCores.
   ///
   /// In en, this message translates to:
-  /// **'{cores} CPU Cores'**
+  /// **'{cores} CPU cores'**
   String supportCpuCores(int cores);
 
   /// No description provided for @supportTier.
@@ -1534,73 +1420,73 @@ abstract class AppLocalizations {
   /// No description provided for @supportNoActiveModel.
   ///
   /// In en, this message translates to:
-  /// **'No active model'**
+  /// **'No model loaded'**
   String get supportNoActiveModel;
 
   /// No description provided for @supportServerActive.
   ///
   /// In en, this message translates to:
-  /// **'Server: Active'**
+  /// **'Server running'**
   String get supportServerActive;
 
   /// No description provided for @supportServerStopped.
   ///
   /// In en, this message translates to:
-  /// **'Server: Stopped'**
+  /// **'Server stopped'**
   String get supportServerStopped;
 
   /// No description provided for @supportCopyDiagnostics.
   ///
   /// In en, this message translates to:
-  /// **'Copy Diagnostic Specs'**
+  /// **'Copy device info'**
   String get supportCopyDiagnostics;
 
   /// No description provided for @supportDiagnosticsCopied.
   ///
   /// In en, this message translates to:
-  /// **'System diagnostics copied to clipboard'**
+  /// **'Device info copied'**
   String get supportDiagnosticsCopied;
 
   /// No description provided for @supportTroubleshooting.
   ///
   /// In en, this message translates to:
-  /// **'Quick Troubleshooting'**
+  /// **'Common questions'**
   String get supportTroubleshooting;
 
   /// No description provided for @supportFaqLoadQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Why does a model take long to load or download?'**
+  /// **'Why is loading or downloading slow?'**
   String get supportFaqLoadQuestion;
 
   /// No description provided for @supportFaqLoadAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Models are large AI neural networks (1 GB to 4+ GB). Download speed depends on your Wi-Fi connection. Loading requires allocating RAM; ensure background apps are cleared before loading 7B+ models.'**
+  /// **'Models are 1 to 4 GB. Downloads depend on your connection, and loading needs free RAM, so close other apps first.'**
   String get supportFaqLoadAnswer;
 
   /// No description provided for @supportFaqPrivacyQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Does Thinai leak or upload my chats to the cloud?'**
+  /// **'Do my chats leave the phone?'**
   String get supportFaqPrivacyQuestion;
 
   /// No description provided for @supportFaqPrivacyAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Never. Thinai is built from the ground up to be 100% sovereign and offline. The neural weights run directly on your phone CPU/GPU silicon, and no conversational data leaves device memory.'**
+  /// **'No. Models run entirely on your phone, and your chats stay on it.'**
   String get supportFaqPrivacyAnswer;
 
   /// No description provided for @supportFaqGpuQuestion.
   ///
   /// In en, this message translates to:
-  /// **'How do I use GPU acceleration (Vulkan / OpenCL)?'**
+  /// **'How do I use the GPU?'**
   String get supportFaqGpuQuestion;
 
   /// No description provided for @supportFaqGpuAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Navigate to Settings > Hardware & Acceleration, and select Vulkan or OpenCL. Vulkan works best on Qualcomm Snapdragon Adreno and modern MediaTek Dimensity GPUs.'**
+  /// **'Go to Settings > Hardware > GPU acceleration. Run the speed test to check it is faster.'**
   String get supportFaqGpuAnswer;
 
   /// No description provided for @systemPromptTitle.
@@ -1612,19 +1498,19 @@ abstract class AppLocalizations {
   /// No description provided for @systemPromptSaved.
   ///
   /// In en, this message translates to:
-  /// **'System prompt saved. New messages will use it.'**
+  /// **'System prompt saved'**
   String get systemPromptSaved;
 
   /// No description provided for @systemPromptResetDone.
   ///
   /// In en, this message translates to:
-  /// **'System prompt reset to the default.'**
+  /// **'Reset to default'**
   String get systemPromptResetDone;
 
   /// No description provided for @systemPromptDescription.
   ///
   /// In en, this message translates to:
-  /// **'Instructions sent to the model at the start of every chat. Changes apply from the next message you send. Leave it empty to use the model\'s own default.'**
+  /// **'Sent to the model at the start of every chat. Leave empty to use the model\'s default.'**
   String get systemPromptDescription;
 
   /// No description provided for @systemPromptHint.
@@ -1675,12 +1561,6 @@ abstract class AppLocalizations {
   /// **'Run benchmark'**
   String get benchmarkRun;
 
-  /// No description provided for @benchmarkDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Generates {tokens} tokens and measures decode speed. First token is reported separately.'**
-  String benchmarkDescription(int tokens);
-
   /// No description provided for @benchmarkTokensPerSecond.
   ///
   /// In en, this message translates to:
@@ -1690,7 +1570,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkIdle.
   ///
   /// In en, this message translates to:
-  /// **'Idle'**
+  /// **'Ready'**
   String get benchmarkIdle;
 
   /// No description provided for @benchmarkMeasuring.
@@ -1702,7 +1582,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkThroughput.
   ///
   /// In en, this message translates to:
-  /// **'Throughput over the run'**
+  /// **'Speed'**
   String get benchmarkThroughput;
 
   /// No description provided for @benchmarkPeak.
@@ -1720,7 +1600,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkPlotEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Run a benchmark to plot it'**
+  /// **'No data yet'**
   String get benchmarkPlotEmpty;
 
   /// No description provided for @benchmarkFirstToken.
@@ -1744,7 +1624,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkSampleOutput.
   ///
   /// In en, this message translates to:
-  /// **'Sample output'**
+  /// **'Output'**
   String get benchmarkSampleOutput;
 
   /// No description provided for @benchmarkThisSession.
@@ -1756,7 +1636,7 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkRunSummary.
   ///
   /// In en, this message translates to:
-  /// **'{tokens} tokens · first token {firstToken} · total {total}'**
+  /// **'{tokens} tokens · first {firstToken} · total {total}'**
   String benchmarkRunSummary(int tokens, String firstToken, String total);
 
   /// No description provided for @benchmarkEmptyTitle.
@@ -1774,31 +1654,31 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkBestForHardware.
   ///
   /// In en, this message translates to:
-  /// **'Best for your hardware'**
+  /// **'Best for this phone'**
   String get benchmarkBestForHardware;
 
   /// No description provided for @benchmarkMeasuredWithDevice.
   ///
   /// In en, this message translates to:
-  /// **'{device} · measured {bandwidth} GB/s effective'**
+  /// **'{device} · {bandwidth} GB/s measured'**
   String benchmarkMeasuredWithDevice(String device, String bandwidth);
 
   /// No description provided for @benchmarkMeasured.
   ///
   /// In en, this message translates to:
-  /// **'measured {bandwidth} GB/s effective'**
+  /// **'{bandwidth} GB/s measured'**
   String benchmarkMeasured(String bandwidth);
 
   /// No description provided for @benchmarkEstimateWithDevice.
   ///
   /// In en, this message translates to:
-  /// **'{device} · run a benchmark to replace the estimates below with measurements'**
+  /// **'{device} · estimated'**
   String benchmarkEstimateWithDevice(String device);
 
   /// No description provided for @benchmarkCalibratePrompt.
   ///
   /// In en, this message translates to:
-  /// **'Run a benchmark to calibrate these'**
+  /// **'Estimated'**
   String get benchmarkCalibratePrompt;
 
   /// No description provided for @benchmarkInstalled.

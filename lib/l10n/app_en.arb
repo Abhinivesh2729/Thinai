@@ -284,24 +284,22 @@
   "hfPromptSubtitle": "Any public GGUF model, installed into your library. Uses the internet.",
   "settingsAppearance": "Appearance",
   "settingsSystemPrompt": "System Prompt",
-  "settingsHardware": "Hardware & Acceleration",
+  "settingsHardware": "Hardware",
   "settingsModelStorage": "Model & Storage",
-  "settingsLocalServer": "Local Server & API",
-  "settingsAboutGuidance": "About & Guidance",
-  "settingsStartPage": "Open page on startup",
-  "settingsThemeMode": "Theme mode",
+  "settingsLocalServer": "Local Server",
+  "settingsAboutGuidance": "About & Help",
+  "settingsStartPage": "Start page",
+  "settingsThemeMode": "Theme",
   "settingsThemeSystem": "System",
   "settingsThemeDark": "Dark",
   "settingsThemeLight": "Light",
-  "settingsWebSearch": "Web search in chat",
-  "settingsEnabled": "Enabled",
-  "settingsDisabled": "Disabled",
+  "settingsWebSearch": "Web search",
   "settingsGpuAcceleration": "GPU acceleration",
   "settingsGpuAuto": "Auto",
-  "settingsBenchmarkDevice": "Benchmark device",
-  "settingsGpuDiagnostics": "GPU speed diagnostics",
-  "settingsDeviceSpecs": "Device hardware specs",
-  "settingsDeviceSpecsWithRam": "{cores} Cores • {ramGb} GB RAM",
+  "settingsBenchmarkDevice": "Benchmark",
+  "settingsGpuDiagnostics": "GPU speed test",
+  "settingsDeviceSpecs": "Device",
+  "settingsDeviceSpecsWithRam": "{cores} cores · {ramGb} GB RAM",
   "@settingsDeviceSpecsWithRam": {
     "placeholders": {
       "cores": {
@@ -312,7 +310,7 @@
       }
     }
   },
-  "settingsDeviceSpecsCores": "{cores} CPU Cores",
+  "settingsDeviceSpecsCores": "{cores} CPU cores",
   "@settingsDeviceSpecsCores": {
     "placeholders": {
       "cores": {
@@ -337,7 +335,7 @@
     }
   },
   "settingsDownloadStarted": "Download started",
-  "settingsDownloadStopped": "Download stopped: {error}. Progress is saved, resume it from the Model Manager.",
+  "settingsDownloadStopped": "Download stopped: {error}. Resume it from Models.",
   "@settingsDownloadStopped": {
     "placeholders": {
       "error": {
@@ -354,11 +352,10 @@
     }
   },
   "settingsDownloadComplete": "Download complete",
-  "settingsClearDownloadsTitle": "Clear all downloads?",
-  "settingsClearDownloadsBody": "This removes all downloaded model files inside the app to free up device storage.",
-  "settingsClearAll": "Clear all",
-  "settingsNoDownloadsFound": "No downloaded items found",
-  "settingsClearedDownloads": "{count, plural, =1{Cleared 1 downloaded item} other{Cleared {count} downloaded items}}",
+  "settingsClearDownloadsTitle": "Delete all downloads?",
+  "settingsClearDownloadsBody": "Deletes every downloaded model to free up space.",
+  "settingsNoDownloadsFound": "Nothing to clear",
+  "settingsClearedDownloads": "{count, plural, =1{Cleared 1 download} other{Cleared {count} downloads}}",
   "@settingsClearedDownloads": {
     "placeholders": {
       "count": {
@@ -375,14 +372,13 @@
     }
   },
   "settingsTune": "Tune",
-  "settingsNoActiveModel": "No active model loaded",
+  "settingsNoActiveModel": "No model loaded",
   "settingsCatalog": "Catalog",
-  "settingsImportGguf": "Import local .gguf",
-  "settingsDownloadFromUrl": "Download model from URL",
-  "settingsClearDownloadedModels": "Clear downloaded models",
-  "settingsChangePortTitle": "Change Server Port",
-  "settingsPortNumber": "Port number",
-  "settingsPortSetRestart": "Server port set to {port}. Restart the server to apply.",
+  "settingsImportGguf": "Import .gguf",
+  "settingsDownloadFromUrl": "Download from URL",
+  "settingsClearDownloadedModels": "Clear downloads",
+  "settingsChangePortTitle": "Server port",
+  "settingsPortSetRestart": "Port set to {port}. Restart the server to apply.",
   "@settingsPortSetRestart": {
     "placeholders": {
       "port": {
@@ -390,7 +386,7 @@
       }
     }
   },
-  "settingsPortSet": "Server port set to {port}",
+  "settingsPortSet": "Port set to {port}",
   "@settingsPortSet": {
     "placeholders": {
       "port": {
@@ -398,30 +394,28 @@
       }
     }
   },
-  "settingsShareApiWifi": "Share API over Wi-Fi",
-  "settingsServerPort": "Server port",
-  "settingsServerStatus": "Server status",
-  "settingsServerActive": "Active",
-  "settingsServerOffline": "Offline",
+  "settingsShareApiWifi": "Share on Wi-Fi",
+  "settingsServerPort": "Port",
+  "settingsServerStatus": "Status",
+  "settingsServerActive": "Running",
+  "settingsServerOffline": "Stopped",
   "settingsUpToDate": "Thinai is up to date",
-  "settingsUpdateUnavailable": "Play Store could not check for updates",
-  "settingsUpdateAlreadyDownloading": "An update is already downloading",
-  "settingsUpdateDownloading": "Downloading update in the background",
-  "settingsUpdateFailed": "Update failed. Try again from Play Store.",
+  "settingsUpdateUnavailable": "Couldn't check for updates",
+  "settingsUpdateAlreadyDownloading": "Update already downloading",
+  "settingsUpdateDownloading": "Downloading update…",
+  "settingsUpdateFailed": "Update failed. Try Play Store.",
   "settingsUpdateReadyTitle": "Update ready",
-  "settingsUpdateReadyBody": "The new version is downloaded. Thinai restarts to install it.",
+  "settingsUpdateReadyBody": "Restart Thinai to install it.",
   "settingsRestart": "Restart",
-  "settingsStartTour": "Start app tour",
+  "settingsStartTour": "App tour",
   "settingsCheckUpdates": "Check for updates",
-  "settingsContactSupport": "Contact support",
+  "settingsContactSupport": "Help & support",
   "settingsAboutThinai": "About Thinai",
-  "settingsDownloadDialogTitle": "Download model by URL",
-  "settingsDirectGgufUrl": "Direct GGUF URL",
-  "settingsSaveAsOptional": "Save as (optional)",
+  "settingsDirectGgufUrl": "GGUF URL",
+  "settingsSaveAsOptional": "Name (optional)",
   "gpuAcceleration": "GPU acceleration",
-  "gpuSubtitle": "Offloads computation to hardware accelerator",
-  "gpuDescription": "Runs the model on the GPU instead of the CPU. Run the speed test to check if it helps on this phone.",
-  "gpuCrashedNotice": "{backend} crashed the app last time, so GPU acceleration was turned off.",
+  "gpuDescription": "Run the speed test to see if it helps.",
+  "gpuCrashedNotice": "{backend} crashed last time, so the GPU was turned off.",
   "@gpuCrashedNotice": {
     "placeholders": {
       "backend": {
@@ -429,8 +423,8 @@
       }
     }
   },
-  "gpuCheckPhone": "Check this phone's GPU",
-  "gpuNoneFound": "No usable GPU found. Thinai will keep using the CPU.",
+  "gpuCheckPhone": "Find GPU",
+  "gpuNoneFound": "No usable GPU. Using the CPU.",
   "gpuFound": "Found: {devices}",
   "@gpuFound": {
     "placeholders": {
@@ -450,8 +444,8 @@
   },
   "gpuTesting": "Testing…",
   "gpuSpeedTest": "Speed test",
-  "gpuLoadModelFirst": "Load a model first, then run the test.",
-  "gpuTestFailed": "The test failed: {error}",
+  "gpuLoadModelFirst": "Load a model first.",
+  "gpuTestFailed": "Test failed: {error}",
   "@gpuTestFailed": {
     "placeholders": {
       "error": {
@@ -459,42 +453,26 @@
       }
     }
   },
-  "gpuVerdictGpuFaster": "The GPU is faster on this phone.",
-  "gpuVerdictCpuFaster": "The CPU is faster here. Leave GPU acceleration off.",
-  "gpuVerdictSame": "About the same either way.",
-  "gpuReadingPrompt": "Reading prompt",
-  "gpuWritingReply": "Writing reply",
+  "gpuVerdictGpuFaster": "GPU is faster here.",
+  "gpuVerdictCpuFaster": "CPU is faster here. Keep the GPU off.",
+  "gpuVerdictSame": "About the same.",
+  "gpuReadingPrompt": "Prompt",
+  "gpuWritingReply": "Reply",
   "aboutTitle": "About Thinai",
-  "aboutVersionBadge": "v{version} · On-Device Sovereign AI",
-  "@aboutVersionBadge": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "aboutHeroDescription": "Thinai executes modern open-weights neural models directly on your Android phone silicon. Zero internet required, zero cloud reliance, and 100% data sovereignty.",
-  "aboutCorePillars": "Core Pillars",
-  "aboutPrivateTitle": "100% Private & Sovereign",
-  "aboutPrivateBody": "Every model token and user prompt is computed strictly inside device RAM. No telemetry, no logs, and no cloud interception.",
-  "aboutAcceleratedTitle": "Hardware Accelerated",
-  "aboutAcceleratedBody": "Built on a high-performance llama.cpp mobile runtime with Vulkan and OpenCL GPU acceleration, tuned for high speed on modern mobile chipsets.",
-  "aboutApiTitle": "Local OpenAI-Compatible API",
-  "aboutApiBody": "Runs an embedded HTTP server on localhost:11434 with /v1/chat/completions, transforming your phone into an AI engine for other apps and automations.",
-  "aboutVisionTitle": "Multimodal Vision & Web",
-  "aboutVisionBody": "Engage in visual reasoning with vision-enabled models (Gemma 3, MiniCPM), document summarization, and privacy-preserving live web search citations.",
-  "aboutTechSpecs": "Technical Specifications",
-  "aboutSpecEngine": "Inference Engine",
-  "aboutSpecModelFormat": "Model Format",
-  "aboutSpecArchitecture": "Target Architecture",
-  "aboutSpecBackends": "Acceleration Backends",
-  "aboutSpecLicense": "Software License",
-  "aboutSpecLicenseValue": "Open Source (MIT)",
-  "aboutCommunity": "Community & Transparency",
-  "aboutCommunityBody": "Thinai is built on sovereign privacy and open-source principles. You can inspect all third-party licenses or contact support for help.",
+  "aboutHeroDescription": "Private AI that runs on your phone. No internet needed.",
+  "aboutPrivateTitle": "Private and offline",
+  "aboutAcceleratedTitle": "GPU acceleration",
+  "aboutApiTitle": "Local OpenAI-compatible API",
+  "aboutVisionTitle": "Images, documents, web search",
+  "aboutSpecEngine": "Engine",
+  "aboutSpecModelFormat": "Format",
+  "aboutSpecArchitecture": "Architecture",
+  "aboutSpecBackends": "Backends",
+  "aboutSpecLicense": "License",
+  "aboutSpecLicenseValue": "MIT",
   "aboutLicenses": "Licenses",
-  "aboutContactSupport": "Contact Support",
-  "supportTitle": "Contact Support",
+  "aboutContactSupport": "Support",
+  "supportTitle": "Help & Support",
   "supportCouldNotOpenLink": "Could not open link: {url}",
   "@supportCouldNotOpenLink": {
     "placeholders": {
@@ -511,18 +489,14 @@
       }
     }
   },
-  "supportHeroTitle": "How can we help?",
-  "supportHeroBody": "Need assistance running models, found a bug, or have a suggestion? We respond promptly to community queries.",
-  "supportChannels": "Direct Support Channels",
-  "supportInstagramTitle": "Instagram Support",
-  "supportInstagramBody": "Direct messaging, quick feature sneak-peeks, troubleshooting, and announcements.",
-  "supportInstagramOpenFailed": "Unable to open Instagram link",
+  "supportInstagramBody": "Message us for help or to report a bug.",
+  "supportInstagramOpenFailed": "Couldn't open Instagram",
   "supportOpenInstagram": "Open Instagram",
-  "supportCopyHandle": "Copy Instagram handle",
-  "supportHandleCopied": "Instagram handle copied to clipboard",
-  "supportDiagnostics": "Device Diagnostics",
-  "supportDiagnosticsHint": "Copying this data makes troubleshooting 10x faster when contacting us.",
-  "supportCpuCores": "{cores} CPU Cores",
+  "supportCopyHandle": "Copy handle",
+  "supportHandleCopied": "Handle copied",
+  "supportDiagnostics": "Device info",
+  "supportDiagnosticsHint": "Include this when you contact us.",
+  "supportCpuCores": "{cores} CPU cores",
   "@supportCpuCores": {
     "placeholders": {
       "cores": {
@@ -546,22 +520,22 @@
       }
     }
   },
-  "supportNoActiveModel": "No active model",
-  "supportServerActive": "Server: Active",
-  "supportServerStopped": "Server: Stopped",
-  "supportCopyDiagnostics": "Copy Diagnostic Specs",
-  "supportDiagnosticsCopied": "System diagnostics copied to clipboard",
-  "supportTroubleshooting": "Quick Troubleshooting",
-  "supportFaqLoadQuestion": "Why does a model take long to load or download?",
-  "supportFaqLoadAnswer": "Models are large AI neural networks (1 GB to 4+ GB). Download speed depends on your Wi-Fi connection. Loading requires allocating RAM; ensure background apps are cleared before loading 7B+ models.",
-  "supportFaqPrivacyQuestion": "Does Thinai leak or upload my chats to the cloud?",
-  "supportFaqPrivacyAnswer": "Never. Thinai is built from the ground up to be 100% sovereign and offline. The neural weights run directly on your phone CPU/GPU silicon, and no conversational data leaves device memory.",
-  "supportFaqGpuQuestion": "How do I use GPU acceleration (Vulkan / OpenCL)?",
-  "supportFaqGpuAnswer": "Navigate to Settings > Hardware & Acceleration, and select Vulkan or OpenCL. Vulkan works best on Qualcomm Snapdragon Adreno and modern MediaTek Dimensity GPUs.",
+  "supportNoActiveModel": "No model loaded",
+  "supportServerActive": "Server running",
+  "supportServerStopped": "Server stopped",
+  "supportCopyDiagnostics": "Copy device info",
+  "supportDiagnosticsCopied": "Device info copied",
+  "supportTroubleshooting": "Common questions",
+  "supportFaqLoadQuestion": "Why is loading or downloading slow?",
+  "supportFaqLoadAnswer": "Models are 1 to 4 GB. Downloads depend on your connection, and loading needs free RAM, so close other apps first.",
+  "supportFaqPrivacyQuestion": "Do my chats leave the phone?",
+  "supportFaqPrivacyAnswer": "No. Models run entirely on your phone, and your chats stay on it.",
+  "supportFaqGpuQuestion": "How do I use the GPU?",
+  "supportFaqGpuAnswer": "Go to Settings > Hardware > GPU acceleration. Run the speed test to check it is faster.",
   "systemPromptTitle": "System Prompt",
-  "systemPromptSaved": "System prompt saved. New messages will use it.",
-  "systemPromptResetDone": "System prompt reset to the default.",
-  "systemPromptDescription": "Instructions sent to the model at the start of every chat. Changes apply from the next message you send. Leave it empty to use the model's own default.",
+  "systemPromptSaved": "System prompt saved",
+  "systemPromptResetDone": "Reset to default",
+  "systemPromptDescription": "Sent to the model at the start of every chat. Leave empty to use the model's default.",
   "systemPromptHint": "You are a helpful assistant…",
   "systemPromptCharacters": "{count, plural, =1{1 character} other{{count} characters}}",
   "@systemPromptCharacters": {
@@ -584,18 +558,10 @@
   },
   "benchmarkRunning": "Running…",
   "benchmarkRun": "Run benchmark",
-  "benchmarkDescription": "Generates {tokens} tokens and measures decode speed. First token is reported separately.",
-  "@benchmarkDescription": {
-    "placeholders": {
-      "tokens": {
-        "type": "int"
-      }
-    }
-  },
   "benchmarkTokensPerSecond": "tokens / second",
-  "benchmarkIdle": "Idle",
+  "benchmarkIdle": "Ready",
   "benchmarkMeasuring": "MEASURING",
-  "benchmarkThroughput": "Throughput over the run",
+  "benchmarkThroughput": "Speed",
   "benchmarkPeak": "peak {value}",
   "@benchmarkPeak": {
     "placeholders": {
@@ -605,13 +571,13 @@
     }
   },
   "benchmarkWarmingUp": "Warming up…",
-  "benchmarkPlotEmpty": "Run a benchmark to plot it",
+  "benchmarkPlotEmpty": "No data yet",
   "benchmarkFirstToken": "First token",
   "benchmarkTokens": "Tokens",
   "benchmarkTotal": "Total",
-  "benchmarkSampleOutput": "Sample output",
+  "benchmarkSampleOutput": "Output",
   "benchmarkThisSession": "This session",
-  "benchmarkRunSummary": "{tokens} tokens · first token {firstToken} · total {total}",
+  "benchmarkRunSummary": "{tokens} tokens · first {firstToken} · total {total}",
   "@benchmarkRunSummary": {
     "placeholders": {
       "tokens": {
@@ -627,8 +593,8 @@
   },
   "benchmarkEmptyTitle": "No models to measure",
   "benchmarkEmptyBody": "Download a model to measure its speed.",
-  "benchmarkBestForHardware": "Best for your hardware",
-  "benchmarkMeasuredWithDevice": "{device} · measured {bandwidth} GB/s effective",
+  "benchmarkBestForHardware": "Best for this phone",
+  "benchmarkMeasuredWithDevice": "{device} · {bandwidth} GB/s measured",
   "@benchmarkMeasuredWithDevice": {
     "placeholders": {
       "device": {
@@ -639,7 +605,7 @@
       }
     }
   },
-  "benchmarkMeasured": "measured {bandwidth} GB/s effective",
+  "benchmarkMeasured": "{bandwidth} GB/s measured",
   "@benchmarkMeasured": {
     "placeholders": {
       "bandwidth": {
@@ -647,7 +613,7 @@
       }
     }
   },
-  "benchmarkEstimateWithDevice": "{device} · run a benchmark to replace the estimates below with measurements",
+  "benchmarkEstimateWithDevice": "{device} · estimated",
   "@benchmarkEstimateWithDevice": {
     "placeholders": {
       "device": {
@@ -655,7 +621,7 @@
       }
     }
   },
-  "benchmarkCalibratePrompt": "Run a benchmark to calibrate these",
+  "benchmarkCalibratePrompt": "Estimated",
   "benchmarkInstalled": "installed",
   "tourBadge": "THINAI TOUR",
   "tourCloseTooltip": "Close Tour",
