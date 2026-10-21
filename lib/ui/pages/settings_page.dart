@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../l10n/l10n.dart';
 import '../../llm/generation_settings.dart';
 import '../../llm/gpu_support.dart';
 import '../../state/providers.dart';
@@ -252,6 +253,31 @@ class AppearanceSettingsPage extends ConsumerWidget {
                   onChanged: (val) {
                     if (val != null) {
                       ref.read(startPageProvider.notifier).set(val);
+                    }
+                  },
+                ),
+                const _TileDivider(),
+                _DropdownListRow<AppLanguage>(
+                  icon: Icons.translate_rounded,
+                  title: context.l10n.languageSetting,
+                  value: ref.watch(appLanguageProvider),
+                  items: [
+                    for (final (language, label) in [
+                      (AppLanguage.system, context.l10n.languageSystem),
+                      (AppLanguage.english, context.l10n.languageEnglish),
+                      (AppLanguage.tamil, context.l10n.languageTamil),
+                    ])
+                      DropdownMenuItem(
+                        value: language,
+                        child: Text(
+                          label,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      ref.read(appLanguageProvider.notifier).set(val);
                     }
                   },
                 ),

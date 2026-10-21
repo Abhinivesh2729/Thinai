@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -107,6 +108,61 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(),
 );
+
+// ─── language ───────────────────────────────────────────────────────────────
+
+/// The UI language the user picked. [system] follows the phone.
+enum AppLanguage { system, english, tamil }
+
+/// The language picked in Settings, persisted across launches.
+class AppLanguageController extends StateNotifier<AppLanguage> {
+  AppLanguageController() : super(AppLanguage.system) {
+    _load();
+  }
+
+  static const _key = 'app_language';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = AppLanguage.values.asNameMap()[prefs.getString(_key)] ??
+        AppLanguage.system;
+  }
+
+  Future<void> set(AppLanguage language) async {
+    state = language;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, language.name);
+  }
+}
+
+final appLanguageProvider =
+    StateNotifierProvider<AppLanguageController, AppLanguage>(
+      (ref) => AppLanguageController(),
+    );
+
+/// The phone's own language code. A provider so tests can pin it.
+final systemLanguageCodeProvider = Provider<String>(
+  (ref) => PlatformDispatcher.instance.locale.languageCode,
+);
+
+/// The locale handed to MaterialApp: null lets Flutter match the phone.
+final appLocaleProvider = Provider<Locale?>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => null,
+    AppLanguage.english => const Locale('en'),
+    AppLanguage.tamil => const Locale('ta'),
+  };
+});
+
+/// Whether the app is showing Tamil right now. Drives more than strings: the
+/// default system prompt and the recommender's starting goal follow it.
+final isTamilUiProvider = Provider<bool>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => ref.watch(systemLanguageCodeProvider) == 'ta',
+    AppLanguage.english => false,
+    AppLanguage.tamil => true,
+  };
+});
 
 // ─── server LAN sharing ─────────────────────────────────────────────────────
 

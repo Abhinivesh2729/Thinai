@@ -53,7 +53,9 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
   Future<void> _reset() async {
     await ref.read(systemPromptProvider.notifier).reset();
     if (!mounted) return;
-    setState(() => _text.text = kDefaultSystemPrompt);
+    setState(
+      () => _text.text = ref.read(systemPromptProvider.notifier).defaultPrompt,
+    );
     _toast('System prompt reset to the default.');
   }
 
@@ -69,7 +71,8 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final isDefault = _text.text == kDefaultSystemPrompt;
+    final isDefault =
+        _text.text == ref.read(systemPromptProvider.notifier).defaultPrompt;
 
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {

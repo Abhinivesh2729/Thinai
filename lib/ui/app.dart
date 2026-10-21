@@ -5,6 +5,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n.dart';
 import '../server/foreground_handler.dart';
 import '../state/providers.dart';
 import '../update/app_updater.dart';
@@ -27,6 +28,9 @@ class LocalLlmApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Thinai',
       debugShowCheckedModeBanner: false,
+      locale: ref.watch(appLocaleProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
       themeMode: themeMode,

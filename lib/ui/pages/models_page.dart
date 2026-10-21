@@ -39,6 +39,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   @override
   void initState() {
     super.initState();
+    // In Tamil the catalog opens on Tamil-capable models: most of the catalog
+    // can't hold a conversation in Tamil, and that is the first thing a Tamil
+    // user would try.
+    if (ref.read(isTamilUiProvider)) _selectedUseCase = UseCase.tamil;
     _outcomes = ref
         .read(downloadsProvider.notifier)
         .outcomes
