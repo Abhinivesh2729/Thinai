@@ -84,40 +84,14 @@ class WelcomeTourSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              l10n.tourWelcomeTitle,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
-                                color: scheme.onSurface,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: brandGreen.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              l10n.tourWelcomeOfflineBadge,
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: brandGreen,
-                                letterSpacing: context.tracking(0.6),
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        l10n.tourWelcomeTitle,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: scheme.onSurface,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(

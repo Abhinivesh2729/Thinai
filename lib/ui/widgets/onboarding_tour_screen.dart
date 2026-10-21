@@ -6,7 +6,7 @@ import '../../l10n/l10n.dart';
 
 /// Full-screen, light-themed onboarding guide for first-time app entry.
 /// Features a pure white top slide deck (~75% height) with prominent 3D animated GIF graphics,
-/// bold modern typography, filled feature cards, and a vibrant brand-green bottom navigation dock (~25% height)
+/// bold modern typography, one short line of copy, and a vibrant brand-green bottom navigation dock (~25% height)
 /// with circular next/previous arrow controls and page indicator dots.
 class OnboardingTourScreen extends StatefulWidget {
   /// Unique key for tracking whether the user has completed the full-screen onboarding tour.
@@ -195,10 +195,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                         'assets/onboarding/onboarding_offline.gif',
                         l10n.onboardingPrivateGraphic,
                       ),
-                      bullets: [
-                        l10n.onboardingPrivateBullet1,
-                        l10n.onboardingPrivateBullet2,
-                      ],
                     ),
                     _buildSlide(
                       tag: l10n.onboardingCatalogTag,
@@ -208,10 +204,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                         'assets/onboarding/onboarding_models.gif',
                         l10n.onboardingCatalogGraphic,
                       ),
-                      bullets: [
-                        l10n.onboardingCatalogBullet1,
-                        l10n.onboardingCatalogBullet2,
-                      ],
                     ),
                     _buildSlide(
                       tag: l10n.onboardingGpuTag,
@@ -221,10 +213,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                         'assets/onboarding/onboarding_gpu.gif',
                         l10n.onboardingGpuGraphic,
                       ),
-                      bullets: [
-                        l10n.onboardingGpuBullet1,
-                        l10n.onboardingGpuBullet2,
-                      ],
                     ),
                     _buildSlide(
                       tag: l10n.onboardingStudioTag,
@@ -234,10 +222,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                         'assets/onboarding/onboarding_rag.gif',
                         l10n.onboardingStudioGraphic,
                       ),
-                      bullets: [
-                        l10n.onboardingStudioBullet1,
-                        l10n.onboardingStudioBullet2,
-                      ],
                     ),
                     _buildSlide(
                       tag: l10n.onboardingServerTag,
@@ -247,10 +231,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                         'assets/onboarding/onboarding_server.gif',
                         l10n.onboardingServerGraphic(_serverPort),
                       ),
-                      bullets: [
-                        l10n.onboardingServerBullet1,
-                        l10n.onboardingServerBullet2,
-                      ],
                       isFinal: true,
                     ),
                   ],
@@ -385,7 +365,6 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
     required String headline,
     required String description,
     required Widget graphic,
-    required List<String> bullets,
     bool isFinal = false,
   }) {
     return LayoutBuilder(
@@ -460,63 +439,17 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   ],
                 ),
 
-                // Structured Feature Cards & Optional Final Action
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ...bullets.map((text) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(3.5),
-                              decoration: const BoxDecoration(
-                                color: _brandGreen,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                size: 11,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                text,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: _brandDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    if (isFinal) ...[
-                      const SizedBox(height: 8),
-                      // A minimum rather than a fixed height, so a label that
-                      // wraps in a longer language grows the button instead of
-                      // being clipped.
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minWidth: double.infinity,
-                          minHeight: 50,
-                        ),
-                        child: FilledButton.icon(
+                // The last slide's start button. Every slide keeps the slot so
+                // the graphic and copy sit at the same height throughout. A
+                // minimum rather than a fixed height, so a label that wraps in
+                // a longer language grows the button instead of being clipped.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: double.infinity,
+                    minHeight: 50,
+                  ),
+                  child: isFinal
+                      ? FilledButton.icon(
                           icon: const Icon(
                             Icons.rocket_launch_rounded,
                             size: 18,
@@ -539,10 +472,8 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                             ),
                           ),
                           onPressed: () => _finishOnboarding(),
-                        ),
-                      ),
-                    ],
-                  ],
+                        )
+                      : null,
                 ),
               ],
             ),

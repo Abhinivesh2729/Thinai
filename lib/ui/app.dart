@@ -535,7 +535,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (update != null && !_liveTourActive)
-            _UpdateBanner(
+            UpdateBanner(
               status: update,
               busy: _updateBusy,
               onAct: update.state == UpdateState.readyToInstall
@@ -585,8 +585,9 @@ class _MainShellState extends ConsumerState<_MainShell> {
 /// Deliberately not a dialog. Nothing here is urgent enough to interrupt a
 /// conversation for — an update that is urgent goes through Play's own
 /// full-screen flow instead, before this ever renders.
-class _UpdateBanner extends StatelessWidget {
-  const _UpdateBanner({
+@visibleForTesting
+class UpdateBanner extends StatelessWidget {
+  const UpdateBanner({
     required this.status,
     required this.busy,
     required this.onAct,
@@ -606,7 +607,7 @@ class _UpdateBanner extends StatelessWidget {
     return Material(
       color: scheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
         child: Row(
           children: [
             Icon(
@@ -617,32 +618,18 @@ class _UpdateBanner extends StatelessWidget {
               size: 22,
             ),
             const SizedBox(width: 12),
+            // One short line. The button says what happens next.
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ready
-                        ? context.l10n.chatAppUpdateReady
-                        : context.l10n.chatAppUpdateAvailable,
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    busy
-                        ? context.l10n.chatAppUpdateDownloading
-                        : ready
-                        ? context.l10n.chatAppUpdateRestartToInstall
-                        : context.l10n.chatAppUpdateOnPlayStore,
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ],
+              child: Text(
+                busy
+                    ? context.l10n.chatAppUpdateDownloading
+                    : ready
+                    ? context.l10n.chatAppUpdateReady
+                    : context.l10n.chatAppUpdateAvailable,
+                style: TextStyle(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             if (busy)
@@ -657,6 +644,10 @@ class _UpdateBanner extends StatelessWidget {
             else ...[
               TextButton(
                 onPressed: onAct,
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
                 child: Text(
                   ready
                       ? context.l10n.chatAppRestart
@@ -667,6 +658,7 @@ class _UpdateBanner extends StatelessWidget {
                 tooltip: context.l10n.commonDismiss,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 color: scheme.onPrimaryContainer,
+                visualDensity: VisualDensity.compact,
                 onPressed: onDismiss,
               ),
             ],

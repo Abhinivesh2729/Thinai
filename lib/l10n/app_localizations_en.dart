@@ -849,7 +849,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourBadge => 'THINAI TOUR';
 
   @override
-  String get tourCloseTooltip => 'Close Tour';
+  String get tourCloseTooltip => 'Close tour';
 
   @override
   String tourStageLabel(int current, int total) {
@@ -857,92 +857,80 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tourPrivateTag => '100% PRIVATE & SOVEREIGN';
+  String get tourPrivateTag => 'PRIVATE BY DESIGN';
 
   @override
-  String get tourPrivateTitle => 'Your Hardware.\nYour Intelligence.';
+  String get tourPrivateTitle => 'Your phone.\nYour AI.';
 
   @override
-  String get tourPrivateBody =>
-      'Thinai executes large language models directly on your phone’s processor. Zero chat queries, images, or documents ever leave your device.';
+  String get tourPrivateBody => 'Models run on your phone. Nothing leaves it.';
 
   @override
-  String get tourOnDeviceTitle => 'Thinai (On-Device)';
+  String get tourOnDeviceTitle => 'Thinai, on device';
 
   @override
-  String get tourOnDeviceBody =>
-      'Runs offline in Airplane mode · Zero data collection · llama.cpp silicon execution · No subscription';
+  String get tourOnDeviceBody => 'Offline · No tracking · No subscription';
 
   @override
-  String get tourCloudTitle => 'Traditional Cloud AI';
+  String get tourCloudTitle => 'Cloud AI';
 
   @override
-  String get tourCloudBody =>
-      'Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls';
+  String get tourCloudBody => 'Logs chats · Needs internet · Paid';
 
   @override
-  String get tourDeviceReady =>
-      'Device Ready: Hardware acceleration available for local GGUF models.';
+  String get tourCatalogTag => 'MODEL CATALOG';
 
   @override
-  String get tourCatalogTag => 'CURATED GGUF CATALOG';
-
-  @override
-  String get tourCatalogTitle => 'World-Class Models,\nTailored to Your RAM.';
+  String get tourCatalogTitle => 'Great models,\nsized for your RAM.';
 
   @override
   String get tourCatalogBody =>
-      'Explore open-weight models from Alibaba, Meta, Google, and Microsoft. Thinai automatically inspects your phone’s memory to advise what runs smoothly.';
+      'Thinai checks your memory and shows what runs well.';
 
   @override
-  String get tourMemoryFitTitle => 'Smart Memory Fit System';
+  String get tourMemoryFitTitle => 'Memory fit';
 
   @override
-  String get tourFitEasyLabel => 'Fits Easily';
+  String get tourFitEasyLabel => 'Fits';
 
   @override
-  String get tourFitEasyBody =>
-      'Guaranteed smooth response, low battery footprint.';
+  String get tourFitEasyBody => 'Smooth, light on battery.';
 
   @override
-  String get tourFitTightLabel => 'Tight Fit';
+  String get tourFitTightLabel => 'Tight';
 
   @override
-  String get tourFitTightBody =>
-      'Runs well, close other heavy background apps.';
+  String get tourFitTightBody => 'Close heavy apps first.';
 
   @override
-  String get tourFitTooBigLabel => 'Too Big';
+  String get tourFitTooBigLabel => 'Too big';
 
   @override
-  String get tourFitTooBigBody =>
-      'Warns you so your operating system never crashes.';
+  String get tourFitTooBigBody => 'You are warned first.';
 
   @override
   String tourStarterTitle(String model, String size) {
-    return 'Recommended Starter: $model (~$size)';
+    return 'Start with $model (~$size)';
   }
 
   @override
-  String get tourStarterBody =>
-      'Smallest and fastest chat model, runs instantly on any phone.';
+  String get tourStarterBody => 'Small and fast on any phone.';
 
   @override
-  String get tourChatTag => 'CHAT STUDIO & VISION';
+  String get tourChatTag => 'CHAT & VISION';
 
   @override
-  String get tourChatTitle => 'Full Multimodal Studio\nWith Live Reasoning.';
+  String get tourChatTitle => 'Chat with\nyour photos.';
 
   @override
-  String get tourChatBody =>
-      'Chat with zero lag, attach camera photos for vision models, and watch real-time generation speed right on the response bubbles.';
+  String get tourChatBody => 'Attach a photo and watch the speed live.';
 
   @override
-  String get tourDemoPrompt => 'Explain quantum superposition simply.';
+  String get tourDemoPrompt => 'Explain superposition simply.';
 
   @override
   String get tourDemoReply =>
-      'A particle can exist in multiple possible states at once until measured, like a spinning coin before it lands.';
+      'A particle can be in many states until measured, like a spinning coin.';
 
   @override
   String tourDemoSpeed(String speed) {
@@ -950,26 +938,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tourFeatureReasoning => 'Reasoning Traces';
+  String get tourFeatureReasoning => 'Reasoning';
 
   @override
-  String get tourFeatureVision => 'Camera & Vision';
+  String get tourFeatureVision => 'Vision';
 
   @override
-  String get tourFeaturePersonas => 'Custom Personas';
+  String get tourFeaturePersonas => 'Personas';
 
   @override
-  String get tourServerTag => 'OPENAI COMPATIBLE API';
+  String get tourServerTag => 'LOCAL API';
 
   @override
-  String get tourServerTitle => 'Turn Your Phone Into\nA Private AI Server.';
+  String get tourServerTitle => 'Your phone,\na private AI server.';
 
   @override
-  String get tourServerBody =>
-      'Thinai includes a built-in HTTP server. Run on-device inference as a drop-in replacement for OpenAI and Ollama APIs for external developer tools.';
+  String get tourServerBody => 'Use it from any OpenAI or Ollama tool.';
 
   @override
-  String get tourEndpointsTitle => 'Localhost Endpoints';
+  String get tourEndpointsTitle => 'Endpoints';
 
   @override
   String tourPortBadge(String port) {
@@ -978,56 +965,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tourCompatibleWith(String tools) {
-    return 'Compatible with: $tools';
+    return 'Works with $tools';
   }
 
   @override
-  String get tourStartTag => 'READY TO LAUNCH';
+  String get tourStartTag => 'GET STARTED';
 
   @override
-  String get tourStartTitle => 'Choose Your\nStarting Point.';
+  String get tourStartTitle => 'Where to start?';
 
   @override
-  String get tourStartBody => 'Select how you want to experience Thinai today:';
+  String get tourOptionStarterTitle => 'Starter model';
 
   @override
-  String tourOptionStarterTitle(String model) {
-    return '1. Download Starter Model ($model)';
+  String tourOptionStarterBody(String model, String size) {
+    return '$model, ~$size';
   }
 
   @override
-  String tourOptionStarterBody(String size) {
-    return 'Smallest verified model (~$size). Fast download, runs smoothly on any device.';
-  }
+  String get tourOptionCatalogTitle => 'Full catalog';
 
   @override
-  String get tourOptionStarterButton => 'Get Starter Model';
+  String get tourOptionCatalogBody => '30+ GGUF models';
 
   @override
-  String get tourOptionCatalogTitle => '2. Browse Complete Catalog';
+  String get tourOptionLiveTitle => 'Guided tour';
 
   @override
-  String get tourOptionCatalogBody =>
-      'Explore 30+ GGUF models from Meta, Google, Microsoft, and Alibaba.';
+  String get tourOptionLiveBody => 'Tab by tab';
 
   @override
-  String get tourOptionCatalogButton => 'Open Models Catalog';
+  String get tourCompleteTour => 'Finish';
 
   @override
-  String get tourOptionLiveTitle => '3. Take Live In-App Guided Tour';
-
-  @override
-  String get tourOptionLiveBody =>
-      'Follow our step-by-step floating guide through the live tabs.';
-
-  @override
-  String get tourOptionLiveButton => 'Start Live Guide';
-
-  @override
-  String get tourCompleteTour => 'Complete Tour';
-
-  @override
-  String get tourNextStep => 'Next Step';
+  String get tourNextStep => 'Next';
 
   @override
   String tourDockStep(int step, int total) {
@@ -1035,189 +1006,144 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tourExitTour => 'Exit Tour';
+  String get tourExitTour => 'Exit';
 
   @override
-  String get tourPrevious => 'Previous';
+  String get tourPrevious => 'Back';
 
   @override
-  String get tourFinishTour => 'Finish Tour';
+  String get tourFinishTour => 'Finish';
 
   @override
-  String get tourDockModelsTitle => 'Models Catalog (Tab 2)';
+  String get tourDockModelsTitle => 'Models';
 
   @override
-  String get tourDockModelsBody =>
-      'Browse verified GGUF models. Check the RAM fit indicator (Safe / Tight) to choose a model that runs smoothly on your phone.';
+  String get tourDockModelsBody => 'Pick a model that fits your RAM.';
 
   @override
-  String get tourDockManageTitle => 'Management & Benchmarking';
+  String get tourDockManageTitle => 'Downloads & speed';
 
   @override
-  String get tourDockManageBody =>
-      'Use the top-right icons to manage downloads or tap the Speedometer icon to benchmark real token generation speed on your phone.';
+  String get tourDockManageBody => 'Top-right icons: downloads and speed test.';
 
   @override
-  String get tourDockChatTitle => 'Chat Studio (Tab 1)';
+  String get tourDockChatTitle => 'Chat';
 
   @override
-  String get tourDockChatBody =>
-      'Chat with full privacy. Attach photos or documents for multimodal analysis, and watch live tokens-per-second streaming.';
+  String get tourDockChatBody => 'Chat privately. Attach photos or documents.';
 
   @override
-  String get tourDockServerTitle => 'Local API Server (Tab 3)';
+  String get tourDockServerTitle => 'Local API server';
 
   @override
   String tourDockServerBody(String address) {
-    return 'Turn your phone into a private OpenAI-compatible endpoint on $address for Cursor, Continue, or your own developer scripts.';
+    return 'An OpenAI-compatible endpoint at $address.';
   }
 
   @override
   String get tourAppTour => 'App Tour';
 
   @override
-  String get tourLocatingControl => 'Locating control…';
+  String get tourLocatingControl => 'Finding…';
 
   @override
   String get tourWelcomeTitle => 'Welcome to Thinai';
 
   @override
-  String get tourWelcomeOfflineBadge => 'OFFLINE';
+  String get tourWelcomeSubtitle => 'Private AI on your phone';
 
   @override
-  String get tourWelcomeSubtitle => 'Sovereign on-device intelligence';
-
-  @override
-  String get tourWelcomePrivateTitle => '100% Private & On-Device';
+  String get tourWelcomePrivateTitle => 'Private and offline';
 
   @override
   String get tourWelcomePrivateBody =>
-      'Models execute directly on your phone hardware. Zero data leaves your device and no internet is required.';
+      'Runs on your phone. No internet needed.';
 
   @override
-  String get tourWelcomeCatalogTitle => 'Curated Open Weights Catalog';
+  String get tourWelcomeCatalogTitle => 'Open models';
 
   @override
   String get tourWelcomeCatalogBody =>
-      'Download verified GGUF models from Meta, Google, Microsoft, and Alibaba with one tap.';
+      'Get Llama, Gemma, Qwen and more in one tap.';
 
   @override
-  String get tourWelcomeChatTitle => 'Rich Chat & Multimodal';
+  String get tourWelcomeChatTitle => 'Chat with files';
 
   @override
-  String get tourWelcomeChatBody =>
-      'Chat with high speed, attach images or documents, and manage conversations with full control.';
+  String get tourWelcomeChatBody => 'Attach images or documents.';
 
   @override
-  String get tourWelcomeStartTour => 'Start Interactive App Tour';
+  String get tourWelcomeStartTour => 'Take the tour';
 
   @override
-  String get tourWelcomeBrowseCatalog => 'Browse Catalog';
+  String get tourWelcomeBrowseCatalog => 'Models';
 
   @override
-  String get tourWelcomeSkipToChat => 'Skip to Chat';
+  String get tourWelcomeSkipToChat => 'Chat';
 
   @override
   String get onboardingLogoLabel => 'Thinai App Logo';
 
   @override
-  String get onboardingPrivateTag => '100% PRIVATE & OFFLINE';
+  String get onboardingPrivateTag => 'PRIVATE & OFFLINE';
 
   @override
-  String get onboardingPrivateHeadline =>
-      'True Intelligence,\nEntirely On Your Phone';
+  String get onboardingPrivateHeadline => 'AI that runs\non your phone';
 
   @override
   String get onboardingPrivateBody =>
-      'Thinai executes high-parameter AI models directly on your mobile hardware. Zero data leaves your phone, zero telemetry, and zero cloud reliance.';
+      'Nothing leaves your device. Works in Airplane mode.';
 
   @override
   String get onboardingPrivateGraphic => '100% Private and Offline AI';
 
   @override
-  String get onboardingPrivateBullet1 =>
-      'Zero data leaves your device RAM or storage';
+  String get onboardingCatalogTag => 'MODEL CATALOG';
 
   @override
-  String get onboardingPrivateBullet2 =>
-      'Fully functional offline & in Airplane mode';
-
-  @override
-  String get onboardingCatalogTag => 'VERIFIED GGUF CATALOG';
-
-  @override
-  String get onboardingCatalogHeadline =>
-      'Curated Open Weights\nIn a Single Tap';
+  String get onboardingCatalogHeadline => 'Open models,\none tap away';
 
   @override
   String get onboardingCatalogBody =>
-      'Download state-of-the-art open models directly from HuggingFace. Quantized with modern precision for smooth mobile execution.';
+      'Llama, Gemma, Qwen and more, sized for phones.';
 
   @override
   String get onboardingCatalogGraphic => 'Curated GGUF Model Catalog';
 
   @override
-  String get onboardingCatalogBullet1 =>
-      'DeepSeek, Meta Llama, Google Gemma & Qwen';
+  String get onboardingGpuTag => 'GPU ACCELERATION';
 
   @override
-  String get onboardingCatalogBullet2 =>
-      'Automatic background resume with foreground service';
+  String get onboardingGpuHeadline => 'Fast on\nyour hardware';
 
   @override
-  String get onboardingGpuTag => 'HARDWARE ACCELERATION';
-
-  @override
-  String get onboardingGpuHeadline =>
-      'Llama.cpp Engine\nWith Adreno & Mali GPU';
-
-  @override
-  String get onboardingGpuBody =>
-      'Built with native llama.cpp compiled for ARM64 with Qualcomm Adreno OpenCL and ARM Mali Vulkan GPU layer offloading.';
+  String get onboardingGpuBody => 'llama.cpp with Adreno and Mali GPU support.';
 
   @override
   String get onboardingGpuGraphic => 'GPU Hardware Acceleration Rocket';
 
   @override
-  String get onboardingGpuBullet1 =>
-      'Hardware GPU acceleration for instant response';
+  String get onboardingStudioTag => 'IMAGES & DOCUMENTS';
 
   @override
-  String get onboardingGpuBullet2 =>
-      'Live tokens/sec metrics and thermal-safe limits';
-
-  @override
-  String get onboardingStudioTag => 'MULTIMODAL STUDIO';
-
-  @override
-  String get onboardingStudioHeadline =>
-      'Vision, Documents\n& Live Web Synthesis';
+  String get onboardingStudioHeadline => 'Photos, files\nand the web';
 
   @override
   String get onboardingStudioBody =>
-      'Engage in smart conversations with vision models, attach PDF & text files for instant summaries, and query live web results on-demand.';
+      'Attach a photo or file. Search the web too.';
 
   @override
   String get onboardingStudioGraphic => 'Multimodal Vision and Document QA';
 
   @override
-  String get onboardingStudioBullet1 =>
-      'Multimodal vision image inspection (Gemma, MiniCPM)';
+  String get onboardingServerTag => 'LOCAL API';
 
   @override
-  String get onboardingStudioBullet2 =>
-      'Privacy-preserving web search & document QA';
-
-  @override
-  String get onboardingServerTag => 'LOCAL DEVELOPER API';
-
-  @override
-  String get onboardingServerHeadline =>
-      'Turn Your Phone\nInto a Local AI Server';
+  String get onboardingServerHeadline => 'Your phone,\nan AI server';
 
   @override
   String onboardingServerBody(String port) {
-    return 'Expose an OpenAI & Ollama compatible REST API on port $port. Seamlessly connect VS Code extensions, Cline, Cursor, or terminal scripts.';
+    return 'OpenAI and Ollama API on port $port.';
   }
 
   @override
@@ -1226,18 +1152,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get onboardingServerBullet1 =>
-      'Compatible with OpenAI SDK & Ollama CLI';
+  String get onboardingStartButton => 'Get started';
 
   @override
-  String get onboardingServerBullet2 =>
-      'Wi-Fi LAN sharing to serve laptops on your network';
-
-  @override
-  String get onboardingStartButton => 'Start Using Thinai Now';
-
-  @override
-  String get splashTagline => 'SOVEREIGN ON-DEVICE INTELLIGENCE';
+  String get splashTagline => 'PRIVATE ON-DEVICE AI';
 
   @override
   String splashCraftedIn(String place) {
@@ -1287,11 +1205,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatSearchBlocked =>
-      'Search engines are rate-limiting this network right now. Answering without the web.';
+      'Web search is blocked right now. Answering without it.';
 
   @override
-  String get chatSearchNoResults =>
-      'No web results for that. Answering from the model itself.';
+  String get chatSearchNoResults => 'No web results. Answering without them.';
 
   @override
   String chatSearchErrorFallback(String message) {
@@ -1322,12 +1239,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMenuTooltip => 'Menu & Chats';
 
   @override
-  String get chatBannerNoModelLoaded =>
-      'No model loaded. Tap to select or browse.';
+  String get chatBannerNoModelLoaded => 'No model loaded.';
 
   @override
-  String get chatBannerNoModelDownloaded =>
-      'No model downloaded. Tap to download.';
+  String get chatBannerNoModelDownloaded => 'No model yet.';
 
   @override
   String get chatSelect => 'Select';
@@ -1351,7 +1266,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count installed on device',
+      other: '$count installed',
     );
     return '$_temp0';
   }
@@ -1360,8 +1275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatNoModelsDownloadedYet => 'No models downloaded yet';
 
   @override
-  String get chatDownloadFromCatalogue =>
-      'Download an open model from the catalogue to begin chatting.';
+  String get chatDownloadFromCatalogue => 'Download a model to start.';
 
   @override
   String get chatBrowseModels => 'Browse Models';
@@ -1376,32 +1290,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEmptyTitle => 'Private Offline AI';
 
   @override
-  String get chatEmptyBody =>
-      'Chat privately with AI models that run 100% on your phone. No internet required, zero cloud tracking, and your data never leaves your device.';
+  String get chatEmptyBody => 'Runs fully on your phone. Your data stays here.';
 
   @override
-  String get chatBrowseDownloadModels => 'Browse & Download Models';
+  String get chatBrowseDownloadModels => 'Get a model';
 
   @override
-  String get chatReadyWebSearchOn => 'AI Ready · Web Search On';
+  String get chatReadyWebSearchOn => 'Ready · Web search on';
 
   @override
-  String get chatReadyOffline => 'AI Ready · 100% Offline';
+  String get chatReadyOffline => 'Ready · Offline';
 
   @override
-  String get chatRunningPrivately => 'Running privately on your phone silicon.';
+  String get chatStarterBrainstorm => 'Ideas';
 
   @override
-  String get chatStarterBrainstorm => 'Brainstorm ideas';
+  String get chatStarterPython => 'Python code';
 
   @override
-  String get chatStarterPython => 'Write Python code';
+  String get chatStarterSummarize => 'Summarize';
 
   @override
-  String get chatStarterSummarize => 'Summarize text';
-
-  @override
-  String get chatStarterSpeed => 'Measure speed';
+  String get chatStarterSpeed => 'Speed test';
 
   @override
   String chatAttachmentTrimmed(String size) {
@@ -1412,7 +1322,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputHintGenerating => 'Generating…';
 
   @override
-  String get chatInputHint => 'Message your model';
+  String get chatInputHint => 'Ask anything';
 
   @override
   String get chatStop => 'Stop';
@@ -1421,7 +1331,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatSend => 'Send';
 
   @override
-  String get chatCopiedToClipboard => 'Copied to clipboard';
+  String get chatCopiedToClipboard => 'Copied';
 
   @override
   String get chatCopyText => 'Copy text';
@@ -1439,13 +1349,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDialWebSearch => 'Web search';
 
   @override
-  String get chatDialWebSearchAuto => 'Automatic, on when needed';
+  String get chatDialWebSearchAuto => 'When needed';
 
   @override
   String get chatDialCamera => 'Camera';
 
   @override
-  String get chatDialCameraDetail => 'Take a photo now';
+  String get chatDialCameraDetail => 'Take a photo';
 
   @override
   String get chatDialNeedsVision => 'Needs a vision model';
@@ -1570,23 +1480,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDrawerModelSettings => 'Model Settings';
 
   @override
-  String get chatDrawerModelSettingsSubtitle => 'Context, sampling & thinking';
+  String get chatDrawerModelSettingsSubtitle => 'Context, sampling, thinking';
 
   @override
-  String get chatDrawerNoModelSnack =>
-      'No model downloaded yet. Download a model from the Models tab first.';
+  String get chatDrawerNoModelSnack => 'Download a model first.';
 
   @override
   String get chatDrawerAppSettings => 'App Settings';
 
   @override
-  String get chatDrawerAppSettingsSubtitle => 'Theme, GPU, downloads & server';
+  String get chatDrawerAppSettingsSubtitle => 'Theme, GPU, server';
 
   @override
   String get chatDrawerAbout => 'About Thinai';
 
   @override
-  String get chatDrawerAboutSubtitle => 'Version, privacy & details';
+  String get chatDrawerAboutSubtitle => 'Version, privacy';
 
   @override
   String chatDrawerDeleteManyTitle(int count) {
@@ -1600,17 +1509,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String chatDrawerDeleteManyBody(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other:
-          'Are you sure you want to permanently delete $count selected conversations? This action cannot be undone.',
-      one:
-          'Are you sure you want to permanently delete 1 selected conversation? This action cannot be undone.',
-    );
-    return '$_temp0';
-  }
+  String get chatDrawerDeleteManyBody => 'This cannot be undone.';
 
   @override
   String chatDrawerDeletedCount(int count) {
@@ -1624,10 +1523,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatDrawerSelectManage => 'Select / Manage';
+  String get chatDrawerSelectManage => 'Select';
 
   @override
-  String get chatDrawerRenameTitle => 'Rename title';
+  String get chatDrawerRenameTitle => 'Rename';
 
   @override
   String get chatDeleteChat => 'Delete chat';
@@ -1643,18 +1542,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatDrawerDeleteOneBody(String title) {
-    return 'Are you sure you want to delete \"$title\"? This cannot be undone.';
+    return '\"$title\" will be deleted for good.';
   }
 
   @override
-  String get chatDrawerNoHistory => 'No past conversations';
+  String get chatDrawerNoHistory => 'No chats yet';
 
   @override
-  String get chatDrawerNoHistoryHint => 'Start a chat to keep history here.';
+  String get chatDrawerNoHistoryHint => 'Your chats show up here.';
 
   @override
   String chatDrawerNoResults(String query) {
-    return 'No chats found for \"$query\"';
+    return 'No chats for \"$query\"';
   }
 
   @override
@@ -1673,7 +1572,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatGroupOlder => 'Older';
 
   @override
-  String get chatHistoryTitle => 'Chat history';
+  String get chatHistoryTitle => 'History';
 
   @override
   String get chatHistoryDeleteAllTooltip => 'Delete all chats';
@@ -1683,7 +1582,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatHistoryDeleteAllBody =>
-      'Every saved conversation is removed. This cannot be undone.';
+      'Every saved chat is deleted for good.';
 
   @override
   String get chatHistoryDeleteAll => 'Delete all';
@@ -1692,11 +1591,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatHistoryDeleteOneTitle => 'Delete this chat?';
 
   @override
-  String get chatHistorySearchHint => 'Search conversations…';
+  String get chatHistorySearchHint => 'Search chats…';
 
   @override
   String chatHistoryNoResults(String query) {
-    return 'No chats matching \"$query\"';
+    return 'No chats for \"$query\"';
   }
 
   @override
@@ -1714,11 +1613,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatHistoryEmptyTitle => 'No saved chats yet';
+  String get chatHistoryEmptyTitle => 'No chats yet';
 
   @override
   String get chatHistoryEmptyBody =>
-      'Start a conversation and it will appear here.\nEverything stays on this device.';
+      'Your chats show up here, on this device only.';
 
   @override
   String get chatTimeJustNow => 'Just now';
@@ -1749,7 +1648,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatAppRestartBody =>
-      'A model is still downloading. Restarting pauses it, and you can resume it from the Models page.';
+      'A model download will pause. You can resume it later.';
 
   @override
   String get chatAppRestart => 'Restart';
@@ -1758,18 +1657,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAppUpdateReady => 'Update ready';
 
   @override
-  String get chatAppUpdateAvailable => 'Update available';
+  String get chatAppUpdateAvailable => 'New version';
 
   @override
-  String get chatAppUpdateDownloading => 'Downloading in the background…';
-
-  @override
-  String get chatAppUpdateRestartToInstall =>
-      'Restart Thinai to finish installing.';
-
-  @override
-  String get chatAppUpdateOnPlayStore =>
-      'A newer version of Thinai is on Play Store.';
+  String get chatAppUpdateDownloading => 'Downloading…';
 
   @override
   String get modelsToastDownloadPaused =>

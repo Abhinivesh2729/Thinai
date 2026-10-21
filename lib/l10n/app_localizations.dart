@@ -1558,7 +1558,7 @@ abstract class AppLocalizations {
   /// No description provided for @tourCloseTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Close Tour'**
+  /// **'Close tour'**
   String get tourCloseTooltip;
 
   /// No description provided for @tourStageLabel.
@@ -1570,151 +1570,145 @@ abstract class AppLocalizations {
   /// No description provided for @tourPrivateTag.
   ///
   /// In en, this message translates to:
-  /// **'100% PRIVATE & SOVEREIGN'**
+  /// **'PRIVATE BY DESIGN'**
   String get tourPrivateTag;
 
   /// No description provided for @tourPrivateTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Hardware.\nYour Intelligence.'**
+  /// **'Your phone.\nYour AI.'**
   String get tourPrivateTitle;
 
   /// No description provided for @tourPrivateBody.
   ///
   /// In en, this message translates to:
-  /// **'Thinai executes large language models directly on your phone’s processor. Zero chat queries, images, or documents ever leave your device.'**
+  /// **'Models run on your phone. Nothing leaves it.'**
   String get tourPrivateBody;
 
   /// No description provided for @tourOnDeviceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Thinai (On-Device)'**
+  /// **'Thinai, on device'**
   String get tourOnDeviceTitle;
 
   /// No description provided for @tourOnDeviceBody.
   ///
   /// In en, this message translates to:
-  /// **'Runs offline in Airplane mode · Zero data collection · llama.cpp silicon execution · No subscription'**
+  /// **'Offline · No tracking · No subscription'**
   String get tourOnDeviceBody;
 
   /// No description provided for @tourCloudTitle.
   ///
   /// In en, this message translates to:
-  /// **'Traditional Cloud AI'**
+  /// **'Cloud AI'**
   String get tourCloudTitle;
 
   /// No description provided for @tourCloudBody.
   ///
   /// In en, this message translates to:
-  /// **'Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls'**
+  /// **'Logs chats · Needs internet · Paid'**
   String get tourCloudBody;
-
-  /// No description provided for @tourDeviceReady.
-  ///
-  /// In en, this message translates to:
-  /// **'Device Ready: Hardware acceleration available for local GGUF models.'**
-  String get tourDeviceReady;
 
   /// No description provided for @tourCatalogTag.
   ///
   /// In en, this message translates to:
-  /// **'CURATED GGUF CATALOG'**
+  /// **'MODEL CATALOG'**
   String get tourCatalogTag;
 
   /// No description provided for @tourCatalogTitle.
   ///
   /// In en, this message translates to:
-  /// **'World-Class Models,\nTailored to Your RAM.'**
+  /// **'Great models,\nsized for your RAM.'**
   String get tourCatalogTitle;
 
   /// No description provided for @tourCatalogBody.
   ///
   /// In en, this message translates to:
-  /// **'Explore open-weight models from Alibaba, Meta, Google, and Microsoft. Thinai automatically inspects your phone’s memory to advise what runs smoothly.'**
+  /// **'Thinai checks your memory and shows what runs well.'**
   String get tourCatalogBody;
 
   /// No description provided for @tourMemoryFitTitle.
   ///
   /// In en, this message translates to:
-  /// **'Smart Memory Fit System'**
+  /// **'Memory fit'**
   String get tourMemoryFitTitle;
 
   /// No description provided for @tourFitEasyLabel.
   ///
   /// In en, this message translates to:
-  /// **'Fits Easily'**
+  /// **'Fits'**
   String get tourFitEasyLabel;
 
   /// No description provided for @tourFitEasyBody.
   ///
   /// In en, this message translates to:
-  /// **'Guaranteed smooth response, low battery footprint.'**
+  /// **'Smooth, light on battery.'**
   String get tourFitEasyBody;
 
   /// No description provided for @tourFitTightLabel.
   ///
   /// In en, this message translates to:
-  /// **'Tight Fit'**
+  /// **'Tight'**
   String get tourFitTightLabel;
 
   /// No description provided for @tourFitTightBody.
   ///
   /// In en, this message translates to:
-  /// **'Runs well, close other heavy background apps.'**
+  /// **'Close heavy apps first.'**
   String get tourFitTightBody;
 
   /// No description provided for @tourFitTooBigLabel.
   ///
   /// In en, this message translates to:
-  /// **'Too Big'**
+  /// **'Too big'**
   String get tourFitTooBigLabel;
 
   /// No description provided for @tourFitTooBigBody.
   ///
   /// In en, this message translates to:
-  /// **'Warns you so your operating system never crashes.'**
+  /// **'You are warned first.'**
   String get tourFitTooBigBody;
 
   /// No description provided for @tourStarterTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recommended Starter: {model} (~{size})'**
+  /// **'Start with {model} (~{size})'**
   String tourStarterTitle(String model, String size);
 
   /// No description provided for @tourStarterBody.
   ///
   /// In en, this message translates to:
-  /// **'Smallest and fastest chat model, runs instantly on any phone.'**
+  /// **'Small and fast on any phone.'**
   String get tourStarterBody;
 
   /// No description provided for @tourChatTag.
   ///
   /// In en, this message translates to:
-  /// **'CHAT STUDIO & VISION'**
+  /// **'CHAT & VISION'**
   String get tourChatTag;
 
   /// No description provided for @tourChatTitle.
   ///
   /// In en, this message translates to:
-  /// **'Full Multimodal Studio\nWith Live Reasoning.'**
+  /// **'Chat with\nyour photos.'**
   String get tourChatTitle;
 
   /// No description provided for @tourChatBody.
   ///
   /// In en, this message translates to:
-  /// **'Chat with zero lag, attach camera photos for vision models, and watch real-time generation speed right on the response bubbles.'**
+  /// **'Attach a photo and watch the speed live.'**
   String get tourChatBody;
 
   /// No description provided for @tourDemoPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Explain quantum superposition simply.'**
+  /// **'Explain superposition simply.'**
   String get tourDemoPrompt;
 
   /// No description provided for @tourDemoReply.
   ///
   /// In en, this message translates to:
-  /// **'A particle can exist in multiple possible states at once until measured, like a spinning coin before it lands.'**
+  /// **'A particle can be in many states until measured, like a spinning coin.'**
   String get tourDemoReply;
 
   /// No description provided for @tourDemoSpeed.
@@ -1726,43 +1720,43 @@ abstract class AppLocalizations {
   /// No description provided for @tourFeatureReasoning.
   ///
   /// In en, this message translates to:
-  /// **'Reasoning Traces'**
+  /// **'Reasoning'**
   String get tourFeatureReasoning;
 
   /// No description provided for @tourFeatureVision.
   ///
   /// In en, this message translates to:
-  /// **'Camera & Vision'**
+  /// **'Vision'**
   String get tourFeatureVision;
 
   /// No description provided for @tourFeaturePersonas.
   ///
   /// In en, this message translates to:
-  /// **'Custom Personas'**
+  /// **'Personas'**
   String get tourFeaturePersonas;
 
   /// No description provided for @tourServerTag.
   ///
   /// In en, this message translates to:
-  /// **'OPENAI COMPATIBLE API'**
+  /// **'LOCAL API'**
   String get tourServerTag;
 
   /// No description provided for @tourServerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Turn Your Phone Into\nA Private AI Server.'**
+  /// **'Your phone,\na private AI server.'**
   String get tourServerTitle;
 
   /// No description provided for @tourServerBody.
   ///
   /// In en, this message translates to:
-  /// **'Thinai includes a built-in HTTP server. Run on-device inference as a drop-in replacement for OpenAI and Ollama APIs for external developer tools.'**
+  /// **'Use it from any OpenAI or Ollama tool.'**
   String get tourServerBody;
 
   /// No description provided for @tourEndpointsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Localhost Endpoints'**
+  /// **'Endpoints'**
   String get tourEndpointsTitle;
 
   /// No description provided for @tourPortBadge.
@@ -1774,91 +1768,67 @@ abstract class AppLocalizations {
   /// No description provided for @tourCompatibleWith.
   ///
   /// In en, this message translates to:
-  /// **'Compatible with: {tools}'**
+  /// **'Works with {tools}'**
   String tourCompatibleWith(String tools);
 
   /// No description provided for @tourStartTag.
   ///
   /// In en, this message translates to:
-  /// **'READY TO LAUNCH'**
+  /// **'GET STARTED'**
   String get tourStartTag;
 
   /// No description provided for @tourStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose Your\nStarting Point.'**
+  /// **'Where to start?'**
   String get tourStartTitle;
-
-  /// No description provided for @tourStartBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Select how you want to experience Thinai today:'**
-  String get tourStartBody;
 
   /// No description provided for @tourOptionStarterTitle.
   ///
   /// In en, this message translates to:
-  /// **'1. Download Starter Model ({model})'**
-  String tourOptionStarterTitle(String model);
+  /// **'Starter model'**
+  String get tourOptionStarterTitle;
 
   /// No description provided for @tourOptionStarterBody.
   ///
   /// In en, this message translates to:
-  /// **'Smallest verified model (~{size}). Fast download, runs smoothly on any device.'**
-  String tourOptionStarterBody(String size);
-
-  /// No description provided for @tourOptionStarterButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Get Starter Model'**
-  String get tourOptionStarterButton;
+  /// **'{model}, ~{size}'**
+  String tourOptionStarterBody(String model, String size);
 
   /// No description provided for @tourOptionCatalogTitle.
   ///
   /// In en, this message translates to:
-  /// **'2. Browse Complete Catalog'**
+  /// **'Full catalog'**
   String get tourOptionCatalogTitle;
 
   /// No description provided for @tourOptionCatalogBody.
   ///
   /// In en, this message translates to:
-  /// **'Explore 30+ GGUF models from Meta, Google, Microsoft, and Alibaba.'**
+  /// **'30+ GGUF models'**
   String get tourOptionCatalogBody;
-
-  /// No description provided for @tourOptionCatalogButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Models Catalog'**
-  String get tourOptionCatalogButton;
 
   /// No description provided for @tourOptionLiveTitle.
   ///
   /// In en, this message translates to:
-  /// **'3. Take Live In-App Guided Tour'**
+  /// **'Guided tour'**
   String get tourOptionLiveTitle;
 
   /// No description provided for @tourOptionLiveBody.
   ///
   /// In en, this message translates to:
-  /// **'Follow our step-by-step floating guide through the live tabs.'**
+  /// **'Tab by tab'**
   String get tourOptionLiveBody;
-
-  /// No description provided for @tourOptionLiveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Start Live Guide'**
-  String get tourOptionLiveButton;
 
   /// No description provided for @tourCompleteTour.
   ///
   /// In en, this message translates to:
-  /// **'Complete Tour'**
+  /// **'Finish'**
   String get tourCompleteTour;
 
   /// No description provided for @tourNextStep.
   ///
   /// In en, this message translates to:
-  /// **'Next Step'**
+  /// **'Next'**
   String get tourNextStep;
 
   /// No description provided for @tourDockStep.
@@ -1870,67 +1840,67 @@ abstract class AppLocalizations {
   /// No description provided for @tourExitTour.
   ///
   /// In en, this message translates to:
-  /// **'Exit Tour'**
+  /// **'Exit'**
   String get tourExitTour;
 
   /// No description provided for @tourPrevious.
   ///
   /// In en, this message translates to:
-  /// **'Previous'**
+  /// **'Back'**
   String get tourPrevious;
 
   /// No description provided for @tourFinishTour.
   ///
   /// In en, this message translates to:
-  /// **'Finish Tour'**
+  /// **'Finish'**
   String get tourFinishTour;
 
   /// No description provided for @tourDockModelsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Models Catalog (Tab 2)'**
+  /// **'Models'**
   String get tourDockModelsTitle;
 
   /// No description provided for @tourDockModelsBody.
   ///
   /// In en, this message translates to:
-  /// **'Browse verified GGUF models. Check the RAM fit indicator (Safe / Tight) to choose a model that runs smoothly on your phone.'**
+  /// **'Pick a model that fits your RAM.'**
   String get tourDockModelsBody;
 
   /// No description provided for @tourDockManageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Management & Benchmarking'**
+  /// **'Downloads & speed'**
   String get tourDockManageTitle;
 
   /// No description provided for @tourDockManageBody.
   ///
   /// In en, this message translates to:
-  /// **'Use the top-right icons to manage downloads or tap the Speedometer icon to benchmark real token generation speed on your phone.'**
+  /// **'Top-right icons: downloads and speed test.'**
   String get tourDockManageBody;
 
   /// No description provided for @tourDockChatTitle.
   ///
   /// In en, this message translates to:
-  /// **'Chat Studio (Tab 1)'**
+  /// **'Chat'**
   String get tourDockChatTitle;
 
   /// No description provided for @tourDockChatBody.
   ///
   /// In en, this message translates to:
-  /// **'Chat with full privacy. Attach photos or documents for multimodal analysis, and watch live tokens-per-second streaming.'**
+  /// **'Chat privately. Attach photos or documents.'**
   String get tourDockChatBody;
 
   /// No description provided for @tourDockServerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Local API Server (Tab 3)'**
+  /// **'Local API server'**
   String get tourDockServerTitle;
 
   /// No description provided for @tourDockServerBody.
   ///
   /// In en, this message translates to:
-  /// **'Turn your phone into a private OpenAI-compatible endpoint on {address} for Cursor, Continue, or your own developer scripts.'**
+  /// **'An OpenAI-compatible endpoint at {address}.'**
   String tourDockServerBody(String address);
 
   /// No description provided for @tourAppTour.
@@ -1942,7 +1912,7 @@ abstract class AppLocalizations {
   /// No description provided for @tourLocatingControl.
   ///
   /// In en, this message translates to:
-  /// **'Locating control…'**
+  /// **'Finding…'**
   String get tourLocatingControl;
 
   /// No description provided for @tourWelcomeTitle.
@@ -1951,70 +1921,64 @@ abstract class AppLocalizations {
   /// **'Welcome to Thinai'**
   String get tourWelcomeTitle;
 
-  /// No description provided for @tourWelcomeOfflineBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'OFFLINE'**
-  String get tourWelcomeOfflineBadge;
-
   /// No description provided for @tourWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sovereign on-device intelligence'**
+  /// **'Private AI on your phone'**
   String get tourWelcomeSubtitle;
 
   /// No description provided for @tourWelcomePrivateTitle.
   ///
   /// In en, this message translates to:
-  /// **'100% Private & On-Device'**
+  /// **'Private and offline'**
   String get tourWelcomePrivateTitle;
 
   /// No description provided for @tourWelcomePrivateBody.
   ///
   /// In en, this message translates to:
-  /// **'Models execute directly on your phone hardware. Zero data leaves your device and no internet is required.'**
+  /// **'Runs on your phone. No internet needed.'**
   String get tourWelcomePrivateBody;
 
   /// No description provided for @tourWelcomeCatalogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Curated Open Weights Catalog'**
+  /// **'Open models'**
   String get tourWelcomeCatalogTitle;
 
   /// No description provided for @tourWelcomeCatalogBody.
   ///
   /// In en, this message translates to:
-  /// **'Download verified GGUF models from Meta, Google, Microsoft, and Alibaba with one tap.'**
+  /// **'Get Llama, Gemma, Qwen and more in one tap.'**
   String get tourWelcomeCatalogBody;
 
   /// No description provided for @tourWelcomeChatTitle.
   ///
   /// In en, this message translates to:
-  /// **'Rich Chat & Multimodal'**
+  /// **'Chat with files'**
   String get tourWelcomeChatTitle;
 
   /// No description provided for @tourWelcomeChatBody.
   ///
   /// In en, this message translates to:
-  /// **'Chat with high speed, attach images or documents, and manage conversations with full control.'**
+  /// **'Attach images or documents.'**
   String get tourWelcomeChatBody;
 
   /// No description provided for @tourWelcomeStartTour.
   ///
   /// In en, this message translates to:
-  /// **'Start Interactive App Tour'**
+  /// **'Take the tour'**
   String get tourWelcomeStartTour;
 
   /// No description provided for @tourWelcomeBrowseCatalog.
   ///
   /// In en, this message translates to:
-  /// **'Browse Catalog'**
+  /// **'Models'**
   String get tourWelcomeBrowseCatalog;
 
   /// No description provided for @tourWelcomeSkipToChat.
   ///
   /// In en, this message translates to:
-  /// **'Skip to Chat'**
+  /// **'Chat'**
   String get tourWelcomeSkipToChat;
 
   /// No description provided for @onboardingLogoLabel.
@@ -2026,19 +1990,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPrivateTag.
   ///
   /// In en, this message translates to:
-  /// **'100% PRIVATE & OFFLINE'**
+  /// **'PRIVATE & OFFLINE'**
   String get onboardingPrivateTag;
 
   /// No description provided for @onboardingPrivateHeadline.
   ///
   /// In en, this message translates to:
-  /// **'True Intelligence,\nEntirely On Your Phone'**
+  /// **'AI that runs\non your phone'**
   String get onboardingPrivateHeadline;
 
   /// No description provided for @onboardingPrivateBody.
   ///
   /// In en, this message translates to:
-  /// **'Thinai executes high-parameter AI models directly on your mobile hardware. Zero data leaves your phone, zero telemetry, and zero cloud reliance.'**
+  /// **'Nothing leaves your device. Works in Airplane mode.'**
   String get onboardingPrivateBody;
 
   /// No description provided for @onboardingPrivateGraphic.
@@ -2047,34 +2011,22 @@ abstract class AppLocalizations {
   /// **'100% Private and Offline AI'**
   String get onboardingPrivateGraphic;
 
-  /// No description provided for @onboardingPrivateBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'Zero data leaves your device RAM or storage'**
-  String get onboardingPrivateBullet1;
-
-  /// No description provided for @onboardingPrivateBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Fully functional offline & in Airplane mode'**
-  String get onboardingPrivateBullet2;
-
   /// No description provided for @onboardingCatalogTag.
   ///
   /// In en, this message translates to:
-  /// **'VERIFIED GGUF CATALOG'**
+  /// **'MODEL CATALOG'**
   String get onboardingCatalogTag;
 
   /// No description provided for @onboardingCatalogHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Curated Open Weights\nIn a Single Tap'**
+  /// **'Open models,\none tap away'**
   String get onboardingCatalogHeadline;
 
   /// No description provided for @onboardingCatalogBody.
   ///
   /// In en, this message translates to:
-  /// **'Download state-of-the-art open models directly from HuggingFace. Quantized with modern precision for smooth mobile execution.'**
+  /// **'Llama, Gemma, Qwen and more, sized for phones.'**
   String get onboardingCatalogBody;
 
   /// No description provided for @onboardingCatalogGraphic.
@@ -2083,34 +2035,22 @@ abstract class AppLocalizations {
   /// **'Curated GGUF Model Catalog'**
   String get onboardingCatalogGraphic;
 
-  /// No description provided for @onboardingCatalogBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'DeepSeek, Meta Llama, Google Gemma & Qwen'**
-  String get onboardingCatalogBullet1;
-
-  /// No description provided for @onboardingCatalogBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Automatic background resume with foreground service'**
-  String get onboardingCatalogBullet2;
-
   /// No description provided for @onboardingGpuTag.
   ///
   /// In en, this message translates to:
-  /// **'HARDWARE ACCELERATION'**
+  /// **'GPU ACCELERATION'**
   String get onboardingGpuTag;
 
   /// No description provided for @onboardingGpuHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Llama.cpp Engine\nWith Adreno & Mali GPU'**
+  /// **'Fast on\nyour hardware'**
   String get onboardingGpuHeadline;
 
   /// No description provided for @onboardingGpuBody.
   ///
   /// In en, this message translates to:
-  /// **'Built with native llama.cpp compiled for ARM64 with Qualcomm Adreno OpenCL and ARM Mali Vulkan GPU layer offloading.'**
+  /// **'llama.cpp with Adreno and Mali GPU support.'**
   String get onboardingGpuBody;
 
   /// No description provided for @onboardingGpuGraphic.
@@ -2119,34 +2059,22 @@ abstract class AppLocalizations {
   /// **'GPU Hardware Acceleration Rocket'**
   String get onboardingGpuGraphic;
 
-  /// No description provided for @onboardingGpuBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'Hardware GPU acceleration for instant response'**
-  String get onboardingGpuBullet1;
-
-  /// No description provided for @onboardingGpuBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Live tokens/sec metrics and thermal-safe limits'**
-  String get onboardingGpuBullet2;
-
   /// No description provided for @onboardingStudioTag.
   ///
   /// In en, this message translates to:
-  /// **'MULTIMODAL STUDIO'**
+  /// **'IMAGES & DOCUMENTS'**
   String get onboardingStudioTag;
 
   /// No description provided for @onboardingStudioHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Vision, Documents\n& Live Web Synthesis'**
+  /// **'Photos, files\nand the web'**
   String get onboardingStudioHeadline;
 
   /// No description provided for @onboardingStudioBody.
   ///
   /// In en, this message translates to:
-  /// **'Engage in smart conversations with vision models, attach PDF & text files for instant summaries, and query live web results on-demand.'**
+  /// **'Attach a photo or file. Search the web too.'**
   String get onboardingStudioBody;
 
   /// No description provided for @onboardingStudioGraphic.
@@ -2155,34 +2083,22 @@ abstract class AppLocalizations {
   /// **'Multimodal Vision and Document QA'**
   String get onboardingStudioGraphic;
 
-  /// No description provided for @onboardingStudioBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'Multimodal vision image inspection (Gemma, MiniCPM)'**
-  String get onboardingStudioBullet1;
-
-  /// No description provided for @onboardingStudioBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Privacy-preserving web search & document QA'**
-  String get onboardingStudioBullet2;
-
   /// No description provided for @onboardingServerTag.
   ///
   /// In en, this message translates to:
-  /// **'LOCAL DEVELOPER API'**
+  /// **'LOCAL API'**
   String get onboardingServerTag;
 
   /// No description provided for @onboardingServerHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Turn Your Phone\nInto a Local AI Server'**
+  /// **'Your phone,\nan AI server'**
   String get onboardingServerHeadline;
 
   /// No description provided for @onboardingServerBody.
   ///
   /// In en, this message translates to:
-  /// **'Expose an OpenAI & Ollama compatible REST API on port {port}. Seamlessly connect VS Code extensions, Cline, Cursor, or terminal scripts.'**
+  /// **'OpenAI and Ollama API on port {port}.'**
   String onboardingServerBody(String port);
 
   /// No description provided for @onboardingServerGraphic.
@@ -2191,28 +2107,16 @@ abstract class AppLocalizations {
   /// **'Local AI Server on Port {port}'**
   String onboardingServerGraphic(String port);
 
-  /// No description provided for @onboardingServerBullet1.
-  ///
-  /// In en, this message translates to:
-  /// **'Compatible with OpenAI SDK & Ollama CLI'**
-  String get onboardingServerBullet1;
-
-  /// No description provided for @onboardingServerBullet2.
-  ///
-  /// In en, this message translates to:
-  /// **'Wi-Fi LAN sharing to serve laptops on your network'**
-  String get onboardingServerBullet2;
-
   /// No description provided for @onboardingStartButton.
   ///
   /// In en, this message translates to:
-  /// **'Start Using Thinai Now'**
+  /// **'Get started'**
   String get onboardingStartButton;
 
   /// No description provided for @splashTagline.
   ///
   /// In en, this message translates to:
-  /// **'SOVEREIGN ON-DEVICE INTELLIGENCE'**
+  /// **'PRIVATE ON-DEVICE AI'**
   String get splashTagline;
 
   /// Splash footer. {place} is splashPlace, drawn in brand green.
@@ -2284,13 +2188,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatSearchBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Search engines are rate-limiting this network right now. Answering without the web.'**
+  /// **'Web search is blocked right now. Answering without it.'**
   String get chatSearchBlocked;
 
   /// No description provided for @chatSearchNoResults.
   ///
   /// In en, this message translates to:
-  /// **'No web results for that. Answering from the model itself.'**
+  /// **'No web results. Answering without them.'**
   String get chatSearchNoResults;
 
   /// message is the web search error, which is not localized.
@@ -2344,13 +2248,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatBannerNoModelLoaded.
   ///
   /// In en, this message translates to:
-  /// **'No model loaded. Tap to select or browse.'**
+  /// **'No model loaded.'**
   String get chatBannerNoModelLoaded;
 
   /// No description provided for @chatBannerNoModelDownloaded.
   ///
   /// In en, this message translates to:
-  /// **'No model downloaded. Tap to download.'**
+  /// **'No model yet.'**
   String get chatBannerNoModelDownloaded;
 
   /// No description provided for @chatSelect.
@@ -2386,7 +2290,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatModelsInstalledCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{count} installed on device}}'**
+  /// **'{count, plural, other{{count} installed}}'**
   String chatModelsInstalledCount(int count);
 
   /// No description provided for @chatNoModelsDownloadedYet.
@@ -2398,7 +2302,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDownloadFromCatalogue.
   ///
   /// In en, this message translates to:
-  /// **'Download an open model from the catalogue to begin chatting.'**
+  /// **'Download a model to start.'**
   String get chatDownloadFromCatalogue;
 
   /// No description provided for @chatBrowseModels.
@@ -2428,55 +2332,49 @@ abstract class AppLocalizations {
   /// No description provided for @chatEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Chat privately with AI models that run 100% on your phone. No internet required, zero cloud tracking, and your data never leaves your device.'**
+  /// **'Runs fully on your phone. Your data stays here.'**
   String get chatEmptyBody;
 
   /// No description provided for @chatBrowseDownloadModels.
   ///
   /// In en, this message translates to:
-  /// **'Browse & Download Models'**
+  /// **'Get a model'**
   String get chatBrowseDownloadModels;
 
   /// No description provided for @chatReadyWebSearchOn.
   ///
   /// In en, this message translates to:
-  /// **'AI Ready · Web Search On'**
+  /// **'Ready · Web search on'**
   String get chatReadyWebSearchOn;
 
   /// No description provided for @chatReadyOffline.
   ///
   /// In en, this message translates to:
-  /// **'AI Ready · 100% Offline'**
+  /// **'Ready · Offline'**
   String get chatReadyOffline;
-
-  /// No description provided for @chatRunningPrivately.
-  ///
-  /// In en, this message translates to:
-  /// **'Running privately on your phone silicon.'**
-  String get chatRunningPrivately;
 
   /// Starter chip label. The prompt it inserts stays English.
   ///
   /// In en, this message translates to:
-  /// **'Brainstorm ideas'**
+  /// **'Ideas'**
   String get chatStarterBrainstorm;
 
   /// No description provided for @chatStarterPython.
   ///
   /// In en, this message translates to:
-  /// **'Write Python code'**
+  /// **'Python code'**
   String get chatStarterPython;
 
   /// No description provided for @chatStarterSummarize.
   ///
   /// In en, this message translates to:
-  /// **'Summarize text'**
+  /// **'Summarize'**
   String get chatStarterSummarize;
 
   /// No description provided for @chatStarterSpeed.
   ///
   /// In en, this message translates to:
-  /// **'Measure speed'**
+  /// **'Speed test'**
   String get chatStarterSpeed;
 
   /// No description provided for @chatAttachmentTrimmed.
@@ -2494,7 +2392,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Message your model'**
+  /// **'Ask anything'**
   String get chatInputHint;
 
   /// No description provided for @chatStop.
@@ -2512,7 +2410,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatCopiedToClipboard.
   ///
   /// In en, this message translates to:
-  /// **'Copied to clipboard'**
+  /// **'Copied'**
   String get chatCopiedToClipboard;
 
   /// No description provided for @chatCopyText.
@@ -2548,7 +2446,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDialWebSearchAuto.
   ///
   /// In en, this message translates to:
-  /// **'Automatic, on when needed'**
+  /// **'When needed'**
   String get chatDialWebSearchAuto;
 
   /// No description provided for @chatDialCamera.
@@ -2560,7 +2458,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDialCameraDetail.
   ///
   /// In en, this message translates to:
-  /// **'Take a photo now'**
+  /// **'Take a photo'**
   String get chatDialCameraDetail;
 
   /// No description provided for @chatDialNeedsVision.
@@ -2740,13 +2638,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerModelSettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Context, sampling & thinking'**
+  /// **'Context, sampling, thinking'**
   String get chatDrawerModelSettingsSubtitle;
 
   /// No description provided for @chatDrawerNoModelSnack.
   ///
   /// In en, this message translates to:
-  /// **'No model downloaded yet. Download a model from the Models tab first.'**
+  /// **'Download a model first.'**
   String get chatDrawerNoModelSnack;
 
   /// No description provided for @chatDrawerAppSettings.
@@ -2758,7 +2656,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerAppSettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Theme, GPU, downloads & server'**
+  /// **'Theme, GPU, server'**
   String get chatDrawerAppSettingsSubtitle;
 
   /// No description provided for @chatDrawerAbout.
@@ -2770,7 +2668,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerAboutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Version, privacy & details'**
+  /// **'Version, privacy'**
   String get chatDrawerAboutSubtitle;
 
   /// No description provided for @chatDrawerDeleteManyTitle.
@@ -2782,8 +2680,8 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerDeleteManyBody.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Are you sure you want to permanently delete 1 selected conversation? This action cannot be undone.} other{Are you sure you want to permanently delete {count} selected conversations? This action cannot be undone.}}'**
-  String chatDrawerDeleteManyBody(int count);
+  /// **'This cannot be undone.'**
+  String get chatDrawerDeleteManyBody;
 
   /// No description provided for @chatDrawerDeletedCount.
   ///
@@ -2794,13 +2692,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerSelectManage.
   ///
   /// In en, this message translates to:
-  /// **'Select / Manage'**
+  /// **'Select'**
   String get chatDrawerSelectManage;
 
   /// No description provided for @chatDrawerRenameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Rename title'**
+  /// **'Rename'**
   String get chatDrawerRenameTitle;
 
   /// No description provided for @chatDeleteChat.
@@ -2830,25 +2728,25 @@ abstract class AppLocalizations {
   /// No description provided for @chatDrawerDeleteOneBody.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{title}\"? This cannot be undone.'**
+  /// **'\"{title}\" will be deleted for good.'**
   String chatDrawerDeleteOneBody(String title);
 
   /// No description provided for @chatDrawerNoHistory.
   ///
   /// In en, this message translates to:
-  /// **'No past conversations'**
+  /// **'No chats yet'**
   String get chatDrawerNoHistory;
 
   /// No description provided for @chatDrawerNoHistoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Start a chat to keep history here.'**
+  /// **'Your chats show up here.'**
   String get chatDrawerNoHistoryHint;
 
   /// No description provided for @chatDrawerNoResults.
   ///
   /// In en, this message translates to:
-  /// **'No chats found for \"{query}\"'**
+  /// **'No chats for \"{query}\"'**
   String chatDrawerNoResults(String query);
 
   /// No description provided for @chatGroupToday.
@@ -2884,7 +2782,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Chat history'**
+  /// **'History'**
   String get chatHistoryTitle;
 
   /// No description provided for @chatHistoryDeleteAllTooltip.
@@ -2902,7 +2800,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatHistoryDeleteAllBody.
   ///
   /// In en, this message translates to:
-  /// **'Every saved conversation is removed. This cannot be undone.'**
+  /// **'Every saved chat is deleted for good.'**
   String get chatHistoryDeleteAllBody;
 
   /// No description provided for @chatHistoryDeleteAll.
@@ -2920,13 +2818,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatHistorySearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search conversations…'**
+  /// **'Search chats…'**
   String get chatHistorySearchHint;
 
   /// No description provided for @chatHistoryNoResults.
   ///
   /// In en, this message translates to:
-  /// **'No chats matching \"{query}\"'**
+  /// **'No chats for \"{query}\"'**
   String chatHistoryNoResults(String query);
 
   /// No description provided for @chatHistoryActiveBadge.
@@ -2944,13 +2842,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatHistoryEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No saved chats yet'**
+  /// **'No chats yet'**
   String get chatHistoryEmptyTitle;
 
   /// No description provided for @chatHistoryEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Start a conversation and it will appear here.\nEverything stays on this device.'**
+  /// **'Your chats show up here, on this device only.'**
   String get chatHistoryEmptyBody;
 
   /// No description provided for @chatTimeJustNow.
@@ -2998,7 +2896,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatAppRestartBody.
   ///
   /// In en, this message translates to:
-  /// **'A model is still downloading. Restarting pauses it, and you can resume it from the Models page.'**
+  /// **'A model download will pause. You can resume it later.'**
   String get chatAppRestartBody;
 
   /// No description provided for @chatAppRestart.
@@ -3016,26 +2914,14 @@ abstract class AppLocalizations {
   /// No description provided for @chatAppUpdateAvailable.
   ///
   /// In en, this message translates to:
-  /// **'Update available'**
+  /// **'New version'**
   String get chatAppUpdateAvailable;
 
   /// No description provided for @chatAppUpdateDownloading.
   ///
   /// In en, this message translates to:
-  /// **'Downloading in the background…'**
+  /// **'Downloading…'**
   String get chatAppUpdateDownloading;
-
-  /// No description provided for @chatAppUpdateRestartToInstall.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart Thinai to finish installing.'**
-  String get chatAppUpdateRestartToInstall;
-
-  /// No description provided for @chatAppUpdateOnPlayStore.
-  ///
-  /// In en, this message translates to:
-  /// **'A newer version of Thinai is on Play Store.'**
-  String get chatAppUpdateOnPlayStore;
 
   /// No description provided for @modelsToastDownloadPaused.
   ///

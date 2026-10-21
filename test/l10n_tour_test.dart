@@ -72,7 +72,7 @@ void main() {
       _ta.onboardingServerTag,
     ];
     expect(find.text(_ta.commonSkip), findsOneWidget);
-    expect(find.text(_ta.onboardingPrivateBullet1), findsOneWidget);
+    expect(find.text(_ta.onboardingPrivateBody), findsOneWidget);
     for (var i = 0; i < tags.length; i++) {
       expect(find.text(tags[i]), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -104,7 +104,7 @@ void main() {
         await tester.pumpAndSettle();
       }
     }
-    expect(find.text(_ta.tourOptionLiveButton), findsOneWidget);
+    expect(find.text(_ta.tourOptionLiveTitle), findsOneWidget);
     expect(find.text(_ta.tourCompleteTour), findsOneWidget);
     expect(find.text(_ta.commonBack), findsOneWidget);
   });
@@ -127,7 +127,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(_ta.tourDockStep(step + 1, 4)), findsOneWidget);
-      expect(find.text(_ta.tourExitTour), findsOneWidget);
+      expect(find.byTooltip(_ta.tourExitTour), findsOneWidget);
       expect(tester.takeException(), isNull);
     }
     expect(find.text(_ta.tourDockServerTitle), findsOneWidget);
@@ -149,7 +149,6 @@ void main() {
     );
 
     expect(find.text(_ta.tourWelcomeTitle), findsOneWidget);
-    expect(find.text(_ta.tourWelcomeOfflineBadge), findsOneWidget);
     expect(find.text(_ta.tourWelcomePrivateTitle), findsOneWidget);
     expect(find.text(_ta.tourWelcomeStartTour), findsOneWidget);
     expect(find.text(_ta.tourWelcomeSkipToChat), findsOneWidget);
