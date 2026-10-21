@@ -561,7 +561,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           content: Text(
-            l10n.chatDrawerDeleteManyBody(count),
+            l10n.chatDrawerDeleteManyBody,
             style: TextStyle(fontSize: 13.5, color: scheme.onSurfaceVariant),
           ),
           actions: [

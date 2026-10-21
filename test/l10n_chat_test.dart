@@ -102,12 +102,9 @@ void main() {
     await _pumpTamil(tester, const ChatPage());
 
     expect(find.text('தனிப்பட்ட ஆஃப்லைன் AI'), findsOneWidget);
-    expect(
-      find.text('அறிவுரு பதிவிறக்கப்படவில்லை. பதிவிறக்க தட்டவும்.'),
-      findsOneWidget,
-    );
-    expect(find.text('அறிவுருக்களை உலாவிப் பதிவிறக்கு'), findsOneWidget);
-    expect(find.text('உங்கள் அறிவுருவுக்கு உரை அனுப்பவும்'), findsOneWidget);
+    expect(find.text('அறிவுரு இல்லை.'), findsOneWidget);
+    expect(find.text('அறிவுருவைப் பெறு'), findsOneWidget);
+    expect(find.text('ஏதாவது கேளுங்கள்'), findsOneWidget);
     expect(find.text('Private Offline AI'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -156,11 +153,10 @@ void main() {
     container.read(chatSessionsProvider.notifier).open('a');
     await tester.pumpAndSettle();
 
-    expect(find.text('உரையாடல் வரலாறு'), findsOneWidget);
+    expect(find.text('வரலாறு'), findsOneWidget);
     expect(find.text('செயலில்'), findsOneWidget);
-    expect(find.text('2 உரைகள்'), findsOneWidget);
-    expect(find.text('1 உரை'), findsOneWidget);
-    expect(find.text('இப்போது'), findsNWidgets(2));
+    expect(find.text('இப்போது · 2 உரைகள்'), findsOneWidget);
+    expect(find.text('இப்போது · 1 உரை'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

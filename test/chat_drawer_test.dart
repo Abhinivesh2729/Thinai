@@ -134,8 +134,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await _openDrawer(tester);
 
-      expect(find.text('No past conversations'), findsOneWidget);
-      expect(find.text('Start a chat to keep history here.'), findsOneWidget);
+      expect(find.text('No chats yet'), findsOneWidget);
+      expect(find.text('Your chats show up here.'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('0 conversations'), findsOneWidget);
     },
@@ -200,7 +200,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), 'zebra');
     await tester.pump();
-    expect(find.text('No chats found for "zebra"'), findsOneWidget);
+    expect(find.text('No chats for "zebra"'), findsOneWidget);
 
     final clear = find.descendant(
       of: find.byType(TextField),
@@ -208,7 +208,7 @@ void main() {
     );
     await tester.tap(clear);
     await tester.pump();
-    expect(find.text('No chats found for "zebra"'), findsNothing);
+    expect(find.text('No chats for "zebra"'), findsNothing);
     expect(find.text('Today question'), findsOneWidget);
     expect(find.text('Long ago question'), findsOneWidget);
   });
@@ -275,8 +275,8 @@ void main() {
     await tester.tap(_moreButton('Today question'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Select / Manage'), findsOneWidget);
-    expect(find.text('Rename title'), findsOneWidget);
+    expect(find.text('Select'), findsOneWidget);
+    expect(find.text('Rename'), findsOneWidget);
     expect(find.text('Delete chat'), findsOneWidget);
     // The sheet repeats the conversation's title as its header.
     expect(find.text('Today question'), findsNWidgets(2));
@@ -288,7 +288,7 @@ void main() {
 
     await tester.tap(_moreButton('Today question'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename title'));
+    await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
 
     expect(find.text('Rename chat'), findsOneWidget);
@@ -318,7 +318,7 @@ void main() {
 
     await tester.tap(_moreButton('Long ago question'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename title'));
+    await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
 
     final field = find.descendant(
@@ -343,7 +343,7 @@ void main() {
     Future<Finder> openRename() async {
       await tester.tap(_moreButton('Today question'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Rename title'));
+      await tester.tap(find.text('Rename'));
       await tester.pumpAndSettle();
       return find.descendant(
         of: find.byType(AlertDialog),
@@ -401,7 +401,7 @@ void main() {
 
     await tester.longPress(find.text('Yesterday question'));
     await tester.pumpAndSettle();
-    expect(find.text('Rename title'), findsOneWidget);
+    expect(find.text('Rename'), findsOneWidget);
   });
 
   testWidgets('Select / Manage enters manage mode with that chat ticked', (
@@ -412,7 +412,7 @@ void main() {
 
     await tester.longPress(find.text('Yesterday question'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Select / Manage'));
+    await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
 
     expect(find.text('Manage chats'), findsOneWidget);
@@ -582,7 +582,7 @@ void main() {
 
     expect(_ids(container), isEmpty);
     expect(find.text('Deleted 1 chat'), findsOneWidget);
-    expect(find.text('No past conversations'), findsOneWidget);
+    expect(find.text('No chats yet'), findsOneWidget);
     expect(find.text('New chat'), findsOneWidget);
   });
 
@@ -615,12 +615,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.text(
-        'No model downloaded yet. Download a model from the Models tab first.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Download a model first.'), findsOneWidget);
     expect(find.byType(ModelSettingsSheet), findsNothing);
   });
 

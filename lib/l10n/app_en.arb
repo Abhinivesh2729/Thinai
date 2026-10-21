@@ -658,7 +658,7 @@
   "benchmarkCalibratePrompt": "Run a benchmark to calibrate these",
   "benchmarkInstalled": "installed",
   "tourBadge": "THINAI TOUR",
-  "tourCloseTooltip": "Close Tour",
+  "tourCloseTooltip": "Close tour",
   "tourStageLabel": "STAGE {current} OF {total}",
   "@tourStageLabel": {
     "placeholders": {
@@ -670,25 +670,24 @@
       }
     }
   },
-  "tourPrivateTag": "100% PRIVATE & SOVEREIGN",
-  "tourPrivateTitle": "Your Hardware.\nYour Intelligence.",
-  "tourPrivateBody": "Thinai executes large language models directly on your phone’s processor. Zero chat queries, images, or documents ever leave your device.",
-  "tourOnDeviceTitle": "Thinai (On-Device)",
-  "tourOnDeviceBody": "Runs offline in Airplane mode · Zero data collection · llama.cpp silicon execution · No subscription",
-  "tourCloudTitle": "Traditional Cloud AI",
-  "tourCloudBody": "Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls",
-  "tourDeviceReady": "Device Ready: Hardware acceleration available for local GGUF models.",
-  "tourCatalogTag": "CURATED GGUF CATALOG",
-  "tourCatalogTitle": "World-Class Models,\nTailored to Your RAM.",
-  "tourCatalogBody": "Explore open-weight models from Alibaba, Meta, Google, and Microsoft. Thinai automatically inspects your phone’s memory to advise what runs smoothly.",
-  "tourMemoryFitTitle": "Smart Memory Fit System",
-  "tourFitEasyLabel": "Fits Easily",
-  "tourFitEasyBody": "Guaranteed smooth response, low battery footprint.",
-  "tourFitTightLabel": "Tight Fit",
-  "tourFitTightBody": "Runs well, close other heavy background apps.",
-  "tourFitTooBigLabel": "Too Big",
-  "tourFitTooBigBody": "Warns you so your operating system never crashes.",
-  "tourStarterTitle": "Recommended Starter: {model} (~{size})",
+  "tourPrivateTag": "PRIVATE BY DESIGN",
+  "tourPrivateTitle": "Your phone.\nYour AI.",
+  "tourPrivateBody": "Models run on your phone. Nothing leaves it.",
+  "tourOnDeviceTitle": "Thinai, on device",
+  "tourOnDeviceBody": "Offline · No tracking · No subscription",
+  "tourCloudTitle": "Cloud AI",
+  "tourCloudBody": "Logs chats · Needs internet · Paid",
+  "tourCatalogTag": "MODEL CATALOG",
+  "tourCatalogTitle": "Great models,\nsized for your RAM.",
+  "tourCatalogBody": "Thinai checks your memory and shows what runs well.",
+  "tourMemoryFitTitle": "Memory fit",
+  "tourFitEasyLabel": "Fits",
+  "tourFitEasyBody": "Smooth, light on battery.",
+  "tourFitTightLabel": "Tight",
+  "tourFitTightBody": "Close heavy apps first.",
+  "tourFitTooBigLabel": "Too big",
+  "tourFitTooBigBody": "You are warned first.",
+  "tourStarterTitle": "Start with {model} (~{size})",
   "@tourStarterTitle": {
     "placeholders": {
       "model": {
@@ -699,12 +698,12 @@
       }
     }
   },
-  "tourStarterBody": "Smallest and fastest chat model, runs instantly on any phone.",
-  "tourChatTag": "CHAT STUDIO & VISION",
-  "tourChatTitle": "Full Multimodal Studio\nWith Live Reasoning.",
-  "tourChatBody": "Chat with zero lag, attach camera photos for vision models, and watch real-time generation speed right on the response bubbles.",
-  "tourDemoPrompt": "Explain quantum superposition simply.",
-  "tourDemoReply": "A particle can exist in multiple possible states at once until measured, like a spinning coin before it lands.",
+  "tourStarterBody": "Small and fast on any phone.",
+  "tourChatTag": "CHAT & VISION",
+  "tourChatTitle": "Chat with\nyour photos.",
+  "tourChatBody": "Attach a photo and watch the speed live.",
+  "tourDemoPrompt": "Explain superposition simply.",
+  "tourDemoReply": "A particle can be in many states until measured, like a spinning coin.",
   "tourDemoSpeed": "⚡ {speed} t/s · On-Device",
   "@tourDemoSpeed": {
     "placeholders": {
@@ -713,13 +712,13 @@
       }
     }
   },
-  "tourFeatureReasoning": "Reasoning Traces",
-  "tourFeatureVision": "Camera & Vision",
-  "tourFeaturePersonas": "Custom Personas",
-  "tourServerTag": "OPENAI COMPATIBLE API",
-  "tourServerTitle": "Turn Your Phone Into\nA Private AI Server.",
-  "tourServerBody": "Thinai includes a built-in HTTP server. Run on-device inference as a drop-in replacement for OpenAI and Ollama APIs for external developer tools.",
-  "tourEndpointsTitle": "Localhost Endpoints",
+  "tourFeatureReasoning": "Reasoning",
+  "tourFeatureVision": "Vision",
+  "tourFeaturePersonas": "Personas",
+  "tourServerTag": "LOCAL API",
+  "tourServerTitle": "Your phone,\na private AI server.",
+  "tourServerBody": "Use it from any OpenAI or Ollama tool.",
+  "tourEndpointsTitle": "Endpoints",
   "tourPortBadge": "PORT {port}",
   "@tourPortBadge": {
     "placeholders": {
@@ -728,7 +727,7 @@
       }
     }
   },
-  "tourCompatibleWith": "Compatible with: {tools}",
+  "tourCompatibleWith": "Works with {tools}",
   "@tourCompatibleWith": {
     "placeholders": {
       "tools": {
@@ -736,34 +735,26 @@
       }
     }
   },
-  "tourStartTag": "READY TO LAUNCH",
-  "tourStartTitle": "Choose Your\nStarting Point.",
-  "tourStartBody": "Select how you want to experience Thinai today:",
-  "tourOptionStarterTitle": "1. Download Starter Model ({model})",
-  "@tourOptionStarterTitle": {
+  "tourStartTag": "GET STARTED",
+  "tourStartTitle": "Where to start?",
+  "tourOptionStarterTitle": "Starter model",
+  "tourOptionStarterBody": "{model}, ~{size}",
+  "@tourOptionStarterBody": {
     "placeholders": {
       "model": {
         "type": "String"
-      }
-    }
-  },
-  "tourOptionStarterBody": "Smallest verified model (~{size}). Fast download, runs smoothly on any device.",
-  "@tourOptionStarterBody": {
-    "placeholders": {
+      },
       "size": {
         "type": "String"
       }
     }
   },
-  "tourOptionStarterButton": "Get Starter Model",
-  "tourOptionCatalogTitle": "2. Browse Complete Catalog",
-  "tourOptionCatalogBody": "Explore 30+ GGUF models from Meta, Google, Microsoft, and Alibaba.",
-  "tourOptionCatalogButton": "Open Models Catalog",
-  "tourOptionLiveTitle": "3. Take Live In-App Guided Tour",
-  "tourOptionLiveBody": "Follow our step-by-step floating guide through the live tabs.",
-  "tourOptionLiveButton": "Start Live Guide",
-  "tourCompleteTour": "Complete Tour",
-  "tourNextStep": "Next Step",
+  "tourOptionCatalogTitle": "Full catalog",
+  "tourOptionCatalogBody": "30+ GGUF models",
+  "tourOptionLiveTitle": "Guided tour",
+  "tourOptionLiveBody": "Tab by tab",
+  "tourCompleteTour": "Finish",
+  "tourNextStep": "Next",
   "tourDockStep": "STEP {step} OF {total}",
   "@tourDockStep": {
     "placeholders": {
@@ -775,17 +766,17 @@
       }
     }
   },
-  "tourExitTour": "Exit Tour",
-  "tourPrevious": "Previous",
-  "tourFinishTour": "Finish Tour",
-  "tourDockModelsTitle": "Models Catalog (Tab 2)",
-  "tourDockModelsBody": "Browse verified GGUF models. Check the RAM fit indicator (Safe / Tight) to choose a model that runs smoothly on your phone.",
-  "tourDockManageTitle": "Management & Benchmarking",
-  "tourDockManageBody": "Use the top-right icons to manage downloads or tap the Speedometer icon to benchmark real token generation speed on your phone.",
-  "tourDockChatTitle": "Chat Studio (Tab 1)",
-  "tourDockChatBody": "Chat with full privacy. Attach photos or documents for multimodal analysis, and watch live tokens-per-second streaming.",
-  "tourDockServerTitle": "Local API Server (Tab 3)",
-  "tourDockServerBody": "Turn your phone into a private OpenAI-compatible endpoint on {address} for Cursor, Continue, or your own developer scripts.",
+  "tourExitTour": "Exit",
+  "tourPrevious": "Back",
+  "tourFinishTour": "Finish",
+  "tourDockModelsTitle": "Models",
+  "tourDockModelsBody": "Pick a model that fits your RAM.",
+  "tourDockManageTitle": "Downloads & speed",
+  "tourDockManageBody": "Top-right icons: downloads and speed test.",
+  "tourDockChatTitle": "Chat",
+  "tourDockChatBody": "Chat privately. Attach photos or documents.",
+  "tourDockServerTitle": "Local API server",
+  "tourDockServerBody": "An OpenAI-compatible endpoint at {address}.",
   "@tourDockServerBody": {
     "placeholders": {
       "address": {
@@ -794,47 +785,38 @@
     }
   },
   "tourAppTour": "App Tour",
-  "tourLocatingControl": "Locating control…",
+  "tourLocatingControl": "Finding…",
   "tourWelcomeTitle": "Welcome to Thinai",
-  "tourWelcomeOfflineBadge": "OFFLINE",
-  "tourWelcomeSubtitle": "Sovereign on-device intelligence",
-  "tourWelcomePrivateTitle": "100% Private & On-Device",
-  "tourWelcomePrivateBody": "Models execute directly on your phone hardware. Zero data leaves your device and no internet is required.",
-  "tourWelcomeCatalogTitle": "Curated Open Weights Catalog",
-  "tourWelcomeCatalogBody": "Download verified GGUF models from Meta, Google, Microsoft, and Alibaba with one tap.",
-  "tourWelcomeChatTitle": "Rich Chat & Multimodal",
-  "tourWelcomeChatBody": "Chat with high speed, attach images or documents, and manage conversations with full control.",
-  "tourWelcomeStartTour": "Start Interactive App Tour",
-  "tourWelcomeBrowseCatalog": "Browse Catalog",
-  "tourWelcomeSkipToChat": "Skip to Chat",
+  "tourWelcomeSubtitle": "Private AI on your phone",
+  "tourWelcomePrivateTitle": "Private and offline",
+  "tourWelcomePrivateBody": "Runs on your phone. No internet needed.",
+  "tourWelcomeCatalogTitle": "Open models",
+  "tourWelcomeCatalogBody": "Get Llama, Gemma, Qwen and more in one tap.",
+  "tourWelcomeChatTitle": "Chat with files",
+  "tourWelcomeChatBody": "Attach images or documents.",
+  "tourWelcomeStartTour": "Take the tour",
+  "tourWelcomeBrowseCatalog": "Models",
+  "tourWelcomeSkipToChat": "Chat",
   "onboardingLogoLabel": "Thinai App Logo",
-  "onboardingPrivateTag": "100% PRIVATE & OFFLINE",
-  "onboardingPrivateHeadline": "True Intelligence,\nEntirely On Your Phone",
-  "onboardingPrivateBody": "Thinai executes high-parameter AI models directly on your mobile hardware. Zero data leaves your phone, zero telemetry, and zero cloud reliance.",
+  "onboardingPrivateTag": "PRIVATE & OFFLINE",
+  "onboardingPrivateHeadline": "AI that runs\non your phone",
+  "onboardingPrivateBody": "Nothing leaves your device. Works in Airplane mode.",
   "onboardingPrivateGraphic": "100% Private and Offline AI",
-  "onboardingPrivateBullet1": "Zero data leaves your device RAM or storage",
-  "onboardingPrivateBullet2": "Fully functional offline & in Airplane mode",
-  "onboardingCatalogTag": "VERIFIED GGUF CATALOG",
-  "onboardingCatalogHeadline": "Curated Open Weights\nIn a Single Tap",
-  "onboardingCatalogBody": "Download state-of-the-art open models directly from HuggingFace. Quantized with modern precision for smooth mobile execution.",
+  "onboardingCatalogTag": "MODEL CATALOG",
+  "onboardingCatalogHeadline": "Open models,\none tap away",
+  "onboardingCatalogBody": "Llama, Gemma, Qwen and more, sized for phones.",
   "onboardingCatalogGraphic": "Curated GGUF Model Catalog",
-  "onboardingCatalogBullet1": "DeepSeek, Meta Llama, Google Gemma & Qwen",
-  "onboardingCatalogBullet2": "Automatic background resume with foreground service",
-  "onboardingGpuTag": "HARDWARE ACCELERATION",
-  "onboardingGpuHeadline": "Llama.cpp Engine\nWith Adreno & Mali GPU",
-  "onboardingGpuBody": "Built with native llama.cpp compiled for ARM64 with Qualcomm Adreno OpenCL and ARM Mali Vulkan GPU layer offloading.",
+  "onboardingGpuTag": "GPU ACCELERATION",
+  "onboardingGpuHeadline": "Fast on\nyour hardware",
+  "onboardingGpuBody": "llama.cpp with Adreno and Mali GPU support.",
   "onboardingGpuGraphic": "GPU Hardware Acceleration Rocket",
-  "onboardingGpuBullet1": "Hardware GPU acceleration for instant response",
-  "onboardingGpuBullet2": "Live tokens/sec metrics and thermal-safe limits",
-  "onboardingStudioTag": "MULTIMODAL STUDIO",
-  "onboardingStudioHeadline": "Vision, Documents\n& Live Web Synthesis",
-  "onboardingStudioBody": "Engage in smart conversations with vision models, attach PDF & text files for instant summaries, and query live web results on-demand.",
+  "onboardingStudioTag": "IMAGES & DOCUMENTS",
+  "onboardingStudioHeadline": "Photos, files\nand the web",
+  "onboardingStudioBody": "Attach a photo or file. Search the web too.",
   "onboardingStudioGraphic": "Multimodal Vision and Document QA",
-  "onboardingStudioBullet1": "Multimodal vision image inspection (Gemma, MiniCPM)",
-  "onboardingStudioBullet2": "Privacy-preserving web search & document QA",
-  "onboardingServerTag": "LOCAL DEVELOPER API",
-  "onboardingServerHeadline": "Turn Your Phone\nInto a Local AI Server",
-  "onboardingServerBody": "Expose an OpenAI & Ollama compatible REST API on port {port}. Seamlessly connect VS Code extensions, Cline, Cursor, or terminal scripts.",
+  "onboardingServerTag": "LOCAL API",
+  "onboardingServerHeadline": "Your phone,\nan AI server",
+  "onboardingServerBody": "OpenAI and Ollama API on port {port}.",
   "@onboardingServerBody": {
     "placeholders": {
       "port": {
@@ -850,10 +832,8 @@
       }
     }
   },
-  "onboardingServerBullet1": "Compatible with OpenAI SDK & Ollama CLI",
-  "onboardingServerBullet2": "Wi-Fi LAN sharing to serve laptops on your network",
-  "onboardingStartButton": "Start Using Thinai Now",
-  "splashTagline": "SOVEREIGN ON-DEVICE INTELLIGENCE",
+  "onboardingStartButton": "Get started",
+  "splashTagline": "PRIVATE ON-DEVICE AI",
   "splashCraftedIn": "CRAFTED IN {place}",
   "@splashCraftedIn": {
     "description": "Splash footer. {place} is splashPlace, drawn in brand green.",
@@ -916,8 +896,8 @@
       }
     }
   },
-  "chatSearchBlocked": "Search engines are rate-limiting this network right now. Answering without the web.",
-  "chatSearchNoResults": "No web results for that. Answering from the model itself.",
+  "chatSearchBlocked": "Web search is blocked right now. Answering without it.",
+  "chatSearchNoResults": "No web results. Answering without them.",
   "chatSearchErrorFallback": "{message} Answering without it.",
   "@chatSearchErrorFallback": {
     "description": "message is the web search error, which is not localized.",
@@ -941,8 +921,8 @@
   "chatWebSearchOn": "Web search on.",
   "chatWebSearchOff": "Web search off.",
   "chatMenuTooltip": "Menu & Chats",
-  "chatBannerNoModelLoaded": "No model loaded. Tap to select or browse.",
-  "chatBannerNoModelDownloaded": "No model downloaded. Tap to download.",
+  "chatBannerNoModelLoaded": "No model loaded.",
+  "chatBannerNoModelDownloaded": "No model yet.",
   "chatSelect": "Select",
   "chatActiveModelTooltip": "Active model: {modelId} (tap to switch)",
   "@chatActiveModelTooltip": {
@@ -955,7 +935,7 @@
   "chatNoModelTooltip": "No model loaded (tap to choose)",
   "chatSwitchModel": "Switch Model",
   "chatNoModelsInstalled": "No models installed",
-  "chatModelsInstalledCount": "{count, plural, other{{count} installed on device}}",
+  "chatModelsInstalledCount": "{count, plural, other{{count} installed}}",
   "@chatModelsInstalledCount": {
     "placeholders": {
       "count": {
@@ -964,23 +944,22 @@
     }
   },
   "chatNoModelsDownloadedYet": "No models downloaded yet",
-  "chatDownloadFromCatalogue": "Download an open model from the catalogue to begin chatting.",
+  "chatDownloadFromCatalogue": "Download a model to start.",
   "chatBrowseModels": "Browse Models",
   "chatModelParameters": "Model Parameters",
   "chatDownloadMoreModels": "Download More Models",
   "chatEmptyTitle": "Private Offline AI",
-  "chatEmptyBody": "Chat privately with AI models that run 100% on your phone. No internet required, zero cloud tracking, and your data never leaves your device.",
-  "chatBrowseDownloadModels": "Browse & Download Models",
-  "chatReadyWebSearchOn": "AI Ready · Web Search On",
-  "chatReadyOffline": "AI Ready · 100% Offline",
-  "chatRunningPrivately": "Running privately on your phone silicon.",
-  "chatStarterBrainstorm": "Brainstorm ideas",
+  "chatEmptyBody": "Runs fully on your phone. Your data stays here.",
+  "chatBrowseDownloadModels": "Get a model",
+  "chatReadyWebSearchOn": "Ready · Web search on",
+  "chatReadyOffline": "Ready · Offline",
+  "chatStarterBrainstorm": "Ideas",
   "@chatStarterBrainstorm": {
     "description": "Starter chip label. The prompt it inserts stays English."
   },
-  "chatStarterPython": "Write Python code",
-  "chatStarterSummarize": "Summarize text",
-  "chatStarterSpeed": "Measure speed",
+  "chatStarterPython": "Python code",
+  "chatStarterSummarize": "Summarize",
+  "chatStarterSpeed": "Speed test",
   "chatAttachmentTrimmed": "{size} · trimmed",
   "@chatAttachmentTrimmed": {
     "placeholders": {
@@ -990,18 +969,18 @@
     }
   },
   "chatInputHintGenerating": "Generating…",
-  "chatInputHint": "Message your model",
+  "chatInputHint": "Ask anything",
   "chatStop": "Stop",
   "chatSend": "Send",
-  "chatCopiedToClipboard": "Copied to clipboard",
+  "chatCopiedToClipboard": "Copied",
   "chatCopyText": "Copy text",
   "chatShareText": "Share text",
   "chatStopped": "Stopped",
   "chatSearchingWeb": "Searching the web…",
   "chatDialWebSearch": "Web search",
-  "chatDialWebSearchAuto": "Automatic, on when needed",
+  "chatDialWebSearchAuto": "When needed",
   "chatDialCamera": "Camera",
-  "chatDialCameraDetail": "Take a photo now",
+  "chatDialCameraDetail": "Take a photo",
   "chatDialNeedsVision": "Needs a vision model",
   "chatDialImage": "Image",
   "chatDialDocument": "Document",
@@ -1088,12 +1067,12 @@
     }
   },
   "chatDrawerModelSettings": "Model Settings",
-  "chatDrawerModelSettingsSubtitle": "Context, sampling & thinking",
-  "chatDrawerNoModelSnack": "No model downloaded yet. Download a model from the Models tab first.",
+  "chatDrawerModelSettingsSubtitle": "Context, sampling, thinking",
+  "chatDrawerNoModelSnack": "Download a model first.",
   "chatDrawerAppSettings": "App Settings",
-  "chatDrawerAppSettingsSubtitle": "Theme, GPU, downloads & server",
+  "chatDrawerAppSettingsSubtitle": "Theme, GPU, server",
   "chatDrawerAbout": "About Thinai",
-  "chatDrawerAboutSubtitle": "Version, privacy & details",
+  "chatDrawerAboutSubtitle": "Version, privacy",
   "chatDrawerDeleteManyTitle": "{count, plural, =1{Delete 1 chat?} other{Delete {count} chats?}}",
   "@chatDrawerDeleteManyTitle": {
     "placeholders": {
@@ -1102,14 +1081,7 @@
       }
     }
   },
-  "chatDrawerDeleteManyBody": "{count, plural, =1{Are you sure you want to permanently delete 1 selected conversation? This action cannot be undone.} other{Are you sure you want to permanently delete {count} selected conversations? This action cannot be undone.}}",
-  "@chatDrawerDeleteManyBody": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "chatDrawerDeleteManyBody": "This cannot be undone.",
   "chatDrawerDeletedCount": "{count, plural, =1{Deleted 1 chat} other{Deleted {count} chats}}",
   "@chatDrawerDeletedCount": {
     "placeholders": {
@@ -1118,13 +1090,13 @@
       }
     }
   },
-  "chatDrawerSelectManage": "Select / Manage",
-  "chatDrawerRenameTitle": "Rename title",
+  "chatDrawerSelectManage": "Select",
+  "chatDrawerRenameTitle": "Rename",
   "chatDeleteChat": "Delete chat",
   "chatRenameChat": "Rename chat",
   "chatConversationTitleHint": "Conversation title",
   "chatDrawerDeleteOneTitle": "Delete chat?",
-  "chatDrawerDeleteOneBody": "Are you sure you want to delete \"{title}\"? This cannot be undone.",
+  "chatDrawerDeleteOneBody": "\"{title}\" will be deleted for good.",
   "@chatDrawerDeleteOneBody": {
     "placeholders": {
       "title": {
@@ -1132,9 +1104,9 @@
       }
     }
   },
-  "chatDrawerNoHistory": "No past conversations",
-  "chatDrawerNoHistoryHint": "Start a chat to keep history here.",
-  "chatDrawerNoResults": "No chats found for \"{query}\"",
+  "chatDrawerNoHistory": "No chats yet",
+  "chatDrawerNoHistoryHint": "Your chats show up here.",
+  "chatDrawerNoResults": "No chats for \"{query}\"",
   "@chatDrawerNoResults": {
     "placeholders": {
       "query": {
@@ -1147,14 +1119,14 @@
   "chatGroupPrevious7Days": "Previous 7 Days",
   "chatGroupThisMonth": "This Month",
   "chatGroupOlder": "Older",
-  "chatHistoryTitle": "Chat history",
+  "chatHistoryTitle": "History",
   "chatHistoryDeleteAllTooltip": "Delete all chats",
   "chatHistoryDeleteAllTitle": "Delete all chats?",
-  "chatHistoryDeleteAllBody": "Every saved conversation is removed. This cannot be undone.",
+  "chatHistoryDeleteAllBody": "Every saved chat is deleted for good.",
   "chatHistoryDeleteAll": "Delete all",
   "chatHistoryDeleteOneTitle": "Delete this chat?",
-  "chatHistorySearchHint": "Search conversations…",
-  "chatHistoryNoResults": "No chats matching \"{query}\"",
+  "chatHistorySearchHint": "Search chats…",
+  "chatHistoryNoResults": "No chats for \"{query}\"",
   "@chatHistoryNoResults": {
     "placeholders": {
       "query": {
@@ -1171,8 +1143,8 @@
       }
     }
   },
-  "chatHistoryEmptyTitle": "No saved chats yet",
-  "chatHistoryEmptyBody": "Start a conversation and it will appear here.\nEverything stays on this device.",
+  "chatHistoryEmptyTitle": "No chats yet",
+  "chatHistoryEmptyBody": "Your chats show up here, on this device only.",
   "chatTimeJustNow": "Just now",
   "chatTimeMinutesAgo": "{minutes}m ago",
   "@chatTimeMinutesAgo": {
@@ -1205,13 +1177,11 @@
   },
   "chatCodeCopied": "Copied!",
   "chatAppRestartTitle": "Restart now?",
-  "chatAppRestartBody": "A model is still downloading. Restarting pauses it, and you can resume it from the Models page.",
+  "chatAppRestartBody": "A model download will pause. You can resume it later.",
   "chatAppRestart": "Restart",
   "chatAppUpdateReady": "Update ready",
-  "chatAppUpdateAvailable": "Update available",
-  "chatAppUpdateDownloading": "Downloading in the background…",
-  "chatAppUpdateRestartToInstall": "Restart Thinai to finish installing.",
-  "chatAppUpdateOnPlayStore": "A newer version of Thinai is on Play Store.",
+  "chatAppUpdateAvailable": "New version",
+  "chatAppUpdateDownloading": "Downloading…",
   "modelsToastDownloadPaused": "Download paused. Tap Resume to continue.",
   "modelsToastDownloadStopped": "Download of {model} stopped: {error}. Progress is saved, tap Resume to continue.",
   "@modelsToastDownloadStopped": {

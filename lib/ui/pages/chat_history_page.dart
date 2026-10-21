@@ -561,7 +561,7 @@ class _ConversationCard extends StatelessWidget {
                             child: Text(
                               context.l10n.chatHistoryActiveBadge,
                               style: TextStyle(
-                                fontSize: 9,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: context.tracking(0.6),
                                 color: logoGreen,
@@ -584,42 +584,15 @@ class _ConversationCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Metadata row
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formatChatTimestamp(
-                            conversation.updatedAt,
-                            l10n: context.l10n,
-                          ),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          size: 11,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          context.l10n.chatHistoryMessageCount(
-                            conversation.turns.length,
-                          ),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                    // When and how long, as one quiet line.
+                    Text(
+                      '${formatChatTimestamp(conversation.updatedAt, l10n: context.l10n)}'
+                      ' · '
+                      '${context.l10n.chatHistoryMessageCount(conversation.turns.length)}',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -628,6 +601,7 @@ class _ConversationCard extends StatelessWidget {
                 IconButton(
                   tooltip: context.l10n.chatRenameChat,
                   icon: const Icon(Icons.edit_outlined, size: 19),
+                  visualDensity: VisualDensity.compact,
                   color: scheme.onSurfaceVariant,
                   onPressed: onRename,
                 ),
@@ -635,6 +609,7 @@ class _ConversationCard extends StatelessWidget {
               IconButton(
                 tooltip: context.l10n.chatDeleteChat,
                 icon: const Icon(Icons.delete_outline_rounded, size: 19),
+                visualDensity: VisualDensity.compact,
                 color: scheme.onSurfaceVariant,
                 onPressed: onDelete,
               ),

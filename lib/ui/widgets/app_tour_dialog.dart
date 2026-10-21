@@ -288,32 +288,6 @@ class _AppTourDialogState extends State<AppTourDialog> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          // Status Chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0x1410B981),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0x3310B981)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.bolt_rounded, color: _emeraldAccent, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.tourDeviceReady,
-                    style: const TextStyle(
-                      color: Color(0xFFD1FAE5),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -662,9 +636,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
                 _buildEndpointRow('POST', '/v1/embeddings'),
                 const Divider(color: Color(0x1AFFFFFF), height: 20),
                 Text(
-                  l10n.tourCompatibleWith(
-                    'Cursor · Continue · VS Code · Python SDK · LangChain · cURL',
-                  ),
+                  l10n.tourCompatibleWith('Cursor · Continue · VS Code · cURL'),
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 11.5,
@@ -699,21 +671,12 @@ class _AppTourDialogState extends State<AppTourDialog> {
               height: 1.2,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.tourStartBody,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.72),
-              fontSize: 13.5,
-            ),
-          ),
           const SizedBox(height: 18),
           // Option 1: Starter Model Download
           _buildLaunchOption(
             icon: Icons.download_rounded,
-            title: l10n.tourOptionStarterTitle(_starterModel),
-            subtitle: l10n.tourOptionStarterBody(_starterSize),
-            buttonText: l10n.tourOptionStarterButton,
+            title: l10n.tourOptionStarterTitle,
+            subtitle: l10n.tourOptionStarterBody(_starterModel, _starterSize),
             onTap: () {
               Navigator.of(context).pop();
               widget.onSelectStarterModel?.call();
@@ -725,7 +688,6 @@ class _AppTourDialogState extends State<AppTourDialog> {
             icon: Icons.explore_rounded,
             title: l10n.tourOptionCatalogTitle,
             subtitle: l10n.tourOptionCatalogBody,
-            buttonText: l10n.tourOptionCatalogButton,
             onTap: () {
               Navigator.of(context).pop();
               widget.onNavigateTab?.call(1);
@@ -737,7 +699,6 @@ class _AppTourDialogState extends State<AppTourDialog> {
             icon: Icons.navigation_rounded,
             title: l10n.tourOptionLiveTitle,
             subtitle: l10n.tourOptionLiveBody,
-            buttonText: l10n.tourOptionLiveButton,
             highlight: true,
             onTap: () {
               Navigator.of(context).pop();
@@ -934,92 +895,80 @@ class _AppTourDialogState extends State<AppTourDialog> {
     );
   }
 
+  /// One way to begin. The whole card is the button, so the copy gets the
+  /// full width instead of sharing it with a label.
   Widget _buildLaunchOption({
     required IconData icon,
     required String title,
     required String subtitle,
-    required String buttonText,
     required VoidCallback onTap,
     bool highlight = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: highlight
-            ? _brandGreen.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.04),
+    return Material(
+      color: highlight
+          ? _brandGreen.withValues(alpha: 0.12)
+          : Colors.white.withValues(alpha: 0.04),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
+        side: BorderSide(
           color: highlight
               ? _brandGreen.withValues(alpha: 0.4)
               : const Color(0x1FFFFFFF),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: (highlight ? _brandGreen : Colors.white).withValues(
-                alpha: 0.12,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: highlight ? _emeraldAccent : Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: (highlight ? _brandGreen : Colors.white).withValues(
+                    alpha: 0.12,
                   ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white60, fontSize: 11.5),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Capped so a long translated label wraps rather than squeezing the
-          // description to nothing; English labels sit inside the cap.
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 150),
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: highlight
-                    ? _brandGreen
-                    : const Color(0xFF1E283C),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                child: Icon(
+                  icon,
+                  color: highlight ? _emeraldAccent : Colors.white,
+                  size: 20,
                 ),
               ),
-              onPressed: onTap,
-              child: Text(buttonText, textAlign: TextAlign.center),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: highlight ? _emeraldAccent : Colors.white54,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1228,30 +1177,18 @@ class LiveGuidedTourDock extends StatelessWidget {
                 overflowAlignment: OverflowBarAlignment.end,
                 overflowSpacing: 4,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: TextButton(
-                          onPressed: onDismiss,
-                          child: Text(
-                            l10n.tourExitTour,
-                            style: const TextStyle(color: Colors.white54),
-                          ),
-                        ),
+                  // Leaving is the close icon above, so the left side only
+                  // needs a way back.
+                  if (step > 0)
+                    TextButton(
+                      onPressed: () => onStepChanged(step - 1),
+                      child: Text(
+                        l10n.tourPrevious,
+                        style: const TextStyle(color: Colors.white70),
                       ),
-                      if (step > 0)
-                        Flexible(
-                          child: TextButton(
-                            onPressed: () => onStepChanged(step - 1),
-                            child: Text(
-                              l10n.tourPrevious,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    )
+                  else
+                    const SizedBox.shrink(),
                   FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: _brandGreen,

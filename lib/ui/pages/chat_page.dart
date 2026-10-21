@@ -1283,12 +1283,6 @@ class _EmptyChat extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                context.l10n.chatRunningPrivately,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
-              ),
               const SizedBox(height: 22),
               // Starter prompt suggestions
               Wrap(
@@ -1509,6 +1503,7 @@ class _Composer extends StatelessWidget {
                         hintText: generating
                             ? context.l10n.chatInputHintGenerating
                             : context.l10n.chatInputHint,
+                        hintMaxLines: 1,
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
