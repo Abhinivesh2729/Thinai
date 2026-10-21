@@ -237,7 +237,12 @@ void main() {
     testWidgets('picking a theme saves it', (tester) async {
       final container = await _pump(tester, const AppearanceSettingsPage());
 
-      await _choose(tester, 'System', 'Light');
+      // The language dropdown also reads "System", so open the theme one by
+      // type.
+      await tester.tap(find.byType(DropdownButton<ThemeMode>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Light').last);
+      await tester.pumpAndSettle();
 
       expect(container.read(themeModeProvider), ThemeMode.light);
       expect((await _prefs()).getString('theme_mode'), 'light');

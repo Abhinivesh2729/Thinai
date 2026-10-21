@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../llm/generation_settings.dart';
 import '../../llm/llm_engine.dart';
 import '../../models_repo/benchmark_store.dart';
@@ -177,11 +178,11 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Benchmark'),
+        title: Text(context.l10n.benchmarkTitle),
         actions: [
           if (_running)
             IconButton(
-              tooltip: 'Stop',
+              tooltip: context.l10n.benchmarkStop,
               icon: const Icon(Icons.stop_circle_rounded),
               color: scheme.error,
               onPressed: _stop,
@@ -191,7 +192,7 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
       ),
       body: installed.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(context.l10n.benchmarkError('$e'))),
         data: (models) {
           if (models.isEmpty) {
             return const _EmptyBenchmark();
@@ -234,7 +235,11 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
                 icon: Icon(
                   _running ? Icons.hourglass_top_rounded : Icons.speed_rounded,
                 ),
-                label: Text(_running ? 'Running…' : 'Run benchmark'),
+                label: Text(
+                  _running
+                      ? context.l10n.benchmarkRunning
+                      : context.l10n.benchmarkRun,
+                ),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -242,8 +247,7 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Generates $_kBenchmarkTokens tokens and measures decode '
-                'speed. First token is reported separately.',
+                context.l10n.benchmarkDescription(_kBenchmarkTokens),
                 style: TextStyle(
                   fontSize: 12,
                   color: scheme.onSurfaceVariant,
@@ -333,7 +337,7 @@ class _Gauge extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'tokens / second',
+                          context.l10n.benchmarkTokensPerSecond,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -478,7 +482,7 @@ class _RunningPillState extends State<_RunningPill>
     final scheme = Theme.of(context).colorScheme;
     if (!widget.running) {
       return Text(
-        'Idle',
+        context.l10n.benchmarkIdle,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
@@ -505,7 +509,7 @@ class _RunningPillState extends State<_RunningPill>
             ),
             const SizedBox(width: 8),
             Text(
-              'MEASURING',
+              context.l10n.benchmarkMeasuring,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -553,7 +557,7 @@ class _ThroughputGraph extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Throughput over the run',
+                context.l10n.benchmarkThroughput,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -563,7 +567,9 @@ class _ThroughputGraph extends StatelessWidget {
               const Spacer(),
               if (samples.isNotEmpty)
                 Text(
-                  'peak ${samples.reduce(math.max).toStringAsFixed(1)}',
+                  context.l10n.benchmarkPeak(
+                    samples.reduce(math.max).toStringAsFixed(1),
+                  ),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -577,7 +583,9 @@ class _ThroughputGraph extends StatelessWidget {
             child: samples.length < 2
                 ? Center(
                     child: Text(
-                      running ? 'Warming up…' : 'Run a benchmark to plot it',
+                      running
+                          ? context.l10n.benchmarkWarmingUp
+                          : context.l10n.benchmarkPlotEmpty,
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
@@ -672,7 +680,7 @@ class _StatGrid extends StatelessWidget {
         Expanded(
           child: _StatTile(
             icon: Icons.bolt_rounded,
-            label: 'First token',
+            label: context.l10n.benchmarkFirstToken,
             value: ttft == null ? '-' : _fmtSeconds(ttft),
           ),
         ),
@@ -680,7 +688,7 @@ class _StatGrid extends StatelessWidget {
         Expanded(
           child: _StatTile(
             icon: Icons.numbers_rounded,
-            label: 'Tokens',
+            label: context.l10n.benchmarkTokens,
             value: '${stats.tokens}',
           ),
         ),
@@ -688,7 +696,7 @@ class _StatGrid extends StatelessWidget {
         Expanded(
           child: _StatTile(
             icon: Icons.timer_outlined,
-            label: 'Total',
+            label: context.l10n.benchmarkTotal,
             value: stats.elapsed == Duration.zero
                 ? '-'
                 : _fmtSeconds(stats.elapsed),
@@ -836,7 +844,7 @@ class _OutputCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Sample output',
+            context.l10n.benchmarkSampleOutput,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -880,7 +888,7 @@ class _HistoryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'This session',
+            context.l10n.benchmarkThisSession,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -936,9 +944,11 @@ class _HistoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${run.tokens} tokens · first token '
-                    '${_fmtSeconds(run.timeToFirstToken)} · total '
-                    '${_fmtSeconds(run.total)}',
+                    context.l10n.benchmarkRunSummary(
+                      run.tokens,
+                      _fmtSeconds(run.timeToFirstToken),
+                      _fmtSeconds(run.total),
+                    ),
                     style: TextStyle(
                       fontSize: 11,
                       color: scheme.onSurfaceVariant,
@@ -1006,13 +1016,13 @@ class _EmptyBenchmark extends StatelessWidget {
           children: [
             Icon(Icons.speed_rounded, size: 44, color: scheme.onSurfaceVariant),
             const SizedBox(height: 14),
-            const Text(
-              'No models to measure',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            Text(
+              context.l10n.benchmarkEmptyTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
-              'Download a model to measure its speed.',
+              context.l10n.benchmarkEmptyBody,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
             ),
@@ -1055,6 +1065,7 @@ class _HardwareAdvice extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final device = speed.device;
+    final l10n = context.l10n;
 
     final installedCatalogIds = <String>{
       for (final m in chatCatalog)
@@ -1076,7 +1087,7 @@ class _HardwareAdvice extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Best for your hardware',
+                  context.l10n.benchmarkBestForHardware,
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -1089,13 +1100,17 @@ class _HardwareAdvice extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             speed.calibrated
-                ? '${device.known ? '${device.summary} · ' : ''}'
-                    'measured ${speed.bandwidthGBps.toStringAsFixed(1)} GB/s '
-                    'effective'
+                ? device.known
+                      ? l10n.benchmarkMeasuredWithDevice(
+                          device.summary,
+                          speed.bandwidthGBps.toStringAsFixed(1),
+                        )
+                      : l10n.benchmarkMeasured(
+                          speed.bandwidthGBps.toStringAsFixed(1),
+                        )
                 : device.known
-                    ? '${device.summary} · run a benchmark to replace the '
-                        'estimates below with measurements'
-                    : 'Run a benchmark to calibrate these',
+                    ? l10n.benchmarkEstimateWithDevice(device.summary)
+                    : l10n.benchmarkCalibratePrompt,
             style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
@@ -1176,7 +1191,9 @@ class _AdviceRow extends StatelessWidget {
                 ),
               ),
               Text(
-                pick.installed ? 'installed' : pick.model.approxSize,
+                pick.installed
+                    ? context.l10n.benchmarkInstalled
+                    : pick.model.approxSize,
                 style: TextStyle(
                   fontSize: 10.5,
                   color: scheme.onSurfaceVariant,

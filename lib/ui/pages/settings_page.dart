@@ -28,9 +28,9 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(
+        title: Text(
+          context.l10n.navSettings,
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.4,
@@ -48,7 +48,7 @@ class SettingsPage extends ConsumerWidget {
               children: [
                 _SectionNavTile(
                   icon: Icons.palette_rounded,
-                  title: 'Appearance',
+                  title: context.l10n.settingsAppearance,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -60,7 +60,7 @@ class SettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SectionNavTile(
                   icon: Icons.edit_note_rounded,
-                  title: 'System Prompt',
+                  title: context.l10n.settingsSystemPrompt,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -72,7 +72,7 @@ class SettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SectionNavTile(
                   icon: Icons.memory_rounded,
-                  title: 'Hardware & Acceleration',
+                  title: context.l10n.settingsHardware,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -84,7 +84,7 @@ class SettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SectionNavTile(
                   icon: Icons.tune_rounded,
-                  title: 'Model & Storage',
+                  title: context.l10n.settingsModelStorage,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -96,7 +96,7 @@ class SettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SectionNavTile(
                   icon: Icons.dns_rounded,
-                  title: 'Local Server & API',
+                  title: context.l10n.settingsLocalServer,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -108,7 +108,7 @@ class SettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SectionNavTile(
                   icon: Icons.info_rounded,
-                  title: 'About & Guidance',
+                  title: context.l10n.settingsAboutGuidance,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -207,7 +207,7 @@ class AppearanceSettingsPage extends ConsumerWidget {
     final webSearchEnabled = ref.watch(webSearchEnabledProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance')),
+      appBar: AppBar(title: Text(context.l10n.settingsAppearance)),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -218,35 +218,35 @@ class AppearanceSettingsPage extends ConsumerWidget {
               children: [
                 _DropdownListRow<int>(
                   icon: Icons.start_rounded,
-                  title: 'Open page on startup',
+                  title: context.l10n.settingsStartPage,
                   value: startPage,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 0,
                       child: Text(
-                        'Chat',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.navChat,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: 1,
                       child: Text(
-                        'Models',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.navModels,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: 2,
                       child: Text(
-                        'Server',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.navServer,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: 3,
                       child: Text(
-                        'Settings',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.navSettings,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -284,28 +284,28 @@ class AppearanceSettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _DropdownListRow<ThemeMode>(
                   icon: Icons.brightness_4_rounded,
-                  title: 'Theme mode',
+                  title: context.l10n.settingsThemeMode,
                   value: mode,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: ThemeMode.system,
                       child: Text(
-                        'System',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsThemeSystem,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.dark,
                       child: Text(
-                        'Dark',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsThemeDark,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: ThemeMode.light,
                       child: Text(
-                        'Light',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsThemeLight,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -318,21 +318,21 @@ class AppearanceSettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _DropdownListRow<bool>(
                   icon: Icons.travel_explore_rounded,
-                  title: 'Web search in chat',
+                  title: context.l10n.settingsWebSearch,
                   value: webSearchEnabled,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: true,
                       child: Text(
-                        'Enabled',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsEnabled,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: false,
                       child: Text(
-                        'Disabled',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsDisabled,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -485,7 +485,7 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
     final currentGpu = GenerationSettingsStore.instance.settings.gpu;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hardware & Acceleration')),
+      appBar: AppBar(title: Text(context.l10n.settingsHardware)),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -496,12 +496,12 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
               children: [
                 _DropdownListRow<GpuBackend>(
                   icon: Icons.memory_rounded,
-                  title: 'GPU acceleration',
+                  title: context.l10n.settingsGpuAcceleration,
                   value: currentGpu,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: GpuBackend.none,
-                      child: Text(
+                      child: const Text(
                         'CPU',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -509,20 +509,20 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
                     DropdownMenuItem(
                       value: GpuBackend.auto,
                       child: Text(
-                        'Auto',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsGpuAuto,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: GpuBackend.vulkan,
-                      child: Text(
+                      child: const Text(
                         'Vulkan',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: GpuBackend.opencl,
-                      child: Text(
+                      child: const Text(
                         'OpenCL',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -537,7 +537,7 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.speed_rounded,
-                  title: 'Benchmark device',
+                  title: context.l10n.settingsBenchmarkDevice,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const BenchmarkPage()),
@@ -547,7 +547,7 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.query_stats_rounded,
-                  title: 'GPU speed diagnostics',
+                  title: context.l10n.settingsGpuDiagnostics,
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
@@ -572,7 +572,7 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
                   const _TileDivider(),
                   _SettingsTile(
                     icon: Icons.developer_board_rounded,
-                    title: 'Device hardware specs',
+                    title: context.l10n.settingsDeviceSpecs,
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 9,
@@ -586,8 +586,15 @@ class _HardwareSettingsPageState extends ConsumerState<HardwareSettingsPage> {
                       ),
                       child: Text(
                         deviceProfile.totalRamBytes != null
-                            ? '${deviceProfile.cores} Cores • ${(deviceProfile.totalRamBytes! / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB RAM'
-                            : '${deviceProfile.cores} CPU Cores',
+                            ? context.l10n.settingsDeviceSpecsWithRam(
+                                deviceProfile.cores,
+                                (deviceProfile.totalRamBytes! /
+                                        (1024 * 1024 * 1024))
+                                    .toStringAsFixed(1),
+                              )
+                            : context.l10n.settingsDeviceSpecsCores(
+                                deviceProfile.cores,
+                              ),
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -641,10 +648,10 @@ class _ModelStorageSettingsPageState
       ref.read(modelsRefreshProvider.notifier).state++;
       if (!mounted) return;
       if (imported != null) {
-        _toast('Imported ${imported.displayName}');
+        _toast(context.l10n.settingsImported(imported.displayName));
       }
     } catch (e) {
-      if (mounted) _toast('Import failed: $e');
+      if (mounted) _toast(context.l10n.settingsImportFailed('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -667,7 +674,8 @@ class _ModelStorageSettingsPageState
             filename: spec.filename.isEmpty ? null : spec.filename,
             displayName: spec.filename.isEmpty ? null : spec.filename,
           );
-      _toast('Download started');
+      if (!mounted) return;
+      _toast(context.l10n.settingsDownloadStarted);
 
       unawaited(
         handle.progress.firstWhere((p) => p.done).then((progress) {
@@ -676,17 +684,16 @@ class _ModelStorageSettingsPageState
           if (progress.error != null) {
             _toast(
               progress.received > 0
-                  ? 'Download stopped: ${progress.error}. Progress is saved, '
-                        'resume it from the Model Manager.'
-                  : 'Download failed: ${progress.error}',
+                  ? context.l10n.settingsDownloadStopped('${progress.error}')
+                  : context.l10n.settingsDownloadFailed('${progress.error}'),
             );
             return;
           }
-          _toast('Download complete');
+          _toast(context.l10n.settingsDownloadComplete);
         }),
       );
     } catch (e) {
-      if (mounted) _toast('Download failed: $e');
+      if (mounted) _toast(context.l10n.settingsDownloadFailed('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -698,21 +705,19 @@ class _ModelStorageSettingsPageState
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Clear all downloads?'),
-        content: const Text(
-          'This removes all downloaded model files inside the app to free up device storage.',
-        ),
+        title: Text(context.l10n.settingsClearDownloadsTitle),
+        content: Text(context.l10n.settingsClearDownloadsBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Clear all'),
+            child: Text(context.l10n.settingsClearAll),
           ),
         ],
       ),
@@ -728,11 +733,11 @@ class _ModelStorageSettingsPageState
       if (!mounted) return;
       _toast(
         removed == 0
-            ? 'No downloaded items found'
-            : 'Cleared $removed downloaded item${removed == 1 ? '' : 's'}',
+            ? context.l10n.settingsNoDownloadsFound
+            : context.l10n.settingsClearedDownloads(removed),
       );
     } catch (e) {
-      if (mounted) _toast('Clear failed: $e');
+      if (mounted) _toast(context.l10n.settingsClearFailed('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -748,7 +753,7 @@ class _ModelStorageSettingsPageState
     final activeModel = models.where((m) => m.id == activeId).firstOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Model & Storage')),
+      appBar: AppBar(title: Text(context.l10n.settingsModelStorage)),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -770,18 +775,18 @@ class _ModelStorageSettingsPageState
                         color: const Color(0xFF2CA048).withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.tune_rounded,
                             size: 14,
                             color: Color(0xFF2CA048),
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
-                            'Tune',
-                            style: TextStyle(
+                            context.l10n.settingsTune,
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF2CA048),
@@ -795,7 +800,7 @@ class _ModelStorageSettingsPageState
                 else
                   _SettingsTile(
                     icon: Icons.tune_rounded,
-                    title: 'No active model loaded',
+                    title: context.l10n.settingsNoActiveModel,
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -811,7 +816,7 @@ class _ModelStorageSettingsPageState
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Catalog',
+                            context.l10n.settingsCatalog,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -835,19 +840,19 @@ class _ModelStorageSettingsPageState
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.file_upload_outlined,
-                  title: 'Import local .gguf',
+                  title: context.l10n.settingsImportGguf,
                   onTap: _busy ? null : _importModel,
                 ),
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.link_rounded,
-                  title: 'Download model from URL',
+                  title: context.l10n.settingsDownloadFromUrl,
                   onTap: _busy ? null : _downloadByUrl,
                 ),
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.delete_outline_rounded,
-                  title: 'Clear downloaded models',
+                  title: context.l10n.settingsClearDownloadedModels,
                   onTap: _busy ? null : _clearAllDownloads,
                 ),
               ],
@@ -874,12 +879,12 @@ class LocalServerSettingsPage extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Change Server Port'),
+        title: Text(context.l10n.settingsChangePortTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Port number',
+          decoration: InputDecoration(
+            labelText: context.l10n.settingsPortNumber,
             hintText: '11434',
             border: OutlineInputBorder(),
             isDense: true,
@@ -888,7 +893,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -897,7 +902,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
                 Navigator.pop(ctx, val);
               }
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -913,8 +918,8 @@ class LocalServerSettingsPage extends ConsumerWidget {
         SnackBar(
           content: Text(
             restart
-                ? 'Server port set to $newPort. Restart the server to apply.'
-                : 'Server port set to $newPort',
+                ? context.l10n.settingsPortSetRestart(newPort)
+                : context.l10n.settingsPortSet(newPort),
           ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -935,7 +940,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
     final serverPort = ref.watch(savedServerPortProvider).valueOrNull ?? 11434;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Local Server & API')),
+      appBar: AppBar(title: Text(context.l10n.settingsLocalServer)),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -946,21 +951,21 @@ class LocalServerSettingsPage extends ConsumerWidget {
               children: [
                 _DropdownListRow<bool>(
                   icon: Icons.wifi_tethering_rounded,
-                  title: 'Share API over Wi-Fi',
+                  title: context.l10n.settingsShareApiWifi,
                   value: lanShare,
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: true,
                       child: Text(
-                        'Enabled',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsEnabled,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DropdownMenuItem(
                       value: false,
                       child: Text(
-                        'Disabled',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        context.l10n.settingsDisabled,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -973,7 +978,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.lan_rounded,
-                  title: 'Server port',
+                  title: context.l10n.settingsServerPort,
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -1010,7 +1015,7 @@ class LocalServerSettingsPage extends ConsumerWidget {
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.power_settings_new_rounded,
-                  title: 'Server status',
+                  title: context.l10n.settingsServerStatus,
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 9,
@@ -1039,7 +1044,9 @@ class LocalServerSettingsPage extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          serverStatus.running ? 'Active' : 'Offline',
+                          serverStatus.running
+                              ? context.l10n.settingsServerActive
+                              : context.l10n.settingsServerOffline,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -1100,11 +1107,11 @@ class _AboutGuidanceSettingsPageState
     setState(() => _busy = false);
     switch (status.state) {
       case UpdateState.upToDate:
-        _toast('Thinai is up to date');
+        _toast(context.l10n.settingsUpToDate);
       case UpdateState.unavailable:
-        _toast('Play Store could not check for updates');
+        _toast(context.l10n.settingsUpdateUnavailable);
       case UpdateState.downloading:
-        _toast('An update is already downloading');
+        _toast(context.l10n.settingsUpdateAlreadyDownloading);
       case UpdateState.readyToInstall:
         await _promptInstall(updater);
       case UpdateState.available:
@@ -1113,7 +1120,7 @@ class _AboutGuidanceSettingsPageState
   }
 
   Future<void> _downloadUpdate(AppUpdater updater) async {
-    _toast('Downloading update in the background');
+    _toast(context.l10n.settingsUpdateDownloading);
     final result = await updater.download();
     if (!mounted) return;
     switch (result) {
@@ -1122,7 +1129,7 @@ class _AboutGuidanceSettingsPageState
       case AppUpdateResult.userDeniedUpdate:
         break;
       case AppUpdateResult.inAppUpdateFailed:
-        _toast('Update failed. Try again from Play Store.');
+        _toast(context.l10n.settingsUpdateFailed);
     }
   }
 
@@ -1130,18 +1137,16 @@ class _AboutGuidanceSettingsPageState
     final go = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Update ready'),
-        content: const Text(
-          'The new version is downloaded. Thinai restarts to install it.',
-        ),
+        title: Text(context.l10n.settingsUpdateReadyTitle),
+        content: Text(context.l10n.settingsUpdateReadyBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Later'),
+            child: Text(context.l10n.commonLater),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restart'),
+            child: Text(context.l10n.settingsRestart),
           ),
         ],
       ),
@@ -1157,7 +1162,7 @@ class _AboutGuidanceSettingsPageState
     final version = ref.watch(appVersionProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About & Guidance')),
+      appBar: AppBar(title: Text(context.l10n.settingsAboutGuidance)),
       body: ListView(
         padding: const EdgeInsets.only(top: 12, bottom: 28),
         children: [
@@ -1168,7 +1173,7 @@ class _AboutGuidanceSettingsPageState
               children: [
                 _SettingsTile(
                   icon: Icons.explore_outlined,
-                  title: 'Start app tour',
+                  title: context.l10n.settingsStartTour,
                   onTap: () {
                     ref.read(coachTourRequestProvider.notifier).state++;
                     Navigator.of(context).popUntil((route) => route.isFirst);
@@ -1177,7 +1182,7 @@ class _AboutGuidanceSettingsPageState
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.system_update_alt_rounded,
-                  title: 'Check for updates',
+                  title: context.l10n.settingsCheckUpdates,
                   trailing: version != null
                       ? Container(
                           padding: const EdgeInsets.symmetric(
@@ -1205,7 +1210,7 @@ class _AboutGuidanceSettingsPageState
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.chat_bubble_outline_rounded,
-                  title: 'Contact support',
+                  title: context.l10n.settingsContactSupport,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -1217,7 +1222,7 @@ class _AboutGuidanceSettingsPageState
                 const _TileDivider(),
                 _SettingsTile(
                   icon: Icons.info_outline_rounded,
-                  title: 'About Thinai',
+                  title: context.l10n.settingsAboutThinai,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const AboutPage()),
@@ -1352,14 +1357,14 @@ class _DownloadDialogState extends State<_DownloadDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: const Text('Download model by URL'),
+      title: Text(context.l10n.settingsDownloadDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _url,
-            decoration: const InputDecoration(
-              labelText: 'Direct GGUF URL',
+            decoration: InputDecoration(
+              labelText: context.l10n.settingsDirectGgufUrl,
               hintText: 'https://huggingface.co/.../model.gguf',
               border: OutlineInputBorder(),
               isDense: true,
@@ -1369,8 +1374,8 @@ class _DownloadDialogState extends State<_DownloadDialog> {
           const SizedBox(height: 12),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(
-              labelText: 'Save as (optional)',
+            decoration: InputDecoration(
+              labelText: context.l10n.settingsSaveAsOptional,
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -1380,7 +1385,7 @@ class _DownloadDialogState extends State<_DownloadDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -1388,7 +1393,7 @@ class _DownloadDialogState extends State<_DownloadDialog> {
             if (url.isEmpty) return;
             Navigator.pop(context, _DownloadSpec(url, _name.text.trim()));
           },
-          child: const Text('Download'),
+          child: Text(context.l10n.commonDownload),
         ),
       ],
     );

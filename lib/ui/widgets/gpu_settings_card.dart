@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../llm/generation_settings.dart';
 import '../../llm/gpu_support.dart';
 import '../../llm/llm_engine.dart';
@@ -116,7 +117,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     final model = await _activeModel();
     final devices = _devices ?? const [];
     if (model == null) {
-      setState(() => _testError = 'Load a model first, then run the test.');
+      setState(() => _testError = context.l10n.gpuLoadModelFirst);
       return;
     }
     final saved = _store.settings.gpu;
@@ -137,7 +138,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       final gpu = await _measure(model, backend);
       if (mounted) setState(() => _gpu = gpu);
     } catch (e) {
-      if (mounted) setState(() => _testError = 'The test failed: $e');
+      if (mounted) setState(() => _testError = context.l10n.gpuTestFailed('$e'));
     } finally {
       if (mounted) setState(() => _testing = false);
     }
@@ -150,6 +151,8 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     final crashed = ref.watch(gpuCrashNoticeProvider);
     final devices = _devices;
     final current = _store.settings.gpu;
+    final l10n = context.l10n;
+    String label(GpuBackend b) => _label(l10n, b);
 
     final hasVulkan =
         devices?.any((d) => d.backend == GpuBackend.vulkan) ?? false;
@@ -181,15 +184,15 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'GPU acceleration',
-                      style: TextStyle(
+                    Text(
+                      l10n.gpuAcceleration,
+                      style: const TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
-                      'Offloads computation to hardware accelerator',
+                      l10n.gpuSubtitle,
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
@@ -207,7 +210,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _label(current),
+                  label(current),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -221,8 +224,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Runs the model on the GPU instead of the CPU. Run the speed '
-            'test to check if it helps on this phone.',
+            l10n.gpuDescription,
             style: TextStyle(
               fontSize: 12,
               color: scheme.onSurfaceVariant,
@@ -232,8 +234,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
           if (crashed != null) ...[
             const SizedBox(height: 8),
             Text(
-              '${_label(crashed)} crashed the app last time, so GPU '
-              'acceleration was turned off.',
+              l10n.gpuCrashedNotice(label(crashed)),
               style: TextStyle(color: scheme.error, fontSize: 12),
             ),
           ],
@@ -248,16 +249,21 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.search_rounded, size: 18),
-              label: const Text('Check this phone\'s GPU', style: TextStyle(fontSize: 13)),
+              label: Text(
+                l10n.gpuCheckPhone,
+                style: const TextStyle(fontSize: 13),
+              ),
             )
           else if (devices.isEmpty)
             Text(
-              'No usable GPU found. Thinai will keep using the CPU.',
+              l10n.gpuNoneFound,
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12.5),
             )
           else ...[
             Text(
-              'Found: ${devices.map((d) => '${d.name} (${_label(d.backend)})').join(', ')}',
+              l10n.gpuFound(
+                devices.map((d) => '${d.name} (${label(d.backend)})').join(', '),
+              ),
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: scheme.onSurfaceVariant),
             ),
@@ -270,8 +276,8 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
                   ChoiceChip(
                     label: Text(
                       choice == GpuBackend.auto
-                          ? 'Auto (${_label(recommendedBackend(devices))})'
-                          : _label(choice),
+                          ? l10n.gpuAutoWith(label(recommendedBackend(devices)))
+                          : label(choice),
                       style: const TextStyle(fontSize: 12.5),
                     ),
                     selected: current == choice,
@@ -293,7 +299,10 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.speed_rounded, size: 18),
-                  label: Text(_testing ? 'Testing…' : 'Speed test', style: const TextStyle(fontSize: 13)),
+                  label: Text(
+                    _testing ? l10n.gpuTesting : l10n.gpuSpeedTest,
+                    style: const TextStyle(fontSize: 13),
+                  ),
                 ),
               ],
             ),
@@ -302,7 +311,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
               if (_testError != null)
                 Text(_testError!, style: TextStyle(color: scheme.error, fontSize: 12))
               else
-                _results(theme),
+                _results(context, theme),
             ],
           ],
         ],
@@ -319,8 +328,9 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     );
   }
 
-  Widget _results(ThemeData theme) {
+  Widget _results(BuildContext context, ThemeData theme) {
     final scheme = theme.colorScheme;
+    final l10n = context.l10n;
     String rate(double? v) => v == null ? '—' : '${v.toStringAsFixed(1)} tok/s';
     final cpu = _cpu;
     final gpu = _gpu;
@@ -329,11 +339,11 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       final c = cpu?.generatePerSecond;
       final g = gpu?.generatePerSecond;
       if (c == null || g == null) return '';
-      if (g > c * 1.1) return 'The GPU is faster on this phone.';
+      if (g > c * 1.1) return l10n.gpuVerdictGpuFaster;
       if (g < c * 0.9) {
-        return 'The CPU is faster here. Leave GPU acceleration off.';
+        return l10n.gpuVerdictCpuFaster;
       }
-      return 'About the same either way.';
+      return l10n.gpuVerdictSame;
     }
 
     TableRow row(String label, _Speed? s) => TableRow(
@@ -356,16 +366,16 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
             TableRow(
               children: [
                 const SizedBox.shrink(),
-                Text('Reading prompt',
+                Text(l10n.gpuReadingPrompt,
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: scheme.onSurfaceVariant)),
-                Text('Writing reply',
+                Text(l10n.gpuWritingReply,
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: scheme.onSurfaceVariant)),
               ],
             ),
             row('CPU', cpu),
-            row(_label(_testedBackend ?? GpuBackend.auto), gpu),
+            row(_label(l10n, _testedBackend ?? GpuBackend.auto), gpu),
           ],
         ),
         if (verdict().isNotEmpty) ...[
@@ -376,9 +386,10 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     );
   }
 
-  static String _label(GpuBackend backend) => switch (backend) {
-        GpuBackend.none => 'Off',
-        GpuBackend.auto => 'Auto',
+  static String _label(AppLocalizations l10n, GpuBackend backend) =>
+      switch (backend) {
+        GpuBackend.none => l10n.commonOff,
+        GpuBackend.auto => l10n.gpuAuto,
         GpuBackend.vulkan => 'Vulkan',
         GpuBackend.opencl => 'OpenCL',
       };
