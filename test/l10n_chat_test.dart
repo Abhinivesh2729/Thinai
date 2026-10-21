@@ -107,7 +107,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('அறிவுருக்களை உலாவிப் பதிவிறக்கு'), findsOneWidget);
-    expect(find.text('உங்கள் அறிவுருவுக்குஉரை அனுப்பவும்'), findsOneWidget);
+    expect(find.text('உங்கள் அறிவுருவுக்கு உரை அனுப்பவும்'), findsOneWidget);
     expect(find.text('Private Offline AI'), findsNothing);
     expect(tester.takeException(), isNull);
   });
