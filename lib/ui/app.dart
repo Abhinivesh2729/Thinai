@@ -451,19 +451,16 @@ class _MainShellState extends ConsumerState<_MainShell> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Restart now?'),
-          content: const Text(
-            'A model is still downloading. Restarting pauses it, and you can '
-            'resume it from the Models page.',
-          ),
+          title: Text(ctx.l10n.chatAppRestartTitle),
+          content: Text(ctx.l10n.chatAppRestartBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Later'),
+              child: Text(ctx.l10n.commonLater),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restart'),
+              child: Text(ctx.l10n.chatAppRestart),
             ),
           ],
         ),
@@ -625,7 +622,9 @@ class _UpdateBanner extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    ready ? 'Update ready' : 'Update available',
+                    ready
+                        ? context.l10n.chatAppUpdateReady
+                        : context.l10n.chatAppUpdateAvailable,
                     style: TextStyle(
                       color: scheme.onPrimaryContainer,
                       fontWeight: FontWeight.w700,
@@ -633,10 +632,10 @@ class _UpdateBanner extends StatelessWidget {
                   ),
                   Text(
                     busy
-                        ? 'Downloading in the background…'
+                        ? context.l10n.chatAppUpdateDownloading
                         : ready
-                        ? 'Restart Thinai to finish installing.'
-                        : 'A newer version of Thinai is on Play Store.',
+                        ? context.l10n.chatAppUpdateRestartToInstall
+                        : context.l10n.chatAppUpdateOnPlayStore,
                     style: TextStyle(
                       color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
                       fontSize: 12.5,
@@ -657,10 +656,14 @@ class _UpdateBanner extends StatelessWidget {
             else ...[
               TextButton(
                 onPressed: onAct,
-                child: Text(ready ? 'Restart' : 'Download'),
+                child: Text(
+                  ready
+                      ? context.l10n.chatAppRestart
+                      : context.l10n.commonDownload,
+                ),
               ),
               IconButton(
-                tooltip: 'Dismiss',
+                tooltip: context.l10n.commonDismiss,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 color: scheme.onPrimaryContainer,
                 onPressed: onDismiss,

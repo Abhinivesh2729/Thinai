@@ -10,10 +10,10 @@ library;
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'attachment_error.dart';
+
 /// Formats llama.cpp's image loader handles.
-const kImageExtensions = <String>{
-  'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif',
-};
+const kImageExtensions = <String>{'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'};
 
 /// Largest image accepted, in bytes.
 ///
@@ -68,17 +68,26 @@ String? mimeTypeForImage(String filename) {
 ImageAttachment readImage(String filename, Uint8List bytes) {
   final mimeType = mimeTypeForImage(filename);
   if (mimeType == null) {
-    throw const FormatException(
+    throw const AttachmentException(
+      AttachmentProblem.imageUnsupported,
       'That image format is not supported. Use PNG, JPEG, WebP, BMP or GIF.',
     );
   }
   if (bytes.isEmpty) {
-    throw const FormatException('That image is empty.');
+    throw const AttachmentException(
+      AttachmentProblem.imageEmpty,
+      'That image is empty.',
+    );
   }
   if (bytes.length > kMaxImageBytes) {
-    throw FormatException(
-      'That image is ${(bytes.length / (1024 * 1024)).toStringAsFixed(1)} MB. '
-      'Images up to ${kMaxImageBytes ~/ (1024 * 1024)} MB can be attached.',
+    final sizeMb = (bytes.length / (1024 * 1024)).toStringAsFixed(1);
+    final limitMb = kMaxImageBytes ~/ (1024 * 1024);
+    throw AttachmentException(
+      AttachmentProblem.imageTooLarge,
+      'That image is $sizeMb MB. '
+      'Images up to $limitMb MB can be attached.',
+      sizeMb: sizeMb,
+      limitMb: limitMb,
     );
   }
   return ImageAttachment(name: filename, bytes: bytes, mimeType: mimeType);
@@ -97,7 +106,5 @@ ImageAttachment readImage(String filename, Uint8List bytes) {
 /// blind the model to the photo the user actually attached.
 String promptWithImage(ImageAttachment? image, String text) {
   if (image == null) return text;
-  return text.isEmpty
-      ? image.promptTag
-      : '${image.promptTag}\n\n$text';
+  return text.isEmpty ? image.promptTag : '${image.promptTag}\n\n$text';
 }

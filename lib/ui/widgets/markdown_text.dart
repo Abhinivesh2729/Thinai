@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/l10n.dart';
+
 /// Renders Markdown emitted by LLM models with rich structured code blocks,
 /// language tags, one-tap copy actions, headings, lists, quotes, and inline code.
 class MarkdownText extends StatelessWidget {
@@ -216,7 +218,7 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
   @override
   Widget build(BuildContext context) {
     final displayLang = widget.language.isEmpty || widget.language.toLowerCase() == 'code'
-        ? 'CODE'
+        ? context.l10n.chatCodeBlockLabel
         : widget.language.toUpperCase();
 
     const bgCard = Color(0xFF0F172A); // Modern dark IDE canvas
@@ -285,7 +287,9 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          _copied ? 'Copied!' : 'Copy',
+                          _copied
+                              ? context.l10n.chatCodeCopied
+                              : context.l10n.commonCopy,
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
