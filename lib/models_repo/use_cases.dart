@@ -5,6 +5,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 enum UseCase {
   fastChat,
   reasoning,
@@ -42,6 +44,32 @@ extension UseCaseInfo on UseCase {
         UseCase.translation => 'Translating between languages with no signal',
         UseCase.summarizing => 'Shortening long text into the gist',
         UseCase.documents => 'Reading long documents and answering about them',
+      };
+
+  /// [label] in the app's language.
+  String localizedLabel(AppLocalizations l) => switch (this) {
+        UseCase.fastChat => l.modelsUseCaseFastChat,
+        UseCase.reasoning => l.modelsUseCaseReasoning,
+        UseCase.coding => l.modelsUseCaseCoding,
+        UseCase.tamil => l.modelsUseCaseTamil,
+        UseCase.english => l.modelsUseCaseEnglish,
+        UseCase.vision => l.modelsUseCaseVision,
+        UseCase.translation => l.modelsUseCaseTranslation,
+        UseCase.summarizing => l.modelsUseCaseSummarizing,
+        UseCase.documents => l.modelsUseCaseDocuments,
+      };
+
+  /// [blurb] in the app's language.
+  String localizedBlurb(AppLocalizations l) => switch (this) {
+        UseCase.fastChat => l.modelsUseCaseFastChatBlurb,
+        UseCase.reasoning => l.modelsUseCaseReasoningBlurb,
+        UseCase.coding => l.modelsUseCaseCodingBlurb,
+        UseCase.tamil => l.modelsUseCaseTamilBlurb,
+        UseCase.english => l.modelsUseCaseEnglishBlurb,
+        UseCase.vision => l.modelsUseCaseVisionBlurb,
+        UseCase.translation => l.modelsUseCaseTranslationBlurb,
+        UseCase.summarizing => l.modelsUseCaseSummarizingBlurb,
+        UseCase.documents => l.modelsUseCaseDocumentsBlurb,
       };
 
   IconData get icon => switch (this) {

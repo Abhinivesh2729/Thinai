@@ -10,6 +10,7 @@ import '../../models_repo/hf_hub.dart';
 import '../../models_repo/model_store.dart';
 import '../../models_repo/recommender.dart';
 import '../../models_repo/use_cases.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_brand_logo.dart';
@@ -60,15 +61,20 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
   void _reportOutcome(DownloadOutcome outcome) {
     if (!mounted) return;
     if (outcome.cancelled) {
-      _toast('Download paused. Tap Resume to continue.');
+      _toast(context.l10n.modelsToastDownloadPaused);
       return;
     }
     if (!outcome.ok) {
       _toast(
         outcome.keptBytes > 0
-            ? 'Download of ${outcome.label} stopped: ${outcome.error}. '
-                  'Progress is saved, tap Resume to continue.'
-            : 'Could not download ${outcome.label}: ${outcome.error}',
+            ? context.l10n.modelsToastDownloadStopped(
+                outcome.label,
+                '${outcome.error}',
+              )
+            : context.l10n.modelsToastDownloadFailed(
+                outcome.label,
+                '${outcome.error}',
+              ),
       );
       return;
     }
@@ -77,15 +83,15 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         outcome.catalogModel?.kind == ModelKind.chat;
     _toast(
       loaded
-          ? 'Downloaded and loaded ${outcome.label}'
-          : 'Downloaded ${outcome.label}',
+          ? context.l10n.modelsToastDownloadedAndLoaded(outcome.label)
+          : context.l10n.modelsToastDownloaded(outcome.label),
     );
   }
 
   Future<void> _load(LocalModel m, {bool openChat = false}) async {
     await ref.read(activeModelIdProvider.notifier).set(m);
     if (!mounted) return;
-    _toast('Loaded ${m.displayName}');
+    _toast(context.l10n.modelsToastLoaded(m.displayName));
     if (openChat) {
       ref.read(shellTabIndexProvider.notifier).state = 0;
     }
@@ -98,7 +104,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     required String title,
     required String message,
     required String confirmLabel,
-    String cancelLabel = 'Cancel',
+    String? cancelLabel,
     bool destructive = false,
   }) => _confirmDialog(
     context,
@@ -115,9 +121,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     final encoder = m.supportsVision ? (m.mmprojBytes ?? 0) : 0;
     final size = encoder > 0 ? _fmtSize(m.approxBytes + encoder) : m.approxSize;
     final confirmed = await _confirm(
-      title: 'Download model?',
-      message: 'Do you want to download ${m.displayName} ($size)?',
-      confirmLabel: 'Download',
+      title: context.l10n.modelsConfirmDownloadTitle,
+      message: context.l10n.modelsConfirmDownloadMessage(m.displayName, size),
+      confirmLabel: context.l10n.commonDownload,
     );
     if (!confirmed || !mounted) return;
     await ref.read(downloadsProvider.notifier).start(m);
@@ -136,16 +142,17 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
   Future<void> _resumePartial(PartialDownload p) async {
     final ok = await ref.read(downloadsProvider.notifier).resumePartial(p);
-    if (!ok && mounted) _toast('Could not resume ${p.label}');
+    if (!ok && mounted) _toast(context.l10n.modelsToastResumeFailed(p.label));
   }
 
   Future<void> _discardPartial(PartialDownload p) async {
     final confirmed = await _confirm(
-      title: 'Discard download?',
-      message:
-          'Do you want to discard the paused download of ${p.label}? '
-          'The ${_fmtSize(p.bytes)} saved so far will be deleted.',
-      confirmLabel: 'Discard',
+      title: context.l10n.modelsConfirmDiscardTitle,
+      message: context.l10n.modelsConfirmDiscardMessage(
+        p.label,
+        _fmtSize(p.bytes),
+      ),
+      confirmLabel: context.l10n.modelsDiscard,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -155,11 +162,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
   Future<void> _delete(LocalModel m) async {
     final confirm = await _confirm(
-      title: 'Delete model?',
-      message:
-          'Do you want to delete ${m.displayName}? This frees '
-          '${_fmtSize(m.sizeBytes)} of space.',
-      confirmLabel: 'Delete',
+      title: context.l10n.modelsConfirmDeleteTitle,
+      message: context.l10n.modelsConfirmDeleteMessage(
+        m.displayName,
+        _fmtSize(m.sizeBytes),
+      ),
+      confirmLabel: context.l10n.commonDelete,
       destructive: true,
     );
     if (!confirm || !mounted) return;
@@ -258,11 +266,11 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Models'),
+        title: Text(context.l10n.navModels),
         actions: [
           IconButton(
             key: CoachMarkTargets.benchmarkButton,
-            tooltip: 'Benchmark',
+            tooltip: context.l10n.modelsBenchmark,
             icon: const Icon(Icons.speed_rounded),
             onPressed: () {
               Navigator.of(
@@ -273,10 +281,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           IconButton(
             key: CoachMarkTargets.modelsTourButton,
             tooltip: isDownloading
-                ? 'Downloading (${downloads.length}) · Model Manager'
+                ? context.l10n.modelsManagerTooltipDownloading(downloads.length)
                 : (installedCount > 0
-                      ? 'Model Manager ($installedCount installed)'
-                      : 'Model Manager'),
+                      ? context.l10n.modelsManagerTooltipInstalled(
+                          installedCount,
+                        )
+                      : context.l10n.modelsManagerTitle),
             icon: Badge(
               isLabelVisible: isDownloading || installedCount > 0,
               label: Text(
@@ -338,7 +348,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
               loading: () => const Center(
                 child: CircularProgressIndicator(color: _brandGreen),
               ),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) =>
+                  Center(child: Text(context.l10n.modelsError('$e'))),
               data: (installedList) => _buildCatalogView(
                 context: context,
                 scheme: scheme,
@@ -434,13 +445,13 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'No models installed yet',
+                Text(
+                  context.l10n.modelsNoneInstalledYet,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Browse and download GGUF models from the catalog to run offline on this device.',
+                  context.l10n.modelsNoneInstalledYetBody,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
@@ -450,7 +461,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                 const SizedBox(height: 20),
                 FilledButton.icon(
                   icon: const Icon(Icons.explore_rounded, size: 16),
-                  label: const Text('Browse Catalog'),
+                  label: Text(context.l10n.modelsBrowseCatalog),
                   style: FilledButton.styleFrom(
                     backgroundColor: _brandGreen,
                     foregroundColor: Colors.white,
@@ -469,8 +480,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         children: [
           _SectionHeader(
             icon: Icons.inventory_2_rounded,
-            title: 'Installed models (${yourModels.length})',
-            subtitle: 'Tap a model to load it for chat',
+            title: context.l10n.modelsInstalledSectionTitle(yourModels.length),
+            subtitle: context.l10n.modelsInstalledSectionSubtitle,
           ),
           const SizedBox(height: 12),
           for (final m in yourModels) ...[
@@ -595,8 +606,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           if (recommendedChatModels.isNotEmpty) ...[
             _SectionHeader(
               icon: _selectedUseCase!.icon,
-              title: 'Recommended for ${_selectedUseCase!.label}',
-              subtitle: 'Optimal weights selected for your device specs',
+              title: context.l10n.modelsRecommendedFor(
+                _selectedUseCase!.localizedLabel(context.l10n),
+              ),
+              subtitle: context.l10n.modelsRecommendedSubtitle,
             ),
             const SizedBox(height: 10),
             for (final m in recommendedChatModels) ...[
@@ -611,8 +624,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         if (featured != null) ...[
           _SectionHeader(
             icon: Icons.auto_awesome_rounded,
-            title: 'Featured Models',
-            subtitle: 'Handpicked for you',
+            title: context.l10n.modelsFeaturedTitle,
+            subtitle: context.l10n.modelsFeaturedSubtitle,
           ),
           const SizedBox(height: 10),
           _FeaturedHeroCard(
@@ -643,19 +656,19 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                       ? Icons.chat_bubble_outline_rounded
                       : Icons.explore_rounded),
             title: _selectedUseCase != null
-                ? 'Other models'
+                ? context.l10n.modelsOtherModels
                 : (_filter == ModelFilter.vision
-                      ? 'Vision models'
+                      ? context.l10n.modelsVisionModelsTitle
                       : (_filter == ModelFilter.chat
-                            ? 'Chat models'
+                            ? context.l10n.modelsChatModelsTitle
                             : (featured != null
-                                  ? 'Explore Models'
-                                  : 'Browse catalog'))),
+                                  ? context.l10n.modelsExploreModels
+                                  : context.l10n.modelsBrowseCatalogTitle))),
             subtitle: _selectedUseCase != null
-                ? 'All other available models'
+                ? context.l10n.modelsOtherModelsSubtitle
                 : (_filter == ModelFilter.vision
-                      ? 'Multimodal · image & visual analysis'
-                      : 'Curated GGUF models · one-tap download'),
+                      ? context.l10n.modelsVisionModelsSubtitle
+                      : context.l10n.modelsCatalogSubtitle),
           ),
           const SizedBox(height: 10),
           for (final m in regularChatModels) ...[
@@ -673,10 +686,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
         // Embedding models
         if (embeddingModels.isNotEmpty) ...[
-          const _SectionHeader(
+          _SectionHeader(
             icon: Icons.hub_rounded,
-            title: 'Embedding models',
-            subtitle: 'For search and RAG · /api/embed · /v1/embeddings',
+            title: context.l10n.modelsEmbeddingTitle,
+            subtitle: context.l10n.modelsEmbeddingSubtitle,
           ),
           const SizedBox(height: 10),
           for (final m in embeddingModels) ...[
@@ -704,7 +717,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Downloaded models stay 100% on-device and run entirely offline.',
+                  context.l10n.modelsOfflineFooter,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
                     fontSize: 11.5,
@@ -726,7 +739,7 @@ class _SearchBar extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final ValueChanged<String>? onSubmitted;
   final VoidCallback onClear;
-  final String hintText;
+  final String? hintText;
   final bool autofocus;
 
   const _SearchBar({
@@ -734,7 +747,7 @@ class _SearchBar extends StatelessWidget {
     required this.onChanged,
     required this.onClear,
     this.onSubmitted,
-    this.hintText = 'Search models, makers, architectures…',
+    this.hintText,
     this.autofocus = false,
   });
 
@@ -791,7 +804,7 @@ class _SearchBar extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
-                  hintText: hintText,
+                  hintText: hintText ?? context.l10n.modelsSearchHint,
                   hintStyle: TextStyle(
                     color: isDark
                         ? const Color(0xFF64748B)
@@ -807,7 +820,7 @@ class _SearchBar extends StatelessWidget {
             if (hasText)
               IconButton(
                 icon: const Icon(Icons.close_rounded, size: 18),
-                tooltip: 'Clear search',
+                tooltip: context.l10n.modelsClearSearch,
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
@@ -845,18 +858,20 @@ class _DropdownFilterBar extends StatelessWidget {
     required this.onResetAll,
   });
 
-  String _filterLabel(ModelFilter filter) {
+  String _filterLabel(AppLocalizations l, ModelFilter filter) {
     switch (filter) {
       case ModelFilter.all:
-        return 'All Models';
+        return l.modelsFilterAll;
       case ModelFilter.chat:
-        return 'Chat Models';
+        return l.modelsFilterChat;
       case ModelFilter.vision:
-        return 'Vision Models';
+        return l.modelsFilterVision;
       case ModelFilter.embedding:
-        return 'Embedding';
+        return l.modelsFilterEmbedding;
       case ModelFilter.installed:
-        return installedCount > 0 ? 'Installed ($installedCount)' : 'Installed';
+        return installedCount > 0
+            ? l.modelsFilterInstalledCount(installedCount)
+            : l.modelsFilterInstalled;
     }
   }
 
@@ -908,7 +923,7 @@ class _DropdownFilterBar extends StatelessWidget {
       children: [
         // 1. Sleek Dropdown Styled Filter Picker
         PopupMenuButton<ModelFilter>(
-          tooltip: 'Filter Category',
+          tooltip: context.l10n.modelsFilterCategory,
           initialValue: selected,
           onSelected: onSelected,
           offset: const Offset(0, 42),
@@ -922,11 +937,11 @@ class _DropdownFilterBar extends StatelessWidget {
           ),
           color: isDark ? const Color(0xFF131722) : Colors.white,
           itemBuilder: (context) => [
-            _buildMenuItem(ModelFilter.all, isDark),
-            _buildMenuItem(ModelFilter.chat, isDark),
-            _buildMenuItem(ModelFilter.vision, isDark),
-            _buildMenuItem(ModelFilter.embedding, isDark),
-            _buildMenuItem(ModelFilter.installed, isDark),
+            _buildMenuItem(context.l10n, ModelFilter.all, isDark),
+            _buildMenuItem(context.l10n, ModelFilter.chat, isDark),
+            _buildMenuItem(context.l10n, ModelFilter.vision, isDark),
+            _buildMenuItem(context.l10n, ModelFilter.embedding, isDark),
+            _buildMenuItem(context.l10n, ModelFilter.installed, isDark),
           ],
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -971,7 +986,7 @@ class _DropdownFilterBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  _filterLabel(selected),
+                  _filterLabel(context.l10n, selected),
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: isCategoryFiltered
@@ -1051,8 +1066,8 @@ class _DropdownFilterBar extends StatelessWidget {
                       Flexible(
                         child: Text(
                           selectedUseCase != null
-                              ? selectedUseCase!.label
-                              : 'Goals',
+                              ? selectedUseCase!.localizedLabel(context.l10n)
+                              : context.l10n.modelsGoals,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -1104,7 +1119,7 @@ class _DropdownFilterBar extends StatelessWidget {
         if (hasActiveFilter) ...[
           const SizedBox(width: 8),
           Tooltip(
-            message: 'Reset filters and search',
+            message: context.l10n.modelsResetFiltersTooltip,
             child: Material(
               color: scheme.error.withValues(alpha: isDark ? 0.14 : 0.08),
               borderRadius: BorderRadius.circular(10),
@@ -1132,7 +1147,7 @@ class _DropdownFilterBar extends StatelessWidget {
                       if (!compactReset) ...[
                         const SizedBox(width: 4),
                         Text(
-                          'Reset',
+                          context.l10n.commonReset,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -1151,9 +1166,13 @@ class _DropdownFilterBar extends StatelessWidget {
     );
   }
 
-  PopupMenuItem<ModelFilter> _buildMenuItem(ModelFilter filter, bool isDark) {
+  PopupMenuItem<ModelFilter> _buildMenuItem(
+    AppLocalizations l,
+    ModelFilter filter,
+    bool isDark,
+  ) {
     final isSelected = selected == filter;
-    final label = _filterLabel(filter);
+    final label = _filterLabel(l, filter);
     final icon = _filterIcon(filter);
 
     return PopupMenuItem<ModelFilter>(
@@ -1231,7 +1250,9 @@ class _ActiveGoalBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Targeting: ${useCase.label}',
+                  context.l10n.modelsTargeting(
+                    useCase.localizedLabel(context.l10n),
+                  ),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -1239,7 +1260,7 @@ class _ActiveGoalBanner extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  useCase.blurb,
+                  useCase.localizedBlurb(context.l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1258,14 +1279,14 @@ class _ActiveGoalBanner extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               foregroundColor: primaryBrand,
             ),
-            child: const Text(
-              'Change',
+            child: Text(
+              context.l10n.modelsChange,
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.close_rounded, size: 16),
-            tooltip: 'Clear goal',
+            tooltip: context.l10n.modelsClearGoal,
             visualDensity: VisualDensity.compact,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -1316,8 +1337,15 @@ class _ModelManagerSheet extends ConsumerWidget {
     );
 
     final subtitle = downloads.isNotEmpty
-        ? '${installed.length} installed · ${downloads.length} downloading · ${_fmtSize(totalBytes)} used'
-        : '${installed.length} models · ${_fmtSize(totalBytes)} storage used';
+        ? context.l10n.modelsManagerSubtitleDownloading(
+            installed.length,
+            downloads.length,
+            _fmtSize(totalBytes),
+          )
+        : context.l10n.modelsManagerSubtitle(
+            installed.length,
+            _fmtSize(totalBytes),
+          );
 
     return Container(
       constraints: BoxConstraints(
@@ -1364,8 +1392,8 @@ class _ModelManagerSheet extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Model Manager',
+                      Text(
+                        context.l10n.modelsManagerTitle,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -1406,8 +1434,8 @@ class _ModelManagerSheet extends ConsumerWidget {
                             color: scheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'No models installed',
+                          Text(
+                            context.l10n.modelsNoneInstalled,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -1415,7 +1443,7 @@ class _ModelManagerSheet extends ConsumerWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Download models from the catalog to run offline chat.',
+                            context.l10n.modelsNoneInstalledBody,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12.5,
@@ -1425,7 +1453,7 @@ class _ModelManagerSheet extends ConsumerWidget {
                           const SizedBox(height: 16),
                           FilledButton.icon(
                             icon: const Icon(Icons.explore_rounded, size: 16),
-                            label: const Text('Browse Catalog'),
+                            label: Text(context.l10n.modelsBrowseCatalog),
                             style: FilledButton.styleFrom(
                               backgroundColor: _brandGreen,
                             ),
@@ -1477,8 +1505,10 @@ class _ModelManagerSheet extends ConsumerWidget {
                               Expanded(
                                 child: Text(
                                   activeModel != null
-                                      ? 'Active for Chat: ${activeModel.displayName}'
-                                      : 'No model loaded in Chat',
+                                      ? context.l10n.modelsActiveForChat(
+                                          activeModel.displayName,
+                                        )
+                                      : context.l10n.modelsNoModelLoaded,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,
@@ -1506,7 +1536,7 @@ class _ModelManagerSheet extends ConsumerWidget {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Text(
-                              'Installed models will appear here after download completes.',
+                              context.l10n.modelsInstalledAppearHere,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 12.5,
@@ -1599,8 +1629,8 @@ class _ManagerModelTile extends StatelessWidget {
                     ),
                     if (isActive) ...[
                       const SizedBox(width: 6),
-                      const _Chip(
-                        label: 'Active',
+                      _Chip(
+                        label: context.l10n.modelsActive,
                         icon: Icons.bolt_rounded,
                         tone: _ChipTone.accent,
                       ),
@@ -1625,14 +1655,14 @@ class _ManagerModelTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Activate',
+              child: Text(
+                context.l10n.modelsActivate,
                 style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
               ),
             ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded, size: 19),
-            tooltip: 'Delete model',
+            tooltip: context.l10n.modelsDeleteModel,
             color: scheme.error,
             visualDensity: VisualDensity.compact,
             onPressed: onDelete,
@@ -1698,8 +1728,8 @@ class _GoalPickerSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Choose Your Goal',
+                      Text(
+                        context.l10n.modelsChooseGoal,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -1707,7 +1737,7 @@ class _GoalPickerSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Thinai benchmarks & recommends models for your device',
+                        context.l10n.modelsChooseGoalSubtitle,
                         style: TextStyle(
                           fontSize: 12,
                           color: scheme.onSurfaceVariant,
@@ -1731,7 +1761,7 @@ class _GoalPickerSheet extends StatelessWidget {
                 if (selected != null) ...[
                   OutlinedButton.icon(
                     icon: const Icon(Icons.close_rounded, size: 16),
-                    label: const Text('Clear Active Goal'),
+                    label: Text(context.l10n.modelsClearActiveGoal),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: scheme.error,
                       side: BorderSide(
@@ -1814,7 +1844,7 @@ class _GoalOptionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      useCase.label,
+                      useCase.localizedLabel(context.l10n),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -1823,7 +1853,7 @@ class _GoalOptionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      useCase.blurb,
+                      useCase.localizedBlurb(context.l10n),
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
@@ -1872,8 +1902,8 @@ class _NoResults extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               query.isEmpty
-                  ? 'No models match current filters'
-                  : 'No models match "$query"',
+                  ? context.l10n.modelsNoMatchFilters
+                  : context.l10n.modelsNoMatchQuery(query),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,
@@ -1883,7 +1913,7 @@ class _NoResults extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Try adjusting your selected filters or search terms.',
+              context.l10n.modelsNoMatchHint,
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
             ),
@@ -1891,7 +1921,7 @@ class _NoResults extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton.icon(
                 icon: const Icon(Icons.travel_explore_rounded, size: 16),
-                label: const Text('Search Hugging Face'),
+                label: Text(context.l10n.modelsSearchHuggingFace),
                 style: FilledButton.styleFrom(
                   backgroundColor: _brandGreen,
                   foregroundColor: Colors.white,
@@ -1903,7 +1933,7 @@ class _NoResults extends StatelessWidget {
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
-                label: const Text('Reset filters & search'),
+                label: Text(context.l10n.modelsResetFiltersAndSearch),
                 onPressed: onClear,
               ),
             ],
@@ -2001,19 +2031,20 @@ class _DownloadProgressRow extends StatelessWidget {
         final isCancelled = p?.cancelled ?? false;
         final hasError = p?.error != null;
 
+        final l = context.l10n;
         String statusText;
         if (isDone) {
           if (isCancelled) {
-            statusText = 'Cancelled';
+            statusText = l.modelsStatusCancelled;
           } else if (hasError) {
-            statusText = 'Failed';
+            statusText = l.modelsStatusFailed;
           } else {
-            statusText = '100% · Completed';
+            statusText = l.modelsStatusCompleted;
           }
         } else if (fraction != null) {
           statusText = '${(fraction * 100).toStringAsFixed(0)}%';
         } else {
-          statusText = 'Starting…';
+          statusText = l.modelsStatusStarting;
         }
 
         String sizeText = '';
@@ -2172,14 +2203,14 @@ class _InstalledCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         if (active)
-                          const _SpecPill(
-                            label: 'Active in Chat',
+                          _SpecPill(
+                            label: context.l10n.modelsActiveInChat,
                             icon: Icons.bolt_rounded,
                             color: Color(0xFF2CA048),
                           )
                         else
                           Text(
-                            'Tap to activate',
+                            context.l10n.modelsTapToActivate,
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,
@@ -2193,7 +2224,7 @@ class _InstalledCard extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                tooltip: 'Delete model',
+                tooltip: context.l10n.modelsDeleteModel,
                 onPressed: onDelete,
                 color: scheme.onSurfaceVariant,
               ),
@@ -2241,22 +2272,22 @@ class _CategoryBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, icon, color) = switch (kind) {
       _ModelVisualKind.vision => (
-        'VISION',
+        context.l10n.modelsBadgeVision,
         Icons.visibility_rounded,
         const Color(0xFF6366F1),
       ),
       _ModelVisualKind.embedding => (
-        'EMBED',
+        context.l10n.modelsBadgeEmbed,
         Icons.hub_rounded,
         const Color(0xFFF59E0B),
       ),
       _ModelVisualKind.reasoning => (
-        'REASON',
+        context.l10n.modelsBadgeReason,
         Icons.psychology_rounded,
         const Color(0xFF0EA5E9),
       ),
       _ModelVisualKind.text => (
-        'TEXT',
+        context.l10n.modelsBadgeText,
         Icons.chat_bubble_outline_rounded,
         const Color(0xFF2CA048),
       ),
@@ -2404,7 +2435,7 @@ class _FeaturedHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final capTag = _capabilityTagFor(model);
+    final capTag = _capabilityTagFor(model, context.l10n);
 
     // Deep celestial emerald gradient in dark mode; fresh mint-emerald in light mode
     final cardGradient = isDark
@@ -2553,7 +2584,7 @@ class _FeaturedHeroCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    'FEATURED',
+                                    context.l10n.modelsFeaturedBadge,
                                     style: TextStyle(
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.w800,
@@ -2608,7 +2639,7 @@ class _FeaturedHeroCard extends StatelessWidget {
                             const Text('🔥', style: TextStyle(fontSize: 11)),
                             const SizedBox(width: 4),
                             Text(
-                              'Popular',
+                              context.l10n.modelsPopular,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -2683,7 +2714,7 @@ class _FeaturedHeroCard extends StatelessWidget {
         key: actionKey,
         onPressed: onAddVision,
         icon: const Icon(Icons.visibility_rounded, size: 13),
-        label: Text('+ Vision (${model.mmprojSize})'),
+        label: Text(context.l10n.modelsAddVision(model.mmprojSize)),
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFF4ADE80),
           side: const BorderSide(color: Color(0xFF4ADE80), width: 1.2),
@@ -2704,18 +2735,18 @@ class _FeaturedHeroCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0x552CA048), width: 1),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.check_circle_rounded,
               size: 13,
               color: Color(0xFF4ADE80),
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 4),
             Text(
-              'Installed',
-              style: TextStyle(
+              context.l10n.modelsInstalled,
+              style: const TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF4ADE80),
@@ -2736,7 +2767,7 @@ class _FeaturedHeroCard extends StatelessWidget {
             color: isDark ? Colors.white70 : const Color(0xFF475569),
           ),
           label: Text(
-            'Pause',
+            context.l10n.modelsPause,
             style: TextStyle(
               color: isDark ? Colors.white : const Color(0xFF0F172A),
               fontSize: 11.5,
@@ -2781,7 +2812,9 @@ class _FeaturedHeroCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                paused != null ? _resumeLabel(paused!) : model.approxSize,
+                paused != null
+                    ? _resumeLabel(paused!, context.l10n)
+                    : model.approxSize,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -2845,7 +2878,7 @@ class _CatalogCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
     final auraColor = _vendorAuraColor(model);
-    final capTag = _capabilityTagFor(model);
+    final capTag = _capabilityTagFor(model, context.l10n);
     final visualKind = _classifyModel(model);
 
     final cardBg = isDark
@@ -2967,7 +3000,7 @@ class _CatalogCard extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      'TOP PICK',
+                                      context.l10n.modelsTopPick,
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
@@ -3011,7 +3044,7 @@ class _CatalogCard extends StatelessWidget {
                           ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          tooltip: 'Model details',
+                          tooltip: context.l10n.modelsModelDetails,
                           onPressed: () => _openModelDetailsSheet(
                             context,
                             model: model,
@@ -3054,7 +3087,9 @@ class _CatalogCard extends StatelessWidget {
                             _SpecPill(label: capTag.$2, icon: capTag.$1),
                             if (model.dimensions != null)
                               _SpecPill(
-                                label: '${model.dimensions} dims',
+                                label: context.l10n.modelsDimensions(
+                                  '${model.dimensions}',
+                                ),
                                 icon: Icons.scatter_plot_rounded,
                               ),
                           ],
@@ -3089,7 +3124,7 @@ class _CatalogCard extends StatelessWidget {
         key: actionKey,
         onPressed: onAddVision,
         icon: const Icon(Icons.visibility_rounded, size: 13),
-        label: Text('+ Vision (${model.mmprojSize})'),
+        label: Text(context.l10n.modelsAddVision(model.mmprojSize)),
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryBrand,
           side: BorderSide(color: primaryBrand, width: 1.2),
@@ -3119,7 +3154,7 @@ class _CatalogCard extends StatelessWidget {
             Icon(Icons.check_circle_rounded, size: 13, color: primaryBrand),
             const SizedBox(width: 4),
             Text(
-              'Installed',
+              context.l10n.modelsInstalled,
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
@@ -3153,7 +3188,7 @@ class _CatalogCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'Needs RAM',
+              context.l10n.modelsNeedsRam,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -3170,7 +3205,7 @@ class _CatalogCard extends StatelessWidget {
         child: OutlinedButton.icon(
           key: actionKey,
           icon: const Icon(Icons.pause_rounded, size: 14),
-          label: const Text('Pause'),
+          label: Text(context.l10n.modelsPause),
           onPressed: onCancel,
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -3220,7 +3255,9 @@ class _CatalogCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                paused != null ? _resumeLabel(paused!) : model.approxSize,
+                paused != null
+                    ? _resumeLabel(paused!, context.l10n)
+                    : model.approxSize,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11.5,
@@ -3251,7 +3288,7 @@ void _openModelDetailsSheet(
   required VoidCallback onDownload,
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  final capTag = _capabilityTagFor(model);
+  final capTag = _capabilityTagFor(model, context.l10n);
 
   showModalBottomSheet<void>(
     context: context,
@@ -3348,22 +3385,22 @@ void _openModelDetailsSheet(
             runSpacing: 8,
             children: [
               _DetailSpecTile(
-                title: 'Parameters',
+                title: context.l10n.modelsDetailParameters,
                 value: model.parameters,
                 icon: Icons.bolt_rounded,
               ),
               _DetailSpecTile(
-                title: 'Context Window',
-                value: '${model.contextLabel} tokens',
+                title: context.l10n.modelsDetailContextWindow,
+                value: context.l10n.modelsTokensValue(model.contextLabel),
                 icon: Icons.receipt_long_outlined,
               ),
               _DetailSpecTile(
-                title: 'Download Size',
+                title: context.l10n.modelsDetailDownloadSize,
                 value: model.approxSize,
                 icon: Icons.download_rounded,
               ),
               _DetailSpecTile(
-                title: 'Capability',
+                title: context.l10n.modelsDetailCapability,
                 value: capTag.$2,
                 icon: capTag.$1,
               ),
@@ -3376,7 +3413,7 @@ void _openModelDetailsSheet(
               height: 48,
               child: FilledButton.icon(
                 icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                label: Text('Download ${model.approxSize}'),
+                label: Text(context.l10n.modelsDownloadSize(model.approxSize)),
                 style: FilledButton.styleFrom(
                   backgroundColor: _brandGreen,
                   foregroundColor: Colors.white,
@@ -3500,12 +3537,12 @@ Color _vendorAuraColor(CatalogModel model) {
   return model.accent;
 }
 
-(IconData, String) _capabilityTagFor(CatalogModel model) {
+(IconData, String) _capabilityTagFor(CatalogModel model, AppLocalizations l) {
   if (model.supportsVision) {
-    return (Icons.visibility_outlined, 'Vision Ready');
+    return (Icons.visibility_outlined, l.modelsCapVisionReady);
   }
   if (model.kind == ModelKind.embedding) {
-    return (Icons.hub_outlined, 'Embeddings');
+    return (Icons.hub_outlined, l.modelsCapEmbeddings);
   }
   final id = model.id.toLowerCase();
   final params = model.parameters.toLowerCase();
@@ -3515,20 +3552,20 @@ Color _vendorAuraColor(CatalogModel model) {
       params.contains('0.6') ||
       params.contains('0.8')) {
     if (id.contains('lfm') || id.contains('smol')) {
-      return (Icons.eco_outlined, 'Lightweight');
+      return (Icons.eco_outlined, l.modelsCapLightweight);
     }
-    return (Icons.bolt_rounded, 'Fast & Efficient');
+    return (Icons.bolt_rounded, l.modelsCapFast);
   }
   if (id.contains('qwen') || id.contains('gemma-4') || id.contains('smollm3')) {
-    return (Icons.public_outlined, 'Multilingual');
+    return (Icons.public_outlined, l.modelsCapMultilingual);
   }
   if (id.contains('mistral') ||
       id.contains('phi') ||
       id.contains('deepseek') ||
       id.contains('granite')) {
-    return (Icons.code_rounded, 'Code · Reasoning');
+    return (Icons.code_rounded, l.modelsCapCodeReasoning);
   }
-  return (Icons.navigation_outlined, 'Instruct');
+  return (Icons.navigation_outlined, l.modelsCapInstruct);
 }
 
 enum _ChipTone { neutral, accent }
@@ -3636,11 +3673,12 @@ class _FitWarning extends StatelessWidget {
     final available = budget;
     final color = blocked ? scheme.error : Colors.orange.shade800;
 
+    final l = context.l10n;
     final text = blocked
         ? available == null
-              ? 'Too large for this phone.'
-              : 'Needs ${_gb(needs)}, this phone has ${_gb(available)} to spare.'
-        : 'A tight fit. Other apps may close while this runs.';
+              ? l.modelsFitTooLarge
+              : l.modelsFitNeeds(_gb(needs), _gb(available))
+        : l.modelsFitTight;
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -3702,9 +3740,7 @@ class _ActiveDownloads extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                entries.length == 1
-                    ? 'Downloading model'
-                    : 'Downloading ${entries.length} models',
+                context.l10n.modelsDownloadingCount(entries.length),
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
@@ -3760,7 +3796,7 @@ class _ActiveDownloadRow extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     fraction == null
-                        ? 'Starting…'
+                        ? context.l10n.modelsStatusStarting
                         : '${(fraction * 100).toStringAsFixed(0)}%',
                     style: const TextStyle(
                       fontSize: 12.5,
@@ -3773,7 +3809,7 @@ class _ActiveDownloadRow extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.only(left: 8),
                     constraints: const BoxConstraints(),
-                    tooltip: 'Pause download',
+                    tooltip: context.l10n.modelsPauseDownload,
                     onPressed: onCancel,
                     icon: const Icon(Icons.pause_rounded),
                   ),
@@ -3797,9 +3833,12 @@ class _ActiveDownloadRow extends StatelessWidget {
   }
 }
 
-String _resumeLabel(PartialDownload p) {
+String _resumeLabel(PartialDownload p, [AppLocalizations? l]) {
+  l ??= lookupAppLocalizations(const Locale('en'));
   final f = p.fraction;
-  return f == null ? 'Resume' : 'Resume ${(f * 100).toStringAsFixed(0)}%';
+  return f == null
+      ? l.commonResume
+      : l.modelsResumePercent((f * 100).toStringAsFixed(0));
 }
 
 /// The progress bar a paused download leaves behind on its card, so the user
@@ -3830,8 +3869,10 @@ class _PausedProgressRow extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               fraction == null
-                  ? 'Paused'
-                  : 'Paused · ${(fraction * 100).toStringAsFixed(0)}%',
+                  ? context.l10n.modelsPaused
+                  : context.l10n.modelsPausedPercent(
+                      (fraction * 100).toStringAsFixed(0),
+                    ),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -3904,9 +3945,7 @@ class _PausedDownloads extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                partials.length == 1
-                    ? 'Paused download'
-                    : 'Paused downloads (${partials.length})',
+                context.l10n.modelsPausedDownloadsTitle(partials.length),
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
@@ -3917,7 +3956,7 @@ class _PausedDownloads extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Saved on this phone. Resume to continue where it stopped.',
+            context.l10n.modelsPausedDownloadsBody,
             style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
@@ -3955,7 +3994,7 @@ class _PausedDownloads extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.only(left: 8),
                         constraints: const BoxConstraints(),
-                        tooltip: 'Resume download',
+                        tooltip: context.l10n.modelsResumeDownload,
                         color: _brandGreen,
                         onPressed: () => onResume(p),
                         icon: const Icon(Icons.play_arrow_rounded),
@@ -3965,7 +4004,7 @@ class _PausedDownloads extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.only(left: 8),
                         constraints: const BoxConstraints(),
-                        tooltip: 'Discard download',
+                        tooltip: context.l10n.modelsDiscardDownload,
                         onPressed: () => onDiscard(p),
                         icon: const Icon(Icons.delete_outline_rounded),
                       ),
@@ -3997,7 +4036,7 @@ Future<bool> _confirmDialog(
   required String title,
   required String message,
   required String confirmLabel,
-  String cancelLabel = 'Cancel',
+  String? cancelLabel,
   bool destructive = false,
 }) async {
   final confirmed = await showDialog<bool>(
@@ -4009,7 +4048,7 @@ Future<bool> _confirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(c, false),
-          child: Text(cancelLabel),
+          child: Text(cancelLabel ?? context.l10n.commonCancel),
         ),
         FilledButton(
           style: destructive

@@ -7,6 +7,7 @@
 /// job first, then filtered by what the device can actually run.
 library;
 
+import '../l10n/app_localizations.dart';
 import 'benchmark_store.dart';
 import 'catalog.dart';
 import 'device_profile.dart';
@@ -35,6 +36,14 @@ extension RamFitInfo on RamFit {
         RamFit.tight => 'Tight fit, may slow other apps',
         RamFit.tooBig => 'Too big for your phone',
         RamFit.unknown => 'Fit unknown',
+      };
+
+  /// [label] in the app's language.
+  String localizedLabel(AppLocalizations l) => switch (this) {
+        RamFit.comfortable => l.modelsFitComfortable,
+        RamFit.tight => l.modelsFitTightShort,
+        RamFit.tooBig => l.modelsFitTooBig,
+        RamFit.unknown => l.modelsFitUnknown,
       };
 }
 
@@ -65,6 +74,10 @@ class Recommendation {
   /// Why this one, in the user's terms.
   final List<String> reasons;
 
+  /// [reasons] as the (use case, rating) pairs they were written from, so the
+  /// UI can show them in the app's language. Same order as [reasons].
+  final List<(UseCase, Skill)> reasonParts;
+
   const Recommendation({
     required this.model,
     required this.skill,
@@ -74,7 +87,19 @@ class Recommendation {
     required this.runtimeBytes,
     required this.installed,
     required this.reasons,
+    this.reasonParts = const [],
   });
+
+  /// [reasons] in the app's language.
+  List<String> localizedReasons(AppLocalizations l) => [
+        for (final (useCase, skill) in reasonParts)
+          skill.localizedReason(l, useCase),
+      ];
+
+  /// [speedLabel] in the app's language. Only the "unknown" case has words;
+  /// the rate itself reads the same everywhere.
+  String localizedSpeedLabel(AppLocalizations l) =>
+      estimatedTokensPerSecond == null ? l.modelsSpeedUnknown : speedLabel;
 
   String get speedLabel {
     final rate = estimatedTokensPerSecond;
@@ -93,6 +118,19 @@ class Recommendation {
   }
 }
 
+/// Why a [RecommendationResult] carries a caveat, so it can be worded in the
+/// app's language.
+enum RecommendationCaveat {
+  /// Nothing in the catalogue fits this phone for the job.
+  noneFits,
+
+  /// The phone is known, and nothing that fits is good at the job.
+  nothingFitsWell,
+
+  /// The phone is unknown, and nothing at this size is good at the job.
+  nothingStrong,
+}
+
 class RecommendationResult {
   /// Best first. Empty when nothing in the catalog can do the job.
   final List<Recommendation> picks;
@@ -107,11 +145,38 @@ class RecommendationResult {
   /// gigabytes expecting something the model cannot do.
   final String? caveat;
 
+  /// The job asked about. Set alongside [caveat].
+  final UseCase? useCase;
+
+  /// Which caveat [caveat] is.
+  final RecommendationCaveat? caveatKind;
+
   const RecommendationResult({
     this.picks = const [],
     this.unavailable,
     this.caveat,
+    this.useCase,
+    this.caveatKind,
   });
+
+  /// [unavailable] in the app's language. Image understanding is the only
+  /// job that can be unavailable.
+  String? localizedUnavailable(AppLocalizations l) =>
+      unavailable == null ? null : l.modelsVisionUnavailable;
+
+  /// [caveat] in the app's language.
+  String? localizedCaveat(AppLocalizations l) {
+    final kind = caveatKind;
+    final job = useCase;
+    if (kind == null || job == null) return caveat;
+    return switch (kind) {
+      RecommendationCaveat.noneFits => l.modelsCaveatNoneFits(job.name),
+      RecommendationCaveat.nothingFitsWell =>
+        l.modelsCaveatNothingFitsWell(job.name),
+      RecommendationCaveat.nothingStrong =>
+        l.modelsCaveatNothingStrong(job.name),
+    };
+  }
 
   Recommendation? get best => picks.isEmpty ? null : picks.first;
   List<Recommendation> get alternatives => picks.skip(1).toList();
@@ -268,7 +333,11 @@ RecommendationResult recommend(
         speedIsMeasured: knowledge.isMeasured(model),
         runtimeBytes: runtimeBytesFor(model),
         installed: installed,
-        reasons: _reasonsFor(model, useCase, skill),
+        reasons: [
+          for (final (u, s) in _reasonPartsFor(model, useCase, skill))
+            '${s.word} ${_phrase(u)}',
+        ],
+        reasonParts: _reasonPartsFor(model, useCase, skill),
       ),
       score,
     ));
@@ -294,10 +363,16 @@ RecommendationResult recommend(
     return RecommendationResult(
       caveat: 'No model in the catalogue fits this phone for '
           '${_phrase(useCase)}.',
+      useCase: useCase,
+      caveatKind: RecommendationCaveat.noneFits,
     );
   }
   return RecommendationResult(
     picks: fallback,
+    useCase: useCase,
+    caveatKind: device.known
+        ? RecommendationCaveat.nothingFitsWell
+        : RecommendationCaveat.nothingStrong,
     caveat: device.known
         ? 'Nothing fits well for ${_phrase(useCase)}. These are closest.'
         : 'Nothing at this size is strong at ${_phrase(useCase)}. Closest '
@@ -307,9 +382,16 @@ RecommendationResult recommend(
 
 /// The "why this one" lines: the job that was asked about first, then whatever
 /// else the model is good at.
-List<String> _reasonsFor(CatalogModel model, UseCase useCase, Skill skill) {
-  final reasons = <String>['${skill.word} ${_phrase(useCase)}'];
-  for (final extra in highlightsFor(model, limit: 3)) {
+///
+/// Returned as (use case, rating) pairs so the same list can be worded in
+/// English for [Recommendation.reasons] and in the app's language for the UI.
+List<(UseCase, Skill)> _reasonPartsFor(
+  CatalogModel model,
+  UseCase useCase,
+  Skill skill,
+) {
+  final reasons = <(UseCase, Skill)>[(useCase, skill)];
+  for (final extra in highlightPairsFor(model, limit: 3)) {
     if (reasons.length >= 3) break;
     if (!reasons.contains(extra)) reasons.add(extra);
   }
