@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
+
 class SpotlightCoachStep {
   const SpotlightCoachStep({
     required this.targetKey,
@@ -181,6 +183,7 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final media = MediaQuery.of(context).size;
+    final l10n = context.l10n;
 
     final panelWidth = math.min(media.width - 24, 360.0);
     const panelHeightEstimate = 220.0;
@@ -290,15 +293,16 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        'App Tour',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          l10n.tourAppTour,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      const Spacer(),
                       Text(
                         '${_index + 1}/${widget.steps.length}',
                         style: TextStyle(
@@ -339,32 +343,48 @@ class _SpotlightCoachOverlayState extends State<_SpotlightCoachOverlay> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'Locating control…',
-                          style: TextStyle(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: 12,
+                        Flexible(
+                          child: Text(
+                            l10n.tourLocatingControl,
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   const SizedBox(height: 10),
-                  Row(
+                  // Reads as a spaced row; stacks only when longer
+                  // translations no longer fit the panel width.
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceBetween,
+                    overflowAlignment: OverflowBarAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: widget.onDone,
-                        child: const Text('Skip'),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: TextButton(
+                              onPressed: widget.onDone,
+                              child: Text(l10n.commonSkip),
+                            ),
+                          ),
+                          if (_index > 0)
+                            Flexible(
+                              child: TextButton(
+                                onPressed: _previous,
+                                child: Text(l10n.commonBack),
+                              ),
+                            ),
+                        ],
                       ),
-                      if (_index > 0)
-                        TextButton(
-                          onPressed: _previous,
-                          child: const Text('Back'),
-                        ),
-                      const Spacer(),
                       FilledButton(
                         onPressed: _next,
                         child: Text(
-                          _index == widget.steps.length - 1 ? 'Done' : 'Next',
+                          _index == widget.steps.length - 1
+                              ? l10n.commonDone
+                              : l10n.commonNext,
                         ),
                       ),
                     ],

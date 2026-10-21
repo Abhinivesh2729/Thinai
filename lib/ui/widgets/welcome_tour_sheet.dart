@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
+
 class WelcomeTourSheet extends StatelessWidget {
   final VoidCallback onStartTour;
   final VoidCallback onBrowseModels;
@@ -33,6 +35,7 @@ class WelcomeTourSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     const brandGreen = Color(0xFF2CA048);
 
     return Container(
@@ -85,13 +88,15 @@ class WelcomeTourSheet extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'Welcome to Thinai',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.3,
-                              color: scheme.onSurface,
+                          Flexible(
+                            child: Text(
+                              l10n.tourWelcomeTitle,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                                color: scheme.onSurface,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -104,9 +109,9 @@ class WelcomeTourSheet extends StatelessWidget {
                               color: brandGreen.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'OFFLINE',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.tourWelcomeOfflineBadge,
+                              style: const TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
                                 color: brandGreen,
@@ -118,7 +123,7 @@ class WelcomeTourSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Sovereign on-device intelligence',
+                        l10n.tourWelcomeSubtitle,
                         style: TextStyle(
                           fontSize: 12.5,
                           color: scheme.onSurfaceVariant,
@@ -133,25 +138,22 @@ class WelcomeTourSheet extends StatelessWidget {
             const SizedBox(height: 20),
 
             // 3 Clear Understandable Pillars
-            const _FeatureTile(
+            _FeatureTile(
               icon: Icons.shield_rounded,
-              title: '100% Private & On-Device',
-              subtitle:
-                  'Models execute directly on your phone hardware. Zero data leaves your device and no internet is required.',
+              title: l10n.tourWelcomePrivateTitle,
+              subtitle: l10n.tourWelcomePrivateBody,
             ),
             const SizedBox(height: 12),
-            const _FeatureTile(
+            _FeatureTile(
               icon: Icons.download_for_offline_rounded,
-              title: 'Curated Open Weights Catalog',
-              subtitle:
-                  'Download verified GGUF models from Meta, Google, Microsoft, and Alibaba with one tap.',
+              title: l10n.tourWelcomeCatalogTitle,
+              subtitle: l10n.tourWelcomeCatalogBody,
             ),
             const SizedBox(height: 12),
-            const _FeatureTile(
+            _FeatureTile(
               icon: Icons.chat_bubble_outline_rounded,
-              title: 'Rich Chat & Multimodal',
-              subtitle:
-                  'Chat with high speed, attach images or documents, and manage conversations with full control.',
+              title: l10n.tourWelcomeChatTitle,
+              subtitle: l10n.tourWelcomeChatBody,
             ),
 
             const SizedBox(height: 22),
@@ -159,7 +161,10 @@ class WelcomeTourSheet extends StatelessWidget {
             // Primary: Take Interactive Tour
             FilledButton.icon(
               icon: const Icon(Icons.explore_rounded, size: 18),
-              label: const Text('Start Interactive App Tour'),
+              label: Text(
+                l10n.tourWelcomeStartTour,
+                textAlign: TextAlign.center,
+              ),
               style: FilledButton.styleFrom(
                 backgroundColor: brandGreen,
                 foregroundColor: Colors.white,
@@ -192,7 +197,8 @@ class WelcomeTourSheet extends StatelessWidget {
                     ),
                     onPressed: onBrowseModels,
                     child: Text(
-                      'Browse Catalog',
+                      l10n.tourWelcomeBrowseCatalog,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -215,7 +221,8 @@ class WelcomeTourSheet extends StatelessWidget {
                     ),
                     onPressed: onStartChat,
                     child: Text(
-                      'Skip to Chat',
+                      l10n.tourWelcomeSkipToChat,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
