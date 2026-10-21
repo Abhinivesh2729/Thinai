@@ -28,5 +28,228 @@
   "navChat": "Chat",
   "navModels": "Models",
   "navServer": "Server",
-  "navSettings": "Settings"
+  "navSettings": "Settings",
+  "tourBadge": "THINAI TOUR",
+  "tourCloseTooltip": "Close Tour",
+  "tourStageLabel": "STAGE {current} OF {total}",
+  "@tourStageLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tourPrivateTag": "100% PRIVATE & SOVEREIGN",
+  "tourPrivateTitle": "Your Hardware.\nYour Intelligence.",
+  "tourPrivateBody": "Thinai executes large language models directly on your phone’s processor. Zero chat queries, images, or documents ever leave your device.",
+  "tourOnDeviceTitle": "Thinai (On-Device)",
+  "tourOnDeviceBody": "Runs offline in Airplane mode · Zero data collection · llama.cpp silicon execution · No subscription",
+  "tourCloudTitle": "Traditional Cloud AI",
+  "tourCloudBody": "Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls",
+  "tourDeviceReady": "Device Ready: Hardware acceleration available for local GGUF models.",
+  "tourCatalogTag": "CURATED GGUF CATALOG",
+  "tourCatalogTitle": "World-Class Models,\nTailored to Your RAM.",
+  "tourCatalogBody": "Explore open-weight models from Alibaba, Meta, Google, and Microsoft. Thinai automatically inspects your phone’s memory to advise what runs smoothly.",
+  "tourMemoryFitTitle": "Smart Memory Fit System",
+  "tourFitEasyLabel": "Fits Easily",
+  "tourFitEasyBody": "Guaranteed smooth response, low battery footprint.",
+  "tourFitTightLabel": "Tight Fit",
+  "tourFitTightBody": "Runs well, close other heavy background apps.",
+  "tourFitTooBigLabel": "Too Big",
+  "tourFitTooBigBody": "Warns you so your operating system never crashes.",
+  "tourStarterTitle": "Recommended Starter: {model} (~{size})",
+  "@tourStarterTitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "tourStarterBody": "Smallest and fastest chat model, runs instantly on any phone.",
+  "tourChatTag": "CHAT STUDIO & VISION",
+  "tourChatTitle": "Full Multimodal Studio\nWith Live Reasoning.",
+  "tourChatBody": "Chat with zero lag, attach camera photos for vision models, and watch real-time generation speed right on the response bubbles.",
+  "tourDemoPrompt": "Explain quantum superposition simply.",
+  "tourDemoReply": "A particle can exist in multiple possible states at once until measured, like a spinning coin before it lands.",
+  "tourDemoSpeed": "⚡ {speed} t/s · On-Device",
+  "@tourDemoSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "tourFeatureReasoning": "Reasoning Traces",
+  "tourFeatureVision": "Camera & Vision",
+  "tourFeaturePersonas": "Custom Personas",
+  "tourServerTag": "OPENAI COMPATIBLE API",
+  "tourServerTitle": "Turn Your Phone Into\nA Private AI Server.",
+  "tourServerBody": "Thinai includes a built-in HTTP server. Run on-device inference as a drop-in replacement for OpenAI and Ollama APIs for external developer tools.",
+  "tourEndpointsTitle": "Localhost Endpoints",
+  "tourPortBadge": "PORT {port}",
+  "@tourPortBadge": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "tourCompatibleWith": "Compatible with: {tools}",
+  "@tourCompatibleWith": {
+    "placeholders": {
+      "tools": {
+        "type": "String"
+      }
+    }
+  },
+  "tourStartTag": "READY TO LAUNCH",
+  "tourStartTitle": "Choose Your\nStarting Point.",
+  "tourStartBody": "Select how you want to experience Thinai today:",
+  "tourOptionStarterTitle": "1. Download Starter Model ({model})",
+  "@tourOptionStarterTitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "tourOptionStarterBody": "Smallest verified model (~{size}). Fast download, runs smoothly on any device.",
+  "@tourOptionStarterBody": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "tourOptionStarterButton": "Get Starter Model",
+  "tourOptionCatalogTitle": "2. Browse Complete Catalog",
+  "tourOptionCatalogBody": "Explore 30+ GGUF models from Meta, Google, Microsoft, and Alibaba.",
+  "tourOptionCatalogButton": "Open Models Catalog",
+  "tourOptionLiveTitle": "3. Take Live In-App Guided Tour",
+  "tourOptionLiveBody": "Follow our step-by-step floating guide through the live tabs.",
+  "tourOptionLiveButton": "Start Live Guide",
+  "tourCompleteTour": "Complete Tour",
+  "tourNextStep": "Next Step",
+  "tourDockStep": "STEP {step} OF {total}",
+  "@tourDockStep": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tourExitTour": "Exit Tour",
+  "tourPrevious": "Previous",
+  "tourFinishTour": "Finish Tour",
+  "tourDockModelsTitle": "Models Catalog (Tab 2)",
+  "tourDockModelsBody": "Browse verified GGUF models. Check the RAM fit indicator (Safe / Tight) to choose a model that runs smoothly on your phone.",
+  "tourDockManageTitle": "Management & Benchmarking",
+  "tourDockManageBody": "Use the top-right icons to manage downloads or tap the Speedometer icon to benchmark real token generation speed on your phone.",
+  "tourDockChatTitle": "Chat Studio (Tab 1)",
+  "tourDockChatBody": "Chat with full privacy. Attach photos or documents for multimodal analysis, and watch live tokens-per-second streaming.",
+  "tourDockServerTitle": "Local API Server (Tab 3)",
+  "tourDockServerBody": "Turn your phone into a private OpenAI-compatible endpoint on {address} for Cursor, Continue, or your own developer scripts.",
+  "@tourDockServerBody": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "tourAppTour": "App Tour",
+  "tourLocatingControl": "Locating control…",
+  "tourWelcomeTitle": "Welcome to Thinai",
+  "tourWelcomeOfflineBadge": "OFFLINE",
+  "tourWelcomeSubtitle": "Sovereign on-device intelligence",
+  "tourWelcomePrivateTitle": "100% Private & On-Device",
+  "tourWelcomePrivateBody": "Models execute directly on your phone hardware. Zero data leaves your device and no internet is required.",
+  "tourWelcomeCatalogTitle": "Curated Open Weights Catalog",
+  "tourWelcomeCatalogBody": "Download verified GGUF models from Meta, Google, Microsoft, and Alibaba with one tap.",
+  "tourWelcomeChatTitle": "Rich Chat & Multimodal",
+  "tourWelcomeChatBody": "Chat with high speed, attach images or documents, and manage conversations with full control.",
+  "tourWelcomeStartTour": "Start Interactive App Tour",
+  "tourWelcomeBrowseCatalog": "Browse Catalog",
+  "tourWelcomeSkipToChat": "Skip to Chat",
+  "onboardingLogoLabel": "Thinai App Logo",
+  "onboardingPrivateTag": "100% PRIVATE & OFFLINE",
+  "onboardingPrivateHeadline": "True Intelligence,\nEntirely On Your Phone",
+  "onboardingPrivateBody": "Thinai executes high-parameter AI models directly on your mobile hardware. Zero data leaves your phone, zero telemetry, and zero cloud reliance.",
+  "onboardingPrivateGraphic": "100% Private and Offline AI",
+  "onboardingPrivateBullet1": "Zero data leaves your device RAM or storage",
+  "onboardingPrivateBullet2": "Fully functional offline & in Airplane mode",
+  "onboardingCatalogTag": "VERIFIED GGUF CATALOG",
+  "onboardingCatalogHeadline": "Curated Open Weights\nIn a Single Tap",
+  "onboardingCatalogBody": "Download state-of-the-art open models directly from HuggingFace. Quantized with modern precision for smooth mobile execution.",
+  "onboardingCatalogGraphic": "Curated GGUF Model Catalog",
+  "onboardingCatalogBullet1": "DeepSeek, Meta Llama, Google Gemma & Qwen",
+  "onboardingCatalogBullet2": "Automatic background resume with foreground service",
+  "onboardingGpuTag": "HARDWARE ACCELERATION",
+  "onboardingGpuHeadline": "Llama.cpp Engine\nWith Adreno & Mali GPU",
+  "onboardingGpuBody": "Built with native llama.cpp compiled for ARM64 with Qualcomm Adreno OpenCL and ARM Mali Vulkan GPU layer offloading.",
+  "onboardingGpuGraphic": "GPU Hardware Acceleration Rocket",
+  "onboardingGpuBullet1": "Hardware GPU acceleration for instant response",
+  "onboardingGpuBullet2": "Live tokens/sec metrics and thermal-safe limits",
+  "onboardingStudioTag": "MULTIMODAL STUDIO",
+  "onboardingStudioHeadline": "Vision, Documents\n& Live Web Synthesis",
+  "onboardingStudioBody": "Engage in smart conversations with vision models, attach PDF & text files for instant summaries, and query live web results on-demand.",
+  "onboardingStudioGraphic": "Multimodal Vision and Document QA",
+  "onboardingStudioBullet1": "Multimodal vision image inspection (Gemma, MiniCPM)",
+  "onboardingStudioBullet2": "Privacy-preserving web search & document QA",
+  "onboardingServerTag": "LOCAL DEVELOPER API",
+  "onboardingServerHeadline": "Turn Your Phone\nInto a Local AI Server",
+  "onboardingServerBody": "Expose an OpenAI & Ollama compatible REST API on port {port}. Seamlessly connect VS Code extensions, Cline, Cursor, or terminal scripts.",
+  "@onboardingServerBody": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingServerGraphic": "Local AI Server on Port {port}",
+  "@onboardingServerGraphic": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingServerBullet1": "Compatible with OpenAI SDK & Ollama CLI",
+  "onboardingServerBullet2": "Wi-Fi LAN sharing to serve laptops on your network",
+  "onboardingStartButton": "Start Using Thinai Now",
+  "splashTagline": "SOVEREIGN ON-DEVICE INTELLIGENCE",
+  "splashCraftedIn": "CRAFTED IN {place}",
+  "@splashCraftedIn": {
+    "description": "Splash footer. {place} is splashPlace, drawn in brand green.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "splashPlace": "ERODE, TAMIL NADU",
+  "brandMadeWith": "Made with {heart} in {place}",
+  "@brandMadeWith": {
+    "description": "Credit line. {heart} is the heart emoji, {place} is brandPlace (drawn in brand green).",
+    "placeholders": {
+      "heart": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "brandPlace": "Erode, Tamilnadu",
+  "@brandPlace": {
+    "description": "Place name as it appears inside brandMadeWith; in Tamil it carries the locative case."
+  }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../l10n/l10n.dart';
+
 /// Full-screen, light-themed onboarding guide for first-time app entry.
 /// Features a pure white top slide deck (~75% height) with prominent 3D animated GIF graphics,
 /// bold modern typography, filled feature cards, and a vibrant brand-green bottom navigation dock (~25% height)
@@ -122,8 +124,12 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
     }
   }
 
+  /// The local server port shown on the last slide. A number, not copy.
+  static const String _serverPort = '11434';
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -148,7 +154,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       height: 38,
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
-                      semanticLabel: 'Thinai App Logo',
+                      semanticLabel: l10n.onboardingLogoLabel,
                     ),
                     const Spacer(),
                     TextButton(
@@ -166,7 +172,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                           letterSpacing: 0.2,
                         ),
                       ),
-                      child: const Text('Skip'),
+                      child: Text(l10n.commonSkip),
                     ),
                   ],
                 ),
@@ -180,73 +186,68 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   onPageChanged: (page) => setState(() => _currentPage = page),
                   children: [
                     _buildSlide(
-                      tag: '100% PRIVATE & OFFLINE',
-                      headline: 'True Intelligence,\nEntirely On Your Phone',
-                      description:
-                          'Thinai executes high-parameter AI models directly on your mobile hardware. Zero data leaves your phone, zero telemetry, and zero cloud reliance.',
+                      tag: l10n.onboardingPrivateTag,
+                      headline: l10n.onboardingPrivateHeadline,
+                      description: l10n.onboardingPrivateBody,
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_offline.gif',
-                        '100% Private and Offline AI',
+                        l10n.onboardingPrivateGraphic,
                       ),
-                      bullets: const [
-                        'Zero data leaves your device RAM or storage',
-                        'Fully functional offline & in Airplane mode',
+                      bullets: [
+                        l10n.onboardingPrivateBullet1,
+                        l10n.onboardingPrivateBullet2,
                       ],
                     ),
                     _buildSlide(
-                      tag: 'VERIFIED GGUF CATALOG',
-                      headline: 'Curated Open Weights\nIn a Single Tap',
-                      description:
-                          'Download state-of-the-art open models directly from HuggingFace. Quantized with modern precision for smooth mobile execution.',
+                      tag: l10n.onboardingCatalogTag,
+                      headline: l10n.onboardingCatalogHeadline,
+                      description: l10n.onboardingCatalogBody,
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_models.gif',
-                        'Curated GGUF Model Catalog',
+                        l10n.onboardingCatalogGraphic,
                       ),
-                      bullets: const [
-                        'DeepSeek, Meta Llama, Google Gemma & Qwen',
-                        'Automatic background resume with foreground service',
+                      bullets: [
+                        l10n.onboardingCatalogBullet1,
+                        l10n.onboardingCatalogBullet2,
                       ],
                     ),
                     _buildSlide(
-                      tag: 'HARDWARE ACCELERATION',
-                      headline: 'Llama.cpp Engine\nWith Adreno & Mali GPU',
-                      description:
-                          'Built with native llama.cpp compiled for ARM64 with Qualcomm Adreno OpenCL and ARM Mali Vulkan GPU layer offloading.',
+                      tag: l10n.onboardingGpuTag,
+                      headline: l10n.onboardingGpuHeadline,
+                      description: l10n.onboardingGpuBody,
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_gpu.gif',
-                        'GPU Hardware Acceleration Rocket',
+                        l10n.onboardingGpuGraphic,
                       ),
-                      bullets: const [
-                        'Hardware GPU acceleration for instant response',
-                        'Live tokens/sec metrics and thermal-safe limits',
+                      bullets: [
+                        l10n.onboardingGpuBullet1,
+                        l10n.onboardingGpuBullet2,
                       ],
                     ),
                     _buildSlide(
-                      tag: 'MULTIMODAL STUDIO',
-                      headline: 'Vision, Documents\n& Live Web Synthesis',
-                      description:
-                          'Engage in smart conversations with vision models, attach PDF & text files for instant summaries, and query live web results on-demand.',
+                      tag: l10n.onboardingStudioTag,
+                      headline: l10n.onboardingStudioHeadline,
+                      description: l10n.onboardingStudioBody,
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_rag.gif',
-                        'Multimodal Vision and Document QA',
+                        l10n.onboardingStudioGraphic,
                       ),
-                      bullets: const [
-                        'Multimodal vision image inspection (Gemma, MiniCPM)',
-                        'Privacy-preserving web search & document QA',
+                      bullets: [
+                        l10n.onboardingStudioBullet1,
+                        l10n.onboardingStudioBullet2,
                       ],
                     ),
                     _buildSlide(
-                      tag: 'LOCAL DEVELOPER API',
-                      headline: 'Turn Your Phone\nInto a Local AI Server',
-                      description:
-                          'Expose an OpenAI & Ollama compatible REST API on port 11434. Seamlessly connect VS Code extensions, Cline, Cursor, or terminal scripts.',
+                      tag: l10n.onboardingServerTag,
+                      headline: l10n.onboardingServerHeadline,
+                      description: l10n.onboardingServerBody(_serverPort),
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_server.gif',
-                        'Local AI Server on Port 11434',
+                        l10n.onboardingServerGraphic(_serverPort),
                       ),
-                      bullets: const [
-                        'Compatible with OpenAI SDK & Ollama CLI',
-                        'Wi-Fi LAN sharing to serve laptops on your network',
+                      bullets: [
+                        l10n.onboardingServerBullet1,
+                        l10n.onboardingServerBullet2,
                       ],
                       isFinal: true,
                     ),
@@ -416,6 +417,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       ),
                       child: Text(
                         tag,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -502,12 +504,20 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                     }),
                     if (isFinal) ...[
                       const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
+                      // A minimum rather than a fixed height, so a label that
+                      // wraps in a longer language grows the button instead of
+                      // being clipped.
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minWidth: double.infinity,
+                          minHeight: 50,
+                        ),
                         child: FilledButton.icon(
                           icon: const Icon(Icons.rocket_launch_rounded, size: 18),
-                          label: const Text('Start Using Thinai Now'),
+                          label: Text(
+                            context.l10n.onboardingStartButton,
+                            textAlign: TextAlign.center,
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: _brandGreen,
                             foregroundColor: Colors.white,
