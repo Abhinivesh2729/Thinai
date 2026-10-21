@@ -32,8 +32,8 @@ enum RamFit {
 
 extension RamFitInfo on RamFit {
   String get label => switch (this) {
-    RamFit.comfortable => 'Runs well on your phone',
-    RamFit.tight => 'Tight fit, may slow other apps',
+    RamFit.comfortable => 'Runs well',
+    RamFit.tight => 'Tight fit',
     RamFit.tooBig => 'Too big for your phone',
     RamFit.unknown => 'Fit unknown',
   };

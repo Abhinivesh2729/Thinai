@@ -336,13 +336,8 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
   /// has a different answer for a small phone than for a small model.
   String _capExplanation(AppLocalizations l, ContextLimit limit) {
     final max = _tokens(limit.cap);
-    final trained = limit.trained;
-    if (limit.ramLimited) {
-      return trained == null
-          ? l.modelsSettingsCapPhoneRam(max)
-          : l.modelsSettingsCapRam(max, _tokens(trained));
-    }
-    if (trained != null) {
+    if (limit.ramLimited) return l.modelsSettingsCapPhoneRam(max);
+    if (limit.trained != null) {
       return l.modelsSettingsCapTraining(max);
     }
     return l.modelsSettingsCap(max);

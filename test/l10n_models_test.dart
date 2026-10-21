@@ -116,17 +116,13 @@ void main() {
         find.text(_ta.modelsTargeting(_ta.modelsUseCaseTamil)),
         findsOneWidget,
       );
-      expect(find.text(_ta.modelsUseCaseTamilBlurb), findsOneWidget);
       // The goal chip in the filter row shows the Tamil goal too.
       expect(find.text(_ta.modelsUseCaseTamil), findsWidgets);
       expect(find.text(_ta.modelsChange), findsOneWidget);
-      expect(
-        find.text(_ta.modelsRecommendedFor(_ta.modelsUseCaseTamil)),
-        findsOneWidget,
-      );
+      expect(find.text(_ta.modelsTopPicks), findsOneWidget);
       // Nothing from the English copy leaks through.
       expect(find.text('Targeting: Tamil'), findsNothing);
-      expect(find.text(_en.modelsRecommendedSubtitle), findsNothing);
+      expect(find.text(_en.modelsTopPicks), findsNothing);
     });
 
     testWidgets('follows a Tamil phone when the language is left on System', (
@@ -167,7 +163,7 @@ void main() {
 
       await tester.tap(find.text(_ta.modelsFilterAll));
       await tester.pumpAndSettle();
-      expect(find.text(_ta.modelsFilterVision), findsOneWidget);
+      expect(find.text(_ta.modelsFilterVision), findsWidgets);
       expect(find.text(_ta.modelsFilterInstalled), findsOneWidget);
       await tester.tap(find.text(_ta.modelsFilterInstalled));
       await tester.pumpAndSettle();
@@ -182,8 +178,9 @@ void main() {
       }
       await tester.tap(find.text(_ta.modelsUseCaseCoding));
       await tester.pumpAndSettle();
+      expect(find.text(_ta.modelsTopPicks), findsOneWidget);
       expect(
-        find.text(_ta.modelsRecommendedFor(_ta.modelsUseCaseCoding)),
+        find.text(_ta.modelsTargeting(_ta.modelsUseCaseCoding)),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
@@ -242,7 +239,7 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(_ta.modelsAdvisorBestForPhone), findsOneWidget);
+      expect(find.text(_ta.modelsTopPick), findsOneWidget);
       expect(
         find.text(Skill.excellent.localizedReason(_ta, UseCase.fastChat)),
         findsOneWidget,

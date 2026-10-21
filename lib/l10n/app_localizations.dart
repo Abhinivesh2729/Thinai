@@ -3298,13 +3298,13 @@ abstract class AppLocalizations {
   /// No description provided for @modelsToastDownloadPaused.
   ///
   /// In en, this message translates to:
-  /// **'Download paused. Tap Resume to continue.'**
+  /// **'Download paused'**
   String get modelsToastDownloadPaused;
 
   /// No description provided for @modelsToastDownloadStopped.
   ///
   /// In en, this message translates to:
-  /// **'Download of {model} stopped: {error}. Progress is saved, tap Resume to continue.'**
+  /// **'{model} stopped: {error}. Tap Resume to continue.'**
   String modelsToastDownloadStopped(String model, String error);
 
   /// No description provided for @modelsToastDownloadFailed.
@@ -3340,13 +3340,13 @@ abstract class AppLocalizations {
   /// No description provided for @modelsConfirmDownloadTitle.
   ///
   /// In en, this message translates to:
-  /// **'Download model?'**
+  /// **'Download?'**
   String get modelsConfirmDownloadTitle;
 
   /// No description provided for @modelsConfirmDownloadMessage.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to download {model} ({size})?'**
+  /// **'{model} ({size})'**
   String modelsConfirmDownloadMessage(String model, String size);
 
   /// No description provided for @modelsConfirmDiscardTitle.
@@ -3358,7 +3358,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsConfirmDiscardMessage.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to discard the paused download of {model}? The {size} saved so far will be deleted.'**
+  /// **'{model} ({size} saved) will be deleted.'**
   String modelsConfirmDiscardMessage(String model, String size);
 
   /// No description provided for @modelsDiscard.
@@ -3376,7 +3376,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsConfirmDeleteMessage.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to delete {model}? This frees {size} of space.'**
+  /// **'{model} will be removed, freeing {size}.'**
   String modelsConfirmDeleteMessage(String model, String size);
 
   /// No description provided for @modelsBenchmark.
@@ -3418,7 +3418,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsNoneInstalledYetBody.
   ///
   /// In en, this message translates to:
-  /// **'Browse and download GGUF models from the catalog to run offline on this device.'**
+  /// **'Download a model to chat offline.'**
   String get modelsNoneInstalledYetBody;
 
   /// No description provided for @modelsBrowseCatalog.
@@ -3430,38 +3430,20 @@ abstract class AppLocalizations {
   /// No description provided for @modelsInstalledSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Installed models ({count})'**
+  /// **'Installed ({count})'**
   String modelsInstalledSectionTitle(int count);
 
-  /// No description provided for @modelsInstalledSectionSubtitle.
+  /// No description provided for @modelsTopPicks.
   ///
   /// In en, this message translates to:
-  /// **'Tap a model to load it for chat'**
-  String get modelsInstalledSectionSubtitle;
-
-  /// No description provided for @modelsRecommendedFor.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended for {goal}'**
-  String modelsRecommendedFor(String goal);
-
-  /// No description provided for @modelsRecommendedSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Optimal weights selected for your device specs'**
-  String get modelsRecommendedSubtitle;
+  /// **'Top picks'**
+  String get modelsTopPicks;
 
   /// No description provided for @modelsFeaturedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Featured Models'**
+  /// **'Featured'**
   String get modelsFeaturedTitle;
-
-  /// No description provided for @modelsFeaturedSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Handpicked for you'**
-  String get modelsFeaturedSubtitle;
 
   /// No description provided for @modelsOtherModels.
   ///
@@ -3484,32 +3466,14 @@ abstract class AppLocalizations {
   /// No description provided for @modelsExploreModels.
   ///
   /// In en, this message translates to:
-  /// **'Explore Models'**
+  /// **'More models'**
   String get modelsExploreModels;
 
   /// No description provided for @modelsBrowseCatalogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Browse catalog'**
+  /// **'Results'**
   String get modelsBrowseCatalogTitle;
-
-  /// No description provided for @modelsOtherModelsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'All other available models'**
-  String get modelsOtherModelsSubtitle;
-
-  /// No description provided for @modelsVisionModelsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Multimodal · image & visual analysis'**
-  String get modelsVisionModelsSubtitle;
-
-  /// No description provided for @modelsCatalogSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Curated GGUF models · one-tap download'**
-  String get modelsCatalogSubtitle;
 
   /// No description provided for @modelsEmbeddingTitle.
   ///
@@ -3517,22 +3481,16 @@ abstract class AppLocalizations {
   /// **'Embedding models'**
   String get modelsEmbeddingTitle;
 
-  /// No description provided for @modelsEmbeddingSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'For search and RAG · /api/embed · /v1/embeddings'**
-  String get modelsEmbeddingSubtitle;
-
   /// No description provided for @modelsOfflineFooter.
   ///
   /// In en, this message translates to:
-  /// **'Downloaded models stay 100% on-device and run entirely offline.'**
+  /// **'Models run fully offline on this phone.'**
   String get modelsOfflineFooter;
 
   /// No description provided for @modelsSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search models, makers, architectures…'**
+  /// **'Search models'**
   String get modelsSearchHint;
 
   /// No description provided for @modelsClearSearch.
@@ -3544,19 +3502,19 @@ abstract class AppLocalizations {
   /// No description provided for @modelsFilterAll.
   ///
   /// In en, this message translates to:
-  /// **'All Models'**
+  /// **'All'**
   String get modelsFilterAll;
 
   /// No description provided for @modelsFilterChat.
   ///
   /// In en, this message translates to:
-  /// **'Chat Models'**
+  /// **'Chat'**
   String get modelsFilterChat;
 
   /// No description provided for @modelsFilterVision.
   ///
   /// In en, this message translates to:
-  /// **'Vision Models'**
+  /// **'Vision'**
   String get modelsFilterVision;
 
   /// No description provided for @modelsFilterEmbedding.
@@ -3586,7 +3544,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsGoals.
   ///
   /// In en, this message translates to:
-  /// **'Goals'**
+  /// **'Goal'**
   String get modelsGoals;
 
   /// No description provided for @modelsResetFiltersTooltip.
@@ -3598,7 +3556,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsTargeting.
   ///
   /// In en, this message translates to:
-  /// **'Targeting: {goal}'**
+  /// **'Goal: {goal}'**
   String modelsTargeting(String goal);
 
   /// No description provided for @modelsChange.
@@ -3613,20 +3571,10 @@ abstract class AppLocalizations {
   /// **'Clear goal'**
   String get modelsClearGoal;
 
-  /// No description provided for @modelsManagerSubtitleDownloading.
-  ///
-  /// In en, this message translates to:
-  /// **'{installed} installed · {downloading} downloading · {size} used'**
-  String modelsManagerSubtitleDownloading(
-    int installed,
-    int downloading,
-    String size,
-  );
-
   /// No description provided for @modelsManagerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} models · {size} storage used'**
+  /// **'{count, plural, =1{1 model} other{{count} models}} · {size}'**
   String modelsManagerSubtitle(int count, String size);
 
   /// No description provided for @modelsNoneInstalled.
@@ -3638,25 +3586,25 @@ abstract class AppLocalizations {
   /// No description provided for @modelsNoneInstalledBody.
   ///
   /// In en, this message translates to:
-  /// **'Download models from the catalog to run offline chat.'**
+  /// **'Download one from the catalog.'**
   String get modelsNoneInstalledBody;
 
   /// No description provided for @modelsActiveForChat.
   ///
   /// In en, this message translates to:
-  /// **'Active for Chat: {model}'**
+  /// **'In use: {model}'**
   String modelsActiveForChat(String model);
 
   /// No description provided for @modelsNoModelLoaded.
   ///
   /// In en, this message translates to:
-  /// **'No model loaded in Chat'**
+  /// **'No model loaded'**
   String get modelsNoModelLoaded;
 
   /// No description provided for @modelsInstalledAppearHere.
   ///
   /// In en, this message translates to:
-  /// **'Installed models will appear here after download completes.'**
+  /// **'Finished downloads show up here.'**
   String get modelsInstalledAppearHere;
 
   /// No description provided for @modelsActive.
@@ -3668,7 +3616,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsActivate.
   ///
   /// In en, this message translates to:
-  /// **'Activate'**
+  /// **'Load'**
   String get modelsActivate;
 
   /// No description provided for @modelsDeleteModel.
@@ -3680,14 +3628,8 @@ abstract class AppLocalizations {
   /// No description provided for @modelsChooseGoal.
   ///
   /// In en, this message translates to:
-  /// **'Choose Your Goal'**
+  /// **'Choose a goal'**
   String get modelsChooseGoal;
-
-  /// No description provided for @modelsChooseGoalSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Thinai benchmarks & recommends models for your device'**
-  String get modelsChooseGoalSubtitle;
 
   /// No description provided for @modelsClearActiveGoal.
   ///
@@ -3710,7 +3652,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsNoMatchHint.
   ///
   /// In en, this message translates to:
-  /// **'Try adjusting your selected filters or search terms.'**
+  /// **'Try another search or filter.'**
   String get modelsNoMatchHint;
 
   /// No description provided for @modelsSearchHuggingFace.
@@ -3722,7 +3664,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsResetFiltersAndSearch.
   ///
   /// In en, this message translates to:
-  /// **'Reset filters & search'**
+  /// **'Reset filters'**
   String get modelsResetFiltersAndSearch;
 
   /// No description provided for @modelsStatusCancelled.
@@ -3740,7 +3682,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsStatusCompleted.
   ///
   /// In en, this message translates to:
-  /// **'100% · Completed'**
+  /// **'Done'**
   String get modelsStatusCompleted;
 
   /// No description provided for @modelsStatusStarting.
@@ -3752,50 +3694,14 @@ abstract class AppLocalizations {
   /// No description provided for @modelsActiveInChat.
   ///
   /// In en, this message translates to:
-  /// **'Active in Chat'**
+  /// **'In use'**
   String get modelsActiveInChat;
 
   /// No description provided for @modelsTapToActivate.
   ///
   /// In en, this message translates to:
-  /// **'Tap to activate'**
+  /// **'Tap to load'**
   String get modelsTapToActivate;
-
-  /// No description provided for @modelsBadgeVision.
-  ///
-  /// In en, this message translates to:
-  /// **'VISION'**
-  String get modelsBadgeVision;
-
-  /// No description provided for @modelsBadgeEmbed.
-  ///
-  /// In en, this message translates to:
-  /// **'EMBED'**
-  String get modelsBadgeEmbed;
-
-  /// No description provided for @modelsBadgeReason.
-  ///
-  /// In en, this message translates to:
-  /// **'REASON'**
-  String get modelsBadgeReason;
-
-  /// No description provided for @modelsBadgeText.
-  ///
-  /// In en, this message translates to:
-  /// **'TEXT'**
-  String get modelsBadgeText;
-
-  /// No description provided for @modelsFeaturedBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'FEATURED'**
-  String get modelsFeaturedBadge;
-
-  /// No description provided for @modelsPopular.
-  ///
-  /// In en, this message translates to:
-  /// **'Popular'**
-  String get modelsPopular;
 
   /// No description provided for @modelsAddVision.
   ///
@@ -3818,7 +3724,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsTopPick.
   ///
   /// In en, this message translates to:
-  /// **'TOP PICK'**
+  /// **'Top pick'**
   String get modelsTopPick;
 
   /// No description provided for @modelsModelDetails.
@@ -3878,7 +3784,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsCapVisionReady.
   ///
   /// In en, this message translates to:
-  /// **'Vision Ready'**
+  /// **'Vision'**
   String get modelsCapVisionReady;
 
   /// No description provided for @modelsCapEmbeddings.
@@ -3896,7 +3802,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsCapFast.
   ///
   /// In en, this message translates to:
-  /// **'Fast & Efficient'**
+  /// **'Fast'**
   String get modelsCapFast;
 
   /// No description provided for @modelsCapMultilingual.
@@ -3932,7 +3838,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsFitTight.
   ///
   /// In en, this message translates to:
-  /// **'A tight fit. Other apps may close while this runs.'**
+  /// **'Tight fit. Other apps may close while it runs.'**
   String get modelsFitTight;
 
   /// No description provided for @modelsDownloadingCount.
@@ -3971,12 +3877,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Paused download} other{Paused downloads ({count})}}'**
   String modelsPausedDownloadsTitle(int count);
 
-  /// No description provided for @modelsPausedDownloadsBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved on this phone. Resume to continue where it stopped.'**
-  String get modelsPausedDownloadsBody;
-
   /// No description provided for @modelsResumeDownload.
   ///
   /// In en, this message translates to:
@@ -3998,19 +3898,19 @@ abstract class AppLocalizations {
   /// No description provided for @modelsUseCaseFastChatBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Quick back-and-forth, answers as fast as you type'**
+  /// **'Quick replies'**
   String get modelsUseCaseFastChatBlurb;
 
   /// No description provided for @modelsUseCaseReasoning.
   ///
   /// In en, this message translates to:
-  /// **'Best reasoning'**
+  /// **'Reasoning'**
   String get modelsUseCaseReasoning;
 
   /// No description provided for @modelsUseCaseReasoningBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Harder questions, maths, step-by-step thinking'**
+  /// **'Maths and hard questions'**
   String get modelsUseCaseReasoningBlurb;
 
   /// No description provided for @modelsUseCaseCoding.
@@ -4022,7 +3922,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsUseCaseCodingBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Writing and explaining code'**
+  /// **'Write and explain code'**
   String get modelsUseCaseCodingBlurb;
 
   /// No description provided for @modelsUseCaseTamil.
@@ -4034,7 +3934,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsUseCaseTamilBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Chatting and writing in Tamil'**
+  /// **'Chat and write in Tamil'**
   String get modelsUseCaseTamilBlurb;
 
   /// No description provided for @modelsUseCaseEnglish.
@@ -4046,55 +3946,55 @@ abstract class AppLocalizations {
   /// No description provided for @modelsUseCaseEnglishBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Everyday English conversation and writing'**
+  /// **'Everyday English'**
   String get modelsUseCaseEnglishBlurb;
 
   /// No description provided for @modelsUseCaseVision.
   ///
   /// In en, this message translates to:
-  /// **'Image understanding'**
+  /// **'Images'**
   String get modelsUseCaseVision;
 
   /// No description provided for @modelsUseCaseVisionBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Asking questions about a photo or screenshot'**
+  /// **'Ask about a photo'**
   String get modelsUseCaseVisionBlurb;
 
   /// No description provided for @modelsUseCaseTranslation.
   ///
   /// In en, this message translates to:
-  /// **'Offline translation'**
+  /// **'Translation'**
   String get modelsUseCaseTranslation;
 
   /// No description provided for @modelsUseCaseTranslationBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Translating between languages with no signal'**
+  /// **'Translate with no internet'**
   String get modelsUseCaseTranslationBlurb;
 
   /// No description provided for @modelsUseCaseSummarizing.
   ///
   /// In en, this message translates to:
-  /// **'Summarization'**
+  /// **'Summaries'**
   String get modelsUseCaseSummarizing;
 
   /// No description provided for @modelsUseCaseSummarizingBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Shortening long text into the gist'**
+  /// **'The gist of long text'**
   String get modelsUseCaseSummarizingBlurb;
 
   /// No description provided for @modelsUseCaseDocuments.
   ///
   /// In en, this message translates to:
-  /// **'Document analysis'**
+  /// **'Documents'**
   String get modelsUseCaseDocuments;
 
   /// No description provided for @modelsUseCaseDocumentsBlurb.
   ///
   /// In en, this message translates to:
-  /// **'Reading long documents and answering about them'**
+  /// **'Ask about long documents'**
   String get modelsUseCaseDocumentsBlurb;
 
   /// No description provided for @modelsReasonNotSuited.
@@ -4154,13 +4054,13 @@ abstract class AppLocalizations {
   /// No description provided for @modelsFitComfortable.
   ///
   /// In en, this message translates to:
-  /// **'Runs well on your phone'**
+  /// **'Runs well'**
   String get modelsFitComfortable;
 
   /// No description provided for @modelsFitTightShort.
   ///
   /// In en, this message translates to:
-  /// **'Tight fit, may slow other apps'**
+  /// **'Tight fit'**
   String get modelsFitTightShort;
 
   /// No description provided for @modelsFitTooBig.
@@ -4181,18 +4081,6 @@ abstract class AppLocalizations {
   /// **'speed unknown'**
   String get modelsSpeedUnknown;
 
-  /// No description provided for @modelsAdvisorGoalCollapsed.
-  ///
-  /// In en, this message translates to:
-  /// **'Goal: {goal} · tap to customize'**
-  String modelsAdvisorGoalCollapsed(String goal);
-
-  /// No description provided for @modelsAdvisorPromptCollapsed.
-  ///
-  /// In en, this message translates to:
-  /// **'What do you want to do? · tap to pick a goal'**
-  String get modelsAdvisorPromptCollapsed;
-
   /// No description provided for @modelsAdvisorPrompt.
   ///
   /// In en, this message translates to:
@@ -4211,83 +4099,17 @@ abstract class AppLocalizations {
   /// **'Collapse guide'**
   String get modelsAdvisorCollapse;
 
-  /// No description provided for @modelsAdvisorSubtitleKnown.
-  ///
-  /// In en, this message translates to:
-  /// **'Thinai picks a model that fits your phone · {device}'**
-  String modelsAdvisorSubtitleKnown(String device);
-
-  /// No description provided for @modelsAdvisorSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Thinai picks a model for the job'**
-  String get modelsAdvisorSubtitle;
-
   /// No description provided for @modelsAdvisorNothingFits.
   ///
   /// In en, this message translates to:
-  /// **'Nothing in the catalogue fits this one.'**
+  /// **'Nothing fits this phone.'**
   String get modelsAdvisorNothingFits;
-
-  /// No description provided for @modelsAdvisorBestForPhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Best model for your phone'**
-  String get modelsAdvisorBestForPhone;
-
-  /// No description provided for @modelsAdvisorBestForThis.
-  ///
-  /// In en, this message translates to:
-  /// **'Best model for this'**
-  String get modelsAdvisorBestForThis;
 
   /// No description provided for @modelsAdvisorAlsoConsider.
   ///
   /// In en, this message translates to:
-  /// **'Also worth considering'**
+  /// **'Also good'**
   String get modelsAdvisorAlsoConsider;
-
-  /// No description provided for @modelsAdvisorAuthorDownload.
-  ///
-  /// In en, this message translates to:
-  /// **'{author} · {size} download'**
-  String modelsAdvisorAuthorDownload(String author, String size);
-
-  /// No description provided for @modelsAdvisorContext.
-  ///
-  /// In en, this message translates to:
-  /// **'{context} context'**
-  String modelsAdvisorContext(String context);
-
-  /// No description provided for @modelsAdvisorAlreadyDownloaded.
-  ///
-  /// In en, this message translates to:
-  /// **'Already downloaded'**
-  String get modelsAdvisorAlreadyDownloaded;
-
-  /// No description provided for @modelsAdvisorSpeedMeasured.
-  ///
-  /// In en, this message translates to:
-  /// **'Speed measured on this phone by Benchmark.'**
-  String get modelsAdvisorSpeedMeasured;
-
-  /// No description provided for @modelsAdvisorSpeedEstimated.
-  ///
-  /// In en, this message translates to:
-  /// **'Estimated speed. Run Benchmark for the real number.'**
-  String get modelsAdvisorSpeedEstimated;
-
-  /// No description provided for @modelsAdvisorStartingCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Starting… · tap to cancel'**
-  String get modelsAdvisorStartingCancel;
-
-  /// No description provided for @modelsAdvisorDownloadingCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading {percent}% · tap to cancel'**
-  String modelsAdvisorDownloadingCancel(String percent);
 
   /// No description provided for @modelsSettingsTitle.
   ///
@@ -4298,7 +4120,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsSettingsBody.
   ///
   /// In en, this message translates to:
-  /// **'Used by chat and the API server. Requests can override these, up to the maximum.'**
+  /// **'Applies to chat and the server.'**
   String get modelsSettingsBody;
 
   /// No description provided for @modelsSettingsResetDefaults.
@@ -4316,7 +4138,7 @@ abstract class AppLocalizations {
   /// No description provided for @modelsSettingsContextHelp.
   ///
   /// In en, this message translates to:
-  /// **'Longer windows remember more but use more RAM and run slower.'**
+  /// **'Longer remembers more but uses more RAM.'**
   String get modelsSettingsContextHelp;
 
   /// No description provided for @modelsSettingsTemperature.
@@ -4340,13 +4162,13 @@ abstract class AppLocalizations {
   /// No description provided for @modelsSettingsTopKHelp.
   ///
   /// In en, this message translates to:
-  /// **'Picks each word from only the K likeliest. Lower is more focused; 0 turns the limit off.'**
+  /// **'Lower is more focused. 0 turns it off.'**
   String get modelsSettingsTopKHelp;
 
   /// No description provided for @modelsSettingsTopPHelp.
   ///
   /// In en, this message translates to:
-  /// **'Picks from the likeliest words that together make up this share of the probability. 1.00 keeps them all.'**
+  /// **'Lower is more focused. 1.00 turns it off.'**
   String get modelsSettingsTopPHelp;
 
   /// No description provided for @modelsSettingsThinking.
@@ -4358,31 +4180,25 @@ abstract class AppLocalizations {
   /// No description provided for @modelsSettingsThinkingHelp.
   ///
   /// In en, this message translates to:
-  /// **'Reasons step by step before answering. Off answers sooner.'**
+  /// **'Thinks before answering. Off is faster.'**
   String get modelsSettingsThinkingHelp;
 
   /// No description provided for @modelsSettingsCapPhoneRam.
   ///
   /// In en, this message translates to:
-  /// **'Maximum {max}, limited by this phone\'s RAM.'**
+  /// **'Max {max}, limited by RAM.'**
   String modelsSettingsCapPhoneRam(String max);
-
-  /// No description provided for @modelsSettingsCapRam.
-  ///
-  /// In en, this message translates to:
-  /// **'Maximum {max}, limited by RAM (model supports {trained}).'**
-  String modelsSettingsCapRam(String max, String trained);
 
   /// No description provided for @modelsSettingsCapTraining.
   ///
   /// In en, this message translates to:
-  /// **'Maximum {max}, this model\'s training limit.'**
+  /// **'Max {max}, the model\'s limit.'**
   String modelsSettingsCapTraining(String max);
 
   /// No description provided for @modelsSettingsCap.
   ///
   /// In en, this message translates to:
-  /// **'Maximum {max}.'**
+  /// **'Max {max}.'**
   String modelsSettingsCap(String max);
 
   /// History row preview of the user's own last message.

@@ -120,10 +120,27 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     // is what will actually land on the phone.
     final encoder = m.supportsVision ? (m.mmprojBytes ?? 0) : 0;
     final size = encoder > 0 ? _fmtSize(m.approxBytes + encoder) : m.approxSize;
+    // The cards only flag a poor fit with a short chip; the full warning is
+    // said here, where it can still change the decision.
+    final l = context.l10n;
+    final device = ref.read(speedKnowledgeProvider).device;
+    final budget = device.modelBudgetBytes;
+    final warning = switch (fitFor(m, device)) {
+      RamFit.tight => l.modelsFitTight,
+      RamFit.tooBig =>
+        budget == null
+            ? l.modelsFitTooLarge
+            : l.modelsFitNeeds(
+                _FitWarning._gb(runtimeBytesFor(m)),
+                _FitWarning._gb(budget),
+              ),
+      _ => null,
+    };
+    final message = l.modelsConfirmDownloadMessage(m.displayName, size);
     final confirmed = await _confirm(
-      title: context.l10n.modelsConfirmDownloadTitle,
-      message: context.l10n.modelsConfirmDownloadMessage(m.displayName, size),
-      confirmLabel: context.l10n.commonDownload,
+      title: l.modelsConfirmDownloadTitle,
+      message: warning == null ? message : '$message\n\n$warning',
+      confirmLabel: l.commonDownload,
     );
     if (!confirmed || !mounted) return;
     await ref.read(downloadsProvider.notifier).start(m);
@@ -481,7 +498,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           _SectionHeader(
             icon: Icons.inventory_2_rounded,
             title: context.l10n.modelsInstalledSectionTitle(yourModels.length),
-            subtitle: context.l10n.modelsInstalledSectionSubtitle,
           ),
           const SizedBox(height: 12),
           for (final m in yourModels) ...[
@@ -606,10 +622,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           if (recommendedChatModels.isNotEmpty) ...[
             _SectionHeader(
               icon: _selectedUseCase!.icon,
-              title: context.l10n.modelsRecommendedFor(
-                _selectedUseCase!.localizedLabel(context.l10n),
-              ),
-              subtitle: context.l10n.modelsRecommendedSubtitle,
+              title: context.l10n.modelsTopPicks,
             ),
             const SizedBox(height: 10),
             for (final m in recommendedChatModels) ...[
@@ -625,7 +638,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           _SectionHeader(
             icon: Icons.auto_awesome_rounded,
             title: context.l10n.modelsFeaturedTitle,
-            subtitle: context.l10n.modelsFeaturedSubtitle,
           ),
           const SizedBox(height: 10),
           _FeaturedHeroCard(
@@ -664,11 +676,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
                             : (featured != null
                                   ? context.l10n.modelsExploreModels
                                   : context.l10n.modelsBrowseCatalogTitle))),
-            subtitle: _selectedUseCase != null
-                ? context.l10n.modelsOtherModelsSubtitle
-                : (_filter == ModelFilter.vision
-                      ? context.l10n.modelsVisionModelsSubtitle
-                      : context.l10n.modelsCatalogSubtitle),
           ),
           const SizedBox(height: 10),
           for (final m in regularChatModels) ...[
@@ -689,7 +696,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
           _SectionHeader(
             icon: Icons.hub_rounded,
             title: context.l10n.modelsEmbeddingTitle,
-            subtitle: context.l10n.modelsEmbeddingSubtitle,
           ),
           const SizedBox(height: 10),
           for (final m in embeddingModels) ...[
@@ -898,271 +904,226 @@ class _DropdownFilterBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: LayoutBuilder(
-        // Below this the Reset label no longer fits beside the two chips on
-        // the narrowest phones, so it shrinks to its icon.
-        builder: (context, constraints) => _buildRow(
-          context,
-          scheme: scheme,
-          isDark: isDark,
-          isCategoryFiltered: isCategoryFiltered,
-          compactReset: constraints.maxWidth < 300,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The two pickers wrap onto a second line rather than squeeze, so a
+          // long Tamil label keeps its full width on a narrow phone.
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                    child: _buildCategoryPicker(
+                      context,
+                      isDark: isDark,
+                      isCategoryFiltered: isCategoryFiltered,
+                    ),
+                  ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                    child: _buildGoalPicker(context, isDark: isDark),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Reset is an icon: its tooltip names it, and a label here is what
+          // used to crowd the row.
+          if (hasActiveFilter) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: context.l10n.modelsResetFiltersTooltip,
+              child: Material(
+                color: scheme.error.withValues(alpha: isDark ? 0.14 : 0.08),
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: onResetAll,
+                  child: Container(
+                    height: 38,
+                    width: 38,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: scheme.error.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.refresh_rounded,
+                      size: 17,
+                      color: scheme.error,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryPicker(
+    BuildContext context, {
+    required bool isDark,
+    required bool isCategoryFiltered,
+  }) {
+    final fg = isCategoryFiltered
+        ? _brandGreen
+        : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155));
+    return PopupMenuButton<ModelFilter>(
+      tooltip: context.l10n.modelsFilterCategory,
+      initialValue: selected,
+      onSelected: onSelected,
+      offset: const Offset(0, 42),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      color: isDark ? const Color(0xFF131722) : Colors.white,
+      itemBuilder: (context) => [
+        for (final filter in ModelFilter.values)
+          _buildMenuItem(context.l10n, filter, isDark),
+      ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 38,
+        padding: const EdgeInsets.only(left: 12, right: 6),
+        decoration: BoxDecoration(
+          color: isCategoryFiltered
+              ? _brandGreen.withValues(alpha: isDark ? 0.22 : 0.12)
+              : (isDark ? const Color(0xFF131722) : Colors.white),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isCategoryFiltered
+                ? _brandGreen
+                : (isDark ? const Color(0xFF263040) : const Color(0xFFCBD5E1)),
+            width: isCategoryFiltered ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_filterIcon(selected), size: 15, color: fg),
+            const SizedBox(width: 7),
+            Flexible(
+              child: Text(
+                _filterLabel(context.l10n, selected),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isCategoryFiltered
+                      ? FontWeight.w700
+                      : FontWeight.w600,
+                  color: fg,
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 20,
+              color: isCategoryFiltered
+                  ? _brandGreen
+                  : (isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B)),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildRow(
-    BuildContext context, {
-    required ColorScheme scheme,
-    required bool isDark,
-    required bool isCategoryFiltered,
-    required bool compactReset,
-  }) {
-    return Row(
-      children: [
-        // 1. Sleek Dropdown Styled Filter Picker
-        PopupMenuButton<ModelFilter>(
-          tooltip: context.l10n.modelsFilterCategory,
-          initialValue: selected,
-          onSelected: onSelected,
-          offset: const Offset(0, 42),
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: BorderSide(
-              color: isDark ? const Color(0xFF263040) : const Color(0xFFE2E8F0),
-              width: 1,
+  Widget _buildGoalPicker(BuildContext context, {required bool isDark}) {
+    final hasGoal = selectedUseCase != null;
+    final fg = hasGoal
+        ? _brandGreen
+        : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155));
+    return Material(
+      color: hasGoal
+          ? _brandGreen.withValues(alpha: isDark ? 0.22 : 0.12)
+          : (isDark ? const Color(0xFF131722) : Colors.white),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onOpenGoalPicker,
+        child: Container(
+          height: 38,
+          padding: EdgeInsets.only(left: 11, right: hasGoal ? 4 : 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: hasGoal
+                  ? _brandGreen
+                  : (isDark
+                        ? const Color(0xFF263040)
+                        : const Color(0xFFCBD5E1)),
+              width: hasGoal ? 1.5 : 1,
             ),
           ),
-          color: isDark ? const Color(0xFF131722) : Colors.white,
-          itemBuilder: (context) => [
-            _buildMenuItem(context.l10n, ModelFilter.all, isDark),
-            _buildMenuItem(context.l10n, ModelFilter.chat, isDark),
-            _buildMenuItem(context.l10n, ModelFilter.vision, isDark),
-            _buildMenuItem(context.l10n, ModelFilter.embedding, isDark),
-            _buildMenuItem(context.l10n, ModelFilter.installed, isDark),
-          ],
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: isCategoryFiltered
-                  ? const Color(
-                      0xFF2CA048,
-                    ).withValues(alpha: isDark ? 0.22 : 0.12)
-                  : (isDark ? const Color(0xFF131722) : Colors.white),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isCategoryFiltered
-                    ? const Color(0xFF2CA048)
-                    : (isDark
-                          ? const Color(0xFF263040)
-                          : const Color(0xFFCBD5E1)),
-                width: isCategoryFiltered ? 1.5 : 1,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasGoal ? selectedUseCase!.icon : Icons.auto_awesome_rounded,
+                size: 15,
+                color: fg,
               ),
-              boxShadow: !isDark && !isCategoryFiltered
-                  ? const [
-                      BoxShadow(
-                        color: Color(0x08000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _filterIcon(selected),
-                  size: 15,
-                  color: isCategoryFiltered
-                      ? const Color(0xFF2CA048)
-                      : (isDark
-                            ? const Color(0xFFCBD5E1)
-                            : const Color(0xFF334155)),
-                ),
-                const SizedBox(width: 7),
-                Text(
-                  _filterLabel(context.l10n, selected),
+              const SizedBox(width: 6),
+              // Ellipsis is only a last resort: every goal name fits at
+              // phone widths now that the row wraps.
+              Flexible(
+                child: Text(
+                  hasGoal
+                      ? selectedUseCase!.localizedLabel(context.l10n)
+                      : context.l10n.modelsGoals,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: isCategoryFiltered
-                        ? FontWeight.w800
-                        : FontWeight.w600,
-                    color: isCategoryFiltered
-                        ? const Color(0xFF2CA048)
-                        : (isDark
-                              ? const Color(0xFFCBD5E1)
-                              : const Color(0xFF334155)),
+                    fontSize: 13,
+                    fontWeight: hasGoal ? FontWeight.w700 : FontWeight.w600,
+                    color: fg,
                   ),
                 ),
-                const SizedBox(width: 4),
+              ),
+              if (hasGoal)
+                InkWell(
+                  onTap: onClearGoal,
+                  borderRadius: BorderRadius.circular(8),
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: _brandGreen,
+                    ),
+                  ),
+                )
+              else ...[
+                const SizedBox(width: 2),
                 Icon(
                   Icons.arrow_drop_down_rounded,
                   size: 20,
-                  color: isCategoryFiltered
-                      ? const Color(0xFF2CA048)
-                      : (isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B)),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ],
-            ),
+            ],
           ),
         ),
-
-        const SizedBox(width: 8),
-
-        // 2. Classical Goals / Smart Match Button. Takes whatever width is
-        // left and ellipsizes its label, so a long goal name plus the Reset
-        // button never pushes the row past the screen edge.
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Material(
-              color: selectedUseCase != null
-                  ? const Color(
-                      0xFF2CA048,
-                    ).withValues(alpha: isDark ? 0.22 : 0.12)
-                  : (isDark ? const Color(0xFF131722) : Colors.white),
-              borderRadius: BorderRadius.circular(10),
-              elevation: !isDark && selectedUseCase == null ? 0.5 : 0,
-              shadowColor: const Color(0x08000000),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: onOpenGoalPicker,
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 11),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selectedUseCase != null
-                          ? const Color(0xFF2CA048)
-                          : (isDark
-                                ? const Color(0xFF263040)
-                                : const Color(0xFFCBD5E1)),
-                      width: selectedUseCase != null ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        selectedUseCase != null
-                            ? selectedUseCase!.icon
-                            : Icons.auto_awesome_rounded,
-                        size: 14.5,
-                        color: selectedUseCase != null
-                            ? const Color(0xFF2CA048)
-                            : (isDark
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF334155)),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          selectedUseCase != null
-                              ? selectedUseCase!.localizedLabel(context.l10n)
-                              : context.l10n.modelsGoals,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: selectedUseCase != null
-                                ? FontWeight.w800
-                                : FontWeight.w600,
-                            color: selectedUseCase != null
-                                ? const Color(0xFF2CA048)
-                                : (isDark
-                                      ? const Color(0xFFCBD5E1)
-                                      : const Color(0xFF334155)),
-                          ),
-                        ),
-                      ),
-                      if (selectedUseCase != null) ...[
-                        const SizedBox(width: 5),
-                        InkWell(
-                          onTap: onClearGoal,
-                          borderRadius: BorderRadius.circular(8),
-                          child: const Padding(
-                            padding: EdgeInsets.all(2),
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 13,
-                              color: Color(0xFF2CA048),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_drop_down_rounded,
-                          size: 20,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // 3. Reset Button (Appears if any filter, goal or search query is active)
-        if (hasActiveFilter) ...[
-          const SizedBox(width: 8),
-          Tooltip(
-            message: context.l10n.modelsResetFiltersTooltip,
-            child: Material(
-              color: scheme.error.withValues(alpha: isDark ? 0.14 : 0.08),
-              borderRadius: BorderRadius.circular(10),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: onResetAll,
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: scheme.error.withValues(alpha: 0.35),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.refresh_rounded,
-                        size: 14,
-                        color: scheme.error,
-                      ),
-                      if (!compactReset) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          context.l10n.commonReset,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: scheme.error,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
+      ),
     );
   }
 
@@ -1225,7 +1186,7 @@ class _ActiveGoalBanner extends StatelessWidget {
     final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0x1F2CA048) : const Color(0x101B8738),
         borderRadius: BorderRadius.circular(14),
@@ -1236,39 +1197,18 @@ class _ActiveGoalBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: primaryBrand.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(useCase.icon, size: 18, color: primaryBrand),
-          ),
+          Icon(useCase.icon, size: 18, color: primaryBrand),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.modelsTargeting(
-                    useCase.localizedLabel(context.l10n),
-                  ),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: primaryBrand,
-                  ),
-                ),
-                Text(
-                  useCase.localizedBlurb(context.l10n),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+            child: Text(
+              context.l10n.modelsTargeting(
+                useCase.localizedLabel(context.l10n),
+              ),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: primaryBrand,
+              ),
             ),
           ),
           TextButton(
@@ -1288,8 +1228,6 @@ class _ActiveGoalBanner extends StatelessWidget {
             icon: const Icon(Icons.close_rounded, size: 16),
             tooltip: context.l10n.modelsClearGoal,
             visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
             onPressed: onClear,
           ),
         ],
@@ -1336,16 +1274,10 @@ class _ModelManagerSheet extends ConsumerWidget {
       orElse: () => null,
     );
 
-    final subtitle = downloads.isNotEmpty
-        ? context.l10n.modelsManagerSubtitleDownloading(
-            installed.length,
-            downloads.length,
-            _fmtSize(totalBytes),
-          )
-        : context.l10n.modelsManagerSubtitle(
-            installed.length,
-            _fmtSize(totalBytes),
-          );
+    final subtitle = context.l10n.modelsManagerSubtitle(
+      installed.length,
+      _fmtSize(totalBytes),
+    );
 
     return Container(
       constraints: BoxConstraints(
@@ -1397,7 +1329,7 @@ class _ModelManagerSheet extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
+                          letterSpacing: context.tracking(-0.2),
                         ),
                       ),
                       Text(
@@ -1725,25 +1657,13 @@ class _GoalPickerSheet extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.l10n.modelsChooseGoal,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      Text(
-                        context.l10n.modelsChooseGoalSubtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    context.l10n.modelsChooseGoal,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: context.tracking(-0.2),
+                    ),
                   ),
                 ),
                 IconButton(
@@ -1905,10 +1825,10 @@ class _NoResults extends StatelessWidget {
                   ? context.l10n.modelsNoMatchFilters
                   : context.l10n.modelsNoMatchQuery(query),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
+                letterSpacing: context.tracking(-0.2),
               ),
             ),
             const SizedBox(height: 6),
@@ -1991,7 +1911,7 @@ class _SectionHeader extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
+                    letterSpacing: context.tracking(-0.2),
                     color: scheme.onSurface,
                   ),
                 ),
@@ -2209,12 +2129,14 @@ class _InstalledCard extends StatelessWidget {
                             color: Color(0xFF2CA048),
                           )
                         else
-                          Text(
-                            context.l10n.modelsTapToActivate,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                              color: scheme.onSurfaceVariant,
+                          Flexible(
+                            child: Text(
+                              context.l10n.modelsTapToActivate,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: scheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                       ],
@@ -2231,93 +2153,6 @@ class _InstalledCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Visual taxonomy classification for catalog model cards
-enum _ModelVisualKind { vision, embedding, reasoning, text }
-
-_ModelVisualKind _classifyModel(CatalogModel model) {
-  if (model.supportsVision || model.mmprojUrl != null) {
-    return _ModelVisualKind.vision;
-  }
-  if (model.kind == ModelKind.embedding) {
-    return _ModelVisualKind.embedding;
-  }
-  final lowerId = model.id.toLowerCase();
-  final lowerDesc = model.description.toLowerCase();
-  if (lowerId.contains('deepseek') ||
-      lowerId.contains('coder') ||
-      lowerId.contains('code') ||
-      lowerId.contains('granite') ||
-      lowerId.contains('math') ||
-      lowerDesc.contains('reasoning') ||
-      lowerDesc.contains('coding') ||
-      lowerDesc.contains('code generation')) {
-    return _ModelVisualKind.reasoning;
-  }
-  return _ModelVisualKind.text;
-}
-
-/// Category badge pill shown on model cards to instantly identify model type
-class _CategoryBadge extends StatelessWidget {
-  final _ModelVisualKind kind;
-  final bool isDark;
-
-  const _CategoryBadge({required this.kind, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, icon, color) = switch (kind) {
-      _ModelVisualKind.vision => (
-        context.l10n.modelsBadgeVision,
-        Icons.visibility_rounded,
-        const Color(0xFF6366F1),
-      ),
-      _ModelVisualKind.embedding => (
-        context.l10n.modelsBadgeEmbed,
-        Icons.hub_rounded,
-        const Color(0xFFF59E0B),
-      ),
-      _ModelVisualKind.reasoning => (
-        context.l10n.modelsBadgeReason,
-        Icons.psychology_rounded,
-        const Color(0xFF0EA5E9),
-      ),
-      _ModelVisualKind.text => (
-        context.l10n.modelsBadgeText,
-        Icons.chat_bubble_outline_rounded,
-        const Color(0xFF2CA048),
-      ),
-    };
-
-    final bg = color.withValues(alpha: isDark ? 0.16 : 0.10);
-    final border = color.withValues(alpha: isDark ? 0.32 : 0.22);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: border, width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 9.5, color: color),
-          const SizedBox(width: 3.5),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 8.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: context.tracking(0.6),
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -2435,7 +2270,6 @@ class _FeaturedHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final capTag = _capabilityTagFor(model, context.l10n);
 
     // Deep celestial emerald gradient in dark mode; fresh mint-emerald in light mode
     final cardGradient = isDark
@@ -2558,44 +2392,16 @@ class _FeaturedHeroCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  model.author.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: context.tracking(1.2),
-                                    color: isDark
-                                        ? const Color(0xFF86EFAC)
-                                        : const Color(0xFF15803D),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF2CA048,
-                                    ).withValues(alpha: isDark ? 0.24 : 0.15),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    context.l10n.modelsFeaturedBadge,
-                                    style: TextStyle(
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: context.tracking(0.6),
-                                      color: isDark
-                                          ? const Color(0xFF4ADE80)
-                                          : const Color(0xFF15803D),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              model.author.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2,
+                                color: isDark
+                                    ? const Color(0xFF86EFAC)
+                                    : const Color(0xFF15803D),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -2614,53 +2420,8 @@ class _FeaturedHeroCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // "🔥 Popular" pill badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 4.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF133624)
-                              : const Color(0xFFDCFCE7),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF225E3F)
-                                : const Color(0xFF86EFAC),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('🔥', style: TextStyle(fontSize: 11)),
-                            const SizedBox(width: 4),
-                            Text(
-                              context.l10n.modelsPopular,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? const Color(0xFFE2E8F0)
-                                    : const Color(0xFF166534),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
-                  if (blocked || (!installed && fit == RamFit.tight)) ...[
-                    const SizedBox(height: 10),
-                    _FitWarning(
-                      blocked: blocked,
-                      needs: runtimeBytes,
-                      budget: budgetBytes,
-                    ),
-                  ],
                   const SizedBox(height: 12),
                   // Bottom Specs & Action Row (Clean, no redundant description clutter)
                   Row(
@@ -2669,23 +2430,15 @@ class _FeaturedHeroCard extends StatelessWidget {
                         child: Wrap(
                           spacing: 6,
                           runSpacing: 6,
-                          children: [
-                            _SpecPill(
-                              label: model.parameters,
-                              icon: Icons.bolt_rounded,
-                              isDarkCard: isDark,
-                            ),
-                            _SpecPill(
-                              label: '${model.contextLabel} ctx',
-                              icon: Icons.receipt_long_outlined,
-                              isDarkCard: isDark,
-                            ),
-                            _SpecPill(
-                              label: capTag.$2,
-                              icon: capTag.$1,
-                              isDarkCard: isDark,
-                            ),
-                          ],
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: _cardChips(
+                            model,
+                            context.l10n,
+                            installed: installed,
+                            fit: fit,
+                            flagTooBig: blocked,
+                            isDarkCard: isDark,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -2821,12 +2574,6 @@ class _FeaturedHeroCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 3),
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 14,
-                color: Colors.white,
-              ),
             ],
           ),
         ),
@@ -2878,8 +2625,6 @@ class _CatalogCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryBrand = isDark ? _brandGreen : const Color(0xFF1B8738);
     final auraColor = _vendorAuraColor(model);
-    final capTag = _capabilityTagFor(model, context.l10n);
-    final visualKind = _classifyModel(model);
 
     final cardBg = isDark
         ? (isRecommended ? const Color(0xFF131A24) : const Color(0xFF111722))
@@ -2968,51 +2713,16 @@ class _CatalogCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  model.author.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: context.tracking(1.1),
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                _CategoryBadge(
-                                  kind: visualKind,
-                                  isDark: isDark,
-                                ),
-                                if (isRecommended) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                      vertical: 1.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0x282CA048)
-                                          : const Color(0x181B8738),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      context.l10n.modelsTopPick,
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: context.tracking(0.6),
-                                        color: isDark
-                                            ? const Color(0xFF4ADE80)
-                                            : const Color(0xFF15803D),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            Text(
+                              model.author.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.1,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -3058,14 +2768,6 @@ class _CatalogCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (blocked || (!installed && fit == RamFit.tight)) ...[
-                    const SizedBox(height: 8),
-                    _FitWarning(
-                      blocked: blocked,
-                      needs: runtimeBytes,
-                      budget: budgetBytes,
-                    ),
-                  ],
                   const SizedBox(height: 10),
                   // Specifications & Action Row (Clean, no repetitive description text)
                   Row(
@@ -3075,24 +2777,12 @@ class _CatalogCard extends StatelessWidget {
                           spacing: 6,
                           runSpacing: 6,
                           crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            _SpecPill(
-                              label: model.parameters,
-                              icon: Icons.bolt_rounded,
-                            ),
-                            _SpecPill(
-                              label: '${model.contextLabel} ctx',
-                              icon: Icons.receipt_long_outlined,
-                            ),
-                            _SpecPill(label: capTag.$2, icon: capTag.$1),
-                            if (model.dimensions != null)
-                              _SpecPill(
-                                label: context.l10n.modelsDimensions(
-                                  '${model.dimensions}',
-                                ),
-                                icon: Icons.scatter_plot_rounded,
-                              ),
-                          ],
+                          children: _cardChips(
+                            model,
+                            context.l10n,
+                            installed: installed,
+                            fit: fit,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -3263,12 +2953,6 @@ class _CatalogCard extends StatelessWidget {
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                 ),
-              ),
-              const SizedBox(width: 3),
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 14,
-                color: Colors.white,
               ),
             ],
           ),
@@ -3537,6 +3221,56 @@ Color _vendorAuraColor(CatalogModel model) {
   return model.accent;
 }
 
+/// The few facts a card shows: size, context (or dimensions for an embedding
+/// model), vision or multilingual when it has them, and a short flag when the
+/// model is a tight fit. Everything else lives in the details sheet.
+List<Widget> _cardChips(
+  CatalogModel model,
+  AppLocalizations l, {
+  required bool installed,
+  required RamFit fit,
+  bool flagTooBig = false,
+  bool isDarkCard = false,
+}) {
+  final tag = _capabilityTagFor(model, l);
+  final showTag =
+      tag.$2 == l.modelsCapVisionReady || tag.$2 == l.modelsCapMultilingual;
+  return [
+    _SpecPill(
+      label: model.parameters,
+      icon: Icons.bolt_rounded,
+      isDarkCard: isDarkCard,
+    ),
+    if (model.dimensions != null)
+      _SpecPill(
+        label: l.modelsDimensions('${model.dimensions}'),
+        icon: Icons.scatter_plot_rounded,
+        isDarkCard: isDarkCard,
+      )
+    else
+      _SpecPill(
+        label: '${model.contextLabel} ctx',
+        icon: Icons.receipt_long_outlined,
+        isDarkCard: isDarkCard,
+      ),
+    if (showTag) _SpecPill(label: tag.$2, icon: tag.$1, isDarkCard: isDarkCard),
+    if (!installed && fit == RamFit.tight)
+      _SpecPill(
+        label: l.modelsFitTightShort,
+        icon: Icons.warning_amber_rounded,
+        color: Colors.orange.shade600,
+        isDarkCard: isDarkCard,
+      ),
+    if (flagTooBig)
+      _SpecPill(
+        label: l.modelsFitTooBig,
+        icon: Icons.block_rounded,
+        color: Colors.red.shade400,
+        isDarkCard: isDarkCard,
+      ),
+  ];
+}
+
 (IconData, String) _capabilityTagFor(CatalogModel model, AppLocalizations l) {
   if (model.supportsVision) {
     return (Icons.visibility_outlined, l.modelsCapVisionReady);
@@ -3623,7 +3357,7 @@ class _SpecPill extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: fg,
-              letterSpacing: -0.1,
+              letterSpacing: context.tracking(-0.1),
             ),
           ),
         ],
@@ -3739,12 +3473,14 @@ class _ActiveDownloads extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                context.l10n.modelsDownloadingCount(entries.length),
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onSurface,
+              Expanded(
+                child: Text(
+                  context.l10n.modelsDownloadingCount(entries.length),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -3944,20 +3680,17 @@ class _PausedDownloads extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
               const SizedBox(width: 8),
-              Text(
-                context.l10n.modelsPausedDownloadsTitle(partials.length),
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onSurface,
+              Expanded(
+                child: Text(
+                  context.l10n.modelsPausedDownloadsTitle(partials.length),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSurface,
+                  ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.modelsPausedDownloadsBody,
-            style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
           for (final p in partials)

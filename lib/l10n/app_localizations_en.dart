@@ -1954,12 +1954,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'A newer version of Thinai is on Play Store.';
 
   @override
-  String get modelsToastDownloadPaused =>
-      'Download paused. Tap Resume to continue.';
+  String get modelsToastDownloadPaused => 'Download paused';
 
   @override
   String modelsToastDownloadStopped(String model, String error) {
-    return 'Download of $model stopped: $error. Progress is saved, tap Resume to continue.';
+    return '$model stopped: $error. Tap Resume to continue.';
   }
 
   @override
@@ -1988,11 +1987,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modelsConfirmDownloadTitle => 'Download model?';
+  String get modelsConfirmDownloadTitle => 'Download?';
 
   @override
   String modelsConfirmDownloadMessage(String model, String size) {
-    return 'Do you want to download $model ($size)?';
+    return '$model ($size)';
   }
 
   @override
@@ -2000,7 +1999,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String modelsConfirmDiscardMessage(String model, String size) {
-    return 'Do you want to discard the paused download of $model? The $size saved so far will be deleted.';
+    return '$model ($size saved) will be deleted.';
   }
 
   @override
@@ -2011,7 +2010,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String modelsConfirmDeleteMessage(String model, String size) {
-    return 'Do you want to delete $model? This frees $size of space.';
+    return '$model will be removed, freeing $size.';
   }
 
   @override
@@ -2039,35 +2038,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsNoneInstalledYet => 'No models installed yet';
 
   @override
-  String get modelsNoneInstalledYetBody =>
-      'Browse and download GGUF models from the catalog to run offline on this device.';
+  String get modelsNoneInstalledYetBody => 'Download a model to chat offline.';
 
   @override
   String get modelsBrowseCatalog => 'Browse Catalog';
 
   @override
   String modelsInstalledSectionTitle(int count) {
-    return 'Installed models ($count)';
+    return 'Installed ($count)';
   }
 
   @override
-  String get modelsInstalledSectionSubtitle =>
-      'Tap a model to load it for chat';
+  String get modelsTopPicks => 'Top picks';
 
   @override
-  String modelsRecommendedFor(String goal) {
-    return 'Recommended for $goal';
-  }
-
-  @override
-  String get modelsRecommendedSubtitle =>
-      'Optimal weights selected for your device specs';
-
-  @override
-  String get modelsFeaturedTitle => 'Featured Models';
-
-  @override
-  String get modelsFeaturedSubtitle => 'Handpicked for you';
+  String get modelsFeaturedTitle => 'Featured';
 
   @override
   String get modelsOtherModels => 'Other models';
@@ -2079,46 +2064,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsChatModelsTitle => 'Chat models';
 
   @override
-  String get modelsExploreModels => 'Explore Models';
+  String get modelsExploreModels => 'More models';
 
   @override
-  String get modelsBrowseCatalogTitle => 'Browse catalog';
-
-  @override
-  String get modelsOtherModelsSubtitle => 'All other available models';
-
-  @override
-  String get modelsVisionModelsSubtitle =>
-      'Multimodal · image & visual analysis';
-
-  @override
-  String get modelsCatalogSubtitle => 'Curated GGUF models · one-tap download';
+  String get modelsBrowseCatalogTitle => 'Results';
 
   @override
   String get modelsEmbeddingTitle => 'Embedding models';
 
   @override
-  String get modelsEmbeddingSubtitle =>
-      'For search and RAG · /api/embed · /v1/embeddings';
+  String get modelsOfflineFooter => 'Models run fully offline on this phone.';
 
   @override
-  String get modelsOfflineFooter =>
-      'Downloaded models stay 100% on-device and run entirely offline.';
-
-  @override
-  String get modelsSearchHint => 'Search models, makers, architectures…';
+  String get modelsSearchHint => 'Search models';
 
   @override
   String get modelsClearSearch => 'Clear search';
 
   @override
-  String get modelsFilterAll => 'All Models';
+  String get modelsFilterAll => 'All';
 
   @override
-  String get modelsFilterChat => 'Chat Models';
+  String get modelsFilterChat => 'Chat';
 
   @override
-  String get modelsFilterVision => 'Vision Models';
+  String get modelsFilterVision => 'Vision';
 
   @override
   String get modelsFilterEmbedding => 'Embedding';
@@ -2135,14 +2105,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsFilterCategory => 'Filter Category';
 
   @override
-  String get modelsGoals => 'Goals';
+  String get modelsGoals => 'Goal';
 
   @override
   String get modelsResetFiltersTooltip => 'Reset filters and search';
 
   @override
   String modelsTargeting(String goal) {
-    return 'Targeting: $goal';
+    return 'Goal: $goal';
   }
 
   @override
@@ -2152,53 +2122,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsClearGoal => 'Clear goal';
 
   @override
-  String modelsManagerSubtitleDownloading(
-    int installed,
-    int downloading,
-    String size,
-  ) {
-    return '$installed installed · $downloading downloading · $size used';
-  }
-
-  @override
   String modelsManagerSubtitle(int count, String size) {
-    return '$count models · $size storage used';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count models',
+      one: '1 model',
+    );
+    return '$_temp0 · $size';
   }
 
   @override
   String get modelsNoneInstalled => 'No models installed';
 
   @override
-  String get modelsNoneInstalledBody =>
-      'Download models from the catalog to run offline chat.';
+  String get modelsNoneInstalledBody => 'Download one from the catalog.';
 
   @override
   String modelsActiveForChat(String model) {
-    return 'Active for Chat: $model';
+    return 'In use: $model';
   }
 
   @override
-  String get modelsNoModelLoaded => 'No model loaded in Chat';
+  String get modelsNoModelLoaded => 'No model loaded';
 
   @override
-  String get modelsInstalledAppearHere =>
-      'Installed models will appear here after download completes.';
+  String get modelsInstalledAppearHere => 'Finished downloads show up here.';
 
   @override
   String get modelsActive => 'Active';
 
   @override
-  String get modelsActivate => 'Activate';
+  String get modelsActivate => 'Load';
 
   @override
   String get modelsDeleteModel => 'Delete model';
 
   @override
-  String get modelsChooseGoal => 'Choose Your Goal';
-
-  @override
-  String get modelsChooseGoalSubtitle =>
-      'Thinai benchmarks & recommends models for your device';
+  String get modelsChooseGoal => 'Choose a goal';
 
   @override
   String get modelsClearActiveGoal => 'Clear Active Goal';
@@ -2212,14 +2173,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modelsNoMatchHint =>
-      'Try adjusting your selected filters or search terms.';
+  String get modelsNoMatchHint => 'Try another search or filter.';
 
   @override
   String get modelsSearchHuggingFace => 'Search Hugging Face';
 
   @override
-  String get modelsResetFiltersAndSearch => 'Reset filters & search';
+  String get modelsResetFiltersAndSearch => 'Reset filters';
 
   @override
   String get modelsStatusCancelled => 'Cancelled';
@@ -2228,34 +2188,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsStatusFailed => 'Failed';
 
   @override
-  String get modelsStatusCompleted => '100% · Completed';
+  String get modelsStatusCompleted => 'Done';
 
   @override
   String get modelsStatusStarting => 'Starting…';
 
   @override
-  String get modelsActiveInChat => 'Active in Chat';
+  String get modelsActiveInChat => 'In use';
 
   @override
-  String get modelsTapToActivate => 'Tap to activate';
-
-  @override
-  String get modelsBadgeVision => 'VISION';
-
-  @override
-  String get modelsBadgeEmbed => 'EMBED';
-
-  @override
-  String get modelsBadgeReason => 'REASON';
-
-  @override
-  String get modelsBadgeText => 'TEXT';
-
-  @override
-  String get modelsFeaturedBadge => 'FEATURED';
-
-  @override
-  String get modelsPopular => 'Popular';
+  String get modelsTapToActivate => 'Tap to load';
 
   @override
   String modelsAddVision(String size) {
@@ -2269,7 +2211,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsPause => 'Pause';
 
   @override
-  String get modelsTopPick => 'TOP PICK';
+  String get modelsTopPick => 'Top pick';
 
   @override
   String get modelsModelDetails => 'Model details';
@@ -2305,7 +2247,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modelsCapVisionReady => 'Vision Ready';
+  String get modelsCapVisionReady => 'Vision';
 
   @override
   String get modelsCapEmbeddings => 'Embeddings';
@@ -2314,7 +2256,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsCapLightweight => 'Lightweight';
 
   @override
-  String get modelsCapFast => 'Fast & Efficient';
+  String get modelsCapFast => 'Fast';
 
   @override
   String get modelsCapMultilingual => 'Multilingual';
@@ -2334,8 +2276,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modelsFitTight =>
-      'A tight fit. Other apps may close while this runs.';
+  String get modelsFitTight => 'Tight fit. Other apps may close while it runs.';
 
   @override
   String modelsDownloadingCount(int count) {
@@ -2376,10 +2317,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get modelsPausedDownloadsBody =>
-      'Saved on this phone. Resume to continue where it stopped.';
-
-  @override
   String get modelsResumeDownload => 'Resume download';
 
   @override
@@ -2389,62 +2326,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsUseCaseFastChat => 'Fast chat';
 
   @override
-  String get modelsUseCaseFastChatBlurb =>
-      'Quick back-and-forth, answers as fast as you type';
+  String get modelsUseCaseFastChatBlurb => 'Quick replies';
 
   @override
-  String get modelsUseCaseReasoning => 'Best reasoning';
+  String get modelsUseCaseReasoning => 'Reasoning';
 
   @override
-  String get modelsUseCaseReasoningBlurb =>
-      'Harder questions, maths, step-by-step thinking';
+  String get modelsUseCaseReasoningBlurb => 'Maths and hard questions';
 
   @override
   String get modelsUseCaseCoding => 'Coding';
 
   @override
-  String get modelsUseCaseCodingBlurb => 'Writing and explaining code';
+  String get modelsUseCaseCodingBlurb => 'Write and explain code';
 
   @override
   String get modelsUseCaseTamil => 'Tamil';
 
   @override
-  String get modelsUseCaseTamilBlurb => 'Chatting and writing in Tamil';
+  String get modelsUseCaseTamilBlurb => 'Chat and write in Tamil';
 
   @override
   String get modelsUseCaseEnglish => 'English';
 
   @override
-  String get modelsUseCaseEnglishBlurb =>
-      'Everyday English conversation and writing';
+  String get modelsUseCaseEnglishBlurb => 'Everyday English';
 
   @override
-  String get modelsUseCaseVision => 'Image understanding';
+  String get modelsUseCaseVision => 'Images';
 
   @override
-  String get modelsUseCaseVisionBlurb =>
-      'Asking questions about a photo or screenshot';
+  String get modelsUseCaseVisionBlurb => 'Ask about a photo';
 
   @override
-  String get modelsUseCaseTranslation => 'Offline translation';
+  String get modelsUseCaseTranslation => 'Translation';
 
   @override
-  String get modelsUseCaseTranslationBlurb =>
-      'Translating between languages with no signal';
+  String get modelsUseCaseTranslationBlurb => 'Translate with no internet';
 
   @override
-  String get modelsUseCaseSummarizing => 'Summarization';
+  String get modelsUseCaseSummarizing => 'Summaries';
 
   @override
-  String get modelsUseCaseSummarizingBlurb =>
-      'Shortening long text into the gist';
+  String get modelsUseCaseSummarizingBlurb => 'The gist of long text';
 
   @override
-  String get modelsUseCaseDocuments => 'Document analysis';
+  String get modelsUseCaseDocuments => 'Documents';
 
   @override
-  String get modelsUseCaseDocumentsBlurb =>
-      'Reading long documents and answering about them';
+  String get modelsUseCaseDocumentsBlurb => 'Ask about long documents';
 
   @override
   String modelsReasonNotSuited(String task) {
@@ -2605,10 +2535,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Image understanding is not available in this build.';
 
   @override
-  String get modelsFitComfortable => 'Runs well on your phone';
+  String get modelsFitComfortable => 'Runs well';
 
   @override
-  String get modelsFitTightShort => 'Tight fit, may slow other apps';
+  String get modelsFitTightShort => 'Tight fit';
 
   @override
   String get modelsFitTooBig => 'Too big for your phone';
@@ -2620,15 +2550,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsSpeedUnknown => 'speed unknown';
 
   @override
-  String modelsAdvisorGoalCollapsed(String goal) {
-    return 'Goal: $goal · tap to customize';
-  }
-
-  @override
-  String get modelsAdvisorPromptCollapsed =>
-      'What do you want to do? · tap to pick a goal';
-
-  @override
   String get modelsAdvisorPrompt => 'What do you want to do?';
 
   @override
@@ -2638,61 +2559,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsAdvisorCollapse => 'Collapse guide';
 
   @override
-  String modelsAdvisorSubtitleKnown(String device) {
-    return 'Thinai picks a model that fits your phone · $device';
-  }
+  String get modelsAdvisorNothingFits => 'Nothing fits this phone.';
 
   @override
-  String get modelsAdvisorSubtitle => 'Thinai picks a model for the job';
-
-  @override
-  String get modelsAdvisorNothingFits =>
-      'Nothing in the catalogue fits this one.';
-
-  @override
-  String get modelsAdvisorBestForPhone => 'Best model for your phone';
-
-  @override
-  String get modelsAdvisorBestForThis => 'Best model for this';
-
-  @override
-  String get modelsAdvisorAlsoConsider => 'Also worth considering';
-
-  @override
-  String modelsAdvisorAuthorDownload(String author, String size) {
-    return '$author · $size download';
-  }
-
-  @override
-  String modelsAdvisorContext(String context) {
-    return '$context context';
-  }
-
-  @override
-  String get modelsAdvisorAlreadyDownloaded => 'Already downloaded';
-
-  @override
-  String get modelsAdvisorSpeedMeasured =>
-      'Speed measured on this phone by Benchmark.';
-
-  @override
-  String get modelsAdvisorSpeedEstimated =>
-      'Estimated speed. Run Benchmark for the real number.';
-
-  @override
-  String get modelsAdvisorStartingCancel => 'Starting… · tap to cancel';
-
-  @override
-  String modelsAdvisorDownloadingCancel(String percent) {
-    return 'Downloading $percent% · tap to cancel';
-  }
+  String get modelsAdvisorAlsoConsider => 'Also good';
 
   @override
   String get modelsSettingsTitle => 'Model settings';
 
   @override
-  String get modelsSettingsBody =>
-      'Used by chat and the API server. Requests can override these, up to the maximum.';
+  String get modelsSettingsBody => 'Applies to chat and the server.';
 
   @override
   String get modelsSettingsResetDefaults => 'Reset to defaults';
@@ -2702,7 +2578,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelsSettingsContextHelp =>
-      'Longer windows remember more but use more RAM and run slower.';
+      'Longer remembers more but uses more RAM.';
 
   @override
   String get modelsSettingsTemperature => 'Temperature';
@@ -2714,38 +2590,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsSettingsCreative => 'Creative';
 
   @override
-  String get modelsSettingsTopKHelp =>
-      'Picks each word from only the K likeliest. Lower is more focused; 0 turns the limit off.';
+  String get modelsSettingsTopKHelp => 'Lower is more focused. 0 turns it off.';
 
   @override
   String get modelsSettingsTopPHelp =>
-      'Picks from the likeliest words that together make up this share of the probability. 1.00 keeps them all.';
+      'Lower is more focused. 1.00 turns it off.';
 
   @override
   String get modelsSettingsThinking => 'Thinking';
 
   @override
   String get modelsSettingsThinkingHelp =>
-      'Reasons step by step before answering. Off answers sooner.';
+      'Thinks before answering. Off is faster.';
 
   @override
   String modelsSettingsCapPhoneRam(String max) {
-    return 'Maximum $max, limited by this phone\'s RAM.';
-  }
-
-  @override
-  String modelsSettingsCapRam(String max, String trained) {
-    return 'Maximum $max, limited by RAM (model supports $trained).';
+    return 'Max $max, limited by RAM.';
   }
 
   @override
   String modelsSettingsCapTraining(String max) {
-    return 'Maximum $max, this model\'s training limit.';
+    return 'Max $max, the model\'s limit.';
   }
 
   @override
   String modelsSettingsCap(String max) {
-    return 'Maximum $max.';
+    return 'Max $max.';
   }
 
   @override
