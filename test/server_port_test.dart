@@ -52,7 +52,7 @@ void main() {
 
     await tester.tap(find.text(':11434'));
     await tester.pump();
-    await _enterPort(tester, '8005', 'Save Port');
+    await _enterPort(tester, '8005', 'Save');
 
     expect(find.text(':8005'), findsOneWidget);
     expect(find.text(':11434'), findsNothing);
@@ -85,13 +85,13 @@ void main() {
       ],
     );
 
-    await tester.tap(find.text('Server port'));
+    await tester.tap(find.text('Port'));
     await tester.pump();
     await tester.pump();
     await _enterPort(tester, '8005', 'Save');
 
     expect(
-      find.text('Server port set to 8005. Restart the server to apply.'),
+      find.text('Port set to 8005. Restart the server to apply.'),
       findsOneWidget,
     );
   });
@@ -102,11 +102,11 @@ void main() {
     SharedPreferences.setMockInitialValues({'server_port': 11434});
     await _pump(tester, const LocalServerSettingsPage());
 
-    await tester.tap(find.text('Server port'));
+    await tester.tap(find.text('Port'));
     await tester.pump();
     await tester.pump();
     await _enterPort(tester, '8005', 'Save');
 
-    expect(find.text('Server port set to 8005'), findsOneWidget);
+    expect(find.text('Port set to 8005'), findsOneWidget);
   });
 }

@@ -1,0 +1,2414 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Tamil (`ta`).
+class AppLocalizationsTa extends AppLocalizations {
+  AppLocalizationsTa([String locale = 'ta']) : super(locale);
+
+  @override
+  String get languageSetting => 'மொழி';
+
+  @override
+  String get languageSystem => 'சாதன மொழி';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageTamil => 'தமிழ்';
+
+  @override
+  String get commonCancel => 'ரத்துசெய்';
+
+  @override
+  String get commonSave => 'சேமி';
+
+  @override
+  String get commonDelete => 'நீக்கு';
+
+  @override
+  String get commonOk => 'சரி';
+
+  @override
+  String get commonCopy => 'நகலெடு';
+
+  @override
+  String get commonShare => 'பகிர்';
+
+  @override
+  String get commonDownload => 'பதிவிறக்கு';
+
+  @override
+  String get commonResume => 'தொடர்';
+
+  @override
+  String get commonDismiss => 'மூடு';
+
+  @override
+  String get commonNext => 'அடுத்து';
+
+  @override
+  String get commonBack => 'பின்செல்';
+
+  @override
+  String get commonSkip => 'தவிர்';
+
+  @override
+  String get commonDone => 'முடிந்தது';
+
+  @override
+  String get commonLater => 'பிறகு';
+
+  @override
+  String get commonOn => 'ஆன்';
+
+  @override
+  String get commonOff => 'ஆஃப்';
+
+  @override
+  String get navChat => 'உரையாடல்';
+
+  @override
+  String get navModels => 'அறிவுருக்கள்';
+
+  @override
+  String get navServer => 'சேவகம்';
+
+  @override
+  String get navSettings => 'அமைப்புகள்';
+
+  @override
+  String get serverToastLanNoAddress =>
+      'LAN ஆன், ஆனால் Wi-Fi முகவரி கிடைக்கவில்லை.';
+
+  @override
+  String serverToastStartFailed(String error) {
+    return 'தொடங்குவது தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get serverPortDialogTitle => 'சேவகம் port';
+
+  @override
+  String get serverPortNumberLabel => 'Port எண்';
+
+  @override
+  String get serverStatusRunning => 'இயங்குகிறது';
+
+  @override
+  String get serverStatusStopped => 'நிறுத்தப்பட்டது';
+
+  @override
+  String get serverStart => 'தொடங்கு';
+
+  @override
+  String get serverStop => 'நிறுத்து';
+
+  @override
+  String get serverCopyAddressTooltip => 'முகவரியை நகலெடு';
+
+  @override
+  String serverCopiedLabel(String label) {
+    return '$label நகலெடுக்கப்பட்டது';
+  }
+
+  @override
+  String get serverServingModel => 'இயங்கும் அறிவுரு';
+
+  @override
+  String get serverTune => 'சரிசெய்';
+
+  @override
+  String get serverNoModelLoaded => 'அறிவுரு ஏற்றப்படவில்லை';
+
+  @override
+  String get serverBrowseModels => 'அறிவுருவைத் தேர்';
+
+  @override
+  String get serverRegenerateTokenTitle => 'Token-ஐ மாற்றவா?';
+
+  @override
+  String get serverRegenerateTokenBody =>
+      'LAN சாதனங்களுக்குப் புதிய token தேவைப்படும்.';
+
+  @override
+  String get serverRegenerate => 'மாற்று';
+
+  @override
+  String get serverTokenRegenerated => 'Token மாற்றப்பட்டது';
+
+  @override
+  String get serverLanShareTitle => 'LAN-இல் பகிர்';
+
+  @override
+  String get serverLanShareOnSubtitle =>
+      'இந்த Wi-Fi-இல் உள்ள சாதனங்கள் இணையலாம்';
+
+  @override
+  String get serverLanShareOffSubtitle => 'இந்தக் கைப்பேசி மட்டும்';
+
+  @override
+  String get serverCopyLanUrlTooltip => 'LAN URL-ஐ நகலெடு';
+
+  @override
+  String get serverDevQuickStartTitle => 'விரைவுத் தொடக்கம்';
+
+  @override
+  String get serverEndpointOpenAiChat => 'OpenAI உரையாடல்';
+
+  @override
+  String get serverEndpointOllamaChat => 'Ollama உரையாடல்';
+
+  @override
+  String get serverEndpointEmbeddings => 'Embeddings';
+
+  @override
+  String get serverEndpointModels => 'நிறுவிய அறிவுருக்கள்';
+
+  @override
+  String get serverApiEndpointsTitle => 'API endpoints';
+
+  @override
+  String get serverCopyCurlTooltip => 'cURL-ஐ நகலெடு';
+
+  @override
+  String get hfSearchHint => 'GGUF அறிவுருக்களைத் தேடு';
+
+  @override
+  String get hfSearchFailedTitle => 'தேடல் தோல்வியடைந்தது';
+
+  @override
+  String get hfTryAgain => 'மீண்டும் முயல்';
+
+  @override
+  String get hfEmptyTitle => 'எந்த GGUF அறிவுருவையும் தேடலாம்';
+
+  @override
+  String get hfEmptyMessage => 'எ.கா. \"gemma\", \"phi\", \"unsloth\".';
+
+  @override
+  String hfNoMatchTitle(String query) {
+    return '\"$query\" உடன் பொருந்தும் GGUF அறிவுருக்கள் இல்லை';
+  }
+
+  @override
+  String get hfNoMatchMessage => 'சிறிய பெயரில் தேடவும்.';
+
+  @override
+  String hfResultsTitle(int count) {
+    return 'முடிவுகள் ($count)';
+  }
+
+  @override
+  String get hfResultsSubtitle => 'அதிகம் பதிவிறக்கப்பட்டவை முதலில்';
+
+  @override
+  String get hfDownloadTitle => 'அறிவுருவைப் பதிவிறக்கவா?';
+
+  @override
+  String get hfTooBigTitle => 'இந்தக் கைப்பேசிக்கு மிகப் பெரியதா?';
+
+  @override
+  String get hfDownloadAnyway => 'இருந்தாலும் பதிவிறக்கு';
+
+  @override
+  String hfDownloadMessage(String file, String size) {
+    return '$file ($size) பதிவிறக்கவா?';
+  }
+
+  @override
+  String hfDownloadMessageTooBig(String file, String size) {
+    return '$file ($size) பதிவிறக்கவா?\n\nஇந்தக் கைப்பேசியில் ஏற்றப்படாமல் போகலாம்.';
+  }
+
+  @override
+  String hfDownloadMessageTooBigBudget(
+    String file,
+    String size,
+    String needs,
+    String budget,
+  ) {
+    return '$file ($size) பதிவிறக்கவா?\n\nசுமார் $needs நினைவகம் தேவை, இந்தக் கைப்பேசியில் $budget மட்டுமே உள்ளது. ஏற்றப்படாமல் போகலாம்.';
+  }
+
+  @override
+  String hfDownloadMessageTight(String file, String size) {
+    return '$file ($size) பதிவிறக்கவா?\n\nநினைவகம் குறைவு. மற்ற ஆப்ஸ் மூடப்படலாம்.';
+  }
+
+  @override
+  String get hfOpenFailedTitle => 'இந்த அறிவுருவைத் திறக்க முடியவில்லை';
+
+  @override
+  String get hfSignInTitle => 'உள்நுழைவு தேவை';
+
+  @override
+  String get hfSignInMessage =>
+      'Hugging Face கணக்கு தேவை. இன்னும் ஆதரவு இல்லை.';
+
+  @override
+  String hfFilesTitle(int count) {
+    return 'GGUF கோப்புகள் ($count)';
+  }
+
+  @override
+  String get hfFilesSubtitle => 'சிறிய கோப்புகள் வேகமாக இயங்கும்';
+
+  @override
+  String hfSkippedFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'பிரிக்கப்பட்ட/உதவிக் கோப்புகள் $count மறைக்கப்பட்டன',
+      one: 'பிரிக்கப்பட்ட/உதவிக் கோப்பு 1 மறைக்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hfNothingTitle => 'இங்கே நிறுவ எதுவும் இல்லை';
+
+  @override
+  String get hfNothingMessage => 'Thinai ஏற்றக்கூடிய GGUF கோப்பு இல்லை.';
+
+  @override
+  String get hfNetworkNotice =>
+      'தேடலுக்கு இணையம் தேவை. உரையாடல்கள் தனிப்பட்டவை.';
+
+  @override
+  String get hfAgoToday => 'இன்று';
+
+  @override
+  String hfAgoDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count நாள் முன்பு',
+      one: '1 நாள் முன்பு',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hfAgoMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count மாதம் முன்பு',
+      one: '1 மாதம் முன்பு',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hfAgoYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ஆண்டு முன்பு',
+      one: '1 ஆண்டு முன்பு',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hfByAuthor(String author) {
+    return '$author உருவாக்கியது';
+  }
+
+  @override
+  String get hfNoLicence => 'உரிமம் இல்லை';
+
+  @override
+  String get hfInstalled => 'நிறுவப்பட்டது';
+
+  @override
+  String get hfPause => 'இடைநிறுத்து';
+
+  @override
+  String get hfFindMore => 'Hugging Face-இல் மேலும் தேடு';
+
+  @override
+  String hfSearchFor(String query) {
+    return 'Hugging Face-இல் \"$query\"-ஐத் தேடு';
+  }
+
+  @override
+  String get hfPromptSubtitle => 'எந்தப் பொது GGUF அறிவுருவும். இணையம் தேவை.';
+
+  @override
+  String get settingsAppearance => 'தோற்றம்';
+
+  @override
+  String get settingsSystemPrompt => 'அமைப்பு செய்தி';
+
+  @override
+  String get settingsHardware => 'வன்பொருள்';
+
+  @override
+  String get settingsModelStorage => 'அறிவுரு & சேமிப்பகம்';
+
+  @override
+  String get settingsLocalServer => 'லோக்கல் சேவகம்';
+
+  @override
+  String get settingsAboutGuidance => 'பற்றி & உதவி';
+
+  @override
+  String get settingsStartPage => 'தொடக்கப் பக்கம்';
+
+  @override
+  String get settingsThemeMode => 'தீம்';
+
+  @override
+  String get settingsThemeSystem => 'சாதன தீம்';
+
+  @override
+  String get settingsThemeDark => 'இருண்ட';
+
+  @override
+  String get settingsThemeLight => 'வெளிர்';
+
+  @override
+  String get settingsWebSearch => 'இணையத் தேடல்';
+
+  @override
+  String get settingsGpuAcceleration => 'GPU வேகமாக்கல்';
+
+  @override
+  String get settingsGpuAuto => 'தானியங்கி';
+
+  @override
+  String get settingsBenchmarkDevice => 'அளவுகோல்';
+
+  @override
+  String get settingsGpuDiagnostics => 'GPU வேகச் சோதனை';
+
+  @override
+  String get settingsDeviceSpecs => 'சாதனம்';
+
+  @override
+  String settingsDeviceSpecsWithRam(int cores, String ramGb) {
+    return '$cores கோர்கள் · $ramGb GB RAM';
+  }
+
+  @override
+  String settingsDeviceSpecsCores(int cores) {
+    return '$cores CPU கோர்கள்';
+  }
+
+  @override
+  String settingsImported(String name) {
+    return '$name இறக்குமதி செய்யப்பட்டது';
+  }
+
+  @override
+  String settingsImportFailed(String error) {
+    return 'இறக்குமதி தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get settingsDownloadStarted => 'பதிவிறக்கம் தொடங்கியது';
+
+  @override
+  String settingsDownloadStopped(String error) {
+    return 'பதிவிறக்கம் நின்றது: $error. அறிவுருக்கள் பக்கத்தில் தொடரவும்.';
+  }
+
+  @override
+  String settingsDownloadFailed(String error) {
+    return 'பதிவிறக்கம் தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get settingsDownloadComplete => 'பதிவிறக்கம் முடிந்தது';
+
+  @override
+  String get settingsClearDownloadsTitle => 'பதிவிறக்கங்களை நீக்கவா?';
+
+  @override
+  String get settingsClearDownloadsBody =>
+      'இடத்தை விடுவிக்க, பதிவிறக்கிய எல்லா அறிவுருக்களும் நீக்கப்படும்.';
+
+  @override
+  String get settingsNoDownloadsFound => 'நீக்க எதுவும் இல்லை';
+
+  @override
+  String settingsClearedDownloads(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count பதிவிறக்கங்கள் நீக்கப்பட்டன',
+      one: '1 பதிவிறக்கம் நீக்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsClearFailed(String error) {
+    return 'நீக்குவது தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get settingsTune => 'சீரமை';
+
+  @override
+  String get settingsNoActiveModel => 'அறிவுரு ஏற்றப்படவில்லை';
+
+  @override
+  String get settingsCatalog => 'பட்டியல்';
+
+  @override
+  String get settingsImportGguf => '.gguf இறக்குமதி';
+
+  @override
+  String get settingsDownloadFromUrl => 'URL மூலம் பதிவிறக்கு';
+
+  @override
+  String get settingsClearDownloadedModels => 'பதிவிறக்கங்களை நீக்கு';
+
+  @override
+  String get settingsChangePortTitle => 'சேவகம் port';
+
+  @override
+  String settingsPortSetRestart(int port) {
+    return 'Port $port ஆக அமைக்கப்பட்டது. பொருந்த, சேவகத்தை மறுதொடக்கம் செய்யவும்.';
+  }
+
+  @override
+  String settingsPortSet(int port) {
+    return 'Port $port ஆக அமைக்கப்பட்டது';
+  }
+
+  @override
+  String get settingsShareApiWifi => 'Wi-Fi-இல் பகிர்';
+
+  @override
+  String get settingsServerPort => 'Port';
+
+  @override
+  String get settingsServerStatus => 'நிலை';
+
+  @override
+  String get settingsServerActive => 'இயங்குகிறது';
+
+  @override
+  String get settingsServerOffline => 'நிறுத்தப்பட்டது';
+
+  @override
+  String get settingsUpToDate => 'Thinai சமீபத்திய பதிப்பில் உள்ளது';
+
+  @override
+  String get settingsUpdateUnavailable =>
+      'புதுப்பிப்பைச் சரிபார்க்க முடியவில்லை';
+
+  @override
+  String get settingsUpdateAlreadyDownloading =>
+      'புதுப்பிப்பு ஏற்கனவே பதிவிறக்குகிறது';
+
+  @override
+  String get settingsUpdateDownloading => 'புதுப்பிப்பு பதிவிறக்குகிறது…';
+
+  @override
+  String get settingsUpdateFailed =>
+      'புதுப்பிப்பு தோல்வியடைந்தது. Play Store-இல் முயலவும்.';
+
+  @override
+  String get settingsUpdateReadyTitle => 'புதுப்பிப்பு தயார்';
+
+  @override
+  String get settingsUpdateReadyBody =>
+      'நிறுவ, Thinai-ஐ மறுதொடக்கம் செய்யவும்.';
+
+  @override
+  String get settingsRestart => 'மறுதொடக்கம்';
+
+  @override
+  String get settingsStartTour => 'ஆப் சுற்றுலா';
+
+  @override
+  String get settingsCheckUpdates => 'புதுப்பிப்பைச் சரிபார்';
+
+  @override
+  String get settingsContactSupport => 'உதவி & ஆதரவு';
+
+  @override
+  String get settingsAboutThinai => 'Thinai பற்றி';
+
+  @override
+  String get settingsDirectGgufUrl => 'GGUF URL';
+
+  @override
+  String get settingsSaveAsOptional => 'பெயர் (விருப்பம்)';
+
+  @override
+  String get gpuAcceleration => 'GPU வேகமாக்கல்';
+
+  @override
+  String get gpuDescription => 'உதவுகிறதா என வேகச் சோதனையில் பார்க்கவும்.';
+
+  @override
+  String gpuCrashedNotice(String backend) {
+    return 'கடந்த முறை $backend செயலிழந்ததால் GPU அணைக்கப்பட்டது.';
+  }
+
+  @override
+  String get gpuCheckPhone => 'GPU-வைக் கண்டறி';
+
+  @override
+  String get gpuNoneFound => 'GPU இல்லை. CPU பயன்படுத்தப்படும்.';
+
+  @override
+  String gpuFound(String devices) {
+    return 'கண்டறிந்தவை: $devices';
+  }
+
+  @override
+  String get gpuAuto => 'தானியங்கி';
+
+  @override
+  String gpuAutoWith(String backend) {
+    return 'தானியங்கி ($backend)';
+  }
+
+  @override
+  String get gpuTesting => 'சோதிக்கிறது…';
+
+  @override
+  String get gpuSpeedTest => 'வேகச் சோதனை';
+
+  @override
+  String get gpuLoadModelFirst => 'முதலில் ஒரு அறிவுருவை ஏற்றவும்.';
+
+  @override
+  String gpuTestFailed(String error) {
+    return 'சோதனை தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get gpuVerdictGpuFaster => 'இங்கே GPU வேகமானது.';
+
+  @override
+  String get gpuVerdictCpuFaster =>
+      'இங்கே CPU வேகமானது. GPU-வை அணைத்தே வைக்கவும்.';
+
+  @override
+  String get gpuVerdictSame => 'இரண்டும் ஏறக்குறைய சமம்.';
+
+  @override
+  String get gpuReadingPrompt => 'செய்தி';
+
+  @override
+  String get gpuWritingReply => 'பதில்';
+
+  @override
+  String get aboutTitle => 'Thinai பற்றி';
+
+  @override
+  String get aboutHeroDescription =>
+      'உங்கள் கைப்பேசியிலேயே இயங்கும் தனிப்பட்ட AI. இணையம் தேவையில்லை.';
+
+  @override
+  String get aboutPrivateTitle => 'தனிப்பட்டது, ஆஃப்லைன்';
+
+  @override
+  String get aboutAcceleratedTitle => 'GPU வேகமாக்கல்';
+
+  @override
+  String get aboutApiTitle => 'லோக்கல் OpenAI-இணக்க API';
+
+  @override
+  String get aboutVisionTitle => 'படங்கள், ஆவணங்கள், இணையத் தேடல்';
+
+  @override
+  String get aboutSpecEngine => 'இயந்திரம்';
+
+  @override
+  String get aboutSpecModelFormat => 'வடிவம்';
+
+  @override
+  String get aboutSpecArchitecture => 'கட்டமைப்பு';
+
+  @override
+  String get aboutSpecBackends => 'Backends';
+
+  @override
+  String get aboutSpecLicense => 'உரிமம்';
+
+  @override
+  String get aboutSpecLicenseValue => 'MIT';
+
+  @override
+  String get aboutLicenses => 'உரிமங்கள்';
+
+  @override
+  String get aboutContactSupport => 'ஆதரவு';
+
+  @override
+  String get supportTitle => 'உதவி & ஆதரவு';
+
+  @override
+  String supportCouldNotOpenLink(String url) {
+    return 'இணைப்பைத் திறக்க முடியவில்லை: $url';
+  }
+
+  @override
+  String supportFailedToOpenLink(String error) {
+    return 'இணைப்பைத் திறப்பது தோல்வியடைந்தது: $error';
+  }
+
+  @override
+  String get supportInstagramBody =>
+      'உதவிக்கோ பிழையைத் தெரிவிக்கவோ எங்களுக்கு உரை அனுப்பவும்.';
+
+  @override
+  String get supportInstagramOpenFailed => 'Instagram-ஐத் திறக்க முடியவில்லை';
+
+  @override
+  String get supportOpenInstagram => 'Instagram-ஐத் திற';
+
+  @override
+  String get supportCopyHandle => 'பெயரை நகலெடு';
+
+  @override
+  String get supportHandleCopied => 'பெயர் நகலெடுக்கப்பட்டது';
+
+  @override
+  String get supportDiagnostics => 'சாதனத் தகவல்';
+
+  @override
+  String get supportDiagnosticsHint =>
+      'தொடர்புகொள்ளும்போது இதையும் அனுப்பவும்.';
+
+  @override
+  String supportCpuCores(int cores) {
+    return '$cores CPU கோர்கள்';
+  }
+
+  @override
+  String supportTier(String tier) {
+    return 'நிலை: $tier';
+  }
+
+  @override
+  String supportModel(String model) {
+    return 'அறிவுரு: $model';
+  }
+
+  @override
+  String get supportNoActiveModel => 'அறிவுரு ஏற்றப்படவில்லை';
+
+  @override
+  String get supportServerActive => 'சேவகம் இயங்குகிறது';
+
+  @override
+  String get supportServerStopped => 'சேவகம் நிறுத்தப்பட்டது';
+
+  @override
+  String get supportCopyDiagnostics => 'தகவலை நகலெடு';
+
+  @override
+  String get supportDiagnosticsCopied => 'தகவல் நகலெடுக்கப்பட்டது';
+
+  @override
+  String get supportTroubleshooting => 'பொதுவான கேள்விகள்';
+
+  @override
+  String get supportFaqLoadQuestion =>
+      'ஏற்றுவதும் பதிவிறக்குவதும் ஏன் மெதுவாக உள்ளது?';
+
+  @override
+  String get supportFaqLoadAnswer =>
+      'அறிவுருக்கள் 1 முதல் 4 GB வரை இருக்கும். பதிவிறக்க வேகம் இணைப்பைப் பொறுத்தது. ஏற்ற RAM தேவை, எனவே முதலில் மற்ற ஆப்களை மூடவும்.';
+
+  @override
+  String get supportFaqPrivacyQuestion =>
+      'என் உரையாடல்கள் கைப்பேசியை விட்டு வெளியேறுமா?';
+
+  @override
+  String get supportFaqPrivacyAnswer =>
+      'இல்லை. அறிவுருக்கள் முழுவதும் உங்கள் கைப்பேசியிலேயே இயங்கும்; உரையாடல்களும் அதிலேயே இருக்கும்.';
+
+  @override
+  String get supportFaqGpuQuestion => 'GPU-வை எப்படிப் பயன்படுத்துவது?';
+
+  @override
+  String get supportFaqGpuAnswer =>
+      'அமைப்புகள் > வன்பொருள் > GPU வேகமாக்கல். அது வேகமானதா என வேகச் சோதனையில் பார்க்கவும்.';
+
+  @override
+  String get systemPromptTitle => 'அமைப்பு செய்தி';
+
+  @override
+  String get systemPromptSaved => 'அமைப்பு செய்தி சேமிக்கப்பட்டது';
+
+  @override
+  String get systemPromptResetDone => 'இயல்புநிலைக்கு மீட்டமைக்கப்பட்டது';
+
+  @override
+  String get systemPromptDescription =>
+      'ஒவ்வொரு உரையாடலின் தொடக்கத்திலும் அறிவுருவுக்கு அனுப்பப்படும். அறிவுருவின் இயல்புநிலைக்குக் காலியாக விடவும்.';
+
+  @override
+  String get systemPromptHint => 'நீங்கள் உதவிகரமான ஒரு உதவியாளர்…';
+
+  @override
+  String systemPromptCharacters(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count எழுத்துகள்',
+      one: '1 எழுத்து',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get systemPromptResetToDefault => 'இயல்புநிலைக்கு மீட்டமை';
+
+  @override
+  String get benchmarkTitle => 'அளவுகோல்';
+
+  @override
+  String get benchmarkStop => 'நிறுத்து';
+
+  @override
+  String benchmarkError(String error) {
+    return 'பிழை: $error';
+  }
+
+  @override
+  String get benchmarkRunning => 'இயங்குகிறது…';
+
+  @override
+  String get benchmarkRun => 'அளவுகோல் இயக்கு';
+
+  @override
+  String get benchmarkTokensPerSecond => 'tokens / வினாடி';
+
+  @override
+  String get benchmarkIdle => 'தயார்';
+
+  @override
+  String get benchmarkMeasuring => 'அளவிடுகிறது';
+
+  @override
+  String get benchmarkThroughput => 'வேகம்';
+
+  @override
+  String benchmarkPeak(String value) {
+    return 'உச்சம் $value';
+  }
+
+  @override
+  String get benchmarkWarmingUp => 'தயாராகிறது…';
+
+  @override
+  String get benchmarkPlotEmpty => 'இன்னும் தரவு இல்லை';
+
+  @override
+  String get benchmarkFirstToken => 'முதல் token';
+
+  @override
+  String get benchmarkTokens => 'Tokens';
+
+  @override
+  String get benchmarkTotal => 'மொத்தம்';
+
+  @override
+  String get benchmarkSampleOutput => 'வெளியீடு';
+
+  @override
+  String get benchmarkThisSession => 'இந்த அமர்வு';
+
+  @override
+  String benchmarkRunSummary(int tokens, String firstToken, String total) {
+    return '$tokens tokens · முதல் $firstToken · மொத்தம் $total';
+  }
+
+  @override
+  String get benchmarkEmptyTitle => 'அளவிட அறிவுருக்கள் இல்லை';
+
+  @override
+  String get benchmarkEmptyBody =>
+      'வேகத்தை அளவிட ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
+
+  @override
+  String get benchmarkBestForHardware => 'இந்தக் கைப்பேசிக்குச் சிறந்தவை';
+
+  @override
+  String benchmarkMeasuredWithDevice(String device, String bandwidth) {
+    return '$device · அளவிட்டது $bandwidth GB/s';
+  }
+
+  @override
+  String benchmarkMeasured(String bandwidth) {
+    return 'அளவிட்டது $bandwidth GB/s';
+  }
+
+  @override
+  String benchmarkEstimateWithDevice(String device) {
+    return '$device · மதிப்பீடு';
+  }
+
+  @override
+  String get benchmarkCalibratePrompt => 'மதிப்பீடு';
+
+  @override
+  String get benchmarkInstalled => 'நிறுவப்பட்டது';
+
+  @override
+  String get tourBadge => 'Thinai அறிமுகம்';
+
+  @override
+  String get tourCloseTooltip => 'அறிமுகத்தை மூடு';
+
+  @override
+  String tourStageLabel(int current, int total) {
+    return 'படி $current / $total';
+  }
+
+  @override
+  String get tourPrivateTag => 'தனிப்பட்டது';
+
+  @override
+  String get tourPrivateTitle => 'உங்கள் கைப்பேசி.\nஉங்கள் AI.';
+
+  @override
+  String get tourPrivateBody =>
+      'அறிவுருக்கள் உங்கள் கைப்பேசியிலேயே இயங்கும். எதுவும் வெளியே போகாது.';
+
+  @override
+  String get tourOnDeviceTitle => 'Thinai, சாதனத்தில்';
+
+  @override
+  String get tourOnDeviceBody => 'ஆஃப்லைன் · கண்காணிப்பு இல்லை · சந்தா இல்லை';
+
+  @override
+  String get tourCloudTitle => 'கிளவுட் AI';
+
+  @override
+  String get tourCloudBody => 'பதிவுசெய்யும் · இணையம் தேவை · கட்டணம்';
+
+  @override
+  String get tourCatalogTag => 'அறிவுரு பட்டியல்';
+
+  @override
+  String get tourCatalogTitle => 'சிறந்த அறிவுருக்கள்,\nஉங்கள் RAM-க்கு ஏற்ப.';
+
+  @override
+  String get tourCatalogBody =>
+      'எது சீராக இயங்கும் என்று Thinai உங்கள் நினைவகத்தைப் பார்த்துச் சொல்லும்.';
+
+  @override
+  String get tourMemoryFitTitle => 'நினைவகப் பொருத்தம்';
+
+  @override
+  String get tourFitEasyLabel => 'பொருந்தும்';
+
+  @override
+  String get tourFitEasyBody => 'சீராக, குறைந்த பேட்டரியில்.';
+
+  @override
+  String get tourFitTightLabel => 'நெருக்கம்';
+
+  @override
+  String get tourFitTightBody => 'கனமான ஆப்களை மூடவும்.';
+
+  @override
+  String get tourFitTooBigLabel => 'மிகப் பெரியது';
+
+  @override
+  String get tourFitTooBigBody => 'முன்பே எச்சரிக்கும்.';
+
+  @override
+  String tourStarterTitle(String model, String size) {
+    return 'தொடக்கம்: $model (~$size)';
+  }
+
+  @override
+  String get tourStarterBody => 'சிறியது, எந்தக் கைப்பேசியிலும் வேகமானது.';
+
+  @override
+  String get tourChatTag => 'உரையாடல் & படங்கள்';
+
+  @override
+  String get tourChatTitle => 'படங்களுடன்\nஉரையாடுங்கள்.';
+
+  @override
+  String get tourChatBody => 'படத்தை இணைத்து, வேகத்தை நேரலையில் பாருங்கள்.';
+
+  @override
+  String get tourDemoPrompt => 'சூப்பர்பொசிஷனை எளிதாக விளக்கு.';
+
+  @override
+  String get tourDemoReply =>
+      'அளக்கும் வரை ஒரு துகள் பல நிலைகளில் இருக்கலாம், சுழலும் நாணயம் போல.';
+
+  @override
+  String tourDemoSpeed(String speed) {
+    return '⚡ $speed t/s · சாதனத்தில்';
+  }
+
+  @override
+  String get tourFeatureReasoning => 'சிந்தனை';
+
+  @override
+  String get tourFeatureVision => 'படங்கள்';
+
+  @override
+  String get tourFeaturePersonas => 'ஆளுமைகள்';
+
+  @override
+  String get tourServerTag => 'உள்ளூர் API';
+
+  @override
+  String get tourServerTitle => 'உங்கள் கைப்பேசி,\nதனிப்பட்ட AI சேவகம்.';
+
+  @override
+  String get tourServerBody =>
+      'எந்த OpenAI, Ollama கருவியிலிருந்தும் பயன்படுத்தலாம்.';
+
+  @override
+  String get tourEndpointsTitle => 'Endpoint-கள்';
+
+  @override
+  String tourPortBadge(String port) {
+    return 'PORT $port';
+  }
+
+  @override
+  String tourCompatibleWith(String tools) {
+    return '$tools உடன் இயங்கும்';
+  }
+
+  @override
+  String get tourStartTag => 'தொடங்குங்கள்';
+
+  @override
+  String get tourStartTitle => 'எங்கிருந்து தொடங்கலாம்?';
+
+  @override
+  String get tourOptionStarterTitle => 'தொடக்க அறிவுரு';
+
+  @override
+  String tourOptionStarterBody(String model, String size) {
+    return '$model, ~$size';
+  }
+
+  @override
+  String get tourOptionCatalogTitle => 'முழுப் பட்டியல்';
+
+  @override
+  String get tourOptionCatalogBody => '30+ GGUF அறிவுருக்கள்';
+
+  @override
+  String get tourOptionLiveTitle => 'வழிகாட்டல்';
+
+  @override
+  String get tourOptionLiveBody => 'தாவல் வாரியாக';
+
+  @override
+  String get tourCompleteTour => 'முடி';
+
+  @override
+  String get tourNextStep => 'அடுத்து';
+
+  @override
+  String tourDockStep(int step, int total) {
+    return 'படி $step / $total';
+  }
+
+  @override
+  String get tourExitTour => 'வெளியேறு';
+
+  @override
+  String get tourPrevious => 'பின்செல்';
+
+  @override
+  String get tourFinishTour => 'முடி';
+
+  @override
+  String get tourDockModelsTitle => 'அறிவுருக்கள்';
+
+  @override
+  String get tourDockModelsBody =>
+      'உங்கள் RAM-க்குப் பொருந்தும் அறிவுருவைத் தேர்ந்தெடுங்கள்.';
+
+  @override
+  String get tourDockManageTitle => 'பதிவிறக்கம், வேகம்';
+
+  @override
+  String get tourDockManageBody =>
+      'மேல் வலது ஐகான்கள்: பதிவிறக்கம், வேகச் சோதனை.';
+
+  @override
+  String get tourDockChatTitle => 'உரையாடல்';
+
+  @override
+  String get tourDockChatBody =>
+      'தனிப்பட்ட முறையில் உரையாடுங்கள். படங்கள், ஆவணங்களை இணைக்கலாம்.';
+
+  @override
+  String get tourDockServerTitle => 'உள்ளூர் API சேவகம்';
+
+  @override
+  String tourDockServerBody(String address) {
+    return '$address-இல் OpenAI-இணக்கமான endpoint.';
+  }
+
+  @override
+  String get tourAppTour => 'ஆப் அறிமுகம்';
+
+  @override
+  String get tourLocatingControl => 'தேடுகிறது…';
+
+  @override
+  String get tourWelcomeTitle => 'Thinai-க்கு நல்வரவு';
+
+  @override
+  String get tourWelcomeSubtitle => 'உங்கள் கைப்பேசியில் தனிப்பட்ட AI';
+
+  @override
+  String get tourWelcomePrivateTitle => 'தனிப்பட்டது, ஆஃப்லைன்';
+
+  @override
+  String get tourWelcomePrivateBody =>
+      'கைப்பேசியிலேயே இயங்கும். இணையம் தேவையில்லை.';
+
+  @override
+  String get tourWelcomeCatalogTitle => 'திறந்த அறிவுருக்கள்';
+
+  @override
+  String get tourWelcomeCatalogBody =>
+      'Llama, Gemma, Qwen போன்றவற்றை ஒரே தட்டலில் பெறலாம்.';
+
+  @override
+  String get tourWelcomeChatTitle => 'கோப்புகளுடன் உரையாடல்';
+
+  @override
+  String get tourWelcomeChatBody => 'படங்கள், ஆவணங்களை இணைக்கலாம்.';
+
+  @override
+  String get tourWelcomeStartTour => 'அறிமுகத்தைப் பார்';
+
+  @override
+  String get tourWelcomeBrowseCatalog => 'அறிவுருக்கள்';
+
+  @override
+  String get tourWelcomeSkipToChat => 'உரையாடல்';
+
+  @override
+  String get onboardingLogoLabel => 'Thinai ஆப் லோகோ';
+
+  @override
+  String get onboardingPrivateTag => 'தனிப்பட்டது, ஆஃப்லைன்';
+
+  @override
+  String get onboardingPrivateHeadline => 'கைப்பேசியிலேயே\nஇயங்கும் AI';
+
+  @override
+  String get onboardingPrivateBody =>
+      'எந்தத் தரவும் வெளியே போகாது. விமானப் பயன்முறையிலும் இயங்கும்.';
+
+  @override
+  String get onboardingPrivateGraphic => '100% தனிப்பட்ட, ஆஃப்லைன் AI';
+
+  @override
+  String get onboardingCatalogTag => 'அறிவுரு பட்டியல்';
+
+  @override
+  String get onboardingCatalogHeadline => 'திறந்த அறிவுருக்கள்,\nஒரே தட்டலில்';
+
+  @override
+  String get onboardingCatalogBody =>
+      'Llama, Gemma, Qwen மற்றும் பல, கைப்பேசிக்கு ஏற்ற அளவில்.';
+
+  @override
+  String get onboardingCatalogGraphic => 'தேர்ந்தெடுத்த GGUF அறிவுரு பட்டியல்';
+
+  @override
+  String get onboardingGpuTag => 'GPU வேகமூட்டல்';
+
+  @override
+  String get onboardingGpuHeadline => 'உங்கள் சாதனத்தில்\nவேகமாக';
+
+  @override
+  String get onboardingGpuBody => 'Adreno, Mali GPU ஆதரவுடன் llama.cpp.';
+
+  @override
+  String get onboardingGpuGraphic => 'GPU வன்பொருள் வேகமூட்டல் ராக்கெட்';
+
+  @override
+  String get onboardingStudioTag => 'படங்கள் & ஆவணங்கள்';
+
+  @override
+  String get onboardingStudioHeadline => 'படங்கள், கோப்புகள்,\nஇணையம்';
+
+  @override
+  String get onboardingStudioBody =>
+      'படம், ஆவணம் இணைக்கலாம். இணையத்திலும் தேடலாம்.';
+
+  @override
+  String get onboardingStudioGraphic => 'படம் மற்றும் ஆவணக் கேள்வி-பதில்';
+
+  @override
+  String get onboardingServerTag => 'உள்ளூர் API';
+
+  @override
+  String get onboardingServerHeadline => 'உங்கள் கைப்பேசி,\nஒரு AI சேவகம்';
+
+  @override
+  String onboardingServerBody(String port) {
+    return 'port $port-இல் OpenAI, Ollama API.';
+  }
+
+  @override
+  String onboardingServerGraphic(String port) {
+    return 'port $port-இல் உள்ளூர் AI சேவகம்';
+  }
+
+  @override
+  String get onboardingStartButton => 'தொடங்குங்கள்';
+
+  @override
+  String get splashTagline => 'உங்கள் கைப்பேசியில் தனிப்பட்ட AI';
+
+  @override
+  String splashCraftedIn(String place) {
+    return 'உருவான இடம்: $place';
+  }
+
+  @override
+  String get splashPlace => 'ஈரோடு, தமிழ்நாடு';
+
+  @override
+  String brandMadeWith(String heart, String place) {
+    return '$place $heart உடன் உருவானது';
+  }
+
+  @override
+  String get brandPlace => 'ஈரோடு, தமிழ்நாட்டில்';
+
+  @override
+  String get chatErrorReadFile => 'அந்தக் கோப்பைப் படிக்க முடியவில்லை.';
+
+  @override
+  String chatDocumentTrimmed(String size) {
+    return 'முதல் $size இணைக்கப்பட்டது. மீதி context-இல் பொருந்தவில்லை.';
+  }
+
+  @override
+  String chatErrorAttachFile(String error) {
+    return 'அந்தக் கோப்பை இணைக்க முடியவில்லை: $error';
+  }
+
+  @override
+  String get chatErrorNoVision =>
+      'இந்த அறிவுருவால் படங்களைப் படிக்க முடியாது. பதிலாக Gemma 3 4B-ஐ முயற்சிக்கவும்.';
+
+  @override
+  String chatErrorTakePhoto(String error) {
+    return 'புகைப்படம் எடுக்க முடியவில்லை: $error';
+  }
+
+  @override
+  String get chatErrorReadImage => 'அந்தப் படத்தைப் படிக்க முடியவில்லை.';
+
+  @override
+  String chatErrorAttachImage(String error) {
+    return 'அந்தப் படத்தை இணைக்க முடியவில்லை: $error';
+  }
+
+  @override
+  String get chatSearchBlocked =>
+      'இணையத் தேடல் இப்போது தடுக்கப்பட்டுள்ளது. அது இல்லாமல் பதிலளிக்கிறது.';
+
+  @override
+  String get chatSearchNoResults =>
+      'இணைய முடிவுகள் இல்லை. அவை இல்லாமல் பதிலளிக்கிறது.';
+
+  @override
+  String chatSearchErrorFallback(String message) {
+    return '$message அது இல்லாமல் பதிலளிக்கிறது.';
+  }
+
+  @override
+  String get chatSearchFailed =>
+      'இணையத் தேடல் தோல்வியடைந்தது. அது இல்லாமல் பதிலளிக்கிறது.';
+
+  @override
+  String get chatLoadModelFirst =>
+      'முதலில் அறிவுருக்கள் தாவலில் ஒரு அறிவுருவை ஏற்றவும்.';
+
+  @override
+  String get chatActiveModelMissing =>
+      'செயலில் உள்ள அறிவுரு சேமிப்பகத்தில் இல்லை.';
+
+  @override
+  String chatErrorGeneric(String error) {
+    return 'பிழை: $error';
+  }
+
+  @override
+  String get chatWebSearchOn => 'இணையத் தேடல் ஆன்.';
+
+  @override
+  String get chatWebSearchOff => 'இணையத் தேடல் ஆஃப்.';
+
+  @override
+  String get chatMenuTooltip => 'மெனு & உரையாடல்கள்';
+
+  @override
+  String get chatBannerNoModelLoaded => 'அறிவுரு ஏற்றப்படவில்லை.';
+
+  @override
+  String get chatBannerNoModelDownloaded => 'அறிவுரு இல்லை.';
+
+  @override
+  String get chatSelect => 'தேர்ந்தெடு';
+
+  @override
+  String chatActiveModelTooltip(String modelId) {
+    return 'செயலில் உள்ள அறிவுரு: $modelId (மாற்ற தட்டவும்)';
+  }
+
+  @override
+  String get chatNoModelTooltip =>
+      'அறிவுரு ஏற்றப்படவில்லை (தேர்ந்தெடுக்க தட்டவும்)';
+
+  @override
+  String get chatSwitchModel => 'அறிவுருவை மாற்று';
+
+  @override
+  String get chatNoModelsInstalled => 'அறிவுருக்கள் எதுவும் நிறுவப்படவில்லை';
+
+  @override
+  String chatModelsInstalledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count நிறுவப்பட்டுள்ளன',
+      one: '1 நிறுவப்பட்டுள்ளது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatNoModelsDownloadedYet =>
+      'இன்னும் அறிவுருக்கள் பதிவிறக்கப்படவில்லை';
+
+  @override
+  String get chatDownloadFromCatalogue =>
+      'தொடங்க ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
+
+  @override
+  String get chatBrowseModels => 'அறிவுருக்களை உலாவு';
+
+  @override
+  String get chatModelParameters => 'அறிவுரு அளவுருக்கள்';
+
+  @override
+  String get chatDownloadMoreModels => 'மேலும் அறிவுருக்களைப் பதிவிறக்கு';
+
+  @override
+  String get chatEmptyTitle => 'தனிப்பட்ட ஆஃப்லைன் AI';
+
+  @override
+  String get chatEmptyBody =>
+      'முழுக்க உங்கள் கைப்பேசியில் இயங்கும். தரவு வெளியே போகாது.';
+
+  @override
+  String get chatBrowseDownloadModels => 'அறிவுருவைப் பெறு';
+
+  @override
+  String get chatReadyWebSearchOn => 'தயார் · இணையத் தேடல்';
+
+  @override
+  String get chatReadyOffline => 'தயார் · ஆஃப்லைன்';
+
+  @override
+  String get chatStarterBrainstorm => 'யோசனைகள்';
+
+  @override
+  String get chatStarterPython => 'Python குறியீடு';
+
+  @override
+  String get chatStarterSummarize => 'சுருக்கு';
+
+  @override
+  String get chatStarterSpeed => 'வேகச் சோதனை';
+
+  @override
+  String chatAttachmentTrimmed(String size) {
+    return '$size · சுருக்கப்பட்டது';
+  }
+
+  @override
+  String get chatInputHintGenerating => 'உருவாக்குகிறது…';
+
+  @override
+  String get chatInputHint => 'ஏதாவது கேளுங்கள்';
+
+  @override
+  String get chatStop => 'நிறுத்து';
+
+  @override
+  String get chatSend => 'அனுப்பு';
+
+  @override
+  String get chatCopiedToClipboard => 'நகலெடுக்கப்பட்டது';
+
+  @override
+  String get chatCopyText => 'உரையை நகலெடு';
+
+  @override
+  String get chatShareText => 'உரையைப் பகிர்';
+
+  @override
+  String get chatStopped => 'நிறுத்தப்பட்டது';
+
+  @override
+  String get chatSearchingWeb => 'இணையத்தில் தேடுகிறது…';
+
+  @override
+  String get chatDialWebSearch => 'இணையத் தேடல்';
+
+  @override
+  String get chatDialWebSearchAuto => 'தேவைப்படும்போது';
+
+  @override
+  String get chatDialCamera => 'கேமரா';
+
+  @override
+  String get chatDialCameraDetail => 'புகைப்படம் எடு';
+
+  @override
+  String get chatDialNeedsVision => 'vision அறிவுரு தேவை';
+
+  @override
+  String get chatDialImage => 'படம்';
+
+  @override
+  String get chatDialDocument => 'ஆவணம்';
+
+  @override
+  String get chatDialDocumentDetail => 'உரை, Markdown, CSV, குறியீடு';
+
+  @override
+  String chatSourcesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ஆதாரங்கள்',
+      one: 'ஆதாரம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatSourcesTitle => 'ஆதாரங்கள்';
+
+  @override
+  String chatSearchedQuery(String query) {
+    return 'தேடியது: \"$query\"';
+  }
+
+  @override
+  String get chatRemoveAttachment => 'அகற்று';
+
+  @override
+  String get chatAttachImageUnsupported =>
+      'அந்தப் பட வடிவம் ஆதரிக்கப்படவில்லை. PNG, JPEG, WebP, BMP அல்லது GIF பயன்படுத்தவும்.';
+
+  @override
+  String get chatAttachImageEmpty => 'அந்தப் படம் காலியாக உள்ளது.';
+
+  @override
+  String chatAttachImageTooLarge(String size, int limit) {
+    return 'அந்தப் படம் $size MB. $limit MB வரையிலான படங்களை மட்டுமே இணைக்க முடியும்.';
+  }
+
+  @override
+  String get chatAttachPdfUnsupported =>
+      'PDF இன்னும் ஆதரிக்கப்படவில்லை. உரையை நகலெடுத்து அதை இணைக்கவும்.';
+
+  @override
+  String chatAttachBinaryUnsupported(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'image': 'பட',
+      'audio': 'ஆடியோ',
+      'other': '$kind',
+    });
+    return '$_temp0 கோப்புகள் ஆதரிக்கப்படவில்லை. உரை ஆவணத்தை இணைக்கவும்.';
+  }
+
+  @override
+  String get chatAttachFileEmpty => 'அந்தக் கோப்பு காலியாக உள்ளது.';
+
+  @override
+  String get chatAttachBinaryFile =>
+      'இது உரை ஆவணம் அல்ல, பைனரி கோப்பு போலத் தெரிகிறது.';
+
+  @override
+  String get chatAttachNotUtf8 =>
+      'அந்தக் கோப்பை உரையாகப் படிக்க முடியவில்லை. UTF-8 ஆவணங்கள் மட்டுமே.';
+
+  @override
+  String get chatAttachNoText => 'அந்தக் கோப்பில் உரை எதுவும் இல்லை.';
+
+  @override
+  String get chatDrawerExitManage => 'நிர்வாக முறையிலிருந்து வெளியேறு';
+
+  @override
+  String get chatDrawerManageChats => 'உரையாடல்களை நிர்வகி';
+
+  @override
+  String get chatDrawerTapToSelect => 'தேர்ந்தெடுக்க தட்டவும்';
+
+  @override
+  String chatDrawerSelectedCount(int selected, int total) {
+    return '$total-இல் $selected தேர்ந்தெடுக்கப்பட்டன';
+  }
+
+  @override
+  String get chatDrawerDeselectAll => 'தேர்வை நீக்கு';
+
+  @override
+  String get chatDrawerSelectAll => 'அனைத்தையும் தேர்ந்தெடு';
+
+  @override
+  String get chatDrawerCloseMenu => 'மெனுவை மூடு';
+
+  @override
+  String get chatNewChat => 'புதிய உரையாடல்';
+
+  @override
+  String get chatDrawerSearchHint => 'உரையாடல்களைத் தேடு…';
+
+  @override
+  String chatDrawerDeleteCount(int count) {
+    return 'நீக்கு ($count)';
+  }
+
+  @override
+  String chatDrawerConversationCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count உரையாடல்கள்',
+      one: '1 உரையாடல்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatDrawerModelSettings => 'அறிவுரு அமைப்புகள்';
+
+  @override
+  String get chatDrawerModelSettingsSubtitle => 'context, sampling, சிந்தனை';
+
+  @override
+  String get chatDrawerNoModelSnack => 'முதலில் ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
+
+  @override
+  String get chatDrawerAppSettings => 'ஆப் அமைப்புகள்';
+
+  @override
+  String get chatDrawerAppSettingsSubtitle => 'தீம், GPU, சேவகம்';
+
+  @override
+  String get chatDrawerAbout => 'Thinai பற்றி';
+
+  @override
+  String get chatDrawerAboutSubtitle => 'பதிப்பு, தனியுரிமை';
+
+  @override
+  String chatDrawerDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count உரையாடல்களை நீக்கவா?',
+      one: '1 உரையாடலை நீக்கவா?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatDrawerDeleteManyBody => 'இதைத் திரும்பப் பெற முடியாது.';
+
+  @override
+  String chatDrawerDeletedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count உரையாடல்கள் நீக்கப்பட்டன',
+      one: '1 உரையாடல் நீக்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatDrawerSelectManage => 'தேர்ந்தெடு';
+
+  @override
+  String get chatDrawerRenameTitle => 'பெயர் மாற்று';
+
+  @override
+  String get chatDeleteChat => 'உரையாடலை நீக்கு';
+
+  @override
+  String get chatRenameChat => 'பெயர் மாற்று';
+
+  @override
+  String get chatConversationTitleHint => 'உரையாடல் தலைப்பு';
+
+  @override
+  String get chatDrawerDeleteOneTitle => 'உரையாடலை நீக்கவா?';
+
+  @override
+  String chatDrawerDeleteOneBody(String title) {
+    return '\"$title\" நிரந்தரமாக நீக்கப்படும்.';
+  }
+
+  @override
+  String get chatDrawerNoHistory => 'இன்னும் உரையாடல்கள் இல்லை';
+
+  @override
+  String get chatDrawerNoHistoryHint => 'உங்கள் உரையாடல்கள் இங்கே தோன்றும்.';
+
+  @override
+  String chatDrawerNoResults(String query) {
+    return '\"$query\": உரையாடல்கள் இல்லை';
+  }
+
+  @override
+  String get chatGroupToday => 'இன்று';
+
+  @override
+  String get chatGroupYesterday => 'நேற்று';
+
+  @override
+  String get chatGroupPrevious7Days => 'கடந்த 7 நாட்கள்';
+
+  @override
+  String get chatGroupThisMonth => 'இந்த மாதம்';
+
+  @override
+  String get chatGroupOlder => 'பழையவை';
+
+  @override
+  String get chatHistoryTitle => 'வரலாறு';
+
+  @override
+  String get chatHistoryDeleteAllTooltip => 'அனைத்து உரையாடல்களையும் நீக்கு';
+
+  @override
+  String get chatHistoryDeleteAllTitle => 'அனைத்து உரையாடல்களையும் நீக்கவா?';
+
+  @override
+  String get chatHistoryDeleteAllBody =>
+      'சேமித்த அனைத்து உரையாடல்களும் நிரந்தரமாக நீக்கப்படும்.';
+
+  @override
+  String get chatHistoryDeleteAll => 'அனைத்தையும் நீக்கு';
+
+  @override
+  String get chatHistoryDeleteOneTitle => 'இந்த உரையாடலை நீக்கவா?';
+
+  @override
+  String get chatHistorySearchHint => 'உரையாடல்களைத் தேடு…';
+
+  @override
+  String chatHistoryNoResults(String query) {
+    return '\"$query\": உரையாடல்கள் இல்லை';
+  }
+
+  @override
+  String get chatHistoryActiveBadge => 'செயலில்';
+
+  @override
+  String chatHistoryMessageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count உரைகள்',
+      one: '1 உரை',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatHistoryEmptyTitle => 'இன்னும் உரையாடல்கள் இல்லை';
+
+  @override
+  String get chatHistoryEmptyBody =>
+      'உங்கள் உரையாடல்கள் இங்கே, இந்தச் சாதனத்தில் மட்டும் இருக்கும்.';
+
+  @override
+  String get chatTimeJustNow => 'இப்போது';
+
+  @override
+  String chatTimeMinutesAgo(int minutes) {
+    return '$minutes நிமி. முன்';
+  }
+
+  @override
+  String chatTimeHoursAgo(int hours) {
+    return '$hours மணி. முன்';
+  }
+
+  @override
+  String chatTimeDaysAgo(int days) {
+    return '$days நாட்களுக்கு முன்';
+  }
+
+  @override
+  String get chatCodeBlockLabel => 'குறியீடு';
+
+  @override
+  String get chatCodeCopied => 'நகலெடுக்கப்பட்டது!';
+
+  @override
+  String get chatAppRestartTitle => 'மறுதொடங்கவா?';
+
+  @override
+  String get chatAppRestartBody =>
+      'அறிவுரு பதிவிறக்கம் இடைநிறுத்தப்படும். பின்னர் தொடரலாம்.';
+
+  @override
+  String get chatAppRestart => 'மறுதொடக்கம்';
+
+  @override
+  String get chatAppUpdateReady => 'புதுப்பிப்பு தயார்';
+
+  @override
+  String get chatAppUpdateAvailable => 'புதிய பதிப்பு';
+
+  @override
+  String get chatAppUpdateDownloading => 'பதிவிறக்குகிறது…';
+
+  @override
+  String get modelsToastDownloadPaused => 'பதிவிறக்கம் இடைநிறுத்தப்பட்டது';
+
+  @override
+  String modelsToastDownloadStopped(String model, String error) {
+    return '$model நின்றது: $error. தொடர, தொடர் என்பதைத் தட்டவும்.';
+  }
+
+  @override
+  String modelsToastDownloadFailed(String model, String error) {
+    return '$model அறிவுருவைப் பதிவிறக்க முடியவில்லை: $error';
+  }
+
+  @override
+  String modelsToastDownloadedAndLoaded(String model) {
+    return '$model பதிவிறக்கப்பட்டு ஏற்றப்பட்டது';
+  }
+
+  @override
+  String modelsToastDownloaded(String model) {
+    return '$model பதிவிறக்கப்பட்டது';
+  }
+
+  @override
+  String modelsToastLoaded(String model) {
+    return '$model ஏற்றப்பட்டது';
+  }
+
+  @override
+  String modelsToastResumeFailed(String model) {
+    return '$model பதிவிறக்கத்தைத் தொடர முடியவில்லை';
+  }
+
+  @override
+  String get modelsConfirmDownloadTitle => 'பதிவிறக்கவா?';
+
+  @override
+  String modelsConfirmDownloadMessage(String model, String size) {
+    return '$model ($size)';
+  }
+
+  @override
+  String get modelsConfirmDiscardTitle => 'பதிவிறக்கத்தை நீக்கவா?';
+
+  @override
+  String modelsConfirmDiscardMessage(String model, String size) {
+    return '$model ($size சேமிக்கப்பட்டது) நீக்கப்படும்.';
+  }
+
+  @override
+  String get modelsDiscard => 'நீக்கு';
+
+  @override
+  String get modelsConfirmDeleteTitle => 'அறிவுருவை நீக்கவா?';
+
+  @override
+  String modelsConfirmDeleteMessage(String model, String size) {
+    return '$model நீக்கப்படும். $size இடம் காலியாகும்.';
+  }
+
+  @override
+  String get modelsBenchmark => 'அளவுகோல்';
+
+  @override
+  String get modelsManagerTitle => 'அறிவுரு மேலாளர்';
+
+  @override
+  String modelsManagerTooltipDownloading(int count) {
+    return 'பதிவிறக்குகிறது ($count) · அறிவுரு மேலாளர்';
+  }
+
+  @override
+  String modelsManagerTooltipInstalled(int count) {
+    return 'அறிவுரு மேலாளர் ($count நிறுவப்பட்டது)';
+  }
+
+  @override
+  String modelsError(String error) {
+    return 'பிழை: $error';
+  }
+
+  @override
+  String get modelsNoneInstalledYet =>
+      'இன்னும் எந்த அறிவுருவும் நிறுவப்படவில்லை';
+
+  @override
+  String get modelsNoneInstalledYetBody =>
+      'ஆஃப்லைனில் உரையாட ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
+
+  @override
+  String get modelsBrowseCatalog => 'பட்டியலைப் பார்';
+
+  @override
+  String modelsInstalledSectionTitle(int count) {
+    return 'நிறுவப்பட்டவை ($count)';
+  }
+
+  @override
+  String get modelsFeaturedTitle => 'சிறப்புத் தேர்வு';
+
+  @override
+  String get modelsOtherModels => 'பிற அறிவுருக்கள்';
+
+  @override
+  String get modelsVisionModelsTitle => 'பட அறிவுருக்கள்';
+
+  @override
+  String get modelsChatModelsTitle => 'உரையாடல் அறிவுருக்கள்';
+
+  @override
+  String get modelsExploreModels => 'மேலும் அறிவுருக்கள்';
+
+  @override
+  String get modelsBrowseCatalogTitle => 'முடிவுகள்';
+
+  @override
+  String get modelsEmbeddingTitle => 'Embedding அறிவுருக்கள்';
+
+  @override
+  String get modelsOfflineFooter =>
+      'அறிவுருக்கள் இந்தக் கைப்பேசியிலேயே ஆஃப்லைனில் இயங்கும்.';
+
+  @override
+  String get modelsSearchHint => 'அறிவுருக்களைத் தேடு';
+
+  @override
+  String get modelsClearSearch => 'தேடலை அழி';
+
+  @override
+  String get modelsFilterAll => 'எல்லாம்';
+
+  @override
+  String get modelsFilterChat => 'உரையாடல்';
+
+  @override
+  String get modelsFilterVision => 'படம்';
+
+  @override
+  String get modelsFilterEmbedding => 'Embedding';
+
+  @override
+  String get modelsFilterInstalled => 'நிறுவப்பட்டவை';
+
+  @override
+  String modelsFilterInstalledCount(int count) {
+    return 'நிறுவப்பட்டவை ($count)';
+  }
+
+  @override
+  String get modelsFilterCategory => 'வகையை வடிகட்டு';
+
+  @override
+  String get modelsGoals => 'இலக்கு';
+
+  @override
+  String get modelsResetFiltersTooltip => 'வடிகட்டிகளையும் தேடலையும் மீட்டமை';
+
+  @override
+  String modelsTargeting(String goal) {
+    return 'இலக்கு: $goal';
+  }
+
+  @override
+  String get modelsChange => 'மாற்று';
+
+  @override
+  String get modelsClearGoal => 'இலக்கை அழி';
+
+  @override
+  String modelsManagerSubtitle(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count அறிவுருக்கள்',
+      one: '1 அறிவுரு',
+    );
+    return '$_temp0 · $size';
+  }
+
+  @override
+  String get modelsNoneInstalled => 'எந்த அறிவுருவும் நிறுவப்படவில்லை';
+
+  @override
+  String get modelsNoneInstalledBody =>
+      'பட்டியலிலிருந்து ஒன்றைப் பதிவிறக்கவும்.';
+
+  @override
+  String modelsActiveForChat(String model) {
+    return 'பயன்பாட்டில்: $model';
+  }
+
+  @override
+  String get modelsNoModelLoaded => 'எந்த அறிவுருவும் ஏற்றப்படவில்லை';
+
+  @override
+  String get modelsInstalledAppearHere =>
+      'முடிந்த பதிவிறக்கங்கள் இங்கே தோன்றும்.';
+
+  @override
+  String get modelsActive => 'செயலில்';
+
+  @override
+  String get modelsActivate => 'ஏற்று';
+
+  @override
+  String get modelsDeleteModel => 'அறிவுருவை நீக்கு';
+
+  @override
+  String get modelsChooseGoal => 'இலக்கைத் தேர்வுசெய்';
+
+  @override
+  String get modelsClearActiveGoal => 'தற்போதைய இலக்கை அழி';
+
+  @override
+  String get modelsNoMatchFilters =>
+      'தற்போதைய வடிகட்டிகளுக்குப் பொருந்தும் அறிவுருக்கள் இல்லை';
+
+  @override
+  String modelsNoMatchQuery(String query) {
+    return '\"$query\" உடன் பொருந்தும் அறிவுருக்கள் இல்லை';
+  }
+
+  @override
+  String get modelsNoMatchHint => 'வேறு தேடலையோ வடிகட்டியையோ முயலவும்.';
+
+  @override
+  String get modelsSearchHuggingFace => 'Hugging Face-இல் தேடு';
+
+  @override
+  String get modelsResetFiltersAndSearch => 'வடிகட்டிகளை மீட்டமை';
+
+  @override
+  String get modelsStatusCancelled => 'ரத்துசெய்யப்பட்டது';
+
+  @override
+  String get modelsStatusFailed => 'தோல்வியடைந்தது';
+
+  @override
+  String get modelsStatusCompleted => 'முடிந்தது';
+
+  @override
+  String get modelsStatusStarting => 'தொடங்குகிறது…';
+
+  @override
+  String get modelsActiveInChat => 'பயன்பாட்டில்';
+
+  @override
+  String get modelsTapToActivate => 'ஏற்றத் தட்டவும்';
+
+  @override
+  String modelsAddVision(String size) {
+    return '+ படம் ($size)';
+  }
+
+  @override
+  String get modelsInstalled => 'நிறுவப்பட்டது';
+
+  @override
+  String get modelsPause => 'இடைநிறுத்து';
+
+  @override
+  String get modelsTopPick => 'சிறந்த தேர்வு';
+
+  @override
+  String get modelsModelDetails => 'அறிவுரு விவரங்கள்';
+
+  @override
+  String modelsDimensions(String count) {
+    return '$count பரிமாணம்';
+  }
+
+  @override
+  String get modelsNeedsRam => 'RAM தேவை';
+
+  @override
+  String get modelsDetailParameters => 'அளவுருக்கள்';
+
+  @override
+  String get modelsDetailContextWindow => 'Context window';
+
+  @override
+  String modelsTokensValue(String count) {
+    return '$count tokens';
+  }
+
+  @override
+  String get modelsDetailDownloadSize => 'பதிவிறக்க அளவு';
+
+  @override
+  String get modelsDetailCapability => 'திறன்';
+
+  @override
+  String modelsDownloadSize(String size) {
+    return 'பதிவிறக்கு $size';
+  }
+
+  @override
+  String get modelsCapVisionReady => 'படம்';
+
+  @override
+  String get modelsCapEmbeddings => 'Embeddings';
+
+  @override
+  String get modelsCapLightweight => 'இலகுவானது';
+
+  @override
+  String get modelsCapFast => 'வேகமானது';
+
+  @override
+  String get modelsCapMultilingual => 'பல மொழி';
+
+  @override
+  String get modelsCapCodeReasoning => 'நிரல் · பகுத்தறிவு';
+
+  @override
+  String get modelsCapInstruct => 'Instruct';
+
+  @override
+  String get modelsFitTooLarge => 'இந்தக் கைப்பேசிக்கு மிகப் பெரியது.';
+
+  @override
+  String modelsFitNeeds(String needs, String available) {
+    return '$needs தேவை, இந்தக் கைப்பேசியில் $available மட்டுமே காலியாக உள்ளது.';
+  }
+
+  @override
+  String get modelsFitTight =>
+      'RAM குறைவு. இது இயங்கும்போது மற்ற ஆப்கள் மூடப்படலாம்.';
+
+  @override
+  String modelsDownloadingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count அறிவுருக்கள் பதிவிறக்குகின்றன',
+      one: 'அறிவுரு பதிவிறக்குகிறது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modelsPauseDownload => 'பதிவிறக்கத்தை இடைநிறுத்து';
+
+  @override
+  String modelsResumePercent(String percent) {
+    return 'தொடர் $percent%';
+  }
+
+  @override
+  String get modelsPaused => 'இடைநிறுத்தப்பட்டது';
+
+  @override
+  String modelsPausedPercent(String percent) {
+    return 'இடைநிறுத்தப்பட்டது · $percent%';
+  }
+
+  @override
+  String modelsPausedDownloadsTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'இடைநிறுத்தப்பட்ட பதிவிறக்கங்கள் ($count)',
+      one: 'இடைநிறுத்தப்பட்ட பதிவிறக்கம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modelsResumeDownload => 'பதிவிறக்கத்தைத் தொடர்';
+
+  @override
+  String get modelsDiscardDownload => 'பதிவிறக்கத்தை நீக்கு';
+
+  @override
+  String get modelsUseCaseFastChat => 'வேகமான உரையாடல்';
+
+  @override
+  String get modelsUseCaseFastChatBlurb => 'விரைவான பதில்கள்';
+
+  @override
+  String get modelsUseCaseReasoning => 'பகுத்தறிவு';
+
+  @override
+  String get modelsUseCaseReasoningBlurb => 'கணிதம், கடினமான கேள்விகள்';
+
+  @override
+  String get modelsUseCaseCoding => 'நிரலாக்கம்';
+
+  @override
+  String get modelsUseCaseCodingBlurb => 'code எழுதுதல், விளக்குதல்';
+
+  @override
+  String get modelsUseCaseTamil => 'தமிழ்';
+
+  @override
+  String get modelsUseCaseTamilBlurb => 'தமிழில் உரையாடுதல், எழுதுதல்';
+
+  @override
+  String get modelsUseCaseEnglish => 'ஆங்கிலம்';
+
+  @override
+  String get modelsUseCaseEnglishBlurb => 'அன்றாட ஆங்கிலம்';
+
+  @override
+  String get modelsUseCaseVision => 'படங்கள்';
+
+  @override
+  String get modelsUseCaseVisionBlurb => 'படத்தைப் பற்றிக் கேட்கலாம்';
+
+  @override
+  String get modelsUseCaseTranslation => 'மொழிபெயர்ப்பு';
+
+  @override
+  String get modelsUseCaseTranslationBlurb => 'இணையம் இல்லாமல் மொழிபெயர்';
+
+  @override
+  String get modelsUseCaseSummarizing => 'சுருக்கம்';
+
+  @override
+  String get modelsUseCaseSummarizingBlurb => 'நீண்ட உரையின் சாராம்சம்';
+
+  @override
+  String get modelsUseCaseDocuments => 'ஆவணங்கள்';
+
+  @override
+  String get modelsUseCaseDocumentsBlurb => 'நீண்ட ஆவணங்கள் பற்றிக் கேட்கலாம்';
+
+  @override
+  String modelsReasonNotSuited(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat': 'விரைவான உரையாடல்களுக்குப் பொருந்தாது',
+      'reasoning': 'படிப்படியான பகுத்தறிவுக்குப் பொருந்தாது',
+      'coding': 'நிரல் எழுதுவதற்குப் பொருந்தாது',
+      'tamil': 'தமிழுக்குப் பொருந்தாது',
+      'english': 'ஆங்கிலத்துக்குப் பொருந்தாது',
+      'vision': 'படங்களுக்குப் பொருந்தாது',
+      'translation': 'மொழிபெயர்ப்புக்குப் பொருந்தாது',
+      'summarizing': 'சுருக்கி எழுதுவதற்குப் பொருந்தாது',
+      'documents': 'நீண்ட ஆவணங்களுக்குப் பொருந்தாது',
+      'other': 'விரைவான உரையாடல்களுக்குப் பொருந்தாது',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsReasonLimited(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat': 'விரைவான உரையாடல்களுக்குக் குறைந்த அளவே ஏற்றது',
+      'reasoning': 'படிப்படியான பகுத்தறிவுக்குக் குறைந்த அளவே ஏற்றது',
+      'coding': 'நிரல் எழுதுவதற்குக் குறைந்த அளவே ஏற்றது',
+      'tamil': 'தமிழுக்குக் குறைந்த அளவே ஏற்றது',
+      'english': 'ஆங்கிலத்துக்குக் குறைந்த அளவே ஏற்றது',
+      'vision': 'படங்களுக்குக் குறைந்த அளவே ஏற்றது',
+      'translation': 'மொழிபெயர்ப்புக்குக் குறைந்த அளவே ஏற்றது',
+      'summarizing': 'சுருக்கி எழுதுவதற்குக் குறைந்த அளவே ஏற்றது',
+      'documents': 'நீண்ட ஆவணங்களுக்குக் குறைந்த அளவே ஏற்றது',
+      'other': 'விரைவான உரையாடல்களுக்குக் குறைந்த அளவே ஏற்றது',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsReasonUsable(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat': 'விரைவான உரையாடல்களுக்குப் பயன்படுத்தலாம்',
+      'reasoning': 'படிப்படியான பகுத்தறிவுக்குப் பயன்படுத்தலாம்',
+      'coding': 'நிரல் எழுதுவதற்குப் பயன்படுத்தலாம்',
+      'tamil': 'தமிழுக்குப் பயன்படுத்தலாம்',
+      'english': 'ஆங்கிலத்துக்குப் பயன்படுத்தலாம்',
+      'vision': 'படங்களுக்குப் பயன்படுத்தலாம்',
+      'translation': 'மொழிபெயர்ப்புக்குப் பயன்படுத்தலாம்',
+      'summarizing': 'சுருக்கி எழுதுவதற்குப் பயன்படுத்தலாம்',
+      'documents': 'நீண்ட ஆவணங்களுக்குப் பயன்படுத்தலாம்',
+      'other': 'விரைவான உரையாடல்களுக்குப் பயன்படுத்தலாம்',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsReasonGood(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat': 'விரைவான உரையாடல்களுக்கு நல்லது',
+      'reasoning': 'படிப்படியான பகுத்தறிவுக்கு நல்லது',
+      'coding': 'நிரல் எழுதுவதற்கு நல்லது',
+      'tamil': 'தமிழுக்கு நல்லது',
+      'english': 'ஆங்கிலத்துக்கு நல்லது',
+      'vision': 'படங்களுக்கு நல்லது',
+      'translation': 'மொழிபெயர்ப்புக்கு நல்லது',
+      'summarizing': 'சுருக்கி எழுதுவதற்கு நல்லது',
+      'documents': 'நீண்ட ஆவணங்களுக்கு நல்லது',
+      'other': 'விரைவான உரையாடல்களுக்கு நல்லது',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsReasonExcellent(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat': 'விரைவான உரையாடல்களுக்கு மிகச் சிறந்தது',
+      'reasoning': 'படிப்படியான பகுத்தறிவுக்கு மிகச் சிறந்தது',
+      'coding': 'நிரல் எழுதுவதற்கு மிகச் சிறந்தது',
+      'tamil': 'தமிழுக்கு மிகச் சிறந்தது',
+      'english': 'ஆங்கிலத்துக்கு மிகச் சிறந்தது',
+      'vision': 'படங்களுக்கு மிகச் சிறந்தது',
+      'translation': 'மொழிபெயர்ப்புக்கு மிகச் சிறந்தது',
+      'summarizing': 'சுருக்கி எழுதுவதற்கு மிகச் சிறந்தது',
+      'documents': 'நீண்ட ஆவணங்களுக்கு மிகச் சிறந்தது',
+      'other': 'விரைவான உரையாடல்களுக்கு மிகச் சிறந்தது',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsCaveatNoneFits(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat':
+          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'reasoning':
+          'படிப்படியான பகுத்தறிவுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'coding':
+          'நிரல் எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'tamil':
+          'தமிழுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'english':
+          'ஆங்கிலத்துக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'vision':
+          'படங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'translation':
+          'மொழிபெயர்ப்புக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'summarizing':
+          'சுருக்கி எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'documents':
+          'நீண்ட ஆவணங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'other':
+          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsCaveatNothingFitsWell(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat':
+          'விரைவான உரையாடல்களுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'reasoning':
+          'படிப்படியான பகுத்தறிவுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'coding':
+          'நிரல் எழுதுவதற்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'tamil':
+          'தமிழுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'english':
+          'ஆங்கிலத்துக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'vision':
+          'படங்களுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'translation':
+          'மொழிபெயர்ப்புக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'summarizing':
+          'சுருக்கி எழுதுவதற்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'documents':
+          'நீண்ட ஆவணங்களுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+      'other':
+          'விரைவான உரையாடல்களுக்கு நன்றாகப் பொருந்துவது எதுவும் இல்லை. இவையே மிக அருகில் உள்ளவை.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String modelsCaveatNothingStrong(String task) {
+    String _temp0 = intl.Intl.selectLogic(task, {
+      'fastChat':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'reasoning':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் படிப்படியான பகுத்தறிவுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'coding':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் நிரல் எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'tamil':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் தமிழுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'english':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் ஆங்கிலத்துக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'vision':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் படங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'translation':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் மொழிபெயர்ப்புக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'summarizing':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் சுருக்கி எழுதுவதற்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'documents':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் நீண்ட ஆவணங்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+      'other':
+          'இந்த அளவில் உள்ள எந்த அறிவுருவும் விரைவான உரையாடல்களுக்கு வலுவானது அல்ல. மிக அருகில் உள்ளவை காட்டப்படுகின்றன.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get modelsVisionUnavailable => 'இந்தப் பதிப்பில் படப் புரிதல் இல்லை.';
+
+  @override
+  String get modelsFitComfortable => 'நன்றாக இயங்கும்';
+
+  @override
+  String get modelsFitTightShort => 'RAM குறைவு';
+
+  @override
+  String get modelsFitTooBig => 'உங்கள் கைப்பேசிக்கு மிகப் பெரியது';
+
+  @override
+  String get modelsFitUnknown => 'பொருத்தம் தெரியவில்லை';
+
+  @override
+  String get modelsSpeedUnknown => 'வேகம் தெரியவில்லை';
+
+  @override
+  String get modelsAdvisorPrompt => 'என்ன செய்ய விரும்புகிறீர்கள்?';
+
+  @override
+  String get modelsClear => 'அழி';
+
+  @override
+  String get modelsAdvisorCollapse => 'வழிகாட்டியைச் சுருக்கு';
+
+  @override
+  String get modelsAdvisorNothingFits =>
+      'இந்தக் கைப்பேசிக்குப் பொருந்துவது எதுவும் இல்லை.';
+
+  @override
+  String get modelsAdvisorAlsoConsider => 'இவையும் நல்லவை';
+
+  @override
+  String get modelsSettingsTitle => 'அறிவுரு அமைப்புகள்';
+
+  @override
+  String get modelsSettingsBody => 'உரையாடலுக்கும் சேவகத்துக்கும் பொருந்தும்.';
+
+  @override
+  String get modelsSettingsResetDefaults => 'இயல்புநிலைக்கு மீட்டமை';
+
+  @override
+  String get modelsSettingsContextWindow => 'Context window';
+
+  @override
+  String get modelsSettingsContextHelp =>
+      'நீளமானால் அதிகம் நினைவில் இருக்கும், ஆனால் அதிக RAM தேவை.';
+
+  @override
+  String get modelsSettingsTemperature => 'Temperature';
+
+  @override
+  String get modelsSettingsPrecise => 'துல்லியம்';
+
+  @override
+  String get modelsSettingsCreative => 'படைப்பாற்றல்';
+
+  @override
+  String get modelsSettingsTopKHelp => 'குறைவானால் அதிகக் கவனம். 0 அணைக்கும்.';
+
+  @override
+  String get modelsSettingsTopPHelp =>
+      'குறைவானால் அதிகக் கவனம். 1.00 அணைக்கும்.';
+
+  @override
+  String get modelsSettingsThinking => 'சிந்தனை';
+
+  @override
+  String get modelsSettingsThinkingHelp =>
+      'பதிலுக்கு முன் சிந்திக்கும். ஆஃப் செய்தால் வேகம்.';
+
+  @override
+  String modelsSettingsCapPhoneRam(String max) {
+    return 'அதிகபட்சம் $max, RAM வரம்பு.';
+  }
+
+  @override
+  String modelsSettingsCapTraining(String max) {
+    return 'அதிகபட்சம் $max, அறிவுருவின் வரம்பு.';
+  }
+
+  @override
+  String modelsSettingsCap(String max) {
+    return 'அதிகபட்சம் $max.';
+  }
+
+  @override
+  String chatPreviewYou(String text) {
+    return 'நீங்கள்: $text';
+  }
+
+  @override
+  String get chatNoMessagesYet => 'இன்னும் உரைகள் இல்லை';
+
+  @override
+  String get chatStarterBrainstormPrompt =>
+      'கைப்பேசியிலேயே இயங்கும் AI app உருவாக்க 5 புதுமையான யோசனைகள் கொடு';
+
+  @override
+  String get chatStarterPythonPrompt =>
+      'ஒரு பட்டியலை வரிசைப்படுத்தி, நகல்களை நீக்கும் Python script எழுது';
+
+  @override
+  String get chatStarterSummarizePrompt =>
+      'பின்வருவதன் முக்கியக் கருத்துகளைச் சுருக்கமாகச் சொல்:\n\n';
+
+  @override
+  String get chatStarterSpeedPrompt =>
+      'இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?';
+
+  @override
+  String deviceSummaryRam(String ram, int cores) {
+    return '$ram GB RAM · $cores கோர்கள்';
+  }
+
+  @override
+  String deviceSummaryCores(int cores) {
+    return '$cores கோர்கள்';
+  }
+
+  @override
+  String get settingsGlossary => 'சொல்லகராதி';
+
+  @override
+  String get modelsTopPicks => 'சிறந்த தேர்வுகள்';
+}

@@ -7,6 +7,8 @@ library;
 
 import 'dart:io';
 
+import '../l10n/l10n.dart';
+
 /// Rough hardware class, used to estimate decode speed.
 enum DeviceClass {
   /// Budget phone: slow memory, and the OOM killer arrives early.
@@ -89,17 +91,25 @@ class DeviceProfile {
   /// beaten is a better experience than one that promises 30 tok/s and
   /// delivers 8.
   double get effectiveBandwidthGBps => switch (deviceClass) {
-        DeviceClass.flagship => 26,
-        DeviceClass.mid => 12,
-        DeviceClass.entry => 6,
-        DeviceClass.unknown => 12,
-      };
+    DeviceClass.flagship => 26,
+    DeviceClass.mid => 12,
+    DeviceClass.entry => 6,
+    DeviceClass.unknown => 12,
+  };
 
   String get summary {
     final total = totalRamBytes;
     if (total == null) return '$cores cores';
     final gb = total / (1024 * 1024 * 1024);
     return '${gb.toStringAsFixed(gb >= 10 ? 0 : 1)} GB RAM · $cores cores';
+  }
+
+  /// [summary] in the UI language.
+  String localizedSummary(AppLocalizations l10n) {
+    final total = totalRamBytes;
+    if (total == null) return l10n.deviceSummaryCores(cores);
+    final gb = total / (1024 * 1024 * 1024);
+    return l10n.deviceSummaryRam(gb.toStringAsFixed(gb >= 10 ? 0 : 1), cores);
   }
 
   /// Reads the current device's profile. Never throws: an unreadable

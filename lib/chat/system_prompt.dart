@@ -8,6 +8,8 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../state/providers.dart';
+
 /// What chats are told when nobody has changed it. Short on purpose: the
 /// small models this app runs follow a line or two well and drift on a page.
 const String kDefaultSystemPrompt =
@@ -15,14 +17,33 @@ const String kDefaultSystemPrompt =
     "user's phone. Answer clearly and concisely, and say so when you are not "
     'sure.';
 
+/// The default while the app is in Tamil. The instruction itself stays in
+/// English: the small models this app runs follow an English instruction to
+/// answer in Tamil more reliably than the same instruction written in Tamil.
+const String kDefaultSystemPromptTamil =
+    'You are Thinai, a helpful AI assistant that runs privately on the '
+    "user's phone. Always reply in Tamil (தமிழ்) unless the user asks for "
+    'another language. Answer clearly and concisely, and say so when you are '
+    'not sure.';
+
+/// The default for the UI language in use.
+String defaultSystemPromptFor({required bool tamil}) =>
+    tamil ? kDefaultSystemPromptTamil : kDefaultSystemPrompt;
+
 const _kSystemPromptKey = 'chat_system_prompt_v1';
 
 /// Holds the prompt. An empty prompt is allowed and means "send none", which
 /// leaves the model's own template default in charge.
 class SystemPromptController extends StateNotifier<String> {
-  SystemPromptController() : super(kDefaultSystemPrompt) {
+  SystemPromptController({bool tamil = false})
+    : defaultPrompt = defaultSystemPromptFor(tamil: tamil),
+      super(defaultSystemPromptFor(tamil: tamil)) {
     _loading = _load();
   }
+
+  /// What [reset] goes back to. Follows the UI language, so a user who never
+  /// touched the prompt gets Tamil replies once the app is in Tamil.
+  final String defaultPrompt;
 
   late final Future<void> _loading;
 
@@ -42,11 +63,11 @@ class SystemPromptController extends StateNotifier<String> {
     return state;
   }
 
-  bool get isDefault => state == kDefaultSystemPrompt;
+  bool get isDefault => state == defaultPrompt;
 
   Future<void> set(String value) async {
     await _loading;
-    if (value == kDefaultSystemPrompt) return reset();
+    if (value == defaultPrompt) return reset();
     state = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kSystemPromptKey, value);
@@ -54,7 +75,7 @@ class SystemPromptController extends StateNotifier<String> {
 
   Future<void> reset() async {
     await _loading;
-    state = kDefaultSystemPrompt;
+    state = defaultPrompt;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kSystemPromptKey);
   }
@@ -62,5 +83,5 @@ class SystemPromptController extends StateNotifier<String> {
 
 final systemPromptProvider =
     StateNotifierProvider<SystemPromptController, String>(
-      (ref) => SystemPromptController(),
+      (ref) => SystemPromptController(tamil: ref.watch(isTamilUiProvider)),
     );

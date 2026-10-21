@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/l10n.dart';
+
 /// Entrance splash screen featuring the official Thinai logo with
 /// smooth optical centering, zero-blank-screen immediate fallback rendering,
 /// subtle brand breathing animation, and elegant dark/light theme adaptation.
@@ -14,6 +16,10 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   static const Color _logoGreen = Color(0xFF2CA048);
+
+  /// Stand-in for the place name inside the translated footer, so the place
+  /// can be picked out and drawn in green whatever the word order.
+  static const String _placeSlot = '\u{E001}';
 
   late final AnimationController _animController;
   late final Animation<double> _fadeAnimation;
@@ -33,10 +39,7 @@ class _SplashPageState extends State<SplashPage>
     );
 
     _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
     );
 
     _animController.forward();
@@ -70,7 +73,7 @@ class _SplashPageState extends State<SplashPage>
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w900,
-            letterSpacing: 3.5,
+            letterSpacing: context.tracking(3.5),
             color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
@@ -78,8 +81,23 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
+  /// The footer as spans: one translated sentence, cut at the place name.
+  List<TextSpan> _footerSpans(AppLocalizations l10n) {
+    final sentence = l10n.splashCraftedIn(_placeSlot);
+    final at = sentence.indexOf(_placeSlot);
+    const place = TextStyle(color: _logoGreen, fontWeight: FontWeight.w900);
+    if (at < 0) return [TextSpan(text: sentence)];
+    return [
+      if (at > 0) TextSpan(text: sentence.substring(0, at)),
+      TextSpan(text: l10n.splashPlace, style: place),
+      if (at + _placeSlot.length < sentence.length)
+        TextSpan(text: sentence.substring(at + _placeSlot.length)),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF090A0C) : const Color(0xFFFFFFFF);
     final logoAsset = isDark
@@ -92,7 +110,9 @@ class _SplashPageState extends State<SplashPage>
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: bg,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
       child: Scaffold(
@@ -125,26 +145,27 @@ class _SplashPageState extends State<SplashPage>
                         width: 240,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.high,
-                        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded || frame != null) {
-                            return child;
-                          }
-                          // Instant brand badge while decoding so screen is never blank
-                          return _buildBrandFallback(isDark);
-                        },
+                        frameBuilder:
+                            (context, child, frame, wasSynchronouslyLoaded) {
+                              if (wasSynchronouslyLoaded || frame != null) {
+                                return child;
+                              }
+                              // Instant brand badge while decoding so screen is never blank
+                              return _buildBrandFallback(isDark);
+                            },
                         errorBuilder: (context, error, stackTrace) {
                           return _buildBrandFallback(isDark);
                         },
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        'SOVEREIGN ON-DEVICE INTELLIGENCE',
+                      Text(
+                        l10n.splashTagline,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF64748B),
-                          letterSpacing: 1.8,
+                          letterSpacing: context.tracking(1.8),
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -156,7 +177,9 @@ class _SplashPageState extends State<SplashPage>
                           child: const LinearProgressIndicator(
                             minHeight: 2.5,
                             backgroundColor: Color(0x1F2CA048),
-                            valueColor: AlwaysStoppedAnimation<Color>(_logoGreen),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _logoGreen,
+                            ),
                           ),
                         ),
                       ),
@@ -169,28 +192,19 @@ class _SplashPageState extends State<SplashPage>
 
               // Bottom pinned footer with bold geometric typography
               Padding(
-                padding: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 child: Center(
                   child: RichText(
-                    textAlign: TextAlign.center,
-                    text: const TextSpan(
+                    text: TextSpan(
                       style: TextStyle(
                         fontSize: 10.5,
                         color: Color(0xFF94A3B8),
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.6,
+                        letterSpacing: context.tracking(1.6),
                       ),
-                      children: [
-                        TextSpan(text: 'CRAFTED IN '),
-                        TextSpan(
-                          text: 'ERODE, TAMIL NADU',
-                          style: TextStyle(
-                            color: _logoGreen,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
+                      children: _footerSpans(l10n),
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),

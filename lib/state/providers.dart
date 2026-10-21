@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/l10n.dart';
 import '../llm/generation_settings.dart';
 import '../llm/gpu_support.dart';
 import '../llm/llm_engine.dart';
@@ -107,6 +109,62 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(),
 );
+
+// ─── language ───────────────────────────────────────────────────────────────
+
+/// The UI language the user picked. [system] follows the phone.
+enum AppLanguage { system, english, tamil }
+
+/// The language picked in Settings, persisted across launches.
+class AppLanguageController extends StateNotifier<AppLanguage> {
+  AppLanguageController() : super(AppLanguage.system) {
+    _load();
+  }
+
+  static const _key = 'app_language';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state =
+        AppLanguage.values.asNameMap()[prefs.getString(_key)] ??
+        AppLanguage.system;
+  }
+
+  Future<void> set(AppLanguage language) async {
+    state = language;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, language.name);
+  }
+}
+
+final appLanguageProvider =
+    StateNotifierProvider<AppLanguageController, AppLanguage>(
+      (ref) => AppLanguageController(),
+    );
+
+/// The phone's own language code. A provider so tests can pin it.
+final systemLanguageCodeProvider = Provider<String>(
+  (ref) => PlatformDispatcher.instance.locale.languageCode,
+);
+
+/// The locale handed to MaterialApp: null lets Flutter match the phone.
+final appLocaleProvider = Provider<Locale?>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => null,
+    AppLanguage.english => const Locale('en'),
+    AppLanguage.tamil => const Locale('ta'),
+  };
+});
+
+/// Whether the app is showing Tamil right now. Drives more than strings: the
+/// default system prompt and the recommender's starting goal follow it.
+final isTamilUiProvider = Provider<bool>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => ref.watch(systemLanguageCodeProvider) == 'ta',
+    AppLanguage.english => false,
+    AppLanguage.tamil => true,
+  };
+});
 
 // ─── server LAN sharing ─────────────────────────────────────────────────────
 
@@ -446,6 +504,26 @@ class ChatConversation {
     }
     return 'No messages yet';
   }
+
+  /// [title] for display: "New chat" in the UI language when there is
+  /// nothing to derive one from.
+  String localizedTitle(AppLocalizations l10n) =>
+      _hasTitle ? title : l10n.chatNewChat;
+
+  /// [preview] for display, in the UI language.
+  String localizedPreview(AppLocalizations l10n) {
+    for (final turn in turns.reversed) {
+      if (turn.content.trim().isEmpty) continue;
+      final line = turn.content.trim().replaceAll(RegExp(r'\s+'), ' ');
+      final body = line.length <= 70 ? line : '${line.substring(0, 69)}…';
+      return turn.role == 'user' ? l10n.chatPreviewYou(body) : body;
+    }
+    return l10n.chatNoMessagesYet;
+  }
+
+  bool get _hasTitle =>
+      (customTitle?.trim().isNotEmpty ?? false) ||
+      turns.any((t) => t.role == 'user' && t.content.trim().isNotEmpty);
 
   bool get isEmpty => turns.isEmpty;
 

@@ -13,6 +13,7 @@
 /// recommendation.
 library;
 
+import '../l10n/app_localizations.dart';
 import 'catalog.dart';
 import 'use_cases.dart';
 
@@ -23,20 +24,35 @@ extension SkillInfo on Skill {
   /// Word used in the recommendation copy: "Excellent for quick
   /// conversations".
   String get word => switch (this) {
-        Skill.unsupported => 'Not suited to',
-        Skill.weak => 'Limited for',
-        Skill.ok => 'Usable for',
-        Skill.good => 'Good for',
-        Skill.excellent => 'Excellent for',
-      };
+    Skill.unsupported => 'Not suited to',
+    Skill.weak => 'Limited for',
+    Skill.ok => 'Usable for',
+    Skill.good => 'Good for',
+    Skill.excellent => 'Excellent for',
+  };
+
+  /// "[word] (use case)" as one translated sentence, for example "Excellent
+  /// for quick conversations". Built from a whole message per rating rather
+  /// than by joining fragments, since word order and case endings differ
+  /// between languages.
+  String localizedReason(AppLocalizations l, UseCase useCase) {
+    final task = useCase.name;
+    return switch (this) {
+      Skill.unsupported => l.modelsReasonNotSuited(task),
+      Skill.weak => l.modelsReasonLimited(task),
+      Skill.ok => l.modelsReasonUsable(task),
+      Skill.good => l.modelsReasonGood(task),
+      Skill.excellent => l.modelsReasonExcellent(task),
+    };
+  }
 
   int get score => switch (this) {
-        Skill.unsupported => 0,
-        Skill.weak => 1,
-        Skill.ok => 2,
-        Skill.good => 3,
-        Skill.excellent => 4,
-      };
+    Skill.unsupported => 0,
+    Skill.weak => 1,
+    Skill.ok => 2,
+    Skill.good => 3,
+    Skill.excellent => 4,
+  };
 }
 
 /// How much of the world's languages a model was actually trained to handle.
@@ -310,12 +326,12 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
       var base = b <= 0.6
           ? Skill.excellent
           : b <= 1.3
-              ? Skill.excellent
-              : b <= 2.2
-                  ? Skill.good
-                  : b <= 3.2
-                      ? Skill.ok
-                      : Skill.weak;
+          ? Skill.excellent
+          : b <= 2.2
+          ? Skill.good
+          : b <= 3.2
+          ? Skill.ok
+          : Skill.weak;
       if (t.thinking) base = _down(base);
       // Below about half a billion parameters replies are instant but thin.
       if (b < 0.4) base = _down(base);
@@ -326,8 +342,8 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
       var base = b >= 3.5
           ? Skill.good
           : b >= 2.0
-              ? Skill.ok
-              : Skill.weak;
+          ? Skill.ok
+          : Skill.weak;
       if (t.thinking) base = _up(base);
       return base;
 
@@ -336,8 +352,8 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
       return b >= 3.5
           ? Skill.excellent
           : b >= 1.5
-              ? Skill.good
-              : Skill.ok;
+          ? Skill.good
+          : Skill.ok;
 
     case UseCase.tamil:
       // Tamil is where a wrong recommendation is most obvious to the user, so
@@ -352,10 +368,10 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
       return b >= 3.0
           ? Skill.excellent
           : b >= 1.5
-              ? Skill.good
-              : b >= 0.5
-                  ? Skill.ok
-                  : Skill.weak;
+          ? Skill.good
+          : b >= 0.5
+          ? Skill.ok
+          : Skill.weak;
 
     case UseCase.vision:
       // Vision weights without a downloadable encoder are no use here, so the
@@ -383,8 +399,8 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
       var base = b >= 2.0
           ? Skill.good
           : b >= 1.0
-              ? Skill.ok
-              : Skill.weak;
+          ? Skill.ok
+          : Skill.weak;
       if (!room) base = _down(base);
       if (b >= 3.5 && room) base = _up(base);
       return base;
@@ -401,12 +417,21 @@ Skill skillFor(CatalogModel model, UseCase useCase) {
   }
 }
 
-Skill _up(Skill s) => Skill.values[(s.index + 1).clamp(0, Skill.values.length - 1)];
-Skill _down(Skill s) => Skill.values[(s.index - 1).clamp(0, Skill.values.length - 1)];
+Skill _up(Skill s) =>
+    Skill.values[(s.index + 1).clamp(0, Skill.values.length - 1)];
+Skill _down(Skill s) =>
+    Skill.values[(s.index - 1).clamp(0, Skill.values.length - 1)];
 
 /// Short phrases describing what [model] is good at, best first. Used as the
 /// "why this one" line under a recommendation.
-List<String> highlightsFor(CatalogModel model, {int limit = 2}) {
+List<String> highlightsFor(CatalogModel model, {int limit = 2}) => [
+  for (final (useCase, skill) in highlightPairsFor(model, limit: limit))
+    '${skill.word} ${useCase.blurbShort}',
+];
+
+/// [highlightsFor] as (use case, rating) pairs, for showing in the app's
+/// language with [SkillInfo.localizedReason].
+List<(UseCase, Skill)> highlightPairsFor(CatalogModel model, {int limit = 2}) {
   final rated = <(UseCase, Skill)>[
     for (final useCase in UseCase.values)
       if (useCase != UseCase.vision || visionUsable)
@@ -415,8 +440,7 @@ List<String> highlightsFor(CatalogModel model, {int limit = 2}) {
 
   return [
     for (final (useCase, skill) in rated.take(limit))
-      if (skill.score >= Skill.good.score)
-        '${skill.word} ${useCase.blurbShort}',
+      if (skill.score >= Skill.good.score) (useCase, skill),
   ];
 }
 
@@ -424,14 +448,14 @@ extension on UseCase {
   /// The use case as it reads mid-sentence: "Excellent for quick
   /// conversations".
   String get blurbShort => switch (this) {
-        UseCase.fastChat => 'quick conversations',
-        UseCase.reasoning => 'step-by-step reasoning',
-        UseCase.coding => 'code',
-        UseCase.tamil => 'Tamil',
-        UseCase.english => 'English',
-        UseCase.vision => 'images',
-        UseCase.translation => 'translation',
-        UseCase.summarizing => 'summarising',
-        UseCase.documents => 'long documents',
-      };
+    UseCase.fastChat => 'quick conversations',
+    UseCase.reasoning => 'step-by-step reasoning',
+    UseCase.coding => 'code',
+    UseCase.tamil => 'Tamil',
+    UseCase.english => 'English',
+    UseCase.vision => 'images',
+    UseCase.translation => 'translation',
+    UseCase.summarizing => 'summarising',
+    UseCase.documents => 'long documents',
+  };
 }

@@ -44,7 +44,7 @@ void main() {
     expect(find.text('Fast chat'), findsOneWidget);
     expect(find.text('Tamil'), findsOneWidget);
     // Nothing is recommended until the user says what they want.
-    expect(find.text('Best model for your phone'), findsNothing);
+    expect(find.text('Top pick'), findsNothing);
   });
 
   testWidgets('shows the phone it is recommending for', (tester) async {
@@ -52,17 +52,20 @@ void main() {
     expect(find.textContaining('8.0 GB RAM'), findsOneWidget);
   });
 
-  testWidgets('picking a job produces a named model with its numbers',
-      (tester) async {
+  testWidgets('picking a job produces a named model with its numbers', (
+    tester,
+  ) async {
     await pumpAdvisor(tester);
     await tester.tap(find.text('Fast chat'));
     await tester.pump();
 
-    expect(find.text('Best model for your phone'), findsOneWidget);
+    expect(find.text('Top pick'), findsOneWidget);
     expect(find.textContaining('tok/s'), findsWidgets);
     expect(find.textContaining('RAM'), findsWidgets);
-    expect(find.textContaining('Excellent for quick conversations'),
-        findsOneWidget);
+    expect(
+      find.textContaining('Excellent for quick conversations'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Download'), findsOneWidget);
   });
 
@@ -70,25 +73,27 @@ void main() {
     await pumpAdvisor(tester);
     await tester.tap(find.text('Coding'));
     await tester.pump();
-    expect(find.text('Best model for your phone'), findsOneWidget);
+    expect(find.text('Top pick'), findsOneWidget);
 
     await tester.tap(find.text('Coding'));
     await tester.pump();
-    expect(find.text('Best model for your phone'), findsNothing);
+    expect(find.text('Top pick'), findsNothing);
   });
 
-  testWidgets('image understanding recommends a model that can see',
-      (tester) async {
+  testWidgets('image understanding recommends a model that can see', (
+    tester,
+  ) async {
     await pumpAdvisor(tester, device: phone(12));
-    await tester.tap(find.text('Image understanding'));
+    await tester.tap(find.text('Images'));
     await tester.pump();
 
-    expect(find.text('Best model for your phone'), findsOneWidget);
+    expect(find.text('Top pick'), findsOneWidget);
     expect(find.textContaining('Download'), findsOneWidget);
   });
 
-  testWidgets('offers download for a model that is not installed',
-      (tester) async {
+  testWidgets('offers download for a model that is not installed', (
+    tester,
+  ) async {
     CatalogModel? requested;
     await pumpAdvisor(tester, onDownload: (m) => requested = m);
     await tester.tap(find.text('Coding'));
@@ -108,34 +113,38 @@ void main() {
     await tester.tap(find.text('Coding'));
     await tester.pump();
 
-    expect(find.text('Already downloaded'), findsOneWidget);
+    expect(find.text('Installed'), findsOneWidget);
     expect(find.textContaining('Download '), findsNothing);
   });
 
-  testWidgets('a phone whose memory cannot be read still gets advice',
-      (tester) async {
+  testWidgets('a phone whose memory cannot be read still gets advice', (
+    tester,
+  ) async {
     await pumpAdvisor(tester, device: DeviceProfile.unknownProfile);
-    await tester.tap(find.text('Best reasoning'));
+    await tester.tap(find.text('Reasoning'));
     await tester.pump();
 
-    expect(find.text('Best model for this'), findsOneWidget);
+    expect(find.text('Top pick'), findsOneWidget);
     // No speed claim is made when there is nothing to base it on.
     expect(find.textContaining('tok/s'), findsNothing);
   });
 
-  testWidgets('a small phone is warned rather than sold a model that fits',
-      (tester) async {
+  testWidgets('a small phone is warned rather than sold a model that fits', (
+    tester,
+  ) async {
     await pumpAdvisor(tester, device: phone(3, cores: 4));
-    await tester.tap(find.text('Best reasoning'));
+    await tester.tap(find.text('Reasoning'));
     await tester.pump();
 
     // It must still answer, and the fit line must be honest about it.
-    expect(find.text('Best model for your phone'), findsOneWidget);
+    expect(find.text('Top pick'), findsOneWidget);
     expect(
-      find.byWidgetPredicate((w) =>
-          w is Text &&
-          (w.data?.contains('Runs well') == true ||
-              w.data?.contains('Tight fit') == true)),
+      find.byWidgetPredicate(
+        (w) =>
+            w is Text &&
+            (w.data?.contains('Runs well') == true ||
+                w.data?.contains('Tight fit') == true),
+      ),
       findsOneWidget,
     );
   });

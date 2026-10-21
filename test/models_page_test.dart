@@ -12,6 +12,7 @@ import 'package:local_llm/models_repo/catalog.dart';
 import 'package:local_llm/models_repo/device_profile.dart';
 import 'package:local_llm/models_repo/downloader.dart';
 import 'package:local_llm/models_repo/model_store.dart';
+import 'package:local_llm/models_repo/recommender.dart';
 import 'package:local_llm/models_repo/use_cases.dart';
 import 'package:local_llm/state/providers.dart';
 import 'package:local_llm/ui/pages/models_page.dart';
@@ -169,7 +170,7 @@ void main() {
       // Hero card above Explore Models, and nowhere below it.
       expect(find.text(featured.displayName), findsOneWidget);
       final hero = tester.getTopLeft(find.text(featured.displayName));
-      final explore = tester.getTopLeft(find.text('Explore Models'));
+      final explore = tester.getTopLeft(find.text('More models'));
       expect(hero.dy, lessThan(explore.dy));
     });
 
@@ -178,13 +179,13 @@ void main() {
       final smallest = starterModel!;
 
       final card = tester.getTopLeft(find.text(smallest.displayName));
-      final explore = tester.getTopLeft(find.text('Explore Models'));
+      final explore = tester.getTopLeft(find.text('More models'));
       expect(card.dy, greaterThan(explore.dy));
     });
 
     testWidgets('the Featured header has no dead arrow', (tester) async {
       await _pump(tester);
-      expect(find.text('Featured Models'), findsOneWidget);
+      expect(find.text('Featured'), findsOneWidget);
       expect(find.byIcon(Icons.arrow_forward_rounded), findsNothing);
     });
 
@@ -192,7 +193,7 @@ void main() {
       await _pump(tester);
       await tester.enterText(find.byType(TextField), 'qwen');
       await _settle(tester);
-      expect(find.text('Featured Models'), findsNothing);
+      expect(find.text('Featured'), findsNothing);
     });
   });
 
@@ -202,14 +203,12 @@ void main() {
       (tester) async {
         await _pump(tester, size: const Size(420, 12000));
 
-        expect(find.text('Featured Models'), findsOneWidget);
-        expect(find.text('Explore Models'), findsOneWidget);
+        expect(find.text('Featured'), findsOneWidget);
+        expect(find.text('More models'), findsOneWidget);
         expect(find.text('Embedding models'), findsOneWidget);
         expect(find.text('Find more on Hugging Face'), findsOneWidget);
         expect(
-          find.text(
-            'Downloaded models stay 100% on-device and run entirely offline.',
-          ),
+          find.text('Models run fully offline on this phone.'),
           findsOneWidget,
         );
       },
@@ -240,7 +239,61 @@ void main() {
         size: const Size(420, 12000),
       );
       expect(find.text('Needs RAM'), findsWidgets);
-      expect(find.textContaining('this phone has'), findsWidgets);
+      // The cards stay short; the full sentence waits for the download.
+      expect(find.textContaining('this phone has'), findsNothing);
+    });
+
+    testWidgets(
+      'a tight fit is a chip on the card and a sentence on download',
+      (tester) async {
+        const device = DeviceProfile(
+          totalRamBytes: 6 * _gib,
+          availableRamBytes: 3 * _gib,
+          cores: 8,
+        );
+        final sizes = <String, int>{};
+        for (final m in modelCatalog) {
+          sizes[m.approxSize] = (sizes[m.approxSize] ?? 0) + 1;
+        }
+        final m = chatCatalog.firstWhere(
+          (m) =>
+              fitFor(m, device) == RamFit.tight &&
+              sizes[m.approxSize] == 1 &&
+              m.id != featuredModelId,
+        );
+        await _pump(tester, device: device);
+        await tester.enterText(find.byType(TextField), m.displayName);
+        await _settle(tester);
+
+        expect(find.text('Tight fit'), findsOneWidget);
+        expect(find.textContaining('Other apps may close'), findsNothing);
+
+        await _tapText(tester, m.approxSize);
+        expect(find.text('Download?'), findsOneWidget);
+        expect(find.textContaining('Other apps may close'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a model too big for the phone says why before downloading', (
+      tester,
+    ) async {
+      const device = DeviceProfile(
+        totalRamBytes: 2 * _gib,
+        availableRamBytes: _gib,
+        cores: 4,
+      );
+      final m = chatCatalog.firstWhere(
+        (m) => fitFor(m, device) == RamFit.tooBig && !m.supportsVision,
+      );
+      await _pump(tester, device: device);
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+
+      await tester.tap(find.byTooltip('Model details').first);
+      await _settle(tester);
+      await _tapText(tester, 'Download ${m.approxSize}');
+      expect(find.text('Download?'), findsOneWidget);
+      expect(find.textContaining('this phone has'), findsOneWidget);
     });
 
     testWidgets('the details sheet describes a model', (tester) async {
@@ -265,7 +318,7 @@ void main() {
       await tester.enterText(find.byType(TextField), m.displayName);
       await _settle(tester);
       expect(find.text('Search Hugging Face for "${m.displayName}"'), findsOne);
-      expect(find.text('Featured Models'), findsNothing);
+      expect(find.text('Featured'), findsNothing);
     });
 
     testWidgets('no match points to Hugging Face and can reset', (
@@ -278,8 +331,8 @@ void main() {
       expect(find.text('No models match "zzqx-no-such-model"'), findsOneWidget);
       expect(find.text('Search Hugging Face'), findsOneWidget);
 
-      await _tapText(tester, 'Reset filters & search');
-      expect(find.text('Featured Models'), findsOneWidget);
+      await _tapText(tester, 'Reset filters');
+      expect(find.text('Featured'), findsOneWidget);
     });
 
     testWidgets('the Hub prompt opens the Hugging Face search', (tester) async {
@@ -304,10 +357,10 @@ void main() {
     testWidgets('each category shows its own section', (tester) async {
       await _pump(tester, size: const Size(420, 12000));
 
-      await pick(tester, 'Vision Models');
+      await pick(tester, 'Vision');
       expect(find.text('Vision models'), findsOneWidget);
 
-      await pick(tester, 'Chat Models');
+      await pick(tester, 'Chat');
       expect(find.text('Chat models'), findsOneWidget);
 
       await pick(tester, 'Embedding');
@@ -323,7 +376,7 @@ void main() {
 
       expect(find.text('No models installed yet'), findsOneWidget);
       await _tapText(tester, 'Browse Catalog');
-      expect(find.text('Featured Models'), findsOneWidget);
+      expect(find.text('Featured'), findsOneWidget);
     });
 
     testWidgets('Installed lists models and loads one when tapped', (
@@ -333,7 +386,7 @@ void main() {
       final (container, _) = await _pump(tester, installed: [_installed(m)]);
       await pick(tester, 'Installed (1)');
 
-      expect(find.text('Installed models (1)'), findsOneWidget);
+      expect(find.text('Installed (1)'), findsWidgets);
       await _tapText(tester, m.filename);
       expect(container.read(activeModelIdProvider), m.servedId);
       expect(find.text('Loaded ${m.filename}'), findsOneWidget);
@@ -356,19 +409,17 @@ void main() {
     testWidgets('picking a goal recommends models for it', (tester) async {
       await _pump(tester, size: const Size(420, 4000));
 
-      await _tapText(tester, 'Goals');
-      expect(find.text('Choose Your Goal'), findsOneWidget);
+      await _tapText(tester, 'Goal');
+      expect(find.text('Choose a goal'), findsOneWidget);
       await _tapText(tester, UseCase.coding.label);
 
-      expect(
-        find.text('Recommended for ${UseCase.coding.label}'),
-        findsOneWidget,
-      );
+      expect(find.text('Goal: ${UseCase.coding.label}'), findsOneWidget);
+      expect(find.text('Top picks'), findsOneWidget);
       expect(find.text('Other models'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.close_rounded).first);
       await _settle(tester);
-      expect(find.text('Featured Models'), findsOneWidget);
+      expect(find.text('Featured'), findsOneWidget);
     });
   });
 
@@ -382,7 +433,7 @@ void main() {
       await _settle(tester);
 
       await _tapText(tester, m.approxSize);
-      expect(find.text('Download model?'), findsOneWidget);
+      expect(find.text('Download?'), findsOneWidget);
       await _tapText(tester, 'Download');
       expect(downloader.started, [m.filename]);
 
@@ -399,7 +450,7 @@ void main() {
       await _tapText(tester, 'Pause');
       expect(downloader.tokens[m.filename]!.isCancelled, isTrue);
       expect(container.read(downloadsProvider), isEmpty);
-      expect(find.text('Download paused. Tap Resume to continue.'), findsOne);
+      expect(find.text('Download paused'), findsOne);
     });
 
     testWidgets('declining the question starts nothing', (tester) async {
@@ -432,8 +483,8 @@ void main() {
       await _settle(tester);
       expect(
         find.text(
-          'Download of ${m.displayName} stopped: No internet connection. '
-          'Progress is saved, tap Resume to continue.',
+          '${m.displayName} stopped: No internet connection. '
+          'Tap Resume to continue.',
         ),
         findsOneWidget,
       );
@@ -454,7 +505,14 @@ void main() {
           done: true,
         ),
       );
-      await _settle(tester);
+      // Finding the finished file touches the disk, so let real time pass.
+      final toast = find.textContaining('Downloaded');
+      for (var i = 0; i < 50 && toast.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       expect(container.read(downloadsProvider), isEmpty);
       expect(find.textContaining('Downloaded'), findsOneWidget);
     });
@@ -470,7 +528,7 @@ void main() {
       expect(find.text('Paused · 25%'), findsOneWidget);
       // Resuming does not ask again: the user agreed when it started.
       await _tapText(tester, 'Resume 25%');
-      expect(find.text('Download model?'), findsNothing);
+      expect(find.text('Download?'), findsNothing);
       expect(downloader.started, [m.filename]);
     });
   });
@@ -496,8 +554,8 @@ void main() {
       await open(tester);
 
       expect(find.text('Model Manager'), findsOneWidget);
-      expect(find.text('No model loaded in Chat'), findsOneWidget);
-      await _tapText(tester, 'Activate');
+      expect(find.text('No model loaded'), findsOneWidget);
+      await _tapText(tester, 'Load');
       expect(container.read(activeModelIdProvider), m.servedId);
     });
 

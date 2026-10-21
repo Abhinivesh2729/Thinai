@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../l10n/l10n.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
 import '../widgets/floating_lines_background.dart';
@@ -54,10 +55,10 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           ip: status.lanIp,
         );
         if (mounted && status.lan && status.lanIp == null) {
-          _toast('Sharing on, but no Wi-Fi/LAN address was found.');
+          _toast(context.l10n.serverToastLanNoAddress);
         }
       } else if (status.error != null && mounted) {
-        _toast('Start failed: ${status.error}');
+        _toast(context.l10n.serverToastStartFailed('${status.error}'));
       }
     } finally {
       if (mounted) setState(() => _isTransitioning = false);
@@ -100,27 +101,21 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
   Future<void> _showPortDialog() async {
     final controller = TextEditingController(text: '$_port');
-    final scheme = Theme.of(context).colorScheme;
     final newPort = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Change Server Port'),
+        title: Text(context.l10n.serverPortDialogTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Select or enter the local TCP port Thinai binds to. Default is 11434 for Ollama, 8080 for standard.',
-              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 16),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Port number',
+                labelText: context.l10n.serverPortNumberLabel,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -136,7 +131,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
                   onPressed: () => controller.text = '11434',
                 ),
                 ActionChip(
-                  label: const Text('8080 (Standard)'),
+                  label: const Text('8080'),
                   onPressed: () => controller.text = '8080',
                 ),
               ],
@@ -146,14 +141,14 @@ class _ServerPageState extends ConsumerState<ServerPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               final p = int.tryParse(controller.text.trim());
               Navigator.pop(ctx, p);
             },
-            child: const Text('Save Port'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -189,9 +184,9 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Server',
-          style: TextStyle(
+        title: Text(
+          context.l10n.navServer,
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.4,
@@ -250,9 +245,6 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
           // 5. Full-Width Clean API Endpoints List (No bloated categories)
           _ApiEndpointsSection(base: base, chatId: chatId),
-
-          // 6. Full-Width Security Notice
-          _SecurityNoticeBanner(lanShare: lanShare, port: port),
         ],
       ),
     );
@@ -284,7 +276,6 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final serverUrl = lan && lanIp != null
         ? 'http://$lanIp:$port'
@@ -408,32 +399,32 @@ class _HeroCard extends StatelessWidget {
             ),
           ),
 
-          // Spacious, elevated server control deck
+          // Status, URL and the start/stop button, stacked so long labels
+          // (Tamil) always get the full width.
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Top Row: Status Dot + State Title + Port Tag + Spacer + Fixed-Size Tactile Button
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _StatusDot(running: running),
                     const SizedBox(width: 10),
-                    SizedBox(
-                      width: 80,
+                    Expanded(
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 250),
                         child: Align(
                           alignment: Alignment.centerLeft,
+                          key: ValueKey(running),
                           child: Text(
-                            running ? 'Running' : 'Stopped',
-                            key: ValueKey(running),
+                            running
+                                ? context.l10n.serverStatusRunning
+                                : context.l10n.serverStatusStopped,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              letterSpacing: -0.4,
+                              letterSpacing: context.tracking(-0.4),
                               color: isDark
                                   ? Colors.white
                                   : const Color(0xFF0F172A),
@@ -443,270 +434,241 @@ class _HeroCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Port Configuration Tag
-                    InkWell(
-                      onTap: running ? null : onEditPort,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF162030)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF263650)
-                                : const Color(0xFFCBD5E1),
-                            width: 0.9,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.tune_rounded,
-                              size: 12,
-                              color: isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF475569),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              ':$port',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    // Fixed Size Tactile Start / Stop Button with smooth transition animation
-                    SizedBox(
-                      width: 98,
-                      height: 42,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        decoration: BoxDecoration(
-                          color: running ? const Color(0xFFE11D48) : _brandDeep,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (running
-                                          ? const Color(0xFFE11D48)
-                                          : _brandDeep)
-                                      .withValues(alpha: 0.30),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: isTransitioning
-                                ? null
-                                : () {
-                                    HapticFeedback.mediumImpact();
-                                    if (running) {
-                                      onStop();
-                                    } else {
-                                      onStart();
-                                    }
-                                  },
-                            child: Center(
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: Tween<double>(
-                                        begin: 0.85,
-                                        end: 1.0,
-                                      ).animate(animation),
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: isTransitioning
-                                    ? const SizedBox(
-                                        key: ValueKey('loading'),
-                                        height: 16,
-                                        width: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                    : Row(
-                                        key: ValueKey(running),
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            running
-                                                ? Icons.stop_rounded
-                                                : Icons.play_arrow_rounded,
-                                            size: 18,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            running ? 'Stop' : 'Start',
-                                            style: const TextStyle(
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.white,
-                                              letterSpacing: 0.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _PortChip(port: port, onTap: running ? null : onEditPort),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-
-                // Bottom Row: Fixed-Height Endpoint / Port Strip (Identical size in both Start and Stop)
-                Container(
-                  height: 42,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0B111A).withValues(alpha: 0.85)
-                        : Colors.white.withValues(alpha: 0.90),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: running
-                          ? const Color(
-                              0xFF2CA048,
-                            ).withValues(alpha: isDark ? 0.40 : 0.30)
-                          : (isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFCBD5E1)),
-                      width: 1.0,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.20 : 0.03,
-                        ),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.link_rounded,
-                        size: 14,
-                        color: running
-                            ? (isDark
-                                  ? const Color(0xFF4ADE80)
-                                  : const Color(0xFF16A34A))
-                            : scheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      // URL Address
-                      Expanded(
-                        child: SelectableText(
-                          serverUrl,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'monospace',
-                            color: running
-                                ? (isDark
-                                      ? const Color(0xFF4ADE80)
-                                      : const Color(0xFF16A34A))
-                                : (isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B)),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Copy Server Address',
-                        icon: const Icon(Icons.copy_rounded, size: 14),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 24,
-                          minHeight: 24,
-                        ),
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF475569),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: serverUrl),
-                          );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Copied $serverUrl to clipboard'),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF151D2A)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          lan ? 'LAN' : 'Localhost',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 14),
+                _UrlStrip(url: serverUrl, running: running),
+                const SizedBox(height: 12),
+                _StartStopButton(
+                  running: running,
+                  busy: isTransitioning,
+                  onStart: onStart,
+                  onStop: onStop,
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PortChip extends StatelessWidget {
+  final int port;
+  final VoidCallback? onTap;
+
+  const _PortChip({required this.port, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF162030) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isDark ? const Color(0xFF263650) : const Color(0xFFCBD5E1),
+            width: 0.9,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.tune_rounded,
+              size: 12,
+              color: isDark ? Colors.white70 : const Color(0xFF475569),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              ':$port',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UrlStrip extends StatelessWidget {
+  final String url;
+  final bool running;
+
+  const _UrlStrip({required this.url, required this.running});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final live = isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF0B111A).withValues(alpha: 0.85)
+            : Colors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: running
+              ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.40 : 0.30)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.link_rounded,
+            size: 14,
+            color: running ? live : scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SelectableText(
+              url,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'monospace',
+                color: running
+                    ? live
+                    : (isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B)),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: context.l10n.serverCopyAddressTooltip,
+            icon: const Icon(Icons.copy_rounded, size: 16),
+            visualDensity: VisualDensity.compact,
+            color: isDark ? Colors.white70 : const Color(0xFF475569),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: url));
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.serverCopiedLabel(url)),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Full width, so the label never has to shrink to fit.
+class _StartStopButton extends StatelessWidget {
+  final bool running;
+  final bool busy;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
+
+  const _StartStopButton({
+    required this.running,
+    required this.busy,
+    required this.onStart,
+    required this.onStop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = running ? const Color(0xFFE11D48) : _brandDeep;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOutCubic,
+      constraints: const BoxConstraints(minHeight: 46),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.30),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: busy
+              ? null
+              : () {
+                  HapticFeedback.mediumImpact();
+                  if (running) {
+                    onStop();
+                  } else {
+                    onStart();
+                  }
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: busy
+                    ? const SizedBox(
+                        key: ValueKey('loading'),
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Row(
+                        key: ValueKey(running),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            running
+                                ? Icons.stop_rounded
+                                : Icons.play_arrow_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              running
+                                  ? context.l10n.serverStop
+                                  : context.l10n.serverStart,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -750,12 +712,12 @@ class _ActiveModelBanner extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'SERVING MODEL',
+                        context.l10n.serverServingModel,
                         style: TextStyle(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
                           color: scheme.primary,
-                          letterSpacing: 0.6,
+                          letterSpacing: context.tracking(0.6),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -777,32 +739,33 @@ class _ActiveModelBanner extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    textStyle: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Tune'),
+                  child: Text(context.l10n.serverTune),
                 ),
               ],
             )
-          : Row(
+          // Wraps the button under the text when both do not fit.
+          : Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    'No model loaded yet. Load one to enable completions.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  context.l10n.serverNoModelLoaded,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 FilledButton.tonal(
@@ -810,19 +773,17 @@ class _ActiveModelBanner extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    textStyle: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Browse Models'),
+                  child: Text(context.l10n.serverBrowseModels),
                 ),
               ],
             ),
@@ -861,7 +822,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Copied $label'),
+        content: Text(context.l10n.serverCopiedLabel(label)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -872,18 +833,16 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Regenerate API token?'),
-        content: const Text(
-          'Existing LAN clients using the current token will lose access and must be updated.',
-        ),
+        title: Text(context.l10n.serverRegenerateTokenTitle),
+        content: Text(context.l10n.serverRegenerateTokenBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Regenerate'),
+            child: Text(context.l10n.serverRegenerate),
           ),
         ],
       ),
@@ -914,7 +873,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
         setState(() => _showToken = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('API token regenerated'),
+            content: Text(context.l10n.serverTokenRegenerated),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -956,9 +915,9 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Share on Local Network (LAN)',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.serverLanShareTitle,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14.5,
                         letterSpacing: -0.2,
@@ -967,8 +926,8 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                     const SizedBox(height: 2),
                     Text(
                       widget.enabled
-                          ? 'Other computers on this Wi-Fi can reach the API'
-                          : 'Only apps running directly on this phone can reach 127.0.0.1',
+                          ? context.l10n.serverLanShareOnSubtitle
+                          : context.l10n.serverLanShareOffSubtitle,
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 11.5,
@@ -1033,7 +992,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                                     size: 15,
                                     color: Color(0xFF2CA048),
                                   ),
-                                  tooltip: 'Copy LAN URL',
+                                  tooltip: context.l10n.serverCopyLanUrlTooltip,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
                                     minWidth: 28,
@@ -1057,7 +1016,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                               return const SizedBox.shrink();
                             }
                             final masked =
-                                '${token.substring(0, 6)}••••••••••••${token.substring(token.length - 6)}';
+                                '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
 
                             return Container(
                               padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
@@ -1188,17 +1147,6 @@ class _DeveloperQuickStartCard extends StatefulWidget {
 class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   int _tabIndex = 0;
 
-  void _copy(String text, String label) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Copied $label to clipboard'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -1226,20 +1174,12 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Developer Quick Start',
-                  style: TextStyle(
+                Text(
+                  context.l10n.serverDevQuickStartTitle,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Direct configuration snippets for coding assistants & scripts',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -1262,7 +1202,7 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
                 const SizedBox(width: 8),
                 _buildTab(2, 'cURL', Icons.alt_route_rounded),
                 const SizedBox(width: 8),
-                _buildTab(3, 'Chat JSON', Icons.data_object_rounded),
+                _buildTab(3, 'JSON', Icons.data_object_rounded),
                 const SizedBox(width: 8),
                 _buildTab(4, 'Ollama', Icons.cloud_sync_rounded),
               ],
@@ -1357,24 +1297,13 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   ]
 }''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'For Continue.dev or Cline extensions in VS Code:',
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'config.json',
-              language: 'json',
-              code: configJson,
-              icon: Icons.data_object_rounded,
-            ),
-          ],
-          onCopy: () => _copy(configJson, 'VS Code Config'),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'config.json',
+          language: 'json',
+          code: configJson,
+          icon: Icons.data_object_rounded,
         ),
       ],
     );
@@ -1395,24 +1324,13 @@ response = client.chat.completions.create(
 )
 print(response.choices[0].message.content)''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Query with official OpenAI Python SDK:',
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'client.py',
-              language: 'python',
-              code: pyCode,
-              icon: Icons.code_rounded,
-            ),
-          ],
-          onCopy: () => _copy(pyCode, 'Python Script'),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'client.py',
+          language: 'python',
+          code: pyCode,
+          icon: Icons.code_rounded,
         ),
       ],
     );
@@ -1428,24 +1346,13 @@ print(response.choices[0].message.content)''';
     "stream": false
   }' ''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Direct terminal HTTP request with standard JSON payload:',
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'request.sh',
-              language: 'bash',
-              code: curlCode,
-              icon: Icons.terminal_rounded,
-            ),
-          ],
-          onCopy: () => _copy(curlCode, 'cURL Command'),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'request.sh',
+          language: 'bash',
+          code: curlCode,
+          icon: Icons.terminal_rounded,
         ),
       ],
     );
@@ -1465,24 +1372,13 @@ print(response.choices[0].message.content)''';
   "stream": false
 }''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'OpenAI standard chat payload (/v1/chat/completions):',
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'payload.json',
-              language: 'json',
-              code: chatJson,
-              icon: Icons.data_object_rounded,
-            ),
-          ],
-          onCopy: () => _copy(chatJson, 'Chat JSON Payload'),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'payload.json',
+          language: 'json',
+          code: chatJson,
+          icon: Icons.data_object_rounded,
         ),
       ],
     );
@@ -1491,24 +1387,13 @@ print(response.choices[0].message.content)''';
   Widget _buildOllamaTab(ColorScheme scheme, String ollamaBase, bool isDark) {
     final envCmd = 'export OLLAMA_HOST=$ollamaBase';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Point any Ollama client (Open-WebUI, Chatbox, CLI) to Thinai:',
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'env.sh',
-              language: 'bash',
-              code: envCmd,
-              icon: Icons.terminal_rounded,
-            ),
-          ],
-          onCopy: () => _copy(envCmd, 'Ollama Host Env'),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'env.sh',
+          language: 'bash',
+          code: envCmd,
+          icon: Icons.terminal_rounded,
         ),
       ],
     );
@@ -1535,7 +1420,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Copied $label'),
+        content: Text(context.l10n.serverCopiedLabel(label)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -1546,12 +1431,13 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     final endpoints = [
       _EndpointItem(
         method: 'POST',
         path: '/v1/chat/completions',
-        title: 'OpenAI Chat Completions',
+        title: l10n.serverEndpointOpenAiChat,
         curl:
             'curl ${widget.base}/v1/chat/completions \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1596,7 +1482,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'POST',
         path: '/api/chat',
-        title: 'Ollama Native Chat',
+        title: l10n.serverEndpointOllamaChat,
         curl:
             'curl ${widget.base}/api/chat \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1629,7 +1515,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'POST',
         path: '/v1/embeddings',
-        title: 'Vector Embeddings',
+        title: l10n.serverEndpointEmbeddings,
         curl:
             'curl ${widget.base}/v1/embeddings \\\n'
             '  -H "Content-Type: application/json" \\\n'
@@ -1662,7 +1548,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _EndpointItem(
         method: 'GET',
         path: '/v1/models',
-        title: 'Installed Models Catalog',
+        title: l10n.serverEndpointModels,
         curl: 'curl ${widget.base}/v1/models',
         requestJson: null,
         responseJson:
@@ -1696,39 +1582,13 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'API Endpoints',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Standard OpenAI & Ollama compatible HTTP routes',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Copy Base URL',
-                  icon: const Icon(Icons.link_rounded, size: 18),
-                  color: const Color(0xFF2CA048),
-                  onPressed: () =>
-                      _copy(widget.base, 'Base URL: ${widget.base}'),
-                ),
-              ],
+            child: Text(
+              l10n.serverApiEndpointsTitle,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -1845,7 +1705,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Copy cURL',
+                    tooltip: context.l10n.serverCopyCurlTooltip,
                     icon: const Icon(Icons.copy_rounded, size: 14),
                     color: scheme.onSurfaceVariant,
                     padding: EdgeInsets.zero,
@@ -1853,8 +1713,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       minWidth: 28,
                       minHeight: 28,
                     ),
-                    onPressed: () =>
-                        _copy(item.curl, '${item.path} cURL command'),
+                    onPressed: () => _copy(item.curl, '${item.path} cURL'),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -1881,14 +1740,6 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       initialTabIndex: activeTabIndex,
                       onTabChanged: (newIdx) {
                         setState(() => _endpointFormatIndices[index] = newIdx);
-                      },
-                      onCopy: () {
-                        final tab =
-                            tabs[(_endpointFormatIndices[index] ?? 0).clamp(
-                              0,
-                              maxTabIndex,
-                            )];
-                        _copy(tab.code, '${item.path} ${tab.filename}');
                       },
                     ),
                   )
@@ -2249,13 +2100,11 @@ class _VsCodeTerminalBox extends StatefulWidget {
   final List<_VsCodeFileTab> tabs;
   final int initialTabIndex;
   final ValueChanged<int>? onTabChanged;
-  final VoidCallback? onCopy;
 
   const _VsCodeTerminalBox({
     required this.tabs,
     this.initialTabIndex = 0,
     this.onTabChanged,
-    this.onCopy,
   });
 
   @override
@@ -2286,7 +2135,6 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
     Clipboard.setData(ClipboardData(text: activeTab.code));
     HapticFeedback.lightImpact();
     setState(() => _copied = true);
-    widget.onCopy?.call();
     Future.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) setState(() => _copied = false);
     });
@@ -2489,18 +2337,19 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                               ? const Color(0xFF4ADE80)
                               : const Color(0xFFCBD5E1),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _copied ? 'Copied' : 'Copy',
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: _copied
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFFE2E8F0),
+                        // Just the tick once copied: the long Tamil
+                        // "copied" would crowd out the file tabs.
+                        if (!_copied) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            context.l10n.commonCopy,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -2718,34 +2567,6 @@ class _StatusDotState extends State<_StatusDot>
                     shape: BoxShape.circle,
                   ),
                 ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── 7. FULL-WIDTH SECURITY NOTICE BANNER ────────────────────────────────────
-
-class _SecurityNoticeBanner extends StatelessWidget {
-  final bool lanShare;
-  final int port;
-
-  const _SecurityNoticeBanner({required this.lanShare, required this.port});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Text(
-        lanShare
-            ? 'Wi-Fi Network Serving Active · Any device on this local subnet can query the API on port $port with your Bearer token.'
-            : 'Local Loopback Active · Only apps executing directly on this hardware can query localhost:$port.',
-        style: TextStyle(
-          fontSize: 11.5,
-          color: scheme.onSurfaceVariant,
-          height: 1.35,
         ),
       ),
     );
