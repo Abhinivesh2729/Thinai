@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../widgets/made_in_erode.dart';
 import 'contact_support_page.dart';
@@ -17,10 +18,11 @@ class AboutPage extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final version = ref.watch(appVersionProvider).valueOrNull ?? '1.0.0';
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About Thinai'),
+        title: Text(l10n.aboutTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -70,7 +72,7 @@ class AboutPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 7),
                       Text(
-                        'v$version · On-Device Sovereign AI',
+                        l10n.aboutVersionBadge(version),
                         style: const TextStyle(
                           color: _brandGreen,
                           fontSize: 12,
@@ -83,7 +85,7 @@ class AboutPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Thinai executes modern open-weights neural models directly on your Android phone silicon. Zero internet required, zero cloud reliance, and 100% data sovereignty.',
+                  l10n.aboutHeroDescription,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
@@ -98,44 +100,40 @@ class AboutPage extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // ─── SECTION: ARCHITECTURAL PILLARS ────────────────────────────────
-          const _SectionTitle(title: 'Core Pillars'),
+          _SectionTitle(title: l10n.aboutCorePillars),
           const SizedBox(height: 10),
 
-          const _FeatureCard(
+          _FeatureCard(
             icon: Icons.shield_outlined,
-            title: '100% Private & Sovereign',
-            description:
-                'Every model token and user prompt is computed strictly inside device RAM. No telemetry, no logs, and no cloud interception.',
+            title: l10n.aboutPrivateTitle,
+            description: l10n.aboutPrivateBody,
           ),
           const SizedBox(height: 10),
 
-          const _FeatureCard(
+          _FeatureCard(
             icon: Icons.bolt_rounded,
-            title: 'Hardware Accelerated',
-            description:
-                'Built on a high-performance llama.cpp mobile runtime with Vulkan and OpenCL GPU acceleration, tuned for high speed on modern mobile chipsets.',
+            title: l10n.aboutAcceleratedTitle,
+            description: l10n.aboutAcceleratedBody,
           ),
           const SizedBox(height: 10),
 
-          const _FeatureCard(
+          _FeatureCard(
             icon: Icons.dns_rounded,
-            title: 'Local OpenAI-Compatible API',
-            description:
-                'Runs an embedded HTTP server on localhost:11434 with /v1/chat/completions, transforming your phone into an AI engine for other apps and automations.',
+            title: l10n.aboutApiTitle,
+            description: l10n.aboutApiBody,
           ),
           const SizedBox(height: 10),
 
-          const _FeatureCard(
+          _FeatureCard(
             icon: Icons.auto_awesome_rounded,
-            title: 'Multimodal Vision & Web',
-            description:
-                'Engage in visual reasoning with vision-enabled models (Gemma 3, MiniCPM), document summarization, and privacy-preserving live web search citations.',
+            title: l10n.aboutVisionTitle,
+            description: l10n.aboutVisionBody,
           ),
 
           const SizedBox(height: 22),
 
           // ─── SECTION: TECHNICAL SPECIFICATIONS ─────────────────────────────
-          const _SectionTitle(title: 'Technical Specifications'),
+          _SectionTitle(title: l10n.aboutTechSpecs),
           const SizedBox(height: 10),
 
           Container(
@@ -147,17 +145,32 @@ class AboutPage extends ConsumerWidget {
                 color: scheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
-            child: const Column(
+            child: Column(
               children: [
-                _SpecRow(label: 'Inference Engine', value: 'llama.cpp C++20 FFI'),
-                _SpecDivider(),
-                _SpecRow(label: 'Model Format', value: 'GGUF (Q4_K_M, Q8_0, BF16)'),
-                _SpecDivider(),
-                _SpecRow(label: 'Target Architecture', value: 'ARM64-v8a NEON / FP16'),
-                _SpecDivider(),
-                _SpecRow(label: 'Acceleration Backends', value: 'CPU, Vulkan, OpenCL'),
-                _SpecDivider(),
-                _SpecRow(label: 'Software License', value: 'Open Source (MIT)'),
+                _SpecRow(
+                  label: l10n.aboutSpecEngine,
+                  value: 'llama.cpp C++20 FFI',
+                ),
+                const _SpecDivider(),
+                _SpecRow(
+                  label: l10n.aboutSpecModelFormat,
+                  value: 'GGUF (Q4_K_M, Q8_0, BF16)',
+                ),
+                const _SpecDivider(),
+                _SpecRow(
+                  label: l10n.aboutSpecArchitecture,
+                  value: 'ARM64-v8a NEON / FP16',
+                ),
+                const _SpecDivider(),
+                _SpecRow(
+                  label: l10n.aboutSpecBackends,
+                  value: 'CPU, Vulkan, OpenCL',
+                ),
+                const _SpecDivider(),
+                _SpecRow(
+                  label: l10n.aboutSpecLicense,
+                  value: l10n.aboutSpecLicenseValue,
+                ),
               ],
             ),
           ),
@@ -165,7 +178,7 @@ class AboutPage extends ConsumerWidget {
           const SizedBox(height: 22),
 
           // ─── SECTION: OPEN SOURCE & COMMUNITY ──────────────────────────────
-          const _SectionTitle(title: 'Community & Transparency'),
+          _SectionTitle(title: l10n.aboutCommunity),
           const SizedBox(height: 10),
 
           Container(
@@ -181,7 +194,7 @@ class AboutPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Thinai is built on sovereign privacy and open-source principles. You can inspect all third-party licenses or contact support for help.',
+                  l10n.aboutCommunityBody,
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.45,
@@ -208,7 +221,7 @@ class AboutPage extends ConsumerWidget {
                           ),
                         ),
                         icon: const Icon(Icons.description_outlined, size: 18),
-                        label: const Text('Licenses'),
+                        label: Text(l10n.aboutLicenses),
                         style: FilledButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -228,7 +241,7 @@ class AboutPage extends ConsumerWidget {
                           );
                         },
                         icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                        label: const Text('Contact Support'),
+                        label: Text(l10n.aboutContactSupport),
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

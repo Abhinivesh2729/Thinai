@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../widgets/made_in_erode.dart';
 
@@ -23,7 +24,9 @@ class ContactSupportPage extends ConsumerWidget {
       if (!ok && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(failureMessage ?? 'Could not open link: $uri'),
+            content: Text(
+              failureMessage ?? context.l10n.supportCouldNotOpenLink('$uri'),
+            ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -33,7 +36,7 @@ class ContactSupportPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open link: $e'),
+            content: Text(context.l10n.supportFailedToOpenLink('$e')),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -42,12 +45,12 @@ class ContactSupportPage extends ConsumerWidget {
     }
   }
 
-  void _copyToClipboard(BuildContext context, String text, String label) {
+  void _copyToClipboard(BuildContext context, String text, String message) {
     HapticFeedback.lightImpact();
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label copied to clipboard'),
+        content: Text(message),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -65,10 +68,11 @@ class ContactSupportPage extends ConsumerWidget {
     final deviceProfile = ref.watch(deviceProfileProvider).valueOrNull;
     final activeId = ref.watch(activeModelIdProvider);
     final serverStatus = ref.watch(serverControllerProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contact Support'),
+        title: Text(l10n.supportTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
@@ -120,7 +124,7 @@ class ContactSupportPage extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'How can we help?',
+                        l10n.supportHeroTitle,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -130,7 +134,7 @@ class ContactSupportPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Need assistance running models, found a bug, or have a suggestion? We respond promptly to community queries.',
+                        l10n.supportHeroBody,
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.45,
@@ -147,17 +151,16 @@ class ContactSupportPage extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // ─── SECTION: OFFICIAL CHANNELS ────────────────────────────────────
-          _SectionHeader(title: 'Direct Support Channels'),
+          _SectionHeader(title: l10n.supportChannels),
           const SizedBox(height: 10),
 
           // 1. INSTAGRAM CARD (FEATURED)
           _ChannelCard(
             badgeColor: const Color(0xFFE1306C),
             icon: Icons.camera_alt_rounded,
-            title: 'Instagram Support',
+            title: l10n.supportInstagramTitle,
             handle: _instagramHandle,
-            description:
-                'Direct messaging, quick feature sneak-peeks, troubleshooting, and announcements.',
+            description: l10n.supportInstagramBody,
             action: Row(
               children: [
                 Expanded(
@@ -165,10 +168,10 @@ class ContactSupportPage extends ConsumerWidget {
                     onPressed: () => _launch(
                       context,
                       _instagramUrl,
-                      failureMessage: 'Unable to open Instagram link',
+                      failureMessage: l10n.supportInstagramOpenFailed,
                     ),
                     icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                    label: const Text('Open Instagram'),
+                    label: Text(l10n.supportOpenInstagram),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFFE1306C),
                       foregroundColor: Colors.white,
@@ -181,12 +184,12 @@ class ContactSupportPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 10),
                 IconButton.outlined(
-                  tooltip: 'Copy Instagram handle',
+                  tooltip: l10n.supportCopyHandle,
                   icon: const Icon(Icons.copy_rounded, size: 18),
                   onPressed: () => _copyToClipboard(
                     context,
                     _instagramHandle,
-                    'Instagram handle',
+                    l10n.supportHandleCopied,
                   ),
                   style: IconButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -201,10 +204,10 @@ class ContactSupportPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // ─── SECTION: DIAGNOSTICS & SYSTEM INFO ────────────────────────────
-          _SectionHeader(title: 'Device Diagnostics'),
+          _SectionHeader(title: l10n.supportDiagnostics),
           const SizedBox(height: 6),
           Text(
-            'Copying this data makes troubleshooting 10x faster when contacting us.',
+            l10n.supportDiagnosticsHint,
             style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
@@ -231,7 +234,7 @@ class ContactSupportPage extends ConsumerWidget {
                     ),
                     if (deviceProfile != null) ...[
                       _DiagnosticChip(
-                        label: '${deviceProfile.cores} CPU Cores',
+                        label: l10n.supportCpuCores(deviceProfile.cores),
                         icon: Icons.memory_rounded,
                       ),
                       if (deviceProfile.totalRamBytes != null)
@@ -241,16 +244,22 @@ class ContactSupportPage extends ConsumerWidget {
                           icon: Icons.storage_rounded,
                         ),
                       _DiagnosticChip(
-                        label: 'Tier: ${deviceProfile.deviceClass.name.toUpperCase()}',
+                        label: l10n.supportTier(
+                          deviceProfile.deviceClass.name.toUpperCase(),
+                        ),
                         icon: Icons.speed_rounded,
                       ),
                     ],
                     _DiagnosticChip(
-                      label: activeId != null ? 'Model: $activeId' : 'No active model',
+                      label: activeId != null
+                          ? l10n.supportModel(activeId)
+                          : l10n.supportNoActiveModel,
                       icon: Icons.smart_toy_outlined,
                     ),
                     _DiagnosticChip(
-                      label: serverStatus.running ? 'Server: Active' : 'Server: Stopped',
+                      label: serverStatus.running
+                          ? l10n.supportServerActive
+                          : l10n.supportServerStopped,
                       icon: Icons.dns_rounded,
                     ),
                   ],
@@ -272,10 +281,14 @@ class ContactSupportPage extends ConsumerWidget {
                         '• Active Model: ${activeId ?? "None"}',
                         '• Local API Server: ${serverStatus.running ? "Active" : "Stopped"}',
                       ].join('\n');
-                      _copyToClipboard(context, diagText, 'System diagnostics');
+                      _copyToClipboard(
+                        context,
+                        diagText,
+                        l10n.supportDiagnosticsCopied,
+                      );
                     },
                     icon: const Icon(Icons.copy_all_rounded, size: 18),
-                    label: const Text('Copy Diagnostic Specs'),
+                    label: Text(l10n.supportCopyDiagnostics),
                     style: FilledButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -291,25 +304,22 @@ class ContactSupportPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // ─── SECTION: FREQUENTLY ASKED QUESTIONS ───────────────────────────
-          _SectionHeader(title: 'Quick Troubleshooting'),
+          _SectionHeader(title: l10n.supportTroubleshooting),
           const SizedBox(height: 12),
 
           _FaqCard(
-            question: 'Why does a model take long to load or download?',
-            answer:
-                'Models are large AI neural networks (1 GB to 4+ GB). Download speed depends on your Wi-Fi connection. Loading requires allocating RAM; ensure background apps are cleared before loading 7B+ models.',
+            question: l10n.supportFaqLoadQuestion,
+            answer: l10n.supportFaqLoadAnswer,
           ),
           const SizedBox(height: 10),
           _FaqCard(
-            question: 'Does Thinai leak or upload my chats to the cloud?',
-            answer:
-                'Never. Thinai is built from the ground up to be 100% sovereign and offline. The neural weights run directly on your phone CPU/GPU silicon, and no conversational data leaves device memory.',
+            question: l10n.supportFaqPrivacyQuestion,
+            answer: l10n.supportFaqPrivacyAnswer,
           ),
           const SizedBox(height: 10),
           _FaqCard(
-            question: 'How do I use GPU acceleration (Vulkan / OpenCL)?',
-            answer:
-                'Navigate to Settings > Hardware & Acceleration, and select Vulkan or OpenCL. Vulkan works best on Qualcomm Snapdragon Adreno and modern MediaTek Dimensity GPUs.',
+            question: l10n.supportFaqGpuQuestion,
+            answer: l10n.supportFaqGpuAnswer,
           ),
 
           const SizedBox(height: 28),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../chat/system_prompt.dart';
+import '../../l10n/l10n.dart';
 
 /// Views, edits and resets the system prompt chats are sent with.
 ///
@@ -47,7 +48,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
     await ref.read(systemPromptProvider.notifier).set(_text.text);
     if (!mounted) return;
     setState(() {});
-    if (announce) _toast('System prompt saved. New messages will use it.');
+    if (announce) _toast(context.l10n.systemPromptSaved);
   }
 
   Future<void> _reset() async {
@@ -56,7 +57,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
     setState(
       () => _text.text = ref.read(systemPromptProvider.notifier).defaultPrompt,
     );
-    _toast('System prompt reset to the default.');
+    _toast(context.l10n.systemPromptResetDone);
   }
 
   void _toast(String text) {
@@ -80,11 +81,11 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('System Prompt'),
+          title: Text(context.l10n.systemPromptTitle),
           actions: [
             TextButton(
               onPressed: _dirty ? _save : null,
-              child: const Text('Save'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         ),
@@ -94,9 +95,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                 children: [
                   Text(
-                    'Instructions sent to the model at the start of every '
-                    'chat. Changes apply from the next message you send. '
-                    'Leave it empty to use the model\'s own default.',
+                    context.l10n.systemPromptDescription,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -111,7 +110,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      hintText: 'You are a helpful assistant…',
+                      hintText: context.l10n.systemPromptHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -121,7 +120,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      '${_text.text.length} characters',
+                      context.l10n.systemPromptCharacters(_text.text.length),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -133,7 +132,7 @@ class _SystemPromptPageState extends ConsumerState<SystemPromptPage> {
                     child: TextButton.icon(
                       onPressed: isDefault ? null : _reset,
                       icon: const Icon(Icons.restart_alt_rounded),
-                      label: const Text('Reset to default'),
+                      label: Text(context.l10n.systemPromptResetToDefault),
                     ),
                   ),
                 ],
