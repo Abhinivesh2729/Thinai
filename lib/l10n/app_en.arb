@@ -1083,8 +1083,8 @@
   "chatAppUpdateReady": "Update ready",
   "chatAppUpdateAvailable": "New version",
   "chatAppUpdateDownloading": "Downloading…",
-  "modelsToastDownloadPaused": "Download paused. Tap Resume to continue.",
-  "modelsToastDownloadStopped": "Download of {model} stopped: {error}. Progress is saved, tap Resume to continue.",
+  "modelsToastDownloadPaused": "Download paused",
+  "modelsToastDownloadStopped": "{model} stopped: {error}. Tap Resume to continue.",
   "@modelsToastDownloadStopped": {
     "placeholders": {
       "model": {
@@ -1138,8 +1138,8 @@
       }
     }
   },
-  "modelsConfirmDownloadTitle": "Download model?",
-  "modelsConfirmDownloadMessage": "Do you want to download {model} ({size})?",
+  "modelsConfirmDownloadTitle": "Download?",
+  "modelsConfirmDownloadMessage": "{model} ({size})",
   "@modelsConfirmDownloadMessage": {
     "placeholders": {
       "model": {
@@ -1151,7 +1151,7 @@
     }
   },
   "modelsConfirmDiscardTitle": "Discard download?",
-  "modelsConfirmDiscardMessage": "Do you want to discard the paused download of {model}? The {size} saved so far will be deleted.",
+  "modelsConfirmDiscardMessage": "{model} ({size} saved) will be deleted.",
   "@modelsConfirmDiscardMessage": {
     "placeholders": {
       "model": {
@@ -1164,7 +1164,7 @@
   },
   "modelsDiscard": "Discard",
   "modelsConfirmDeleteTitle": "Delete model?",
-  "modelsConfirmDeleteMessage": "Do you want to delete {model}? This frees {size} of space.",
+  "modelsConfirmDeleteMessage": "{model} will be removed, freeing {size}.",
   "@modelsConfirmDeleteMessage": {
     "placeholders": {
       "model": {
@@ -1202,9 +1202,9 @@
     }
   },
   "modelsNoneInstalledYet": "No models installed yet",
-  "modelsNoneInstalledYetBody": "Browse and download GGUF models from the catalog to run offline on this device.",
+  "modelsNoneInstalledYetBody": "Download a model to chat offline.",
   "modelsBrowseCatalog": "Browse Catalog",
-  "modelsInstalledSectionTitle": "Installed models ({count})",
+  "modelsInstalledSectionTitle": "Installed ({count})",
   "@modelsInstalledSectionTitle": {
     "placeholders": {
       "count": {
@@ -1212,34 +1212,19 @@
       }
     }
   },
-  "modelsInstalledSectionSubtitle": "Tap a model to load it for chat",
-  "modelsRecommendedFor": "Recommended for {goal}",
-  "@modelsRecommendedFor": {
-    "placeholders": {
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsRecommendedSubtitle": "Optimal weights selected for your device specs",
-  "modelsFeaturedTitle": "Featured Models",
-  "modelsFeaturedSubtitle": "Handpicked for you",
+  "modelsFeaturedTitle": "Featured",
   "modelsOtherModels": "Other models",
   "modelsVisionModelsTitle": "Vision models",
   "modelsChatModelsTitle": "Chat models",
-  "modelsExploreModels": "Explore Models",
-  "modelsBrowseCatalogTitle": "Browse catalog",
-  "modelsOtherModelsSubtitle": "All other available models",
-  "modelsVisionModelsSubtitle": "Multimodal · image & visual analysis",
-  "modelsCatalogSubtitle": "Curated GGUF models · one-tap download",
+  "modelsExploreModels": "More models",
+  "modelsBrowseCatalogTitle": "Results",
   "modelsEmbeddingTitle": "Embedding models",
-  "modelsEmbeddingSubtitle": "For search and RAG · /api/embed · /v1/embeddings",
-  "modelsOfflineFooter": "Downloaded models stay 100% on-device and run entirely offline.",
-  "modelsSearchHint": "Search models, makers, architectures…",
+  "modelsOfflineFooter": "Models run fully offline on this phone.",
+  "modelsSearchHint": "Search models",
   "modelsClearSearch": "Clear search",
-  "modelsFilterAll": "All Models",
-  "modelsFilterChat": "Chat Models",
-  "modelsFilterVision": "Vision Models",
+  "modelsFilterAll": "All",
+  "modelsFilterChat": "Chat",
+  "modelsFilterVision": "Vision",
   "modelsFilterEmbedding": "Embedding",
   "modelsFilterInstalled": "Installed",
   "modelsFilterInstalledCount": "Installed ({count})",
@@ -1251,9 +1236,9 @@
     }
   },
   "modelsFilterCategory": "Filter Category",
-  "modelsGoals": "Goals",
+  "modelsGoals": "Goal",
   "modelsResetFiltersTooltip": "Reset filters and search",
-  "modelsTargeting": "Targeting: {goal}",
+  "modelsTargeting": "Goal: {goal}",
   "@modelsTargeting": {
     "placeholders": {
       "goal": {
@@ -1263,21 +1248,7 @@
   },
   "modelsChange": "Change",
   "modelsClearGoal": "Clear goal",
-  "modelsManagerSubtitleDownloading": "{installed} installed · {downloading} downloading · {size} used",
-  "@modelsManagerSubtitleDownloading": {
-    "placeholders": {
-      "installed": {
-        "type": "int"
-      },
-      "downloading": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsManagerSubtitle": "{count} models · {size} storage used",
+  "modelsManagerSubtitle": "{count, plural, =1{1 model} other{{count} models}} · {size}",
   "@modelsManagerSubtitle": {
     "placeholders": {
       "count": {
@@ -1289,8 +1260,8 @@
     }
   },
   "modelsNoneInstalled": "No models installed",
-  "modelsNoneInstalledBody": "Download models from the catalog to run offline chat.",
-  "modelsActiveForChat": "Active for Chat: {model}",
+  "modelsNoneInstalledBody": "Download one from the catalog.",
+  "modelsActiveForChat": "In use: {model}",
   "@modelsActiveForChat": {
     "placeholders": {
       "model": {
@@ -1298,13 +1269,12 @@
       }
     }
   },
-  "modelsNoModelLoaded": "No model loaded in Chat",
-  "modelsInstalledAppearHere": "Installed models will appear here after download completes.",
+  "modelsNoModelLoaded": "No model loaded",
+  "modelsInstalledAppearHere": "Finished downloads show up here.",
   "modelsActive": "Active",
-  "modelsActivate": "Activate",
+  "modelsActivate": "Load",
   "modelsDeleteModel": "Delete model",
-  "modelsChooseGoal": "Choose Your Goal",
-  "modelsChooseGoalSubtitle": "Thinai benchmarks & recommends models for your device",
+  "modelsChooseGoal": "Choose a goal",
   "modelsClearActiveGoal": "Clear Active Goal",
   "modelsNoMatchFilters": "No models match current filters",
   "modelsNoMatchQuery": "No models match \"{query}\"",
@@ -1315,21 +1285,15 @@
       }
     }
   },
-  "modelsNoMatchHint": "Try adjusting your selected filters or search terms.",
+  "modelsNoMatchHint": "Try another search or filter.",
   "modelsSearchHuggingFace": "Search Hugging Face",
-  "modelsResetFiltersAndSearch": "Reset filters & search",
+  "modelsResetFiltersAndSearch": "Reset filters",
   "modelsStatusCancelled": "Cancelled",
   "modelsStatusFailed": "Failed",
-  "modelsStatusCompleted": "100% · Completed",
+  "modelsStatusCompleted": "Done",
   "modelsStatusStarting": "Starting…",
-  "modelsActiveInChat": "Active in Chat",
-  "modelsTapToActivate": "Tap to activate",
-  "modelsBadgeVision": "VISION",
-  "modelsBadgeEmbed": "EMBED",
-  "modelsBadgeReason": "REASON",
-  "modelsBadgeText": "TEXT",
-  "modelsFeaturedBadge": "FEATURED",
-  "modelsPopular": "Popular",
+  "modelsActiveInChat": "In use",
+  "modelsTapToActivate": "Tap to load",
   "modelsAddVision": "+ Vision ({size})",
   "@modelsAddVision": {
     "placeholders": {
@@ -1340,7 +1304,7 @@
   },
   "modelsInstalled": "Installed",
   "modelsPause": "Pause",
-  "modelsTopPick": "TOP PICK",
+  "modelsTopPick": "Top pick",
   "modelsModelDetails": "Model details",
   "modelsDimensions": "{count} dims",
   "@modelsDimensions": {
@@ -1371,10 +1335,10 @@
       }
     }
   },
-  "modelsCapVisionReady": "Vision Ready",
+  "modelsCapVisionReady": "Vision",
   "modelsCapEmbeddings": "Embeddings",
   "modelsCapLightweight": "Lightweight",
-  "modelsCapFast": "Fast & Efficient",
+  "modelsCapFast": "Fast",
   "modelsCapMultilingual": "Multilingual",
   "modelsCapCodeReasoning": "Code · Reasoning",
   "modelsCapInstruct": "Instruct",
@@ -1390,7 +1354,7 @@
       }
     }
   },
-  "modelsFitTight": "A tight fit. Other apps may close while this runs.",
+  "modelsFitTight": "Tight fit. Other apps may close while it runs.",
   "modelsDownloadingCount": "{count, plural, =1{Downloading model} other{Downloading {count} models}}",
   "@modelsDownloadingCount": {
     "placeholders": {
@@ -1425,27 +1389,26 @@
       }
     }
   },
-  "modelsPausedDownloadsBody": "Saved on this phone. Resume to continue where it stopped.",
   "modelsResumeDownload": "Resume download",
   "modelsDiscardDownload": "Discard download",
   "modelsUseCaseFastChat": "Fast chat",
-  "modelsUseCaseFastChatBlurb": "Quick back-and-forth, answers as fast as you type",
-  "modelsUseCaseReasoning": "Best reasoning",
-  "modelsUseCaseReasoningBlurb": "Harder questions, maths, step-by-step thinking",
+  "modelsUseCaseFastChatBlurb": "Quick replies",
+  "modelsUseCaseReasoning": "Reasoning",
+  "modelsUseCaseReasoningBlurb": "Maths and hard questions",
   "modelsUseCaseCoding": "Coding",
-  "modelsUseCaseCodingBlurb": "Writing and explaining code",
+  "modelsUseCaseCodingBlurb": "Write and explain code",
   "modelsUseCaseTamil": "Tamil",
-  "modelsUseCaseTamilBlurb": "Chatting and writing in Tamil",
+  "modelsUseCaseTamilBlurb": "Chat and write in Tamil",
   "modelsUseCaseEnglish": "English",
-  "modelsUseCaseEnglishBlurb": "Everyday English conversation and writing",
-  "modelsUseCaseVision": "Image understanding",
-  "modelsUseCaseVisionBlurb": "Asking questions about a photo or screenshot",
-  "modelsUseCaseTranslation": "Offline translation",
-  "modelsUseCaseTranslationBlurb": "Translating between languages with no signal",
-  "modelsUseCaseSummarizing": "Summarization",
-  "modelsUseCaseSummarizingBlurb": "Shortening long text into the gist",
-  "modelsUseCaseDocuments": "Document analysis",
-  "modelsUseCaseDocumentsBlurb": "Reading long documents and answering about them",
+  "modelsUseCaseEnglishBlurb": "Everyday English",
+  "modelsUseCaseVision": "Images",
+  "modelsUseCaseVisionBlurb": "Ask about a photo",
+  "modelsUseCaseTranslation": "Translation",
+  "modelsUseCaseTranslationBlurb": "Translate with no internet",
+  "modelsUseCaseSummarizing": "Summaries",
+  "modelsUseCaseSummarizingBlurb": "The gist of long text",
+  "modelsUseCaseDocuments": "Documents",
+  "modelsUseCaseDocumentsBlurb": "Ask about long documents",
   "modelsReasonNotSuited": "{task, select, fastChat{Not suited to quick conversations} reasoning{Not suited to step-by-step reasoning} coding{Not suited to code} tamil{Not suited to Tamil} english{Not suited to English} vision{Not suited to images} translation{Not suited to translation} summarizing{Not suited to summarising} documents{Not suited to long documents} other{Not suited to quick conversations}}",
   "@modelsReasonNotSuited": {
     "placeholders": {
@@ -1511,80 +1474,29 @@
     }
   },
   "modelsVisionUnavailable": "Image understanding is not available in this build.",
-  "modelsFitComfortable": "Runs well on your phone",
-  "modelsFitTightShort": "Tight fit, may slow other apps",
+  "modelsFitComfortable": "Runs well",
+  "modelsFitTightShort": "Tight fit",
   "modelsFitTooBig": "Too big for your phone",
   "modelsFitUnknown": "Fit unknown",
   "modelsSpeedUnknown": "speed unknown",
-  "modelsAdvisorGoalCollapsed": "Goal: {goal} · tap to customize",
-  "@modelsAdvisorGoalCollapsed": {
-    "placeholders": {
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsAdvisorPromptCollapsed": "What do you want to do? · tap to pick a goal",
   "modelsAdvisorPrompt": "What do you want to do?",
   "modelsClear": "Clear",
   "modelsAdvisorCollapse": "Collapse guide",
-  "modelsAdvisorSubtitleKnown": "Thinai picks a model that fits your phone · {device}",
-  "@modelsAdvisorSubtitleKnown": {
-    "placeholders": {
-      "device": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsAdvisorSubtitle": "Thinai picks a model for the job",
-  "modelsAdvisorNothingFits": "Nothing in the catalogue fits this one.",
-  "modelsAdvisorBestForPhone": "Best model for your phone",
-  "modelsAdvisorBestForThis": "Best model for this",
-  "modelsAdvisorAlsoConsider": "Also worth considering",
-  "modelsAdvisorAuthorDownload": "{author} · {size} download",
-  "@modelsAdvisorAuthorDownload": {
-    "placeholders": {
-      "author": {
-        "type": "String"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsAdvisorContext": "{context} context",
-  "@modelsAdvisorContext": {
-    "placeholders": {
-      "context": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsAdvisorAlreadyDownloaded": "Already downloaded",
-  "modelsAdvisorSpeedMeasured": "Speed measured on this phone by Benchmark.",
-  "modelsAdvisorSpeedEstimated": "Estimated speed. Run Benchmark for the real number.",
-  "modelsAdvisorStartingCancel": "Starting… · tap to cancel",
-  "modelsAdvisorDownloadingCancel": "Downloading {percent}% · tap to cancel",
-  "@modelsAdvisorDownloadingCancel": {
-    "placeholders": {
-      "percent": {
-        "type": "String"
-      }
-    }
-  },
+  "modelsAdvisorNothingFits": "Nothing fits this phone.",
+  "modelsAdvisorAlsoConsider": "Also good",
   "modelsSettingsTitle": "Model settings",
-  "modelsSettingsBody": "Used by chat and the API server. Requests can override these, up to the maximum.",
+  "modelsSettingsBody": "Applies to chat and the server.",
   "modelsSettingsResetDefaults": "Reset to defaults",
   "modelsSettingsContextWindow": "Context window",
-  "modelsSettingsContextHelp": "Longer windows remember more but use more RAM and run slower.",
+  "modelsSettingsContextHelp": "Longer remembers more but uses more RAM.",
   "modelsSettingsTemperature": "Temperature",
   "modelsSettingsPrecise": "Precise",
   "modelsSettingsCreative": "Creative",
-  "modelsSettingsTopKHelp": "Picks each word from only the K likeliest. Lower is more focused; 0 turns the limit off.",
-  "modelsSettingsTopPHelp": "Picks from the likeliest words that together make up this share of the probability. 1.00 keeps them all.",
+  "modelsSettingsTopKHelp": "Lower is more focused. 0 turns it off.",
+  "modelsSettingsTopPHelp": "Lower is more focused. 1.00 turns it off.",
   "modelsSettingsThinking": "Thinking",
-  "modelsSettingsThinkingHelp": "Reasons step by step before answering. Off answers sooner.",
-  "modelsSettingsCapPhoneRam": "Maximum {max}, limited by this phone's RAM.",
+  "modelsSettingsThinkingHelp": "Thinks before answering. Off is faster.",
+  "modelsSettingsCapPhoneRam": "Max {max}, limited by RAM.",
   "@modelsSettingsCapPhoneRam": {
     "placeholders": {
       "max": {
@@ -1592,18 +1504,7 @@
       }
     }
   },
-  "modelsSettingsCapRam": "Maximum {max}, limited by RAM (model supports {trained}).",
-  "@modelsSettingsCapRam": {
-    "placeholders": {
-      "max": {
-        "type": "String"
-      },
-      "trained": {
-        "type": "String"
-      }
-    }
-  },
-  "modelsSettingsCapTraining": "Maximum {max}, this model's training limit.",
+  "modelsSettingsCapTraining": "Max {max}, the model's limit.",
   "@modelsSettingsCapTraining": {
     "placeholders": {
       "max": {
@@ -1611,7 +1512,7 @@
       }
     }
   },
-  "modelsSettingsCap": "Maximum {max}.",
+  "modelsSettingsCap": "Max {max}.",
   "@modelsSettingsCap": {
     "placeholders": {
       "max": {
@@ -1652,5 +1553,6 @@
       }
     }
   },
-  "settingsGlossary": "Glossary"
+  "settingsGlossary": "Glossary",
+  "modelsTopPicks": "Top picks"
 }

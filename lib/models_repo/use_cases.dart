@@ -23,27 +23,27 @@ extension UseCaseInfo on UseCase {
   /// Short label for a chip.
   String get label => switch (this) {
     UseCase.fastChat => 'Fast chat',
-    UseCase.reasoning => 'Best reasoning',
+    UseCase.reasoning => 'Reasoning',
     UseCase.coding => 'Coding',
     UseCase.tamil => 'Tamil',
     UseCase.english => 'English',
-    UseCase.vision => 'Image understanding',
-    UseCase.translation => 'Offline translation',
-    UseCase.summarizing => 'Summarization',
-    UseCase.documents => 'Document analysis',
+    UseCase.vision => 'Images',
+    UseCase.translation => 'Translation',
+    UseCase.summarizing => 'Summaries',
+    UseCase.documents => 'Documents',
   };
 
   /// What picking this actually optimises for, in the user's terms.
   String get blurb => switch (this) {
-    UseCase.fastChat => 'Quick back-and-forth, answers as fast as you type',
-    UseCase.reasoning => 'Harder questions, maths, step-by-step thinking',
-    UseCase.coding => 'Writing and explaining code',
-    UseCase.tamil => 'Chatting and writing in Tamil',
-    UseCase.english => 'Everyday English conversation and writing',
-    UseCase.vision => 'Asking questions about a photo or screenshot',
-    UseCase.translation => 'Translating between languages with no signal',
-    UseCase.summarizing => 'Shortening long text into the gist',
-    UseCase.documents => 'Reading long documents and answering about them',
+    UseCase.fastChat => 'Quick replies',
+    UseCase.reasoning => 'Maths and hard questions',
+    UseCase.coding => 'Write and explain code',
+    UseCase.tamil => 'Chat and write in Tamil',
+    UseCase.english => 'Everyday English',
+    UseCase.vision => 'Ask about a photo',
+    UseCase.translation => 'Translate with no internet',
+    UseCase.summarizing => 'The gist of long text',
+    UseCase.documents => 'Ask about long documents',
   };
 
   /// [label] in the app's language.

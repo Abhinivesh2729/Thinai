@@ -1707,12 +1707,11 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatAppUpdateDownloading => 'பதிவிறக்குகிறது…';
 
   @override
-  String get modelsToastDownloadPaused =>
-      'பதிவிறக்கம் இடைநிறுத்தப்பட்டது. தொடர, தொடர் என்பதைத் தட்டவும்.';
+  String get modelsToastDownloadPaused => 'பதிவிறக்கம் இடைநிறுத்தப்பட்டது';
 
   @override
   String modelsToastDownloadStopped(String model, String error) {
-    return '$model பதிவிறக்கம் நின்றது: $error. முன்னேற்றம் சேமிக்கப்பட்டது, தொடர, தொடர் என்பதைத் தட்டவும்.';
+    return '$model நின்றது: $error. தொடர, தொடர் என்பதைத் தட்டவும்.';
   }
 
   @override
@@ -1741,11 +1740,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsConfirmDownloadTitle => 'அறிவுருவைப் பதிவிறக்கவா?';
+  String get modelsConfirmDownloadTitle => 'பதிவிறக்கவா?';
 
   @override
   String modelsConfirmDownloadMessage(String model, String size) {
-    return '$model ($size) அறிவுருவைப் பதிவிறக்க விரும்புகிறீர்களா?';
+    return '$model ($size)';
   }
 
   @override
@@ -1753,7 +1752,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsConfirmDiscardMessage(String model, String size) {
-    return 'இடைநிறுத்தப்பட்ட $model பதிவிறக்கத்தை நீக்க விரும்புகிறீர்களா? இதுவரை சேமிக்கப்பட்ட $size நீக்கப்படும்.';
+    return '$model ($size சேமிக்கப்பட்டது) நீக்கப்படும்.';
   }
 
   @override
@@ -1764,7 +1763,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsConfirmDeleteMessage(String model, String size) {
-    return '$model அறிவுருவை நீக்க விரும்புகிறீர்களா? இதனால் $size இடம் காலியாகும்.';
+    return '$model நீக்கப்படும். $size இடம் காலியாகும்.';
   }
 
   @override
@@ -1794,34 +1793,18 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsNoneInstalledYetBody =>
-      'இந்தச் சாதனத்தில் ஆஃப்லைனில் இயக்க, பட்டியலிலிருந்து GGUF அறிவுருக்களைப் பார்த்துப் பதிவிறக்கவும்.';
+      'ஆஃப்லைனில் உரையாட ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
 
   @override
   String get modelsBrowseCatalog => 'பட்டியலைப் பார்';
 
   @override
   String modelsInstalledSectionTitle(int count) {
-    return 'நிறுவப்பட்ட அறிவுருக்கள் ($count)';
+    return 'நிறுவப்பட்டவை ($count)';
   }
 
   @override
-  String get modelsInstalledSectionSubtitle =>
-      'உரையாடலுக்கு ஏற்ற ஒரு அறிவுருவைத் தட்டவும்';
-
-  @override
-  String modelsRecommendedFor(String goal) {
-    return 'பரிந்துரை: $goal';
-  }
-
-  @override
-  String get modelsRecommendedSubtitle =>
-      'உங்கள் சாதனத்துக்கு ஏற்ற weights தேர்ந்தெடுக்கப்பட்டன';
-
-  @override
-  String get modelsFeaturedTitle => 'சிறப்பு அறிவுருக்கள்';
-
-  @override
-  String get modelsFeaturedSubtitle => 'உங்களுக்காகத் தேர்ந்தெடுக்கப்பட்டவை';
+  String get modelsFeaturedTitle => 'சிறப்புத் தேர்வு';
 
   @override
   String get modelsOtherModels => 'பிற அறிவுருக்கள்';
@@ -1833,49 +1816,32 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsChatModelsTitle => 'உரையாடல் அறிவுருக்கள்';
 
   @override
-  String get modelsExploreModels => 'அறிவுருக்களை ஆராய்';
+  String get modelsExploreModels => 'மேலும் அறிவுருக்கள்';
 
   @override
-  String get modelsBrowseCatalogTitle => 'பட்டியலைப் பார்';
-
-  @override
-  String get modelsOtherModelsSubtitle =>
-      'கிடைக்கும் மற்ற எல்லா அறிவுருக்களும்';
-
-  @override
-  String get modelsVisionModelsSubtitle =>
-      'மல்டிமோடல் · படம் & காட்சிப் பகுப்பாய்வு';
-
-  @override
-  String get modelsCatalogSubtitle =>
-      'தேர்ந்தெடுத்த GGUF அறிவுருக்கள் · ஒரே தட்டலில் பதிவிறக்கம்';
+  String get modelsBrowseCatalogTitle => 'முடிவுகள்';
 
   @override
   String get modelsEmbeddingTitle => 'Embedding அறிவுருக்கள்';
 
   @override
-  String get modelsEmbeddingSubtitle =>
-      'தேடல் மற்றும் RAG-க்கு · /api/embed · /v1/embeddings';
-
-  @override
   String get modelsOfflineFooter =>
-      'பதிவிறக்கப்பட்ட அறிவுருக்கள் 100% சாதனத்திலேயே இருக்கும், முழுவதும் ஆஃப்லைனில் இயங்கும்.';
+      'அறிவுருக்கள் இந்தக் கைப்பேசியிலேயே ஆஃப்லைனில் இயங்கும்.';
 
   @override
-  String get modelsSearchHint =>
-      'அறிவுருக்கள், தயாரிப்பாளர்கள், கட்டமைப்புகளைத் தேடு…';
+  String get modelsSearchHint => 'அறிவுருக்களைத் தேடு';
 
   @override
   String get modelsClearSearch => 'தேடலை அழி';
 
   @override
-  String get modelsFilterAll => 'எல்லா அறிவுருக்களும்';
+  String get modelsFilterAll => 'எல்லாம்';
 
   @override
-  String get modelsFilterChat => 'உரையாடல் அறிவுருக்கள்';
+  String get modelsFilterChat => 'உரையாடல்';
 
   @override
-  String get modelsFilterVision => 'பட அறிவுருக்கள்';
+  String get modelsFilterVision => 'படம்';
 
   @override
   String get modelsFilterEmbedding => 'Embedding';
@@ -1892,7 +1858,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsFilterCategory => 'வகையை வடிகட்டு';
 
   @override
-  String get modelsGoals => 'இலக்குகள்';
+  String get modelsGoals => 'இலக்கு';
 
   @override
   String get modelsResetFiltersTooltip => 'வடிகட்டிகளையும் தேடலையும் மீட்டமை';
@@ -1909,17 +1875,14 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsClearGoal => 'இலக்கை அழி';
 
   @override
-  String modelsManagerSubtitleDownloading(
-    int installed,
-    int downloading,
-    String size,
-  ) {
-    return '$installed நிறுவப்பட்டது · $downloading பதிவிறக்குகிறது · $size பயன்பாட்டில்';
-  }
-
-  @override
   String modelsManagerSubtitle(int count, String size) {
-    return '$count அறிவுருக்கள் · $size சேமிப்பகம் பயன்பாட்டில்';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count அறிவுருக்கள்',
+      one: '1 அறிவுரு',
+    );
+    return '$_temp0 · $size';
   }
 
   @override
@@ -1927,36 +1890,31 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsNoneInstalledBody =>
-      'ஆஃப்லைனில் உரையாட, பட்டியலிலிருந்து அறிவுருக்களைப் பதிவிறக்கவும்.';
+      'பட்டியலிலிருந்து ஒன்றைப் பதிவிறக்கவும்.';
 
   @override
   String modelsActiveForChat(String model) {
-    return 'உரையாடலில் செயலில்: $model';
+    return 'பயன்பாட்டில்: $model';
   }
 
   @override
-  String get modelsNoModelLoaded =>
-      'உரையாடலில் எந்த அறிவுருவும் ஏற்றப்படவில்லை';
+  String get modelsNoModelLoaded => 'எந்த அறிவுருவும் ஏற்றப்படவில்லை';
 
   @override
   String get modelsInstalledAppearHere =>
-      'பதிவிறக்கம் முடிந்ததும் நிறுவப்பட்ட அறிவுருக்கள் இங்கே தோன்றும்.';
+      'முடிந்த பதிவிறக்கங்கள் இங்கே தோன்றும்.';
 
   @override
   String get modelsActive => 'செயலில்';
 
   @override
-  String get modelsActivate => 'செயல்படுத்து';
+  String get modelsActivate => 'ஏற்று';
 
   @override
   String get modelsDeleteModel => 'அறிவுருவை நீக்கு';
 
   @override
-  String get modelsChooseGoal => 'உங்கள் இலக்கைத் தேர்ந்தெடுக்கவும்';
-
-  @override
-  String get modelsChooseGoalSubtitle =>
-      'Thinai உங்கள் சாதனத்துக்கு அறிவுருக்களைச் சோதித்துப் பரிந்துரைக்கிறது';
+  String get modelsChooseGoal => 'இலக்கைத் தேர்வுசெய்';
 
   @override
   String get modelsClearActiveGoal => 'தற்போதைய இலக்கை அழி';
@@ -1971,14 +1929,13 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsNoMatchHint =>
-      'தேர்ந்தெடுத்த வடிகட்டிகளையோ தேடல் சொற்களையோ மாற்றிப் பார்க்கவும்.';
+  String get modelsNoMatchHint => 'வேறு தேடலையோ வடிகட்டியையோ முயலவும்.';
 
   @override
   String get modelsSearchHuggingFace => 'Hugging Face-இல் தேடு';
 
   @override
-  String get modelsResetFiltersAndSearch => 'வடிகட்டிகள் & தேடலை மீட்டமை';
+  String get modelsResetFiltersAndSearch => 'வடிகட்டிகளை மீட்டமை';
 
   @override
   String get modelsStatusCancelled => 'ரத்துசெய்யப்பட்டது';
@@ -1987,34 +1944,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsStatusFailed => 'தோல்வியடைந்தது';
 
   @override
-  String get modelsStatusCompleted => '100% · முடிந்தது';
+  String get modelsStatusCompleted => 'முடிந்தது';
 
   @override
   String get modelsStatusStarting => 'தொடங்குகிறது…';
 
   @override
-  String get modelsActiveInChat => 'உரையாடலில் செயலில்';
+  String get modelsActiveInChat => 'பயன்பாட்டில்';
 
   @override
-  String get modelsTapToActivate => 'செயல்படுத்தத் தட்டவும்';
-
-  @override
-  String get modelsBadgeVision => 'படம்';
-
-  @override
-  String get modelsBadgeEmbed => 'EMBED';
-
-  @override
-  String get modelsBadgeReason => 'பகுத்தறிவு';
-
-  @override
-  String get modelsBadgeText => 'உரை';
-
-  @override
-  String get modelsFeaturedBadge => 'சிறப்பு';
-
-  @override
-  String get modelsPopular => 'பிரபலம்';
+  String get modelsTapToActivate => 'ஏற்றத் தட்டவும்';
 
   @override
   String modelsAddVision(String size) {
@@ -2035,7 +1974,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String modelsDimensions(String count) {
-    return '$count பரிமாணங்கள்';
+    return '$count பரிமாணம்';
   }
 
   @override
@@ -2064,7 +2003,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsCapVisionReady => 'படம் தயார்';
+  String get modelsCapVisionReady => 'படம்';
 
   @override
   String get modelsCapEmbeddings => 'Embeddings';
@@ -2073,7 +2012,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsCapLightweight => 'இலகுவானது';
 
   @override
-  String get modelsCapFast => 'வேகமானது & திறமையானது';
+  String get modelsCapFast => 'வேகமானது';
 
   @override
   String get modelsCapMultilingual => 'பல மொழி';
@@ -2094,7 +2033,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsFitTight =>
-      'நெருக்கமான பொருத்தம். இது இயங்கும்போது மற்ற ஆப்கள் மூடப்படலாம்.';
+      'RAM குறைவு. இது இயங்கும்போது மற்ற ஆப்கள் மூடப்படலாம்.';
 
   @override
   String modelsDownloadingCount(int count) {
@@ -2135,10 +2074,6 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get modelsPausedDownloadsBody =>
-      'இந்தக் கைப்பேசியில் சேமிக்கப்பட்டது. நின்ற இடத்திலிருந்து தொடர, தொடர் என்பதைத் தட்டவும்.';
-
-  @override
   String get modelsResumeDownload => 'பதிவிறக்கத்தைத் தொடர்';
 
   @override
@@ -2148,15 +2083,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsUseCaseFastChat => 'வேகமான உரையாடல்';
 
   @override
-  String get modelsUseCaseFastChatBlurb =>
-      'விரைவான உரையாடல், நீங்கள் தட்டச்சு செய்யும் வேகத்தில் பதில்கள்';
+  String get modelsUseCaseFastChatBlurb => 'விரைவான பதில்கள்';
 
   @override
-  String get modelsUseCaseReasoning => 'சிறந்த பகுத்தறிவு';
+  String get modelsUseCaseReasoning => 'பகுத்தறிவு';
 
   @override
-  String get modelsUseCaseReasoningBlurb =>
-      'கடினமான கேள்விகள், கணிதம், படிப்படியான சிந்தனை';
+  String get modelsUseCaseReasoningBlurb => 'கணிதம், கடினமான கேள்விகள்';
 
   @override
   String get modelsUseCaseCoding => 'நிரலாக்கம்';
@@ -2174,34 +2107,31 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsUseCaseEnglish => 'ஆங்கிலம்';
 
   @override
-  String get modelsUseCaseEnglishBlurb => 'அன்றாட ஆங்கில உரையாடல், எழுத்து';
+  String get modelsUseCaseEnglishBlurb => 'அன்றாட ஆங்கிலம்';
 
   @override
-  String get modelsUseCaseVision => 'படப் புரிதல்';
+  String get modelsUseCaseVision => 'படங்கள்';
 
   @override
-  String get modelsUseCaseVisionBlurb =>
-      'புகைப்படம் அல்லது ஸ்கிரீன்ஷாட் பற்றிக் கேள்வி கேட்டல்';
+  String get modelsUseCaseVisionBlurb => 'படத்தைப் பற்றிக் கேட்கலாம்';
 
   @override
-  String get modelsUseCaseTranslation => 'ஆஃப்லைன் மொழிபெயர்ப்பு';
+  String get modelsUseCaseTranslation => 'மொழிபெயர்ப்பு';
 
   @override
-  String get modelsUseCaseTranslationBlurb =>
-      'சிக்னல் இல்லாமலும் மொழிகளுக்கிடையே மொழிபெயர்த்தல்';
+  String get modelsUseCaseTranslationBlurb => 'இணையம் இல்லாமல் மொழிபெயர்';
 
   @override
   String get modelsUseCaseSummarizing => 'சுருக்கம்';
 
   @override
-  String get modelsUseCaseSummarizingBlurb => 'நீண்ட உரையைச் சுருக்கமாக்குதல்';
+  String get modelsUseCaseSummarizingBlurb => 'நீண்ட உரையின் சாராம்சம்';
 
   @override
-  String get modelsUseCaseDocuments => 'ஆவணப் பகுப்பாய்வு';
+  String get modelsUseCaseDocuments => 'ஆவணங்கள்';
 
   @override
-  String get modelsUseCaseDocumentsBlurb =>
-      'நீண்ட ஆவணங்களைப் படித்து அவை பற்றிப் பதிலளித்தல்';
+  String get modelsUseCaseDocumentsBlurb => 'நீண்ட ஆவணங்கள் பற்றிக் கேட்கலாம்';
 
   @override
   String modelsReasonNotSuited(String task) {
@@ -2373,11 +2303,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsVisionUnavailable => 'இந்தப் பதிப்பில் படப் புரிதல் இல்லை.';
 
   @override
-  String get modelsFitComfortable => 'உங்கள் கைப்பேசியில் நன்றாக இயங்கும்';
+  String get modelsFitComfortable => 'நன்றாக இயங்கும்';
 
   @override
-  String get modelsFitTightShort =>
-      'நெருக்கமான பொருத்தம், மற்ற ஆப்களை மெதுவாக்கலாம்';
+  String get modelsFitTightShort => 'RAM குறைவு';
 
   @override
   String get modelsFitTooBig => 'உங்கள் கைப்பேசிக்கு மிகப் பெரியது';
@@ -2389,16 +2318,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsSpeedUnknown => 'வேகம் தெரியவில்லை';
 
   @override
-  String modelsAdvisorGoalCollapsed(String goal) {
-    return 'இலக்கு: $goal · மாற்றத் தட்டவும்';
-  }
-
-  @override
-  String get modelsAdvisorPromptCollapsed =>
-      'நீங்கள் என்ன செய்ய விரும்புகிறீர்கள்? · இலக்கைத் தேர்வுசெய்யத் தட்டவும்';
-
-  @override
-  String get modelsAdvisorPrompt => 'நீங்கள் என்ன செய்ய விரும்புகிறீர்கள்?';
+  String get modelsAdvisorPrompt => 'என்ன செய்ய விரும்புகிறீர்கள்?';
 
   @override
   String get modelsClear => 'அழி';
@@ -2407,64 +2327,17 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsAdvisorCollapse => 'வழிகாட்டியைச் சுருக்கு';
 
   @override
-  String modelsAdvisorSubtitleKnown(String device) {
-    return 'உங்கள் கைப்பேசிக்குப் பொருந்தும் அறிவுருவை Thinai தேர்ந்தெடுக்கிறது · $device';
-  }
-
-  @override
-  String get modelsAdvisorSubtitle =>
-      'இந்த வேலைக்கான அறிவுருவை Thinai தேர்ந்தெடுக்கிறது';
-
-  @override
   String get modelsAdvisorNothingFits =>
-      'இதற்குப் பொருந்துவது எதுவும் பட்டியலில் இல்லை.';
+      'இந்தக் கைப்பேசிக்குப் பொருந்துவது எதுவும் இல்லை.';
 
   @override
-  String get modelsAdvisorBestForPhone =>
-      'உங்கள் கைப்பேசிக்குச் சிறந்த அறிவுரு';
-
-  @override
-  String get modelsAdvisorBestForThis => 'இதற்குச் சிறந்த அறிவுரு';
-
-  @override
-  String get modelsAdvisorAlsoConsider => 'இவற்றையும் பரிசீலிக்கலாம்';
-
-  @override
-  String modelsAdvisorAuthorDownload(String author, String size) {
-    return '$author · $size பதிவிறக்கம்';
-  }
-
-  @override
-  String modelsAdvisorContext(String context) {
-    return '$context context';
-  }
-
-  @override
-  String get modelsAdvisorAlreadyDownloaded => 'ஏற்கெனவே பதிவிறக்கப்பட்டது';
-
-  @override
-  String get modelsAdvisorSpeedMeasured =>
-      'இந்தக் கைப்பேசியில் அளவுகோல் அளந்த வேகம்.';
-
-  @override
-  String get modelsAdvisorSpeedEstimated =>
-      'மதிப்பிடப்பட்ட வேகம். உண்மையான எண்ணுக்குப் அளவுகோலை இயக்கவும்.';
-
-  @override
-  String get modelsAdvisorStartingCancel =>
-      'தொடங்குகிறது… · ரத்துசெய்யத் தட்டவும்';
-
-  @override
-  String modelsAdvisorDownloadingCancel(String percent) {
-    return 'பதிவிறக்குகிறது $percent% · ரத்துசெய்யத் தட்டவும்';
-  }
+  String get modelsAdvisorAlsoConsider => 'இவையும் நல்லவை';
 
   @override
   String get modelsSettingsTitle => 'அறிவுரு அமைப்புகள்';
 
   @override
-  String get modelsSettingsBody =>
-      'உரையாடலும் API சேவகமும் இவற்றைப் பயன்படுத்துகின்றன. கோரிக்கைகள் அதிகபட்ச வரம்பு வரை இவற்றை மாற்றலாம்.';
+  String get modelsSettingsBody => 'உரையாடலுக்கும் சேவகத்துக்கும் பொருந்தும்.';
 
   @override
   String get modelsSettingsResetDefaults => 'இயல்புநிலைக்கு மீட்டமை';
@@ -2474,7 +2347,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsSettingsContextHelp =>
-      'நீண்ட window அதிகம் நினைவில் வைக்கும், ஆனால் அதிக RAM எடுத்து மெதுவாக இயங்கும்.';
+      'நீளமானால் அதிகம் நினைவில் இருக்கும், ஆனால் அதிக RAM தேவை.';
 
   @override
   String get modelsSettingsTemperature => 'Temperature';
@@ -2486,33 +2359,27 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsSettingsCreative => 'படைப்பாற்றல்';
 
   @override
-  String get modelsSettingsTopKHelp =>
-      'ஒவ்வொரு சொல்லையும் மிக வாய்ப்புள்ள K சொற்களிலிருந்து மட்டுமே தேர்ந்தெடுக்கும். குறைவாக இருந்தால் அதிகக் கவனம்; 0 வரம்பை அணைக்கும்.';
+  String get modelsSettingsTopKHelp => 'குறைவானால் அதிகக் கவனம். 0 அணைக்கும்.';
 
   @override
   String get modelsSettingsTopPHelp =>
-      'மொத்த நிகழ்தகவில் இந்தப் பங்கை உருவாக்கும் மிக வாய்ப்புள்ள சொற்களிலிருந்து தேர்ந்தெடுக்கும். 1.00 எல்லாவற்றையும் வைத்திருக்கும்.';
+      'குறைவானால் அதிகக் கவனம். 1.00 அணைக்கும்.';
 
   @override
   String get modelsSettingsThinking => 'சிந்தனை';
 
   @override
   String get modelsSettingsThinkingHelp =>
-      'பதிலளிக்கும் முன் படிப்படியாகச் சிந்திக்கும். ஆஃப் செய்தால் விரைவில் பதிலளிக்கும்.';
+      'பதிலுக்கு முன் சிந்திக்கும். ஆஃப் செய்தால் வேகம்.';
 
   @override
   String modelsSettingsCapPhoneRam(String max) {
-    return 'அதிகபட்சம் $max, இந்தக் கைப்பேசியின் RAM-ஆல் வரம்பிடப்பட்டது.';
-  }
-
-  @override
-  String modelsSettingsCapRam(String max, String trained) {
-    return 'அதிகபட்சம் $max, RAM-ஆல் வரம்பிடப்பட்டது (அறிவுரு $trained வரை ஆதரிக்கும்).';
+    return 'அதிகபட்சம் $max, RAM வரம்பு.';
   }
 
   @override
   String modelsSettingsCapTraining(String max) {
-    return 'அதிகபட்சம் $max, இந்த அறிவுருவின் பயிற்சி வரம்பு.';
+    return 'அதிகபட்சம் $max, அறிவுருவின் வரம்பு.';
   }
 
   @override
@@ -2556,4 +2423,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get settingsGlossary => 'சொல்லகராதி';
+
+  @override
+  String get modelsTopPicks => 'சிறந்த தேர்வுகள்';
 }

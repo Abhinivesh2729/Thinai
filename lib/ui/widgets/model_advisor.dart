@@ -1,4 +1,4 @@
-/// "What do you want to do?" — the top of the Models page.
+/// "What do you want to do?": the top of the Models page.
 ///
 /// A catalogue of thirty GGUF files asks the reader to already know what
 /// "Qwen 3.5 · 2B Q4_K_M" buys them over "Phi-4 · Mini". This asks the one
@@ -113,10 +113,10 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 Expanded(
                   child: Text(
                     choice != null
-                        ? context.l10n.modelsAdvisorGoalCollapsed(
+                        ? context.l10n.modelsTargeting(
                             choice.localizedLabel(context.l10n),
                           )
-                        : context.l10n.modelsAdvisorPromptCollapsed,
+                        : context.l10n.modelsAdvisorPrompt,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: choice != null
@@ -212,15 +212,13 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            device.known
-                ? context.l10n.modelsAdvisorSubtitleKnown(
-                    device.localizedSummary(context.l10n),
-                  )
-                : context.l10n.modelsAdvisorSubtitle,
-            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-          ),
+          if (device.known) ...[
+            const SizedBox(height: 2),
+            Text(
+              device.localizedSummary(context.l10n),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+            ),
+          ],
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -333,10 +331,9 @@ class _Answer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final device = speed.device;
     final result = recommend(
       useCase,
-      device,
+      speed.device,
       installedIds: installedCatalogIds,
       speed: speed,
     );
@@ -364,13 +361,11 @@ class _Answer extends StatelessWidget {
           const SizedBox(height: 10),
         ],
         Text(
-          device.known
-              ? l.modelsAdvisorBestForPhone
-              : l.modelsAdvisorBestForThis,
+          l.modelsTopPick,
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
+            letterSpacing: context.tracking(0.4),
             color: scheme.onSurfaceVariant,
           ),
         ),
@@ -388,7 +383,7 @@ class _Answer extends StatelessWidget {
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
+              letterSpacing: context.tracking(0.4),
               color: scheme.onSurfaceVariant,
             ),
           ),
@@ -454,10 +449,7 @@ class _BestCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      l.modelsAdvisorAuthorDownload(
-                        model.author,
-                        model.approxSize,
-                      ),
+                      '${model.author} · ${model.approxSize}',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: scheme.onSurfaceVariant,
@@ -477,17 +469,16 @@ class _BestCard extends StatelessWidget {
                 icon: Icons.speed_rounded,
                 label: pick.localizedSpeedLabel(l),
               ),
-              _Stat(icon: Icons.memory_rounded, label: pick.ramLabel),
               _Stat(
                 icon: Icons.article_outlined,
-                label: l.modelsAdvisorContext(model.contextLabel),
+                label: '${model.contextLabel} ctx',
               ),
             ],
           ),
           const SizedBox(height: 10),
           _FitLine(fit: pick.fit),
           const SizedBox(height: 8),
-          for (final reason in pick.localizedReasons(l))
+          for (final reason in pick.localizedReasons(l).take(1))
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
               child: Row(
@@ -510,7 +501,7 @@ class _BestCard extends StatelessWidget {
                 ? OutlinedButton.icon(
                     onPressed: null,
                     icon: const Icon(Icons.check_rounded, size: 18),
-                    label: Text(l.modelsAdvisorAlreadyDownloaded),
+                    label: Text(l.modelsInstalled),
                   )
                 : download != null
                 ? _DownloadingButton(handle: download!, onCancel: onCancel)
@@ -520,19 +511,6 @@ class _BestCard extends StatelessWidget {
                     label: Text(l.modelsDownloadSize(model.approxSize)),
                   ),
           ),
-          if (pick.estimatedTokensPerSecond != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                pick.speedIsMeasured
-                    ? l.modelsAdvisorSpeedMeasured
-                    : l.modelsAdvisorSpeedEstimated,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -621,12 +599,14 @@ class _FitLine extends StatelessWidget {
       children: [
         Icon(icon, size: 15, color: color),
         const SizedBox(width: 6),
-        Text(
-          fit.localizedLabel(context.l10n),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
+        Flexible(
+          child: Text(
+            fit.localizedLabel(context.l10n),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
       ],
@@ -724,10 +704,8 @@ class _DownloadingButton extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         percent == null
-                            ? context.l10n.modelsAdvisorStartingCancel
-                            : context.l10n.modelsAdvisorDownloadingCancel(
-                                percent,
-                              ),
+                            ? context.l10n.modelsStatusStarting
+                            : '$percent%',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
