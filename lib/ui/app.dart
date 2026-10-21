@@ -555,23 +555,23 @@ class _MainShellState extends ConsumerState<_MainShell> {
                 key: CoachMarkTargets.chatTab,
                 icon: const Icon(Icons.chat_bubble_outline_rounded),
                 selectedIcon: const Icon(Icons.chat_bubble_rounded),
-                label: 'Chat',
+                label: context.l10n.navChat,
               ),
               NavigationDestination(
                 key: CoachMarkTargets.modelsTab,
                 icon: const Icon(Icons.memory_outlined),
                 selectedIcon: const Icon(Icons.memory_rounded),
-                label: 'Models',
+                label: context.l10n.navModels,
               ),
-              const NavigationDestination(
-                icon: Icon(Icons.dns_outlined),
-                selectedIcon: Icon(Icons.dns_rounded),
-                label: 'Server',
+              NavigationDestination(
+                icon: const Icon(Icons.dns_outlined),
+                selectedIcon: const Icon(Icons.dns_rounded),
+                label: context.l10n.navServer,
               ),
-              const NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings_rounded),
-                label: 'Settings',
+              NavigationDestination(
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings_rounded),
+                label: context.l10n.navSettings,
               ),
             ],
           ),
