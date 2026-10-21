@@ -94,18 +94,15 @@ void main() {
       expect(find.text('சேவகம்'), findsOneWidget);
       expect(find.text('நிறுத்தப்பட்டது'), findsOneWidget);
       expect(find.text('தொடங்கு'), findsOneWidget);
-      expect(find.text('உள்ளூர் நெட்வொர்க்கில் பகிர் (LAN)'), findsOneWidget);
-      expect(find.text('டெவலப்பர் விரைவுத் தொடக்கம்'), findsOneWidget);
+      expect(find.text('LAN-இல் பகிர்'), findsOneWidget);
+      expect(find.text('இந்தக் கைப்பேசி மட்டும்'), findsOneWidget);
+      expect(find.text('விரைவுத் தொடக்கம்'), findsOneWidget);
       expect(find.text('API endpoints'), findsOneWidget);
-      expect(find.text('நிறுவப்பட்ட அறிவுருக்களின் பட்டியல்'), findsOneWidget);
-      expect(
-        find.textContaining('இந்தச் சாதனத்தில் இயங்கும் ஆப்ஸ் மட்டுமே'),
-        findsOneWidget,
-      );
+      expect(find.text('நிறுவிய அறிவுருக்கள்'), findsOneWidget);
       // Code samples and endpoint paths stay as they are.
       expect(find.text('/v1/chat/completions'), findsOneWidget);
       expect(find.text('Running'), findsNothing);
-      expect(find.text('Developer Quick Start'), findsNothing);
+      expect(find.text('Quick start'), findsNothing);
     });
 
     testWidgets('renders Tamil copy while running', (tester) async {
@@ -140,8 +137,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('சேவகம் port-ஐ மாற்று'), findsOneWidget);
-      expect(find.text('Port-ஐச் சேமி'), findsOneWidget);
+      expect(find.text('சேவகம் port'), findsOneWidget);
+      expect(find.text('சேமி'), findsOneWidget);
       expect(find.text('ரத்துசெய்'), findsOneWidget);
     });
   });
@@ -171,7 +168,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('முடிவுகள் (1)'), findsOneWidget);
       expect(find.text('அதிகம் பதிவிறக்கப்பட்டவை முதலில்'), findsOneWidget);
-      expect(find.text('3 நாட்களுக்கு முன்'), findsOneWidget);
+      expect(find.text('3 நாள் முன்பு'), findsOneWidget);
       expect(find.text('Qwen3-1.7B-GGUF'), findsOneWidget);
     });
   });
