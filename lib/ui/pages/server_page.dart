@@ -101,7 +101,6 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
   Future<void> _showPortDialog() async {
     final controller = TextEditingController(text: '$_port');
-    final scheme = Theme.of(context).colorScheme;
     final newPort = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -111,11 +110,6 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.serverPortDialogBody,
-              style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 16),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
@@ -137,7 +131,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
                   onPressed: () => controller.text = '11434',
                 ),
                 ActionChip(
-                  label: Text(context.l10n.serverPortPresetStandard),
+                  label: const Text('8080'),
                   onPressed: () => controller.text = '8080',
                 ),
               ],
@@ -154,7 +148,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
               final p = int.tryParse(controller.text.trim());
               Navigator.pop(ctx, p);
             },
-            child: Text(context.l10n.serverSavePort),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -251,9 +245,6 @@ class _ServerPageState extends ConsumerState<ServerPage> {
 
           // 5. Full-Width Clean API Endpoints List (No bloated categories)
           _ApiEndpointsSection(base: base, chatId: chatId),
-
-          // 6. Full-Width Security Notice
-          _SecurityNoticeBanner(lanShare: lanShare, port: port),
         ],
       ),
     );
@@ -285,7 +276,6 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final serverUrl = lan && lanIp != null
         ? 'http://$lanIp:$port'
@@ -409,323 +399,276 @@ class _HeroCard extends StatelessWidget {
             ),
           ),
 
-          // Spacious, elevated server control deck
+          // Status, URL and the start/stop button, stacked so long labels
+          // (Tamil) always get the full width.
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Top Row: Status Dot + State Title + Port Tag + Spacer + Fixed-Size Tactile Button
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _StatusDot(running: running),
                     const SizedBox(width: 10),
-                    SizedBox(
-                      width: 80,
+                    Expanded(
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 250),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           key: ValueKey(running),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              running
-                                  ? context.l10n.serverStatusRunning
-                                  : context.l10n.serverStatusStopped,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.4,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF0F172A),
-                              ),
+                          child: Text(
+                            running
+                                ? context.l10n.serverStatusRunning
+                                : context.l10n.serverStatusStopped,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: context.tracking(-0.4),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Port Configuration Tag
-                    InkWell(
-                      onTap: running ? null : onEditPort,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF162030)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF263650)
-                                : const Color(0xFFCBD5E1),
-                            width: 0.9,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.tune_rounded,
-                              size: 12,
-                              color: isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF475569),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              ':$port',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    // Fixed Size Tactile Start / Stop Button with smooth transition animation
-                    SizedBox(
-                      width: 98,
-                      height: 42,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        decoration: BoxDecoration(
-                          color: running ? const Color(0xFFE11D48) : _brandDeep,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (running
-                                          ? const Color(0xFFE11D48)
-                                          : _brandDeep)
-                                      .withValues(alpha: 0.30),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: isTransitioning
-                                ? null
-                                : () {
-                                    HapticFeedback.mediumImpact();
-                                    if (running) {
-                                      onStop();
-                                    } else {
-                                      onStart();
-                                    }
-                                  },
-                            child: Center(
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: Tween<double>(
-                                        begin: 0.85,
-                                        end: 1.0,
-                                      ).animate(animation),
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: isTransitioning
-                                    ? const SizedBox(
-                                        key: ValueKey('loading'),
-                                        height: 16,
-                                        width: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                    : Row(
-                                        key: ValueKey(running),
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            running
-                                                ? Icons.stop_rounded
-                                                : Icons.play_arrow_rounded,
-                                            size: 18,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Flexible(
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Text(
-                                                running
-                                                    ? context.l10n.serverStop
-                                                    : context.l10n.serverStart,
-                                                maxLines: 1,
-                                                style: const TextStyle(
-                                                  fontSize: 13.5,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                  letterSpacing: 0.2,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _PortChip(port: port, onTap: running ? null : onEditPort),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-
-                // Bottom Row: Fixed-Height Endpoint / Port Strip (Identical size in both Start and Stop)
-                Container(
-                  height: 42,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0B111A).withValues(alpha: 0.85)
-                        : Colors.white.withValues(alpha: 0.90),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: running
-                          ? const Color(
-                              0xFF2CA048,
-                            ).withValues(alpha: isDark ? 0.40 : 0.30)
-                          : (isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFCBD5E1)),
-                      width: 1.0,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.20 : 0.03,
-                        ),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.link_rounded,
-                        size: 14,
-                        color: running
-                            ? (isDark
-                                  ? const Color(0xFF4ADE80)
-                                  : const Color(0xFF16A34A))
-                            : scheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      // URL Address
-                      Expanded(
-                        child: SelectableText(
-                          serverUrl,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'monospace',
-                            color: running
-                                ? (isDark
-                                      ? const Color(0xFF4ADE80)
-                                      : const Color(0xFF16A34A))
-                                : (isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B)),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: context.l10n.serverCopyAddressTooltip,
-                        icon: const Icon(Icons.copy_rounded, size: 14),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 24,
-                          minHeight: 24,
-                        ),
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF475569),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: serverUrl),
-                          );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.l10n.serverCopiedToClipboard(
-                                    serverUrl,
-                                  ),
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF151D2A)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          lan ? 'LAN' : 'Localhost',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 14),
+                _UrlStrip(url: serverUrl, running: running),
+                const SizedBox(height: 12),
+                _StartStopButton(
+                  running: running,
+                  busy: isTransitioning,
+                  onStart: onStart,
+                  onStop: onStop,
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PortChip extends StatelessWidget {
+  final int port;
+  final VoidCallback? onTap;
+
+  const _PortChip({required this.port, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF162030) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isDark ? const Color(0xFF263650) : const Color(0xFFCBD5E1),
+            width: 0.9,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.tune_rounded,
+              size: 12,
+              color: isDark ? Colors.white70 : const Color(0xFF475569),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              ':$port',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UrlStrip extends StatelessWidget {
+  final String url;
+  final bool running;
+
+  const _UrlStrip({required this.url, required this.running});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final live = isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF0B111A).withValues(alpha: 0.85)
+            : Colors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: running
+              ? const Color(0xFF2CA048).withValues(alpha: isDark ? 0.40 : 0.30)
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.link_rounded,
+            size: 14,
+            color: running ? live : scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SelectableText(
+              url,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'monospace',
+                color: running
+                    ? live
+                    : (isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B)),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: context.l10n.serverCopyAddressTooltip,
+            icon: const Icon(Icons.copy_rounded, size: 16),
+            visualDensity: VisualDensity.compact,
+            color: isDark ? Colors.white70 : const Color(0xFF475569),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: url));
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.serverCopiedLabel(url)),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Full width, so the label never has to shrink to fit.
+class _StartStopButton extends StatelessWidget {
+  final bool running;
+  final bool busy;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
+
+  const _StartStopButton({
+    required this.running,
+    required this.busy,
+    required this.onStart,
+    required this.onStop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = running ? const Color(0xFFE11D48) : _brandDeep;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOutCubic,
+      constraints: const BoxConstraints(minHeight: 46),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.30),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: busy
+              ? null
+              : () {
+                  HapticFeedback.mediumImpact();
+                  if (running) {
+                    onStop();
+                  } else {
+                    onStart();
+                  }
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: busy
+                    ? const SizedBox(
+                        key: ValueKey('loading'),
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Row(
+                        key: ValueKey(running),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            running
+                                ? Icons.stop_rounded
+                                : Icons.play_arrow_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              running
+                                  ? context.l10n.serverStop
+                                  : context.l10n.serverStart,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -796,14 +739,12 @@ class _ActiveModelBanner extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    textStyle: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -812,16 +753,19 @@ class _ActiveModelBanner extends StatelessWidget {
                 ),
               ],
             )
-          : Row(
+          // Wraps the button under the text when both do not fit.
+          : Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.serverNoModelLoaded,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  context.l10n.serverNoModelLoaded,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 FilledButton.tonal(
@@ -829,14 +773,12 @@ class _ActiveModelBanner extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    textStyle: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1074,7 +1016,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                               return const SizedBox.shrink();
                             }
                             final masked =
-                                '${token.substring(0, 6)}••••••••••••${token.substring(token.length - 6)}';
+                                '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
 
                             return Container(
                               padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
@@ -1205,17 +1147,6 @@ class _DeveloperQuickStartCard extends StatefulWidget {
 class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   int _tabIndex = 0;
 
-  void _copy(String text, String label) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.serverCopiedToClipboard(label)),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -1251,14 +1182,6 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  context.l10n.serverDevQuickStartSubtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
               ],
             ),
           ),
@@ -1279,11 +1202,7 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
                 const SizedBox(width: 8),
                 _buildTab(2, 'cURL', Icons.alt_route_rounded),
                 const SizedBox(width: 8),
-                _buildTab(
-                  3,
-                  context.l10n.serverTabChatJson,
-                  Icons.data_object_rounded,
-                ),
+                _buildTab(3, 'JSON', Icons.data_object_rounded),
                 const SizedBox(width: 8),
                 _buildTab(4, 'Ollama', Icons.cloud_sync_rounded),
               ],
@@ -1378,25 +1297,13 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   ]
 }''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.serverVsCodeIntro,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'config.json',
-              language: 'json',
-              code: configJson,
-              icon: Icons.data_object_rounded,
-            ),
-          ],
-          onCopy: () =>
-              _copy(configJson, context.l10n.serverCopyLabelVsCodeConfig),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'config.json',
+          language: 'json',
+          code: configJson,
+          icon: Icons.data_object_rounded,
         ),
       ],
     );
@@ -1417,24 +1324,13 @@ response = client.chat.completions.create(
 )
 print(response.choices[0].message.content)''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.serverPythonIntro,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'client.py',
-              language: 'python',
-              code: pyCode,
-              icon: Icons.code_rounded,
-            ),
-          ],
-          onCopy: () => _copy(pyCode, context.l10n.serverCopyLabelPythonScript),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'client.py',
+          language: 'python',
+          code: pyCode,
+          icon: Icons.code_rounded,
         ),
       ],
     );
@@ -1450,25 +1346,13 @@ print(response.choices[0].message.content)''';
     "stream": false
   }' ''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.serverCurlIntro,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'request.sh',
-              language: 'bash',
-              code: curlCode,
-              icon: Icons.terminal_rounded,
-            ),
-          ],
-          onCopy: () =>
-              _copy(curlCode, context.l10n.serverCopyLabelCurlCommand),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'request.sh',
+          language: 'bash',
+          code: curlCode,
+          icon: Icons.terminal_rounded,
         ),
       ],
     );
@@ -1488,24 +1372,13 @@ print(response.choices[0].message.content)''';
   "stream": false
 }''';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.serverChatJsonIntro,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'payload.json',
-              language: 'json',
-              code: chatJson,
-              icon: Icons.data_object_rounded,
-            ),
-          ],
-          onCopy: () => _copy(chatJson, context.l10n.serverCopyLabelChatJson),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'payload.json',
+          language: 'json',
+          code: chatJson,
+          icon: Icons.data_object_rounded,
         ),
       ],
     );
@@ -1514,24 +1387,13 @@ print(response.choices[0].message.content)''';
   Widget _buildOllamaTab(ColorScheme scheme, String ollamaBase, bool isDark) {
     final envCmd = 'export OLLAMA_HOST=$ollamaBase';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.serverOllamaIntro,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        _VsCodeTerminalBox(
-          tabs: [
-            _VsCodeFileTab(
-              filename: 'env.sh',
-              language: 'bash',
-              code: envCmd,
-              icon: Icons.terminal_rounded,
-            ),
-          ],
-          onCopy: () => _copy(envCmd, context.l10n.serverCopyLabelOllamaEnv),
+    return _VsCodeTerminalBox(
+      tabs: [
+        _VsCodeFileTab(
+          filename: 'env.sh',
+          language: 'bash',
+          code: envCmd,
+          icon: Icons.terminal_rounded,
         ),
       ],
     );
@@ -1720,39 +1582,13 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.serverApiEndpointsTitle,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.serverApiEndpointsSubtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.serverCopyBaseUrlTooltip,
-                  icon: const Icon(Icons.link_rounded, size: 18),
-                  color: const Color(0xFF2CA048),
-                  onPressed: () =>
-                      _copy(widget.base, l10n.serverBaseUrlLabel(widget.base)),
-                ),
-              ],
+            child: Text(
+              l10n.serverApiEndpointsTitle,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -1877,10 +1713,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       minWidth: 28,
                       minHeight: 28,
                     ),
-                    onPressed: () => _copy(
-                      item.curl,
-                      context.l10n.serverCurlCommandLabel(item.path),
-                    ),
+                    onPressed: () => _copy(item.curl, '${item.path} cURL'),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -1907,14 +1740,6 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       initialTabIndex: activeTabIndex,
                       onTabChanged: (newIdx) {
                         setState(() => _endpointFormatIndices[index] = newIdx);
-                      },
-                      onCopy: () {
-                        final tab =
-                            tabs[(_endpointFormatIndices[index] ?? 0).clamp(
-                              0,
-                              maxTabIndex,
-                            )];
-                        _copy(tab.code, '${item.path} ${tab.filename}');
                       },
                     ),
                   )
@@ -2275,13 +2100,11 @@ class _VsCodeTerminalBox extends StatefulWidget {
   final List<_VsCodeFileTab> tabs;
   final int initialTabIndex;
   final ValueChanged<int>? onTabChanged;
-  final VoidCallback? onCopy;
 
   const _VsCodeTerminalBox({
     required this.tabs,
     this.initialTabIndex = 0,
     this.onTabChanged,
-    this.onCopy,
   });
 
   @override
@@ -2312,7 +2135,6 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
     Clipboard.setData(ClipboardData(text: activeTab.code));
     HapticFeedback.lightImpact();
     setState(() => _copied = true);
-    widget.onCopy?.call();
     Future.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) setState(() => _copied = false);
     });
@@ -2515,20 +2337,19 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
                               ? const Color(0xFF4ADE80)
                               : const Color(0xFFCBD5E1),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _copied
-                              ? context.l10n.commonCopied
-                              : context.l10n.commonCopy,
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: _copied
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFFE2E8F0),
+                        // Just the tick once copied: the long Tamil
+                        // "copied" would crowd out the file tabs.
+                        if (!_copied) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            context.l10n.commonCopy,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -2746,34 +2567,6 @@ class _StatusDotState extends State<_StatusDot>
                     shape: BoxShape.circle,
                   ),
                 ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── 7. FULL-WIDTH SECURITY NOTICE BANNER ────────────────────────────────────
-
-class _SecurityNoticeBanner extends StatelessWidget {
-  final bool lanShare;
-  final int port;
-
-  const _SecurityNoticeBanner({required this.lanShare, required this.port});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Text(
-        lanShare
-            ? context.l10n.serverSecurityLan('$port')
-            : context.l10n.serverSecurityLocal('$port'),
-        style: TextStyle(
-          fontSize: 11.5,
-          color: scheme.onSurfaceVariant,
-          height: 1.35,
         ),
       ),
     );

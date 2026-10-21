@@ -275,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @serverToastLanNoAddress.
   ///
   /// In en, this message translates to:
-  /// **'Sharing on, but no Wi-Fi/LAN address was found.'**
+  /// **'LAN is on, but no Wi-Fi address was found.'**
   String get serverToastLanNoAddress;
 
   /// No description provided for @serverToastStartFailed.
@@ -287,32 +287,14 @@ abstract class AppLocalizations {
   /// No description provided for @serverPortDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Change Server Port'**
+  /// **'Server port'**
   String get serverPortDialogTitle;
-
-  /// No description provided for @serverPortDialogBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Select or enter the local TCP port Thinai binds to. Default is 11434 for Ollama, 8080 for standard.'**
-  String get serverPortDialogBody;
 
   /// No description provided for @serverPortNumberLabel.
   ///
   /// In en, this message translates to:
   /// **'Port number'**
   String get serverPortNumberLabel;
-
-  /// No description provided for @serverPortPresetStandard.
-  ///
-  /// In en, this message translates to:
-  /// **'8080 (Standard)'**
-  String get serverPortPresetStandard;
-
-  /// No description provided for @serverSavePort.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Port'**
-  String get serverSavePort;
 
   /// No description provided for @serverStatusRunning.
   ///
@@ -341,14 +323,8 @@ abstract class AppLocalizations {
   /// No description provided for @serverCopyAddressTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Copy Server Address'**
+  /// **'Copy address'**
   String get serverCopyAddressTooltip;
-
-  /// No description provided for @serverCopiedToClipboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Copied {value} to clipboard'**
-  String serverCopiedToClipboard(String value);
 
   /// No description provided for @serverCopiedLabel.
   ///
@@ -371,25 +347,25 @@ abstract class AppLocalizations {
   /// No description provided for @serverNoModelLoaded.
   ///
   /// In en, this message translates to:
-  /// **'No model loaded yet. Load one to enable completions.'**
+  /// **'No model loaded'**
   String get serverNoModelLoaded;
 
   /// No description provided for @serverBrowseModels.
   ///
   /// In en, this message translates to:
-  /// **'Browse Models'**
+  /// **'Choose model'**
   String get serverBrowseModels;
 
   /// No description provided for @serverRegenerateTokenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Regenerate API token?'**
+  /// **'Regenerate token?'**
   String get serverRegenerateTokenTitle;
 
   /// No description provided for @serverRegenerateTokenBody.
   ///
   /// In en, this message translates to:
-  /// **'Existing LAN clients using the current token will lose access and must be updated.'**
+  /// **'LAN devices will need the new token.'**
   String get serverRegenerateTokenBody;
 
   /// No description provided for @serverRegenerate.
@@ -401,25 +377,25 @@ abstract class AppLocalizations {
   /// No description provided for @serverTokenRegenerated.
   ///
   /// In en, this message translates to:
-  /// **'API token regenerated'**
+  /// **'Token regenerated'**
   String get serverTokenRegenerated;
 
   /// No description provided for @serverLanShareTitle.
   ///
   /// In en, this message translates to:
-  /// **'Share on Local Network (LAN)'**
+  /// **'Share on LAN'**
   String get serverLanShareTitle;
 
   /// No description provided for @serverLanShareOnSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Other computers on this Wi-Fi can reach the API'**
+  /// **'Devices on this Wi-Fi can connect'**
   String get serverLanShareOnSubtitle;
 
   /// No description provided for @serverLanShareOffSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Only apps running directly on this phone can reach 127.0.0.1'**
+  /// **'This phone only'**
   String get serverLanShareOffSubtitle;
 
   /// No description provided for @serverCopyLanUrlTooltip.
@@ -431,103 +407,31 @@ abstract class AppLocalizations {
   /// No description provided for @serverDevQuickStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'Developer Quick Start'**
+  /// **'Quick start'**
   String get serverDevQuickStartTitle;
-
-  /// No description provided for @serverDevQuickStartSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Direct configuration snippets for coding assistants & scripts'**
-  String get serverDevQuickStartSubtitle;
-
-  /// No description provided for @serverTabChatJson.
-  ///
-  /// In en, this message translates to:
-  /// **'Chat JSON'**
-  String get serverTabChatJson;
-
-  /// No description provided for @serverVsCodeIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'For Continue.dev or Cline extensions in VS Code:'**
-  String get serverVsCodeIntro;
-
-  /// No description provided for @serverPythonIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Query with official OpenAI Python SDK:'**
-  String get serverPythonIntro;
-
-  /// No description provided for @serverCurlIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Direct terminal HTTP request with standard JSON payload:'**
-  String get serverCurlIntro;
-
-  /// No description provided for @serverChatJsonIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'OpenAI standard chat payload (/v1/chat/completions):'**
-  String get serverChatJsonIntro;
-
-  /// No description provided for @serverOllamaIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Point any Ollama client (Open-WebUI, Chatbox, CLI) to Thinai:'**
-  String get serverOllamaIntro;
-
-  /// No description provided for @serverCopyLabelVsCodeConfig.
-  ///
-  /// In en, this message translates to:
-  /// **'VS Code Config'**
-  String get serverCopyLabelVsCodeConfig;
-
-  /// No description provided for @serverCopyLabelPythonScript.
-  ///
-  /// In en, this message translates to:
-  /// **'Python Script'**
-  String get serverCopyLabelPythonScript;
-
-  /// No description provided for @serverCopyLabelCurlCommand.
-  ///
-  /// In en, this message translates to:
-  /// **'cURL Command'**
-  String get serverCopyLabelCurlCommand;
-
-  /// No description provided for @serverCopyLabelChatJson.
-  ///
-  /// In en, this message translates to:
-  /// **'Chat JSON Payload'**
-  String get serverCopyLabelChatJson;
-
-  /// No description provided for @serverCopyLabelOllamaEnv.
-  ///
-  /// In en, this message translates to:
-  /// **'Ollama Host Env'**
-  String get serverCopyLabelOllamaEnv;
 
   /// No description provided for @serverEndpointOpenAiChat.
   ///
   /// In en, this message translates to:
-  /// **'OpenAI Chat Completions'**
+  /// **'OpenAI chat'**
   String get serverEndpointOpenAiChat;
 
   /// No description provided for @serverEndpointOllamaChat.
   ///
   /// In en, this message translates to:
-  /// **'Ollama Native Chat'**
+  /// **'Ollama chat'**
   String get serverEndpointOllamaChat;
 
   /// No description provided for @serverEndpointEmbeddings.
   ///
   /// In en, this message translates to:
-  /// **'Vector Embeddings'**
+  /// **'Embeddings'**
   String get serverEndpointEmbeddings;
 
   /// No description provided for @serverEndpointModels.
   ///
   /// In en, this message translates to:
-  /// **'Installed Models Catalog'**
+  /// **'Installed models'**
   String get serverEndpointModels;
 
   /// No description provided for @serverApiEndpointsTitle.
@@ -536,52 +440,16 @@ abstract class AppLocalizations {
   /// **'API Endpoints'**
   String get serverApiEndpointsTitle;
 
-  /// No description provided for @serverApiEndpointsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Standard OpenAI & Ollama compatible HTTP routes'**
-  String get serverApiEndpointsSubtitle;
-
-  /// No description provided for @serverCopyBaseUrlTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy Base URL'**
-  String get serverCopyBaseUrlTooltip;
-
-  /// No description provided for @serverBaseUrlLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Base URL: {url}'**
-  String serverBaseUrlLabel(String url);
-
   /// No description provided for @serverCopyCurlTooltip.
   ///
   /// In en, this message translates to:
   /// **'Copy cURL'**
   String get serverCopyCurlTooltip;
 
-  /// No description provided for @serverCurlCommandLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'{path} cURL command'**
-  String serverCurlCommandLabel(String path);
-
-  /// No description provided for @serverSecurityLan.
-  ///
-  /// In en, this message translates to:
-  /// **'Wi-Fi Network Serving Active · Any device on this local subnet can query the API on port {port} with your Bearer token.'**
-  String serverSecurityLan(String port);
-
-  /// No description provided for @serverSecurityLocal.
-  ///
-  /// In en, this message translates to:
-  /// **'Local Loopback Active · Only apps executing directly on this hardware can query localhost:{port}.'**
-  String serverSecurityLocal(String port);
-
   /// No description provided for @hfSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search GGUF models on Hugging Face'**
+  /// **'Search GGUF models'**
   String get hfSearchHint;
 
   /// No description provided for @hfSearchFailedTitle.
@@ -605,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfEmptyMessage.
   ///
   /// In en, this message translates to:
-  /// **'Search by name or maker, like \"gemma\", \"phi\" or \"unsloth\". Results are public repos with GGUF files.'**
+  /// **'Try \"gemma\", \"phi\" or \"unsloth\".'**
   String get hfEmptyMessage;
 
   /// No description provided for @hfNoMatchTitle.
@@ -617,7 +485,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfNoMatchMessage.
   ///
   /// In en, this message translates to:
-  /// **'Try a shorter name or a different spelling.'**
+  /// **'Try a shorter name.'**
   String get hfNoMatchMessage;
 
   /// No description provided for @hfResultsTitle.
@@ -631,12 +499,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most downloaded first'**
   String get hfResultsSubtitle;
-
-  /// No description provided for @hfShowingUpTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing up to {limit} results.'**
-  String hfShowingUpTo(int limit);
 
   /// No description provided for @hfDownloadTitle.
   ///
@@ -659,19 +521,19 @@ abstract class AppLocalizations {
   /// No description provided for @hfDownloadMessage.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to download {file} ({size}) from Hugging Face?'**
+  /// **'Download {file} ({size})?'**
   String hfDownloadMessage(String file, String size);
 
   /// No description provided for @hfDownloadMessageTooBig.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to download {file} ({size}) from Hugging Face?\n\nThis is likely too large for this phone and may not load.'**
+  /// **'Download {file} ({size})?\n\nLikely too big to load on this phone.'**
   String hfDownloadMessageTooBig(String file, String size);
 
   /// No description provided for @hfDownloadMessageTooBigBudget.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to download {file} ({size}) from Hugging Face?\n\nIt needs about {needs} of memory and this phone has {budget} to spare, so it will probably not load.'**
+  /// **'Download {file} ({size})?\n\nNeeds about {needs} of memory, this phone has {budget}. It will probably not load.'**
   String hfDownloadMessageTooBigBudget(
     String file,
     String size,
@@ -682,7 +544,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfDownloadMessageTight.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to download {file} ({size}) from Hugging Face?\n\nA tight fit. Other apps may close while this runs.'**
+  /// **'Download {file} ({size})?\n\nA tight fit. Other apps may close.'**
   String hfDownloadMessageTight(String file, String size);
 
   /// No description provided for @hfOpenFailedTitle.
@@ -700,7 +562,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfSignInMessage.
   ///
   /// In en, this message translates to:
-  /// **'This model needs a Hugging Face account to download, which Thinai does not support yet.'**
+  /// **'Needs a Hugging Face account. Not supported yet.'**
   String get hfSignInMessage;
 
   /// No description provided for @hfFilesTitle.
@@ -712,13 +574,13 @@ abstract class AppLocalizations {
   /// No description provided for @hfFilesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Smaller files load faster and use less memory'**
+  /// **'Smaller files run faster'**
   String get hfFilesSubtitle;
 
   /// No description provided for @hfSkippedFiles.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 other GGUF file is hidden: split files, image encoders and helper files cannot be loaded on their own.} other{{count} other GGUF files are hidden: split files, image encoders and helper files cannot be loaded on their own.}}'**
+  /// **'{count, plural, =1{1 split or helper file hidden} other{{count} split or helper files hidden}}'**
   String hfSkippedFiles(int count);
 
   /// No description provided for @hfNothingTitle.
@@ -730,13 +592,13 @@ abstract class AppLocalizations {
   /// No description provided for @hfNothingMessage.
   ///
   /// In en, this message translates to:
-  /// **'This repo has no single-file GGUF models that Thinai can load.'**
+  /// **'No single-file GGUF that Thinai can load.'**
   String get hfNothingMessage;
 
   /// No description provided for @hfNetworkNotice.
   ///
   /// In en, this message translates to:
-  /// **'Search uses the internet. Thinai contacts huggingface.co only while you search here or open a model, never in the background. Your chats stay on this phone.'**
+  /// **'Search uses the internet. Chats stay private.'**
   String get hfNetworkNotice;
 
   /// No description provided for @hfAgoToday.
@@ -772,7 +634,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfNoLicence.
   ///
   /// In en, this message translates to:
-  /// **'No licence listed'**
+  /// **'No licence'**
   String get hfNoLicence;
 
   /// No description provided for @hfInstalled.
@@ -802,7 +664,7 @@ abstract class AppLocalizations {
   /// No description provided for @hfPromptSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Any public GGUF model, installed into your library. Uses the internet.'**
+  /// **'Any public GGUF model. Uses the internet.'**
   String get hfPromptSubtitle;
 
   /// No description provided for @settingsAppearance.

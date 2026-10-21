@@ -126,7 +126,6 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: _brandGreen));
     }
@@ -178,11 +177,6 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
           ),
           const SizedBox(height: 10),
         ],
-        Text(
-          context.l10n.hfShowingUpTo(HfHub.searchLimit),
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
-        ),
       ],
     );
   }
@@ -358,8 +352,6 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
           }(),
           const SizedBox(height: 10),
         ],
-        const SizedBox(height: 4),
-        const _HubNetworkNotice(),
       ],
     );
   }

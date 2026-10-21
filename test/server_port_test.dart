@@ -52,7 +52,7 @@ void main() {
 
     await tester.tap(find.text(':11434'));
     await tester.pump();
-    await _enterPort(tester, '8005', 'Save Port');
+    await _enterPort(tester, '8005', 'Save');
 
     expect(find.text(':8005'), findsOneWidget);
     expect(find.text(':11434'), findsNothing);

@@ -168,10 +168,11 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('GGUF files (3)'), findsOneWidget);
-    expect(find.textContaining('1 other GGUF file is hidden'), findsOneWidget);
+    expect(find.text('1 split or helper file hidden'), findsOneWidget);
     expect(find.text('Q4_K_M'), findsOneWidget);
     expect(find.text('Too big for your phone'), findsOneWidget);
-    expect(find.textContaining('Search uses the internet'), findsOneWidget);
+    // The internet notice is on the search page, not repeated here.
+    expect(find.textContaining('Search uses the internet'), findsNothing);
   });
 
   testWidgets('downloads a file after asking', (tester) async {
