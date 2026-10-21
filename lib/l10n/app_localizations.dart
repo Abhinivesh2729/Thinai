@@ -4420,6 +4420,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What is your generation speed on this phone?'**
   String get chatStarterSpeedPrompt;
+
+  /// No description provided for @deviceSummaryRam.
+  ///
+  /// In en, this message translates to:
+  /// **'{ram} GB RAM · {cores} cores'**
+  String deviceSummaryRam(String ram, int cores);
+
+  /// No description provided for @deviceSummaryCores.
+  ///
+  /// In en, this message translates to:
+  /// **'{cores} cores'**
+  String deviceSummaryCores(int cores);
 }
 
 class _AppLocalizationsDelegate

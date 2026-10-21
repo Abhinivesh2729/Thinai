@@ -2771,4 +2771,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatStarterSpeedPrompt =>
       'What is your generation speed on this phone?';
+
+  @override
+  String deviceSummaryRam(String ram, int cores) {
+    return '$ram GB RAM · $cores cores';
+  }
+
+  @override
+  String deviceSummaryCores(int cores) {
+    return '$cores cores';
+  }
 }

@@ -718,5 +718,7 @@
   "chatStarterBrainstormPrompt": "கைப்பேசியிலேயே இயங்கும் AI app உருவாக்க 5 புதுமையான யோசனைகள் கொடு",
   "chatStarterPythonPrompt": "ஒரு பட்டியலை வரிசைப்படுத்தி, நகல்களை நீக்கும் Python script எழுது",
   "chatStarterSummarizePrompt": "பின்வருவதன் முக்கியக் கருத்துகளைச் சுருக்கமாகச் சொல்:\n\n",
-  "chatStarterSpeedPrompt": "இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?"
+  "chatStarterSpeedPrompt": "இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?",
+  "deviceSummaryRam": "{ram} GB RAM · {cores} கோர்கள்",
+  "deviceSummaryCores": "{cores} கோர்கள்"
 }

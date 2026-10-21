@@ -119,7 +119,9 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                         : context.l10n.modelsAdvisorPromptCollapsed,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: choice != null ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: choice != null
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: choice != null ? logoGreen : scheme.onSurface,
                     ),
                   ),
@@ -181,7 +183,10 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 TextButton(
                   onPressed: _clear,
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     foregroundColor: scheme.error,
@@ -210,7 +215,9 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
           const SizedBox(height: 4),
           Text(
             device.known
-                ? context.l10n.modelsAdvisorSubtitleKnown(device.summary)
+                ? context.l10n.modelsAdvisorSubtitleKnown(
+                    device.localizedSummary(context.l10n),
+                  )
                 : context.l10n.modelsAdvisorSubtitle,
             style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
           ),
@@ -262,7 +269,9 @@ class _ChoiceChip extends StatelessWidget {
     const logoGreen = Color(0xFF2CA048);
 
     return Material(
-      color: selected ? logoGreen : scheme.surfaceContainerHigh.withValues(alpha: 0.65),
+      color: selected
+          ? logoGreen
+          : scheme.surfaceContainerHigh.withValues(alpha: 0.65),
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -355,7 +364,9 @@ class _Answer extends StatelessWidget {
           const SizedBox(height: 10),
         ],
         Text(
-          device.known ? l.modelsAdvisorBestForPhone : l.modelsAdvisorBestForThis,
+          device.known
+              ? l.modelsAdvisorBestForPhone
+              : l.modelsAdvisorBestForThis,
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
@@ -482,17 +493,11 @@ class _BestCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '• ',
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                  ),
+                  Text('• ', style: TextStyle(color: scheme.onSurfaceVariant)),
                   Expanded(
                     child: Text(
                       reason,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: scheme.onSurface,
-                      ),
+                      style: TextStyle(fontSize: 12.5, color: scheme.onSurface),
                     ),
                   ),
                 ],
@@ -508,15 +513,12 @@ class _BestCard extends StatelessWidget {
                     label: Text(l.modelsAdvisorAlreadyDownloaded),
                   )
                 : download != null
-                    ? _DownloadingButton(
-                        handle: download!,
-                        onCancel: onCancel,
-                      )
-                    : FilledButton.icon(
-                        onPressed: onDownload,
-                        icon: const Icon(Icons.download_rounded, size: 18),
-                        label: Text(l.modelsDownloadSize(model.approxSize)),
-                      ),
+                ? _DownloadingButton(handle: download!, onCancel: onCancel)
+                : FilledButton.icon(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download_rounded, size: 18),
+                    label: Text(l.modelsDownloadSize(model.approxSize)),
+                  ),
           ),
           if (pick.estimatedTokensPerSecond != null)
             Padding(
@@ -554,7 +556,10 @@ class _AlternativeRow extends StatelessWidget {
           Expanded(
             child: Text(
               pick.model.displayName,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -681,8 +686,9 @@ class _DownloadingButton extends StatelessWidget {
       builder: (context, snapshot) {
         final progress = snapshot.data;
         final fraction = progress?.fraction;
-        final percent =
-            fraction == null ? null : (fraction * 100).toStringAsFixed(0);
+        final percent = fraction == null
+            ? null
+            : (fraction * 100).toStringAsFixed(0);
 
         return Material(
           color: scheme.surfaceContainerHighest,
@@ -710,7 +716,11 @@ class _DownloadingButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.close_rounded, size: 16, color: scheme.primary),
+                      Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: scheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         percent == null

@@ -1761,5 +1761,24 @@
   "chatStarterBrainstormPrompt": "Give me 5 creative ideas to build an on-device AI app",
   "chatStarterPythonPrompt": "Write a Python script to sort and deduplicate a list of items",
   "chatStarterSummarizePrompt": "Summarize the key takeaways from the following:\n\n",
-  "chatStarterSpeedPrompt": "What is your generation speed on this phone?"
+  "chatStarterSpeedPrompt": "What is your generation speed on this phone?",
+  "deviceSummaryRam": "{ram} GB RAM · {cores} cores",
+  "deviceSummaryCores": "{cores} cores",
+  "@deviceSummaryRam": {
+    "placeholders": {
+      "ram": {
+        "type": "String"
+      },
+      "cores": {
+        "type": "int"
+      }
+    }
+  },
+  "@deviceSummaryCores": {
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      }
+    }
+  }
 }

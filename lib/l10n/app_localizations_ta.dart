@@ -2824,4 +2824,14 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get chatStarterSpeedPrompt =>
       'இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?';
+
+  @override
+  String deviceSummaryRam(String ram, int cores) {
+    return '$ram GB RAM · $cores கோர்கள்';
+  }
+
+  @override
+  String deviceSummaryCores(int cores) {
+    return '$cores கோர்கள்';
+  }
 }

@@ -67,9 +67,8 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
 
   final List<_Run> _history = [];
 
-  double get _peak => _samples.isEmpty
-      ? 0
-      : _samples.reduce((a, b) => a > b ? a : b);
+  double get _peak =>
+      _samples.isEmpty ? 0 : _samples.reduce((a, b) => a > b ? a : b);
 
   Future<void> _run() async {
     final model = _model;
@@ -95,11 +94,7 @@ class _BenchmarkPageState extends ConsumerState<BenchmarkPage> {
       );
       final stream = ref
           .read(llmEngineProvider)
-          .generate(
-            _kBenchmarkPrompt,
-            modelPath: model.path,
-            options: options,
-          );
+          .generate(_kBenchmarkPrompt, modelPath: model.path, options: options);
 
       await for (final token in stream) {
         if (!mounted) return;
@@ -464,12 +459,10 @@ class _RunningPillState extends State<_RunningPill>
   // an indicator nobody is looking at.
   AnimationController? _controller;
 
-  AnimationController get _c =>
-      _controller ??=
-          AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 1400),
-          )..repeat(reverse: true);
+  AnimationController get _c => _controller ??= AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat(reverse: true);
 
   @override
   void dispose() {
@@ -502,9 +495,7 @@ class _RunningPillState extends State<_RunningPill>
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: scheme.primary.withValues(
-                  alpha: 0.35 + 0.65 * _c.value,
-                ),
+                color: scheme.primary.withValues(alpha: 0.35 + 0.65 * _c.value),
               ),
             ),
             const SizedBox(width: 8),
@@ -1102,15 +1093,17 @@ class _HardwareAdvice extends StatelessWidget {
             speed.calibrated
                 ? device.known
                       ? l10n.benchmarkMeasuredWithDevice(
-                          device.summary,
+                          device.localizedSummary(context.l10n),
                           speed.bandwidthGBps.toStringAsFixed(1),
                         )
                       : l10n.benchmarkMeasured(
                           speed.bandwidthGBps.toStringAsFixed(1),
                         )
                 : device.known
-                    ? l10n.benchmarkEstimateWithDevice(device.summary)
-                    : l10n.benchmarkCalibratePrompt,
+                ? l10n.benchmarkEstimateWithDevice(
+                    device.localizedSummary(context.l10n),
+                  )
+                : l10n.benchmarkCalibratePrompt,
             style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
@@ -1160,7 +1153,7 @@ class _AdviceRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  job.label,
+                  job.localizedLabel(context.l10n),
                   style: TextStyle(
                     fontSize: 11,
                     letterSpacing: 0.3,
@@ -1181,7 +1174,7 @@ class _AdviceRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                pick.speedLabel,
+                pick.localizedSpeedLabel(context.l10n),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
