@@ -25,14 +25,15 @@ class LocalLlmApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final tamil = ref.watch(isTamilUiProvider);
     return MaterialApp(
       title: 'Thinai',
       debugShowCheckedModeBanner: false,
       locale: ref.watch(appLocaleProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: buildAppTheme(Brightness.light),
-      darkTheme: buildAppTheme(Brightness.dark),
+      theme: buildAppTheme(Brightness.light, tamil: tamil),
+      darkTheme: buildAppTheme(Brightness.dark, tamil: tamil),
       themeMode: themeMode,
       home: WithForegroundTask(child: const _Shell()),
     );
@@ -43,7 +44,7 @@ class LocalLlmApp extends ConsumerWidget {
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
 /// so every screen adapts automatically.
 @visibleForTesting
-ThemeData buildAppTheme(Brightness brightness) {
+ThemeData buildAppTheme(Brightness brightness, {bool tamil = false}) {
   final isDark = brightness == Brightness.dark;
   // Official Thinai logo leaf green and crisp error red
   const logoGreen = Color(0xFF2CA048);
@@ -144,7 +145,7 @@ ThemeData buildAppTheme(Brightness brightness) {
         return TextStyle(
           fontSize: 10.5,
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.25,
+          letterSpacing: tamil ? 0 : 1.25,
           color: selected
               ? (isDark ? Colors.white : const Color(0xFF090A0C))
               : scheme.onSurfaceVariant,

@@ -297,7 +297,7 @@ class _DateHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w800,
-          letterSpacing: 1.0,
+          letterSpacing: context.tracking(1.0),
           color: scheme.onSurfaceVariant,
         ),
       ),
@@ -560,10 +560,10 @@ class _ConversationCard extends StatelessWidget {
                             ),
                             child: Text(
                               context.l10n.chatHistoryActiveBadge,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
+                                letterSpacing: context.tracking(0.6),
                                 color: logoGreen,
                               ),
                             ),

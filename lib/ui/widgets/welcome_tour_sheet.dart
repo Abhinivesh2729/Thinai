@@ -109,11 +109,11 @@ class WelcomeTourSheet extends StatelessWidget {
                             ),
                             child: Text(
                               l10n.tourWelcomeOfflineBadge,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
                                 color: brandGreen,
-                                letterSpacing: 0.6,
+                                letterSpacing: context.tracking(0.6),
                               ),
                             ),
                           ),

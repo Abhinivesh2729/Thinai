@@ -73,7 +73,7 @@ class _SplashPageState extends State<SplashPage>
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w900,
-            letterSpacing: 3.5,
+            letterSpacing: context.tracking(3.5),
             color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
@@ -161,11 +161,11 @@ class _SplashPageState extends State<SplashPage>
                       Text(
                         l10n.splashTagline,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF64748B),
-                          letterSpacing: 1.8,
+                          letterSpacing: context.tracking(1.8),
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -196,11 +196,11 @@ class _SplashPageState extends State<SplashPage>
                 child: Center(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10.5,
                         color: Color(0xFF94A3B8),
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.6,
+                        letterSpacing: context.tracking(1.6),
                       ),
                       children: _footerSpans(l10n),
                     ),

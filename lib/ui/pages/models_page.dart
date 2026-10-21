@@ -2313,7 +2313,7 @@ class _CategoryBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 8.5,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
+              letterSpacing: context.tracking(0.6),
               color: color,
             ),
           ),
@@ -2565,7 +2565,7 @@ class _FeaturedHeroCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
+                                    letterSpacing: context.tracking(1.2),
                                     color: isDark
                                         ? const Color(0xFF86EFAC)
                                         : const Color(0xFF15803D),
@@ -2588,7 +2588,7 @@ class _FeaturedHeroCard extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.6,
+                                      letterSpacing: context.tracking(0.6),
                                       color: isDark
                                           ? const Color(0xFF4ADE80)
                                           : const Color(0xFF15803D),
@@ -2975,7 +2975,7 @@ class _CatalogCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.1,
+                                    letterSpacing: context.tracking(1.1),
                                     color: isDark
                                         ? const Color(0xFF94A3B8)
                                         : const Color(0xFF64748B),
@@ -3004,7 +3004,7 @@ class _CatalogCard extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.6,
+                                        letterSpacing: context.tracking(0.6),
                                         color: isDark
                                             ? const Color(0xFF4ADE80)
                                             : const Color(0xFF15803D),
@@ -3348,7 +3348,7 @@ void _openModelDetailsSheet(
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
+                        letterSpacing: context.tracking(1.1),
                         color: isDark
                             ? const Color(0xFF94A3B8)
                             : const Color(0xFF64748B),

@@ -774,7 +774,7 @@ class _ActiveModelBanner extends StatelessWidget {
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
                           color: scheme.primary,
-                          letterSpacing: 0.6,
+                          letterSpacing: context.tracking(0.6),
                         ),
                       ),
                       const SizedBox(height: 2),

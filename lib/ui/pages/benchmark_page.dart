@@ -479,7 +479,7 @@ class _RunningPillState extends State<_RunningPill>
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          letterSpacing: 1,
+          letterSpacing: context.tracking(1),
           color: scheme.onSurfaceVariant,
         ),
       );
@@ -504,7 +504,7 @@ class _RunningPillState extends State<_RunningPill>
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
+                letterSpacing: context.tracking(1.2),
                 color: scheme.primary,
               ),
             ),

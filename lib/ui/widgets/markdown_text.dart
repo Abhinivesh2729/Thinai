@@ -274,11 +274,11 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
                     const SizedBox(width: 6),
                     Text(
                       displayLang,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
+                        letterSpacing: context.tracking(0.8),
                         color: Color(0xFFCBD5E1),
                       ),
                     ),

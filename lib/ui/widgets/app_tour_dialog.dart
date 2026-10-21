@@ -185,11 +185,11 @@ class _AppTourDialogState extends State<AppTourDialog> {
                       const SizedBox(width: 6),
                       Text(
                         context.l10n.tourBadge,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: _emeraldAccent,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                          letterSpacing: context.tracking(0.8),
                         ),
                       ),
                     ],
@@ -761,11 +761,11 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           child: Text(
             context.l10n.tourStageLabel(stage, _totalPages),
-            style: const TextStyle(
+            style: TextStyle(
               color: _emeraldAccent,
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              letterSpacing: context.tracking(0.5),
             ),
           ),
         ),
@@ -777,7 +777,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
               color: Colors.white.withValues(alpha: 0.5),
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+              letterSpacing: context.tracking(0.5),
             ),
           ),
         ),
@@ -1157,11 +1157,11 @@ class LiveGuidedTourDock extends StatelessWidget {
                     ),
                     child: Text(
                       l10n.tourDockStep(step + 1, 4),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF4ADE80),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
+                        letterSpacing: context.tracking(0.6),
                       ),
                     ),
                   ),

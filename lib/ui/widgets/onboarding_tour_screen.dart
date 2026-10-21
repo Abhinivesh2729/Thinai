@@ -419,11 +419,11 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       child: Text(
                         tag,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: _brandGreen,
-                          letterSpacing: 0.8,
+                          letterSpacing: context.tracking(0.8),
                         ),
                       ),
                     ),

@@ -1037,7 +1037,7 @@ class _DrawerDateHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 10.5,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
+          letterSpacing: context.tracking(0.8),
           color: scheme.onSurfaceVariant,
         ),
       ),
