@@ -43,12 +43,12 @@ class _TamilLanguage extends AppLanguageController {
 }
 
 Widget _app(Widget home, {Locale locale = const Locale('ta')}) => MaterialApp(
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(fontFamily: 'Roboto'),
-      home: home,
-    );
+  locale: locale,
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  theme: ThemeData(fontFamily: 'Roboto'),
+  home: home,
+);
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
@@ -69,8 +69,9 @@ Future<void> _pumpModelsPage(
     ProviderScope(
       overrides: [
         modelListProvider.overrideWith((ref) async => installed),
-        partialDownloadsProvider
-            .overrideWith((ref) async => const <PartialDownload>[]),
+        partialDownloadsProvider.overrideWith(
+          (ref) async => const <PartialDownload>[],
+        ),
         missingProjectorsProvider.overrideWith((ref) async => <String>{}),
         deviceProfileProvider.overrideWith((ref) async => _phone),
         ...language,
@@ -100,8 +101,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('Models page in Tamil', () {
-    testWidgets('opens on the Tamil goal when the app language is Tamil',
-        (tester) async {
+    testWidgets('opens on the Tamil goal when the app language is Tamil', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({'app_language': 'tamil'});
       await _pumpModelsPage(
         tester,
@@ -110,29 +112,36 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text(_ta.navModels), findsOneWidget);
-      expect(find.text(_ta.modelsTargeting(_ta.modelsUseCaseTamil)),
-          findsOneWidget);
+      expect(
+        find.text(_ta.modelsTargeting(_ta.modelsUseCaseTamil)),
+        findsOneWidget,
+      );
       expect(find.text(_ta.modelsUseCaseTamilBlurb), findsOneWidget);
       // The goal chip in the filter row shows the Tamil goal too.
       expect(find.text(_ta.modelsUseCaseTamil), findsWidgets);
       expect(find.text(_ta.modelsChange), findsOneWidget);
-      expect(find.text(_ta.modelsRecommendedFor(_ta.modelsUseCaseTamil)),
-          findsOneWidget);
+      expect(
+        find.text(_ta.modelsRecommendedFor(_ta.modelsUseCaseTamil)),
+        findsOneWidget,
+      );
       // Nothing from the English copy leaks through.
       expect(find.text('Targeting: Tamil'), findsNothing);
       expect(find.text(_en.modelsRecommendedSubtitle), findsNothing);
     });
 
-    testWidgets('follows a Tamil phone when the language is left on System',
-        (tester) async {
+    testWidgets('follows a Tamil phone when the language is left on System', (
+      tester,
+    ) async {
       await _pumpModelsPage(
         tester,
         language: [systemLanguageCodeProvider.overrideWithValue('ta')],
       );
 
       expect(tester.takeException(), isNull);
-      expect(find.text(_ta.modelsTargeting(_ta.modelsUseCaseTamil)),
-          findsOneWidget);
+      expect(
+        find.text(_ta.modelsTargeting(_ta.modelsUseCaseTamil)),
+        findsOneWidget,
+      );
     });
 
     testWidgets('opens with no goal in English', (tester) async {
@@ -148,8 +157,9 @@ void main() {
       expect(find.text(_ta.modelsExploreModels), findsOneWidget);
     });
 
-    testWidgets('filter menu, goal sheet and Model Manager are in Tamil',
-        (tester) async {
+    testWidgets('filter menu, goal sheet and Model Manager are in Tamil', (
+      tester,
+    ) async {
       await _pumpModelsPage(
         tester,
         language: [isTamilUiProvider.overrideWithValue(false)],
@@ -204,8 +214,9 @@ void main() {
   });
 
   group('Model advisor in Tamil', () {
-    testWidgets('asks the question and explains the pick in Tamil',
-        (tester) async {
+    testWidgets('asks the question and explains the pick in Tamil', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(420, 2400) * 2;
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
@@ -267,8 +278,9 @@ void main() {
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
 
-      await tester
-          .pumpWidget(_app(Scaffold(body: ModelSettingsSheet(model: model))));
+      await tester.pumpWidget(
+        _app(Scaffold(body: ModelSettingsSheet(model: model))),
+      );
       final title = find.text(_ta.modelsSettingsTitle);
       for (var i = 0; i < 100 && title.evaluate().isEmpty; i++) {
         await tester.runAsync(
@@ -302,8 +314,7 @@ void main() {
       }
     });
 
-    test('English reasons match the strings the recommender already gives',
-        () {
+    test('English reasons match the strings the recommender already gives', () {
       for (final useCase in UseCase.values) {
         final result = recommend(useCase, _phone);
         for (final pick in result.picks) {

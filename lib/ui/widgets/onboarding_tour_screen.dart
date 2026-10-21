@@ -15,11 +15,7 @@ class OnboardingTourScreen extends StatefulWidget {
   final VoidCallback? onComplete;
   final ValueChanged<int>? onNavigateTab;
 
-  const OnboardingTourScreen({
-    super.key,
-    this.onComplete,
-    this.onNavigateTab,
-  });
+  const OnboardingTourScreen({super.key, this.onComplete, this.onNavigateTab});
 
   /// Presents the Onboarding Tour as a full-screen, light-themed page.
   static Future<void> show({
@@ -40,10 +36,13 @@ class OnboardingTourScreen extends StatefulWidget {
           return FadeTransition(
             opacity: anim,
             child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.0, 0.05),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(0.0, 0.05),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+                  ),
               child: child,
             ),
           );
@@ -161,7 +160,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       onPressed: () => _finishOnboarding(),
                       style: TextButton.styleFrom(
                         foregroundColor: _slateMuted,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         backgroundColor: const Color(0xFFF1F5F9),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -264,9 +266,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   28,
                   18 + MediaQuery.of(context).padding.bottom,
                 ),
-                decoration: const BoxDecoration(
-                  color: _brandGreen,
-                ),
+                decoration: const BoxDecoration(color: _brandGreen),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -394,9 +394,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(22, 6, 22, 12),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight - 18,
-            ),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 18),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -410,7 +408,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   children: [
                     // Tag Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: _brandGreen.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
@@ -467,7 +468,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                     ...bullets.map((text) {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
@@ -513,7 +517,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                           minHeight: 50,
                         ),
                         child: FilledButton.icon(
-                          icon: const Icon(Icons.rocket_launch_rounded, size: 18),
+                          icon: const Icon(
+                            Icons.rocket_launch_rounded,
+                            size: 18,
+                          ),
                           label: Text(
                             context.l10n.onboardingStartButton,
                             textAlign: TextAlign.center,

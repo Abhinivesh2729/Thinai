@@ -149,9 +149,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
     return Container(
       padding: EdgeInsets.fromLTRB(20, isCompact ? 14 : 18, 16, 12),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0x22FFFFFF), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0x22FFFFFF), width: 1)),
       ),
       child: Row(
         children: [
@@ -164,7 +162,10 @@ class _AppTourDialogState extends State<AppTourDialog> {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _brandGreen.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(10),
@@ -998,10 +999,18 @@ class _AppTourDialogState extends State<AppTourDialog> {
             constraints: const BoxConstraints(maxWidth: 150),
             child: FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: highlight ? _brandGreen : const Color(0xFF1E283C),
+                backgroundColor: highlight
+                    ? _brandGreen
+                    : const Color(0xFF1E283C),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -1022,9 +1031,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, isCompact ? 14 : 18),
       decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Color(0x22FFFFFF), width: 1),
-        ),
+        border: Border(top: BorderSide(color: Color(0x22FFFFFF), width: 1)),
       ),
       // An OverflowBar lays the two buttons out like a spaced row and only
       // stacks them when longer translations no longer fit side by side.
@@ -1038,7 +1045,10 @@ class _AppTourDialogState extends State<AppTourDialog> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white70,
                 side: const BorderSide(color: Color(0x33FFFFFF)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -1137,7 +1147,10 @@ class LiveGuidedTourDock extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: _brandGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
@@ -1174,7 +1187,11 @@ class LiveGuidedTourDock extends StatelessWidget {
                       color: const Color(0x224ADE80),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(info.icon, color: const Color(0xFF4ADE80), size: 20),
+                    child: Icon(
+                      info.icon,
+                      color: const Color(0xFF4ADE80),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1239,8 +1256,13 @@ class LiveGuidedTourDock extends StatelessWidget {
                     style: FilledButton.styleFrom(
                       backgroundColor: _brandGreen,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                     onPressed: () {
                       if (step < 3) {
@@ -1251,7 +1273,10 @@ class LiveGuidedTourDock extends StatelessWidget {
                     },
                     child: Text(
                       step == 3 ? l10n.tourFinishTour : l10n.tourNextStep,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],

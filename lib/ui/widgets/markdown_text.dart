@@ -37,16 +37,20 @@ class MarkdownText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveCodeBg = codeBackground ??
+    final effectiveCodeBg =
+        codeBackground ??
         (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.10);
-    final effectiveMuted = mutedColor ??
+    final effectiveMuted =
+        mutedColor ??
         (style.color ?? const Color(0xFF000000)).withValues(alpha: 0.62);
-    final effectiveCursor = cursorColor ?? style.color ?? const Color(0xFF2CA048);
+    final effectiveCursor =
+        cursorColor ?? style.color ?? const Color(0xFF2CA048);
 
     final blocks = _parseBlocks(data, streamingCursor);
 
     // If there are no fenced code blocks, render a single span tree for efficiency
-    if (blocks.isEmpty || (blocks.length == 1 && blocks.first.type == _BlockType.text)) {
+    if (blocks.isEmpty ||
+        (blocks.length == 1 && blocks.first.type == _BlockType.text)) {
       final span = buildMarkdownSpan(
         data,
         base: style,
@@ -66,22 +70,25 @@ class MarkdownText extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < blocks.length; i++) ...[
-          if (blocks[i].type == _BlockType.text && blocks[i].content.trim().isNotEmpty) ...[
+          if (blocks[i].type == _BlockType.text &&
+              blocks[i].content.trim().isNotEmpty) ...[
             if (i > 0) const SizedBox(height: 6),
-            Builder(builder: (ctx) {
-              final isLastBlock = i == blocks.length - 1;
-              final span = buildMarkdownSpan(
-                blocks[i].content,
-                base: style,
-                codeBackground: effectiveCodeBg,
-                muted: effectiveMuted,
-                streamingCursor: isLastBlock && streamingCursor,
-                cursorColor: effectiveCursor,
-              );
-              return (selectable && !streamingCursor)
-                  ? SelectableText.rich(span)
-                  : Text.rich(span);
-            }),
+            Builder(
+              builder: (ctx) {
+                final isLastBlock = i == blocks.length - 1;
+                final span = buildMarkdownSpan(
+                  blocks[i].content,
+                  base: style,
+                  codeBackground: effectiveCodeBg,
+                  muted: effectiveMuted,
+                  streamingCursor: isLastBlock && streamingCursor,
+                  cursorColor: effectiveCursor,
+                );
+                return (selectable && !streamingCursor)
+                    ? SelectableText.rich(span)
+                    : Text.rich(span);
+              },
+            ),
             if (i < blocks.length - 1) const SizedBox(height: 6),
           ] else if (blocks[i].type == _BlockType.code) ...[
             _StructuredCodeBlock(
@@ -141,12 +148,14 @@ List<_MarkdownBlock> _parseBlocks(String data, bool streamingCursor) {
       } else {
         inCode = false;
         final codeText = currentLines.join('\n');
-        blocks.add(_MarkdownBlock(
-          type: _BlockType.code,
-          content: codeText,
-          language: currentLang ?? 'code',
-          isStreaming: false,
-        ));
+        blocks.add(
+          _MarkdownBlock(
+            type: _BlockType.code,
+            content: codeText,
+            language: currentLang ?? 'code',
+            isStreaming: false,
+          ),
+        );
         currentLines.clear();
         currentLang = null;
       }
@@ -158,12 +167,14 @@ List<_MarkdownBlock> _parseBlocks(String data, bool streamingCursor) {
   if (currentLines.isNotEmpty) {
     if (inCode) {
       final codeText = currentLines.join('\n');
-      blocks.add(_MarkdownBlock(
-        type: _BlockType.code,
-        content: codeText,
-        language: currentLang ?? 'code',
-        isStreaming: streamingCursor,
-      ));
+      blocks.add(
+        _MarkdownBlock(
+          type: _BlockType.code,
+          content: codeText,
+          language: currentLang ?? 'code',
+          isStreaming: streamingCursor,
+        ),
+      );
     } else {
       final text = currentLines.join('\n');
       if (text.isNotEmpty) {
@@ -217,7 +228,8 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
 
   @override
   Widget build(BuildContext context) {
-    final displayLang = widget.language.isEmpty || widget.language.toLowerCase() == 'code'
+    final displayLang =
+        widget.language.isEmpty || widget.language.toLowerCase() == 'code'
         ? context.l10n.chatCodeBlockLabel
         : widget.language.toUpperCase();
 
@@ -276,14 +288,19 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
                   onTap: _copyCode,
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           _copied ? Icons.check_rounded : Icons.copy_rounded,
                           size: 13,
-                          color: _copied ? const Color(0xFF4ADE80) : const Color(0xFF94A3B8),
+                          color: _copied
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF94A3B8),
                         ),
                         const SizedBox(width: 5),
                         Text(
@@ -293,7 +310,9 @@ class _StructuredCodeBlockState extends State<_StructuredCodeBlock> {
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
-                            color: _copied ? const Color(0xFF4ADE80) : const Color(0xFF94A3B8),
+                            color: _copied
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF94A3B8),
                           ),
                         ),
                       ],
@@ -545,7 +564,9 @@ List<InlineSpan> _inlineSpans(
 
   for (final match in _inlinePattern.allMatches(text)) {
     if (match.start > cursor) {
-      spans.add(TextSpan(text: text.substring(cursor, match.start), style: style));
+      spans.add(
+        TextSpan(text: text.substring(cursor, match.start), style: style),
+      );
     }
     cursor = match.end;
 

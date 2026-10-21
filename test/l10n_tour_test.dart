@@ -193,7 +193,9 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(
-      _tamilApp(home: const Scaffold(body: Center(child: MadeInErode()))),
+      _tamilApp(
+        home: const Scaffold(body: Center(child: MadeInErode())),
+      ),
     );
     expect(find.text(_ta.brandPlace), findsOneWidget);
     expect(find.text('Erode, Tamilnadu'), findsNothing);

@@ -21,9 +21,7 @@ class AboutPage extends ConsumerWidget {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.aboutTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.aboutTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
@@ -50,7 +48,10 @@ class AboutPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _brandGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -240,7 +241,10 @@ class AboutPage extends ConsumerWidget {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                        icon: const Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          size: 16,
+                        ),
                         label: Text(l10n.aboutContactSupport),
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -305,9 +309,7 @@ class _FeatureCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,11 +321,7 @@ class _FeatureCard extends StatelessWidget {
               color: const Color(0xFF2CA048).withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: const Color(0xFF2CA048),
-            ),
+            child: Icon(icon, size: 20, color: const Color(0xFF2CA048)),
           ),
           const SizedBox(width: 14),
           Expanded(

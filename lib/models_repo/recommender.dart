@@ -32,19 +32,19 @@ enum RamFit {
 
 extension RamFitInfo on RamFit {
   String get label => switch (this) {
-        RamFit.comfortable => 'Runs well on your phone',
-        RamFit.tight => 'Tight fit, may slow other apps',
-        RamFit.tooBig => 'Too big for your phone',
-        RamFit.unknown => 'Fit unknown',
-      };
+    RamFit.comfortable => 'Runs well on your phone',
+    RamFit.tight => 'Tight fit, may slow other apps',
+    RamFit.tooBig => 'Too big for your phone',
+    RamFit.unknown => 'Fit unknown',
+  };
 
   /// [label] in the app's language.
   String localizedLabel(AppLocalizations l) => switch (this) {
-        RamFit.comfortable => l.modelsFitComfortable,
-        RamFit.tight => l.modelsFitTightShort,
-        RamFit.tooBig => l.modelsFitTooBig,
-        RamFit.unknown => l.modelsFitUnknown,
-      };
+    RamFit.comfortable => l.modelsFitComfortable,
+    RamFit.tight => l.modelsFitTightShort,
+    RamFit.tooBig => l.modelsFitTooBig,
+    RamFit.unknown => l.modelsFitUnknown,
+  };
 }
 
 class Recommendation {
@@ -92,9 +92,9 @@ class Recommendation {
 
   /// [reasons] in the app's language.
   List<String> localizedReasons(AppLocalizations l) => [
-        for (final (useCase, skill) in reasonParts)
-          skill.localizedReason(l, useCase),
-      ];
+    for (final (useCase, skill) in reasonParts)
+      skill.localizedReason(l, useCase),
+  ];
 
   /// [speedLabel] in the app's language. Only the "unknown" case has words;
   /// the rate itself reads the same everywhere.
@@ -171,10 +171,12 @@ class RecommendationResult {
     if (kind == null || job == null) return caveat;
     return switch (kind) {
       RecommendationCaveat.noneFits => l.modelsCaveatNoneFits(job.name),
-      RecommendationCaveat.nothingFitsWell =>
-        l.modelsCaveatNothingFitsWell(job.name),
-      RecommendationCaveat.nothingStrong =>
-        l.modelsCaveatNothingStrong(job.name),
+      RecommendationCaveat.nothingFitsWell => l.modelsCaveatNothingFitsWell(
+        job.name,
+      ),
+      RecommendationCaveat.nothingStrong => l.modelsCaveatNothingStrong(
+        job.name,
+      ),
     };
   }
 
@@ -222,7 +224,7 @@ class SpeedKnowledge {
   final Map<String, BenchmarkResult> measurements;
 
   SpeedKnowledge({required this.device, this.measurements = const {}})
-      : _calibrated = measuredBandwidthGBps(measurements.values);
+    : _calibrated = measuredBandwidthGBps(measurements.values);
 
   final double? _calibrated;
 
@@ -252,7 +254,8 @@ class SpeedKnowledge {
     return (bandwidthGBps / gb).clamp(0.5, 60.0);
   }
 
-  bool isMeasured(CatalogModel model) => measurements.containsKey(model.servedId);
+  bool isMeasured(CatalogModel model) =>
+      measurements.containsKey(model.servedId);
 }
 
 /// Decode speed estimate with no measurements to go on.
@@ -361,7 +364,8 @@ RecommendationResult recommend(
   final fallback = [for (final (rec, _) in scored.take(limit)) rec];
   if (fallback.isEmpty) {
     return RecommendationResult(
-      caveat: 'No model in the catalogue fits this phone for '
+      caveat:
+          'No model in the catalogue fits this phone for '
           '${_phrase(useCase)}.',
       useCase: useCase,
       caveatKind: RecommendationCaveat.noneFits,
@@ -376,7 +380,7 @@ RecommendationResult recommend(
     caveat: device.known
         ? 'Nothing fits well for ${_phrase(useCase)}. These are closest.'
         : 'Nothing at this size is strong at ${_phrase(useCase)}. Closest '
-            'matches shown.',
+              'matches shown.',
   );
 }
 
@@ -399,13 +403,13 @@ List<(UseCase, Skill)> _reasonPartsFor(
 }
 
 String _phrase(UseCase useCase) => switch (useCase) {
-      UseCase.fastChat => 'quick conversations',
-      UseCase.reasoning => 'step-by-step reasoning',
-      UseCase.coding => 'code',
-      UseCase.tamil => 'Tamil',
-      UseCase.english => 'English',
-      UseCase.vision => 'images',
-      UseCase.translation => 'translation',
-      UseCase.summarizing => 'summarising',
-      UseCase.documents => 'long documents',
-    };
+  UseCase.fastChat => 'quick conversations',
+  UseCase.reasoning => 'step-by-step reasoning',
+  UseCase.coding => 'code',
+  UseCase.tamil => 'Tamil',
+  UseCase.english => 'English',
+  UseCase.vision => 'images',
+  UseCase.translation => 'translation',
+  UseCase.summarizing => 'summarising',
+  UseCase.documents => 'long documents',
+};

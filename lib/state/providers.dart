@@ -125,7 +125,8 @@ class AppLanguageController extends StateNotifier<AppLanguage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = AppLanguage.values.asNameMap()[prefs.getString(_key)] ??
+    state =
+        AppLanguage.values.asNameMap()[prefs.getString(_key)] ??
         AppLanguage.system;
   }
 

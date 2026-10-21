@@ -128,7 +128,9 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                   final ok = await _confirm(
                                     context,
                                     title: l10n.chatHistoryDeleteOneTitle,
-                                    body: conversation.localizedTitle(context.l10n),
+                                    body: conversation.localizedTitle(
+                                      context.l10n,
+                                    ),
                                     action: l10n.commonDelete,
                                   );
                                   if (ok) {

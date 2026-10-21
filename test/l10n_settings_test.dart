@@ -86,8 +86,10 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Thinai பற்றி'), findsOneWidget);
       expect(find.text('அடிப்படைத் தூண்கள்'), findsOneWidget);
-      expect(find.text('v2.4.0 (13) · சாதனத்திலேயே இயங்கும் தனிப்பட்ட AI'),
-          findsOneWidget);
+      expect(
+        find.text('v2.4.0 (13) · சாதனத்திலேயே இயங்கும் தனிப்பட்ட AI'),
+        findsOneWidget,
+      );
       // Technical values stay in English.
       expect(find.text('GGUF (Q4_K_M, Q8_0, BF16)'), findsOneWidget);
     });
@@ -195,9 +197,7 @@ void main() {
     });
 
     test('a stored custom prompt still wins', () async {
-      SharedPreferences.setMockInitialValues({
-        _systemPromptKey: 'Be brief.',
-      });
+      SharedPreferences.setMockInitialValues({_systemPromptKey: 'Be brief.'});
       final c = SystemPromptController(tamil: true);
       expect(await c.current(), 'Be brief.');
       expect(c.isDefault, isFalse);

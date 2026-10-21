@@ -39,10 +39,7 @@ class _SplashPageState extends State<SplashPage>
     );
 
     _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
     );
 
     _animController.forward();
@@ -113,7 +110,9 @@ class _SplashPageState extends State<SplashPage>
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: bg,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
       child: Scaffold(
@@ -146,13 +145,14 @@ class _SplashPageState extends State<SplashPage>
                         width: 240,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.high,
-                        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded || frame != null) {
-                            return child;
-                          }
-                          // Instant brand badge while decoding so screen is never blank
-                          return _buildBrandFallback(isDark);
-                        },
+                        frameBuilder:
+                            (context, child, frame, wasSynchronouslyLoaded) {
+                              if (wasSynchronouslyLoaded || frame != null) {
+                                return child;
+                              }
+                              // Instant brand badge while decoding so screen is never blank
+                              return _buildBrandFallback(isDark);
+                            },
                         errorBuilder: (context, error, stackTrace) {
                           return _buildBrandFallback(isDark);
                         },
@@ -177,7 +177,9 @@ class _SplashPageState extends State<SplashPage>
                           child: const LinearProgressIndicator(
                             minHeight: 2.5,
                             backgroundColor: Color(0x1F2CA048),
-                            valueColor: AlwaysStoppedAnimation<Color>(_logoGreen),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _logoGreen,
+                            ),
                           ),
                         ),
                       ),

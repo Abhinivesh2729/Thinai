@@ -17,7 +17,11 @@ class ContactSupportPage extends ConsumerWidget {
   static const String _instagramHandle = '@27_ai_27';
   static const Color _brandGreen = Color(0xFF2CA048);
 
-  Future<void> _launch(BuildContext context, Uri uri, {String? failureMessage}) async {
+  Future<void> _launch(
+    BuildContext context,
+    Uri uri, {
+    String? failureMessage,
+  }) async {
     HapticFeedback.lightImpact();
     try {
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -28,7 +32,9 @@ class ContactSupportPage extends ConsumerWidget {
               failureMessage ?? context.l10n.supportCouldNotOpenLink('$uri'),
             ),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -38,7 +44,9 @@ class ContactSupportPage extends ConsumerWidget {
           SnackBar(
             content: Text(context.l10n.supportFailedToOpenLink('$e')),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -71,9 +79,7 @@ class ContactSupportPage extends ConsumerWidget {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.supportTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.supportTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
@@ -83,14 +89,8 @@ class ContactSupportPage extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [
-                        const Color(0xFF1E2837),
-                        const Color(0xFF151C28),
-                      ]
-                    : [
-                        const Color(0xFFF0FDF4),
-                        const Color(0xFFE8F5E9),
-                      ],
+                    ? [const Color(0xFF1E2837), const Color(0xFF151C28)]
+                    : [const Color(0xFFF0FDF4), const Color(0xFFE8F5E9)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -378,9 +378,7 @@ class _ChannelCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

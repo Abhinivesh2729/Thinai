@@ -52,9 +52,11 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
   @override
   void initState() {
     super.initState();
-    unawaited(_store.ensureLoaded().then((_) {
-      if (mounted) setState(() {});
-    }));
+    unawaited(
+      _store.ensureLoaded().then((_) {
+        if (mounted) setState(() {});
+      }),
+    );
     _sub = _store.changes.listen((_) {
       if (mounted) setState(() {});
     });
@@ -98,16 +100,22 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
         maxTokens: _kTestTokens,
         gpu: backend,
       );
-      await for (final token in ref
-          .read(llmEngineProvider)
-          .generate(_kTestPrompt, modelPath: model.path, options: options)) {
+      await for (final token
+          in ref
+              .read(llmEngineProvider)
+              .generate(
+                _kTestPrompt,
+                modelPath: model.path,
+                options: options,
+              )) {
         if (token.isError) throw StateError(token.full);
         last = token.stats;
         if (token.done) break;
       }
     }
     final ttft = last.timeToFirstToken;
-    final prompt = ttft == null || ttft == Duration.zero || last.promptTokens == 0
+    final prompt =
+        ttft == null || ttft == Duration.zero || last.promptTokens == 0
         ? null
         : last.promptTokens / (ttft.inMicroseconds / 1e6);
     return _Speed(prompt, last.tokensPerSecond);
@@ -121,8 +129,9 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       return;
     }
     final saved = _store.settings.gpu;
-    final backend =
-        saved == GpuBackend.none ? recommendedBackend(devices) : saved;
+    final backend = saved == GpuBackend.none
+        ? recommendedBackend(devices)
+        : saved;
     if (backend == GpuBackend.none) return;
 
     setState(() {
@@ -138,7 +147,9 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       final gpu = await _measure(model, backend);
       if (mounted) setState(() => _gpu = gpu);
     } catch (e) {
-      if (mounted) setState(() => _testError = context.l10n.gpuTestFailed('$e'));
+      if (mounted) {
+        setState(() => _testError = context.l10n.gpuTestFailed('$e'));
+      }
     } finally {
       if (mounted) setState(() => _testing = false);
     }
@@ -172,7 +183,12 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     ];
 
     final content = Padding(
-      padding: EdgeInsets.fromLTRB(16, widget.embedded ? 14 : 12, 16, widget.embedded ? 14 : 12),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        widget.embedded ? 14 : 12,
+        16,
+        widget.embedded ? 14 : 12,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -262,10 +278,13 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
           else ...[
             Text(
               l10n.gpuFound(
-                devices.map((d) => '${d.name} (${label(d.backend)})').join(', '),
+                devices
+                    .map((d) => '${d.name} (${label(d.backend)})')
+                    .join(', '),
               ),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -309,7 +328,10 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
             if (_cpu != null || _testError != null) ...[
               const SizedBox(height: 8),
               if (_testError != null)
-                Text(_testError!, style: TextStyle(color: scheme.error, fontSize: 12))
+                Text(
+                  _testError!,
+                  style: TextStyle(color: scheme.error, fontSize: 12),
+                )
               else
                 _results(context, theme),
             ],
@@ -322,10 +344,7 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
       return content;
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: content,
-    );
+    return Card(margin: const EdgeInsets.only(bottom: 8), child: content);
   }
 
   Widget _results(BuildContext context, ThemeData theme) {
@@ -347,15 +366,15 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
     }
 
     TableRow row(String label, _Speed? s) => TableRow(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(label),
-            ),
-            Text(s == null ? '…' : rate(s.promptPerSecond)),
-            Text(s == null ? '…' : rate(s.generatePerSecond)),
-          ],
-        );
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Text(label),
+        ),
+        Text(s == null ? '…' : rate(s.promptPerSecond)),
+        Text(s == null ? '…' : rate(s.generatePerSecond)),
+      ],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,12 +385,18 @@ class _GpuSettingsCardState extends ConsumerState<GpuSettingsCard> {
             TableRow(
               children: [
                 const SizedBox.shrink(),
-                Text(l10n.gpuReadingPrompt,
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: scheme.onSurfaceVariant)),
-                Text(l10n.gpuWritingReply,
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  l10n.gpuReadingPrompt,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  l10n.gpuWritingReply,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
             row('CPU', cpu),
