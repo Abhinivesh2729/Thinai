@@ -247,15 +247,17 @@ class _ShellState extends ConsumerState<_Shell> {
     // blocks the UI shell or welcome sheet from rendering immediately.
     unawaited(ref.read(appBootstrapProvider.future).catchError((Object _) {}));
 
+    // Long enough for the splash intro, not a fixed wait: restore already
+    // runs in the background, so a longer splash only adds latency.
+    final minSplash = Future<void>.delayed(SplashPage.introDuration);
+
     // Pre-check whether this is the first launch while splash is displaying
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
     final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
     _needsOnboarding = !seen;
 
-    // Show the logo and brand presence for ~2.8s (~3s as requested: "likely 3s")
-    // while all heavy database & model checks finish in the background.
-    await Future<void>.delayed(const Duration(milliseconds: 2800));
+    await minSplash;
     if (!mounted) return;
     setState(() => _booted = true);
   }
