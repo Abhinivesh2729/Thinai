@@ -152,8 +152,8 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்த URL-உம் token-உம் உள்ள எவரும் இணையலாம்';
 
   @override
-  String get serverTunnelStartServerFirst =>
-      'பொது URL பெற server-ஐத் தொடங்கவும்';
+  String get serverTunnelStartingServer =>
+      'பொது URL-க்காக server தொடங்குகிறது…';
 
   @override
   String get serverTunnelRotate => 'URL-ஐ மாற்று';

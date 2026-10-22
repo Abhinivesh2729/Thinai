@@ -181,7 +181,8 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     final apiHost = lanShare
         ? (status.lanIp ?? deviceIp ?? '127.0.0.1')
         : '127.0.0.1';
-    final base = 'http://$apiHost:$port';
+    // With a tunnel open, the examples point at the public URL clients use.
+    final base = status.publicUrl ?? 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
 
     return Scaffold(
@@ -237,7 +238,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           ),
 
           // 3b. Temporary public URL through a free Cloudflare quick tunnel
-          _PublicTunnelCard(status: status),
+          _PublicTunnelCard(status: status, onStartServer: _start),
 
           // 3c. Named API tokens for LAN and tunnel clients
           const _ApiTokensCard(),
@@ -245,8 +246,6 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           // 4. Full-Width Developer Quick Connect
           _DeveloperQuickStartCard(
             base: base,
-            apiHost: apiHost,
-            port: port,
             chatId: chatId,
             lanShare: lanShare,
           ),
@@ -969,7 +968,11 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
 class _PublicTunnelCard extends ConsumerStatefulWidget {
   final ServerStatus status;
 
-  const _PublicTunnelCard({required this.status});
+  /// Starts the server the way the Start button does, so turning the tunnel
+  /// on from a stopped server is one tap instead of a dead switch.
+  final Future<void> Function() onStartServer;
+
+  const _PublicTunnelCard({required this.status, required this.onStartServer});
 
   @override
   ConsumerState<_PublicTunnelCard> createState() => _PublicTunnelCardState();
@@ -997,6 +1000,21 @@ class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
     }
   }
 
+  Future<void> _toggle(bool on) => _run((c) async {
+    if (!on) return c.stopTunnel();
+    if (!ref.read(serverControllerProvider).running) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.serverTunnelStartingServer),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      await widget.onStartServer();
+      if (!ref.read(serverControllerProvider).running) return;
+    }
+    await c.startTunnel();
+  });
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -1005,11 +1023,10 @@ class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
 
     return _SectionCard(
       title: context.l10n.serverTunnelTitle,
-      subtitle: !status.running
-          ? context.l10n.serverTunnelStartServerFirst
-          : url != null
+      subtitle: url != null
           ? context.l10n.serverTunnelOnSubtitle
           : context.l10n.serverTunnelOffSubtitle,
+      onTap: _busy ? null : () => _toggle(url == null),
       trailing: _busy
           ? const Padding(
               padding: EdgeInsets.all(12),
@@ -1019,12 +1036,7 @@ class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             )
-          : Switch(
-              value: url != null,
-              onChanged: status.running
-                  ? (on) => _run((c) => on ? c.startTunnel() : c.stopTunnel())
-                  : null,
-            ),
+          : Switch(value: url != null, onChanged: _toggle),
       child: url == null
           ? null
           : Row(
@@ -1183,11 +1195,15 @@ class _SectionCard extends StatelessWidget {
   final Widget trailing;
   final Widget? child;
 
+  /// Makes the whole header row tappable, not just [trailing].
+  final VoidCallback? onTap;
+
   const _SectionCard({
     required this.title,
     required this.subtitle,
     required this.trailing,
     this.child,
+    this.onTap,
   });
 
   @override
@@ -1206,33 +1222,37 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14.5,
-                        letterSpacing: -0.2,
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 11.5,
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              trailing,
-            ],
+                trailing,
+              ],
+            ),
           ),
           if (child != null) ...[const SizedBox(height: 12), child!],
         ],
@@ -1317,15 +1337,11 @@ class _ValueRow extends StatelessWidget {
 
 class _DeveloperQuickStartCard extends StatefulWidget {
   final String base;
-  final String apiHost;
-  final int port;
   final String chatId;
   final bool lanShare;
 
   const _DeveloperQuickStartCard({
     required this.base,
-    required this.apiHost,
-    required this.port,
     required this.chatId,
     required this.lanShare,
   });
@@ -1342,8 +1358,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final openAiBase = 'http://${widget.apiHost}:${widget.port}/v1';
-    final ollamaBase = 'http://${widget.apiHost}:${widget.port}';
+    final openAiBase = '${widget.base}/v1';
+    final ollamaBase = widget.base;
 
     return Container(
       width: double.infinity,

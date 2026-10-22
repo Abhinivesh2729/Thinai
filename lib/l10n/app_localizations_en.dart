@@ -151,8 +151,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Anyone with this URL and a token can connect';
 
   @override
-  String get serverTunnelStartServerFirst =>
-      'Start the server to get a public URL';
+  String get serverTunnelStartingServer =>
+      'Starting the server for your public URL…';
 
   @override
   String get serverTunnelRotate => 'Rotate URL';

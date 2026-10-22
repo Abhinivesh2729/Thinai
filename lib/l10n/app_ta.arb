@@ -45,7 +45,7 @@
   "serverTunnelTitle": "பொது URL",
   "serverTunnelOffSubtitle": "இலவச Cloudflare tunnel வழியாகத் தற்காலிக இணைப்பு",
   "serverTunnelOnSubtitle": "இந்த URL-உம் token-உம் உள்ள எவரும் இணையலாம்",
-  "serverTunnelStartServerFirst": "பொது URL பெற server-ஐத் தொடங்கவும்",
+  "serverTunnelStartingServer": "பொது URL-க்காக server தொடங்குகிறது…",
   "serverTunnelRotate": "URL-ஐ மாற்று",
   "serverTunnelFailed": "Tunnel தோல்வி: {error}",
   "serverTokensTitle": "API tokens",

@@ -59,7 +59,7 @@
   "serverTunnelTitle": "Public URL",
   "serverTunnelOffSubtitle": "Temporary link via a free Cloudflare tunnel",
   "serverTunnelOnSubtitle": "Anyone with this URL and a token can connect",
-  "serverTunnelStartServerFirst": "Start the server to get a public URL",
+  "serverTunnelStartingServer": "Starting the server for your public URL…",
   "serverTunnelRotate": "Rotate URL",
   "serverTunnelFailed": "Tunnel failed: {error}",
   "@serverTunnelFailed": {

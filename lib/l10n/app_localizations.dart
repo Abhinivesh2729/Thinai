@@ -368,11 +368,11 @@ abstract class AppLocalizations {
   /// **'Anyone with this URL and a token can connect'**
   String get serverTunnelOnSubtitle;
 
-  /// No description provided for @serverTunnelStartServerFirst.
+  /// No description provided for @serverTunnelStartingServer.
   ///
   /// In en, this message translates to:
-  /// **'Start the server to get a public URL'**
-  String get serverTunnelStartServerFirst;
+  /// **'Starting the server for your public URL…'**
+  String get serverTunnelStartingServer;
 
   /// No description provided for @serverTunnelRotate.
   ///
