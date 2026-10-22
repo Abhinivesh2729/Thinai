@@ -16,7 +16,7 @@ All contributors and participants are expected to adhere to our [Code of Conduct
 
 ### Prerequisites
 
-- **Flutter SDK**: Ensure you have a recent stable version of Flutter installed (SDK `^3.11.0` / Flutter `3.27+`).
+- **Flutter SDK**: Ensure you have a recent stable version of Flutter installed (Flutter `3.41+` / Dart `^3.11.0`).
 - **Android SDK & NDK**:
   - Android SDK with API 24+ support.
   - CMake `3.22.1` (available via Android Studio SDK Manager).
