@@ -33,7 +33,7 @@ All contributors and participants are expected to adhere to our [Code of Conduct
    ```
 3. Set the upstream remote:
    ```bash
-   git remote add upstream https://github.com/ATmega-Software-Technologies/Thinai.git
+   git remote add upstream https://github.com/Abhinivesh2729/Thinai.git
    ```
 
 ### Branch Naming Conventions
