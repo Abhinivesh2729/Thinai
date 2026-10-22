@@ -1,5 +1,7 @@
 import java.util.Properties
 import java.io.FileInputStream
+import java.net.URI
+import java.security.MessageDigest
 
 plugins {
     id("com.android.application")
@@ -49,6 +51,13 @@ android {
         }
     }
 
+    packaging {
+        // Extract .so files to disk so the bundled cloudflared can be executed.
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -69,3 +78,31 @@ android {
 flutter {
     source = "../.."
 }
+
+// Open-source cloudflared (Apache-2.0) for the public tunnel. Fetched at a
+// pinned version and checksum rather than committing the ~37 MB binary.
+val cloudflaredVersion = "2026.10.3"
+val cloudflaredSha256 = "89297ebfb9e8c99c0dc013a1140601453cf3798d8306c5591651f4a3f5210be8"
+val cloudflaredLib = file("src/main/jniLibs/arm64-v8a/libcloudflared.so")
+
+fun sha256(f: File): String =
+    MessageDigest.getInstance("SHA-256").digest(f.readBytes()).joinToString("") { "%02x".format(it) }
+
+val fetchCloudflared by tasks.registering {
+    outputs.file(cloudflaredLib)
+    doLast {
+        if (cloudflaredLib.exists() && sha256(cloudflaredLib) == cloudflaredSha256) return@doLast
+        cloudflaredLib.parentFile.mkdirs()
+        val url = "https://github.com/cloudflare/cloudflared/releases/download/" +
+            "$cloudflaredVersion/cloudflared-linux-arm64"
+        URI(url).toURL().openStream().use { input ->
+            cloudflaredLib.outputStream().use { input.copyTo(it) }
+        }
+        if (sha256(cloudflaredLib) != cloudflaredSha256) {
+            cloudflaredLib.delete()
+            throw GradleException("cloudflared checksum mismatch for $url")
+        }
+    }
+}
+
+tasks.named("preBuild") { dependsOn(fetchCloudflared) }

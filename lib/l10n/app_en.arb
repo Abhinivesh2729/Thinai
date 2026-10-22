@@ -52,14 +52,48 @@
   "serverTune": "Tune",
   "serverNoModelLoaded": "No model loaded",
   "serverBrowseModels": "Choose model",
-  "serverRegenerateTokenTitle": "Regenerate token?",
-  "serverRegenerateTokenBody": "LAN devices will need the new token.",
-  "serverRegenerate": "Regenerate",
-  "serverTokenRegenerated": "Token regenerated",
   "serverLanShareTitle": "Share on LAN",
   "serverLanShareOnSubtitle": "Devices on this Wi-Fi can connect",
   "serverLanShareOffSubtitle": "This phone only",
   "serverCopyLanUrlTooltip": "Copy LAN URL",
+  "serverTunnelTitle": "Public URL",
+  "serverTunnelOffSubtitle": "Temporary link via a free Cloudflare tunnel",
+  "serverTunnelOnSubtitle": "Anyone with this URL and a token can connect",
+  "serverTunnelStartServerFirst": "Start the server to get a public URL",
+  "serverTunnelRotate": "Rotate URL",
+  "serverTunnelFailed": "Tunnel failed: {error}",
+  "@serverTunnelFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverTokensTitle": "API tokens",
+  "serverTokensSubtitle": "Clients on the LAN or public URL need one",
+  "serverTokensEmpty": "No tokens yet. One is created when you share.",
+  "serverTokenNew": "New token",
+  "serverTokenNameLabel": "Name, e.g. Laptop",
+  "serverTokenCreate": "Create",
+  "serverTokenCreatedOn": "Created {date}",
+  "@serverTokenCreatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "serverTokenDeleteTitle": "Delete \"{name}\"?",
+  "@serverTokenDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serverTokenDeleteBody": "Clients using this token lose access at once.",
+  "serverTokenDelete": "Delete",
+  "serverTokenCopyTooltip": "Copy token",
   "serverDevQuickStartTitle": "Quick start",
   "serverEndpointOpenAiChat": "OpenAI chat",
   "serverEndpointOllamaChat": "Ollama chat",

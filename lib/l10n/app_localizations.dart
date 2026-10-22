@@ -326,30 +326,6 @@ abstract class AppLocalizations {
   /// **'Choose model'**
   String get serverBrowseModels;
 
-  /// No description provided for @serverRegenerateTokenTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate token?'**
-  String get serverRegenerateTokenTitle;
-
-  /// No description provided for @serverRegenerateTokenBody.
-  ///
-  /// In en, this message translates to:
-  /// **'LAN devices will need the new token.'**
-  String get serverRegenerateTokenBody;
-
-  /// No description provided for @serverRegenerate.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate'**
-  String get serverRegenerate;
-
-  /// No description provided for @serverTokenRegenerated.
-  ///
-  /// In en, this message translates to:
-  /// **'Token regenerated'**
-  String get serverTokenRegenerated;
-
   /// No description provided for @serverLanShareTitle.
   ///
   /// In en, this message translates to:
@@ -373,6 +349,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy LAN URL'**
   String get serverCopyLanUrlTooltip;
+
+  /// No description provided for @serverTunnelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public URL'**
+  String get serverTunnelTitle;
+
+  /// No description provided for @serverTunnelOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary link via a free Cloudflare tunnel'**
+  String get serverTunnelOffSubtitle;
+
+  /// No description provided for @serverTunnelOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this URL and a token can connect'**
+  String get serverTunnelOnSubtitle;
+
+  /// No description provided for @serverTunnelStartServerFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the server to get a public URL'**
+  String get serverTunnelStartServerFirst;
+
+  /// No description provided for @serverTunnelRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate URL'**
+  String get serverTunnelRotate;
+
+  /// No description provided for @serverTunnelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnel failed: {error}'**
+  String serverTunnelFailed(String error);
+
+  /// No description provided for @serverTokensTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'API tokens'**
+  String get serverTokensTitle;
+
+  /// No description provided for @serverTokensSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients on the LAN or public URL need one'**
+  String get serverTokensSubtitle;
+
+  /// No description provided for @serverTokensEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No tokens yet. One is created when you share.'**
+  String get serverTokensEmpty;
+
+  /// No description provided for @serverTokenNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New token'**
+  String get serverTokenNew;
+
+  /// No description provided for @serverTokenNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, e.g. Laptop'**
+  String get serverTokenNameLabel;
+
+  /// No description provided for @serverTokenCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get serverTokenCreate;
+
+  /// No description provided for @serverTokenCreatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String serverTokenCreatedOn(String date);
+
+  /// No description provided for @serverTokenDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String serverTokenDeleteTitle(String name);
+
+  /// No description provided for @serverTokenDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients using this token lose access at once.'**
+  String get serverTokenDeleteBody;
+
+  /// No description provided for @serverTokenDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get serverTokenDelete;
+
+  /// No description provided for @serverTokenCopyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy token'**
+  String get serverTokenCopyTooltip;
 
   /// No description provided for @serverDevQuickStartTitle.
   ///

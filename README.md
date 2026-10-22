@@ -21,6 +21,9 @@ Once Thinai is running with a downloaded model, any local client or companion ap
 
 ## API Surface
 
+### Health
+- `GET /healthz`: Liveness check, `{"status":"ok"}`. Needs no token, so uptime monitors can use it through the public URL.
+
 ### Ollama-Compatible
 - `GET /api/tags`: List downloaded models
 - `GET /api/ps`: Currently loaded model status
@@ -36,6 +39,20 @@ Once Thinai is running with a downloaded model, any local client or companion ap
 - `POST /v1/embeddings`: Vector embeddings with `encoding_format` (`float` | `base64`) and `dimensions` shortening
 
 Point any standard OpenAI SDK or HTTP client at `http://127.0.0.1:11434/v1` with any placeholder API key.
+
+---
+
+## Public URL & API Tokens
+
+Turn on **Public URL** in the Server tab to reach the API from anywhere through a free [Cloudflare quick tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/). It needs no account or sign-up. Each start gets a random `https://<words>.trycloudflare.com` URL. **Rotate URL** opens a new one, and the old URL stops working at once.
+
+Every request through the public URL (and over the LAN) needs a bearer token. Create named tokens under **API tokens**, one per client. The list shows when each was created, and deleting a token cuts off that client immediately, without restarting the server.
+
+```bash
+curl https://<words>.trycloudflare.com/api/tags   -H "Authorization: Bearer <token>"
+```
+
+The tunnel is run by the open-source [`cloudflared`](https://github.com/cloudflare/cloudflared) (Apache-2.0). The Gradle build downloads it at a pinned version, checks its SHA-256, and bundles it as `lib/arm64-v8a/libcloudflared.so`, so it isn't committed to git. `cloudflared` can't resolve DNS on Android (Go finds no `/etc/resolv.conf`), so `lib/server/quick_tunnel.dart` does both lookups in Dart: it requests the tunnel from `api.trycloudflare.com` and passes the resolved edge IPs with `--edge`.
 
 ---
 
