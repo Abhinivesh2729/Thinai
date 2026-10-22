@@ -1,5 +1,15 @@
 # Thinai
 
+[![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAbhinivesh2729/Thinai%2Fmain%2Fpubspec.yaml&query=%24.version&label=version&color=blue)](pubspec.yaml)
+[![CI](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/Abhinivesh2729/Thinai)](LICENSE)
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.41%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-%5E3.11-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Android](https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![llama.cpp](https://img.shields.io/badge/llama.cpp-GGUF-000000)](https://github.com/ggml-org/llama.cpp)
+[![API](https://img.shields.io/badge/API-Ollama%20%7C%20OpenAI-412991)](#api-surface)
+
 On-device LLM server and companion chat application for Android. Thinai wraps [llama.cpp](https://github.com/ggml-org/llama.cpp) (via a vendored fork of [fllama](https://github.com/Telosnex/fllama)) and exposes a local Ollama- and OpenAI-compatible HTTP API on `127.0.0.1:11434`.
 
 Once Thinai is running with a downloaded model, any local client or companion app (such as Thoogai AF) can point to `http://127.0.0.1:11434` for fully offline, private on-device inference.
@@ -76,7 +86,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 
 ## Requirements
 
-- **Flutter SDK**: `^3.11.0` (Flutter 3.27+)
+- **Flutter SDK**: 3.41+ (Dart `^3.11.0`)
 - **Android SDK**: API level 24 (Android 7.0 Nougat) or higher
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
