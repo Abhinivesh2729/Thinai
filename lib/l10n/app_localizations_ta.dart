@@ -159,6 +159,23 @@ class AppLocalizationsTa extends AppLocalizations {
   String get serverTunnelRotate => 'URL-ஐ மாற்று';
 
   @override
+  String get serverTunnelBeta => 'பீட்டா';
+
+  @override
+  String get serverTunnelPrivacyTitle => 'இயக்குவதற்கு முன்';
+
+  @override
+  String get serverTunnelPrivacyBody =>
+      'உங்கள் பொது URL-க்கு வரும் கோரிக்கைகளும் model-இன் பதில்களும் Cloudflare servers வழியாகச் செல்கின்றன, Cloudflare அவற்றைப் படிக்க முடியும். இந்த phone-இல் உள்ள apps-உம் உங்கள் Wi-Fi-இல் உள்ள சாதனங்களும் Thinai-உடன் நேரடியாகவே பேசுகின்றன.';
+
+  @override
+  String get serverTunnelPrivacyConfirm => 'இயக்கு';
+
+  @override
+  String get serverTunnelDropped =>
+      'பொது URL நின்றுவிட்டது. புதிய இணைப்புக்கு மீண்டும் இயக்கவும்.';
+
+  @override
   String serverTunnelFailed(String error) {
     return 'Tunnel தோல்வி: $error';
   }

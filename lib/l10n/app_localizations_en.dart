@@ -158,6 +158,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverTunnelRotate => 'Rotate URL';
 
   @override
+  String get serverTunnelBeta => 'Beta';
+
+  @override
+  String get serverTunnelPrivacyTitle => 'Before you turn this on';
+
+  @override
+  String get serverTunnelPrivacyBody =>
+      'Requests to your public URL, and the model\'s replies, pass through Cloudflare\'s servers, and Cloudflare can read them. Apps on this phone and devices on your Wi-Fi still talk to Thinai directly.';
+
+  @override
+  String get serverTunnelPrivacyConfirm => 'Turn on';
+
+  @override
+  String get serverTunnelDropped =>
+      'Public URL stopped. Turn it on again for a new link.';
+
+  @override
   String serverTunnelFailed(String error) {
     return 'Tunnel failed: $error';
   }

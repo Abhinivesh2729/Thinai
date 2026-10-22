@@ -69,21 +69,38 @@ void main() {
     test('refuses tunnel auth without a token', () {
       final server = ApiServer();
       expect(() => server.setTunnelAuth(true), throwsStateError);
-      expect(server.authRequired, isFalse);
+      expect(
+        server.authRequired(
+          Request(
+            'GET',
+            Uri.parse('http://localhost/'),
+            headers: {'cf-connecting-ip': '203.0.113.7'},
+          ),
+        ),
+        isFalse,
+      );
     });
   });
 
   group('ApiServer.handler', () {
-    Future<Response> get(ApiServer server, String path, {String? token}) =>
-        Future.value(
-          server.handler(
-            Request(
-              'GET',
-              Uri.parse('http://localhost/$path'),
-              headers: {if (token != null) 'authorization': 'Bearer $token'},
-            ),
-          ),
-        );
+    // Requests through the tunnel carry Cloudflare's cf-connecting-ip.
+    Future<Response> get(
+      ApiServer server,
+      String path, {
+      String? token,
+      bool viaTunnel = true,
+    }) => Future.value(
+      server.handler(
+        Request(
+          'GET',
+          Uri.parse('http://localhost/$path'),
+          headers: {
+            if (token != null) 'authorization': 'Bearer $token',
+            if (viaTunnel) 'cf-connecting-ip': '203.0.113.7',
+          },
+        ),
+      ),
+    );
 
     ApiServer tunneled(Set<String> tokens) => ApiServer()
       ..setTokens(tokens)
@@ -109,6 +126,11 @@ void main() {
       final server = tunneled({'a', 'b'});
       expect((await get(server, '')).statusCode, 401);
       expect((await get(server, '', token: 'nope')).statusCode, 401);
+    });
+
+    test('apps on the phone need no token while the tunnel is open', () async {
+      final server = tunneled({'a'});
+      expect((await get(server, '', viaTunnel: false)).statusCode, 200);
     });
 
     test('tunnel auth accepts any listed token', () async {

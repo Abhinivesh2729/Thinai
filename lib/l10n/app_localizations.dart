@@ -380,6 +380,36 @@ abstract class AppLocalizations {
   /// **'Rotate URL'**
   String get serverTunnelRotate;
 
+  /// No description provided for @serverTunnelBeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Beta'**
+  String get serverTunnelBeta;
+
+  /// No description provided for @serverTunnelPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you turn this on'**
+  String get serverTunnelPrivacyTitle;
+
+  /// No description provided for @serverTunnelPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests to your public URL, and the model\'s replies, pass through Cloudflare\'s servers, and Cloudflare can read them. Apps on this phone and devices on your Wi-Fi still talk to Thinai directly.'**
+  String get serverTunnelPrivacyBody;
+
+  /// No description provided for @serverTunnelPrivacyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get serverTunnelPrivacyConfirm;
+
+  /// No description provided for @serverTunnelDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Public URL stopped. Turn it on again for a new link.'**
+  String get serverTunnelDropped;
+
   /// No description provided for @serverTunnelFailed.
   ///
   /// In en, this message translates to:

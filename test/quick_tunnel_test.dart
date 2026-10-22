@@ -44,6 +44,9 @@ class _FakeProcess implements Process {
   final _exit = Completer<int>();
   bool killed = false;
 
+  /// cloudflared dying on its own, e.g. after a network change.
+  void crash() => _exit.complete(1);
+
   @override
   Stream<List<int>> get stderr => _stderr;
   @override
@@ -77,6 +80,7 @@ void main() {
 
   group('QuickTunnel', () {
     late List<String> args;
+    Map<String, String>? env;
 
     QuickTunnel tunnel(_FakeProcess process) => QuickTunnel(
       dio: Dio()..httpClientAdapter = _FakeApi(),
@@ -84,8 +88,9 @@ void main() {
       lookup: (host) async => [
         InternetAddress(host.startsWith('region1') ? '1.1.1.1' : '2.2.2.2'),
       ],
-      startProcess: (exe, a) async {
+      startProcess: (exe, a, {environment}) async {
         args = a;
+        env = environment;
         return process;
       },
     );
@@ -103,6 +108,33 @@ void main() {
       expect(args, containsAllInOrder(['--edge', '1.1.1.1:7844']));
       expect(args, containsAllInOrder(['--edge', '2.2.2.2:7844']));
       expect(args, containsAllInOrder(['--url', 'http://127.0.0.1:11434']));
+      // The secret travels in the environment, never on the command line.
+      expect(args, isNot(contains('--token')));
+      expect(env, {
+        'TUNNEL_TOKEN': runToken({
+          'account_tag': 'acct',
+          'id': 'tid',
+          'secret': 'c2VjcmV0',
+        }),
+      });
+    });
+
+    test('reports a tunnel that dies on its own, not one it stops', () async {
+      var exits = 0;
+      final process = _FakeProcess(['INF Registered tunnel connection']);
+      final t = tunnel(process)..onExit = () => exits++;
+      await t.start(11434);
+      process.crash();
+      await pumpEventQueue();
+      expect(exits, 1);
+      expect(t.url, isNull);
+
+      final stopped = _FakeProcess(['INF Registered tunnel connection']);
+      final t2 = tunnel(stopped)..onExit = () => exits++;
+      await t2.start(11434);
+      await t2.stop();
+      await pumpEventQueue();
+      expect(exits, 1);
     });
 
     test('stop kills cloudflared and clears the URL', () async {

@@ -19,8 +19,20 @@ class QuickTunnel {
     Dio? dio,
     Future<String> Function()? binaryPath,
     Future<List<InternetAddress>> Function(String host)? lookup,
-    Future<Process> Function(String exe, List<String> args)? startProcess,
-  }) : _dio = dio ?? Dio(),
+    Future<Process> Function(
+      String exe,
+      List<String> args, {
+      Map<String, String>? environment,
+    })?
+    startProcess,
+  }) : _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 10),
+             ),
+           ),
        _binaryPath = binaryPath ?? _bundledBinary,
        _lookup = lookup ?? _lookupIpv4,
        _startProcess = startProcess ?? Process.start;
@@ -28,10 +40,19 @@ class QuickTunnel {
   final Dio _dio;
   final Future<String> Function() _binaryPath;
   final Future<List<InternetAddress>> Function(String host) _lookup;
-  final Future<Process> Function(String exe, List<String> args) _startProcess;
+  final Future<Process> Function(
+    String exe,
+    List<String> args, {
+    Map<String, String>? environment,
+  })
+  _startProcess;
 
   Process? _process;
   String? _url;
+
+  /// Called when an open tunnel dies on its own (e.g. the network changed),
+  /// not when [stop] closes it.
+  void Function()? onExit;
 
   /// The public https URL while the tunnel is up.
   String? get url => _url;
@@ -60,18 +81,21 @@ class QuickTunnel {
       throw StateError('Could not resolve the Cloudflare tunnel edge.');
     }
 
-    final process = await _startProcess(await _binaryPath(), [
-      'tunnel',
-      '--no-autoupdate',
-      for (final e in edges) ...['--edge', e],
-      '--protocol',
-      'http2',
-      'run',
-      '--token',
-      runToken(result),
-      '--url',
-      'http://127.0.0.1:$port',
-    ]);
+    // The token goes in the environment, not argv, so it stays out of `ps`.
+    final process = await _startProcess(
+      await _binaryPath(),
+      [
+        'tunnel',
+        '--no-autoupdate',
+        for (final e in edges) ...['--edge', e],
+        '--protocol',
+        'http2',
+        'run',
+        '--url',
+        'http://127.0.0.1:$port',
+      ],
+      environment: {'TUNNEL_TOKEN': runToken(result)},
+    );
     _process = process;
     process.stdout.drain<void>();
 
@@ -91,6 +115,7 @@ class QuickTunnel {
       if (_process == process) {
         _process = null;
         _url = null;
+        if (ready.isCompleted) onExit?.call();
       }
       if (!ready.isCompleted) {
         ready.completeError(

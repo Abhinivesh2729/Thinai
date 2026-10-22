@@ -1243,7 +1243,20 @@ class ServerController extends StateNotifier<ServerStatus> {
     QuickTunnel? tunnel,
   }) : _tokens = tokens ?? (() async => const <String>{}),
        _tunnel = tunnel ?? QuickTunnel(),
-       super(const ServerStatus(running: false, port: 11434));
+       super(const ServerStatus(running: false, port: 11434)) {
+    _tunnel.onExit = _tunnelDropped;
+  }
+
+  /// cloudflared stopped by itself, so the shown URL is dead: switch the
+  /// tunnel off and say why.
+  void _tunnelDropped() {
+    if (!mounted || state.publicUrl == null) return;
+    if (_server.running) _server.setTunnelAuth(false);
+    state = _with(error: tunnelDroppedError);
+  }
+
+  /// The [ServerStatus.error] set when the tunnel drops on its own.
+  static const tunnelDroppedError = 'tunnel-dropped';
 
   Future<void> start({required int port, bool lanMode = false}) async {
     try {

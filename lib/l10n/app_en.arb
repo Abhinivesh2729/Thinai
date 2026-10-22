@@ -61,6 +61,11 @@
   "serverTunnelOnSubtitle": "Anyone with this URL and a token can connect",
   "serverTunnelStartingServer": "Starting the server for your public URL…",
   "serverTunnelRotate": "Rotate URL",
+  "serverTunnelBeta": "Beta",
+  "serverTunnelPrivacyTitle": "Before you turn this on",
+  "serverTunnelPrivacyBody": "Requests to your public URL, and the model's replies, pass through Cloudflare's servers, and Cloudflare can read them. Apps on this phone and devices on your Wi-Fi still talk to Thinai directly.",
+  "serverTunnelPrivacyConfirm": "Turn on",
+  "serverTunnelDropped": "Public URL stopped. Turn it on again for a new link.",
   "serverTunnelFailed": "Tunnel failed: {error}",
   "@serverTunnelFailed": {
     "placeholders": {

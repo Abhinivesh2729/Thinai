@@ -1000,20 +1000,53 @@ class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
     }
   }
 
-  Future<void> _toggle(bool on) => _run((c) async {
-    if (!on) return c.stopTunnel();
-    if (!ref.read(serverControllerProvider).running) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.serverTunnelStartingServer),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      await widget.onStartServer();
-      if (!ref.read(serverControllerProvider).running) return;
-    }
-    await c.startTunnel();
-  });
+  static const _privacyAckKey = 'tunnel_privacy_ack';
+
+  /// Prompts and replies through the tunnel pass Cloudflare, which breaks
+  /// the on-device promise, so the first turn-on asks first.
+  Future<bool> _privacyAccepted() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_privacyAckKey) ?? false) return true;
+    if (!mounted) return false;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTunnelPrivacyTitle),
+        content: Text(context.l10n.serverTunnelPrivacyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.serverTunnelPrivacyConfirm),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return false;
+    await prefs.setBool(_privacyAckKey, true);
+    return true;
+  }
+
+  Future<void> _toggle(bool on) async {
+    if (on && !await _privacyAccepted()) return;
+    await _run((c) async {
+      if (!on) return c.stopTunnel();
+      if (!ref.read(serverControllerProvider).running) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelStartingServer),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        await widget.onStartServer();
+        if (!ref.read(serverControllerProvider).running) return;
+      }
+      await c.startTunnel();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1021,8 +1054,21 @@ class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
     final status = widget.status;
     final url = status.publicUrl;
 
+    ref.listen(serverControllerProvider, (prev, next) {
+      if (prev?.publicUrl != null &&
+          next.error == ServerController.tunnelDroppedError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelDropped),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
     return _SectionCard(
       title: context.l10n.serverTunnelTitle,
+      badge: context.l10n.serverTunnelBeta,
       subtitle: url != null
           ? context.l10n.serverTunnelOnSubtitle
           : context.l10n.serverTunnelOffSubtitle,
@@ -1191,6 +1237,9 @@ void _copyText(BuildContext context, String text, String label) {
 /// subtitle and trailing control, with optional content below.
 class _SectionCard extends StatelessWidget {
   final String title;
+
+  /// A small tag after the title, e.g. "Beta".
+  final String? badge;
   final String subtitle;
   final Widget trailing;
   final Widget? child;
@@ -1200,6 +1249,7 @@ class _SectionCard extends StatelessWidget {
 
   const _SectionCard({
     required this.title,
+    this.badge,
     required this.subtitle,
     required this.trailing,
     this.child,
@@ -1231,13 +1281,38 @@ class _SectionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.5,
-                          letterSpacing: -0.2,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14.5,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scheme.tertiaryContainer,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                badge!,
+                                style: TextStyle(
+                                  color: scheme.onTertiaryContainer,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(

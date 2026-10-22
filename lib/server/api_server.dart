@@ -41,9 +41,13 @@ class ApiServer {
   int? get port => _server?.port;
   ApiServerConfig get config => _config;
 
-  /// Whether requests must carry a bearer token: on the LAN, or while a
-  /// public tunnel forwards the internet to loopback.
-  bool get authRequired => _config.lanMode || _tunnelAuth;
+  /// Whether [req] must carry a bearer token: everything on the LAN, and,
+  /// while a public tunnel is open, requests that came through it. Cloudflare
+  /// stamps those with `cf-connecting-ip`; apps on this phone calling
+  /// 127.0.0.1 directly don't have it and stay open.
+  bool authRequired(Request req) =>
+      _config.lanMode ||
+      (_tunnelAuth && req.headers.containsKey('cf-connecting-ip'));
 
   /// Replaces the accepted tokens without a restart, so deleting a token
   /// locks its client out immediately.
@@ -135,7 +139,7 @@ Middleware _authMiddleware(ApiServer server) {
       // Liveness only, no data: open so uptime checks work through a tunnel.
       if (req.url.path == 'healthz') return _healthz();
 
-      if (!server.authRequired) return inner(req);
+      if (!server.authRequired(req)) return inner(req);
 
       final authorization = req.headers['authorization'];
       final token = authorization != null && authorization.startsWith('Bearer ')
