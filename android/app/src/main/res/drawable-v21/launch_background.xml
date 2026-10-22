@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_bg" />
-    <!-- The app icon, so the pre-Flutter launch window is not blank. -->
+    <!-- The splash logo, matching the first frame of the Flutter splash. -->
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/ic_launcher_adaptive_fore" />
+            android:src="@drawable/splash_logo" />
     </item>
 </layer-list>
