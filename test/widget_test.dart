@@ -33,8 +33,8 @@ void main() {
         child: const LocalLlmApp(),
       ),
     );
-    // The splash shows for ~2.8s before the tabbed shell mounts, so a single
-    // pump only ever sees the splash.
+    // The splash shows for its 700ms intro before the tabbed shell mounts,
+    // so a single pump only ever sees the splash.
     await tester.pump(const Duration(seconds: 4));
     // One more frame for the setState that swaps the splash for the shell.
     // Not pumpAndSettle: the Models tab spins on a model list that never
