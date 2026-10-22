@@ -80,28 +80,45 @@ flutter {
 }
 
 // Open-source cloudflared (Apache-2.0) for the public tunnel. Fetched at a
-// pinned version and checksum rather than committing the ~37 MB binary.
+// pinned version and checksum rather than committing the ~37 MB binary, then
+// stripped of debug info, which nearly halves what it adds to the APK.
 val cloudflaredVersion = "2026.10.3"
 val cloudflaredSha256 = "89297ebfb9e8c99c0dc013a1140601453cf3798d8306c5591651f4a3f5210be8"
+val cloudflaredRaw = layout.buildDirectory.file("cloudflared/cloudflared-$cloudflaredVersion").get().asFile
 val cloudflaredLib = file("src/main/jniLibs/arm64-v8a/libcloudflared.so")
 
 fun sha256(f: File): String =
     MessageDigest.getInstance("SHA-256").digest(f.readBytes()).joinToString("") { "%02x".format(it) }
 
 val fetchCloudflared by tasks.registering {
+    inputs.property("version", cloudflaredVersion)
     outputs.file(cloudflaredLib)
     doLast {
-        if (cloudflaredLib.exists() && sha256(cloudflaredLib) == cloudflaredSha256) return@doLast
+        if (!cloudflaredRaw.exists() || sha256(cloudflaredRaw) != cloudflaredSha256) {
+            cloudflaredRaw.parentFile.mkdirs()
+            val url = "https://github.com/cloudflare/cloudflared/releases/download/" +
+                "$cloudflaredVersion/cloudflared-linux-arm64"
+            URI(url).toURL().openStream().use { input ->
+                cloudflaredRaw.outputStream().use { input.copyTo(it) }
+            }
+            if (sha256(cloudflaredRaw) != cloudflaredSha256) {
+                cloudflaredRaw.delete()
+                throw GradleException("cloudflared checksum mismatch for $url")
+            }
+        }
+        val os = System.getProperty("os.name").lowercase()
+        val host = when {
+            os.contains("win") -> "windows-x86_64"
+            os.contains("mac") -> "darwin-x86_64"
+            else -> "linux-x86_64"
+        }
+        val strip = android.ndkDirectory.resolve(
+            "toolchains/llvm/prebuilt/$host/bin/llvm-strip" + if (os.contains("win")) ".exe" else "",
+        )
         cloudflaredLib.parentFile.mkdirs()
-        val url = "https://github.com/cloudflare/cloudflared/releases/download/" +
-            "$cloudflaredVersion/cloudflared-linux-arm64"
-        URI(url).toURL().openStream().use { input ->
-            cloudflaredLib.outputStream().use { input.copyTo(it) }
-        }
-        if (sha256(cloudflaredLib) != cloudflaredSha256) {
-            cloudflaredLib.delete()
-            throw GradleException("cloudflared checksum mismatch for $url")
-        }
+        val exit = ProcessBuilder(strip.path, "-o", cloudflaredLib.path, cloudflaredRaw.path)
+            .inheritIO().start().waitFor()
+        if (exit != 0) throw GradleException("llvm-strip failed ($exit) on cloudflared")
     }
 }
 
