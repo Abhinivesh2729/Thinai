@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,5 +22,11 @@ void main() async {
   // has nowhere to deliver its tap.
   FlutterForegroundTask.initCommunicationPort();
   initForegroundTaskOptions();
+  // The bundled cloudflared binary isn't a Dart package, so list it by hand.
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'cloudflared',
+    ], await rootBundle.loadString('assets/licenses/cloudflared.txt'));
+  });
   runApp(const ProviderScope(child: LocalLlmApp()));
 }

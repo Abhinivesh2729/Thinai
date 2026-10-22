@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/l10n.dart';
+import '../../server/api_tokens.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
 import '../widgets/floating_lines_background.dart';
@@ -179,7 +181,8 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     final apiHost = lanShare
         ? (status.lanIp ?? deviceIp ?? '127.0.0.1')
         : '127.0.0.1';
-    final base = 'http://$apiHost:$port';
+    // With a tunnel open, the examples point at the public URL clients use.
+    final base = status.publicUrl ?? 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
 
     return Scaffold(
@@ -234,11 +237,15 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             onChanged: _setLanShare,
           ),
 
+          // 3b. Temporary public URL through a free Cloudflare quick tunnel
+          _PublicTunnelCard(status: status, onStartServer: _start),
+
+          // 3c. Named API tokens for LAN and tunnel clients
+          const _ApiTokensCard(),
+
           // 4. Full-Width Developer Quick Connect
           _DeveloperQuickStartCard(
             base: base,
-            apiHost: apiHost,
-            port: port,
             chatId: chatId,
             lanShare: lanShare,
           ),
@@ -815,9 +822,6 @@ class _NetworkShareCard extends ConsumerStatefulWidget {
 }
 
 class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
-  bool _showToken = false;
-  bool _regenerating = false;
-
   void _copy(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -829,71 +833,11 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     );
   }
 
-  Future<void> _regenerate() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.serverRegenerateTokenTitle),
-        content: Text(context.l10n.serverRegenerateTokenBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.l10n.serverRegenerate),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _regenerating = true);
-
-    try {
-      final controller = ref.read(serverControllerProvider.notifier);
-      final status = ref.read(serverControllerProvider);
-      final lan = ref.read(lanShareProvider);
-
-      if (status.running && lan) {
-        await controller.stop();
-      }
-
-      await regenerateServerBearerToken();
-
-      if (status.running && lan) {
-        await controller.start(port: status.port, lanMode: true);
-      }
-
-      ref.invalidate(serverBearerTokenProvider);
-
-      if (mounted) {
-        setState(() => _showToken = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.serverTokenRegenerated),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _regenerating = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shareIp = widget.lanIp ?? widget.deviceIp;
-    final tokenAsync = ref.watch(serverBearerTokenProvider);
 
     return Container(
       width: double.infinity,
@@ -1008,109 +952,6 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                           ),
                           const SizedBox(height: 8),
                         ],
-                        tokenAsync.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, _) => const SizedBox.shrink(),
-                          data: (token) {
-                            if (token == null || token.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            final masked =
-                                '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
-
-                            return Container(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF131722)
-                                    : scheme.surfaceContainerHigh.withValues(
-                                        alpha: 0.5,
-                                      ),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.06)
-                                      : scheme.outlineVariant.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Token: ',
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: SelectableText(
-                                      _showToken ? token : masked,
-                                      style: const TextStyle(
-                                        fontFamily: 'monospace',
-                                        fontSize: 11.5,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      _showToken
-                                          ? Icons.visibility_off_rounded
-                                          : Icons.visibility_rounded,
-                                      size: 15,
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: () => setState(
-                                      () => _showToken = !_showToken,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy_rounded,
-                                      size: 15,
-                                      color: Color(0xFF2CA048),
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: () =>
-                                        _copy(token, 'Bearer token'),
-                                  ),
-                                  IconButton(
-                                    icon: _regenerating
-                                        ? const SizedBox(
-                                            width: 12,
-                                            height: 12,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 1.5,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.refresh_rounded,
-                                            size: 15,
-                                          ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: _regenerating
-                                        ? null
-                                        : _regenerate,
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                       ],
                     ),
                   )
@@ -1122,19 +963,460 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
   }
 }
 
+// ─── 3b. PUBLIC URL (CLOUDFLARE QUICK TUNNEL) ────────────────────────────────
+
+class _PublicTunnelCard extends ConsumerStatefulWidget {
+  final ServerStatus status;
+
+  /// Starts the server the way the Start button does, so turning the tunnel
+  /// on from a stopped server is one tap instead of a dead switch.
+  final Future<void> Function() onStartServer;
+
+  const _PublicTunnelCard({required this.status, required this.onStartServer});
+
+  @override
+  ConsumerState<_PublicTunnelCard> createState() => _PublicTunnelCardState();
+}
+
+class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function(ServerController c) action) async {
+    setState(() => _busy = true);
+    final controller = ref.read(serverControllerProvider.notifier);
+    try {
+      await action(controller);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    final error = ref.read(serverControllerProvider).error;
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.serverTunnelFailed(error)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  static const _privacyAckKey = 'tunnel_privacy_ack';
+
+  /// Prompts and replies through the tunnel pass Cloudflare, which breaks
+  /// the on-device promise, so the first turn-on asks first.
+  Future<bool> _privacyAccepted() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_privacyAckKey) ?? false) return true;
+    if (!mounted) return false;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTunnelPrivacyTitle),
+        content: Text(context.l10n.serverTunnelPrivacyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.serverTunnelPrivacyConfirm),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return false;
+    await prefs.setBool(_privacyAckKey, true);
+    return true;
+  }
+
+  Future<void> _toggle(bool on) async {
+    if (on && !await _privacyAccepted()) return;
+    await _run((c) async {
+      if (!on) return c.stopTunnel();
+      if (!ref.read(serverControllerProvider).running) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelStartingServer),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        await widget.onStartServer();
+        if (!ref.read(serverControllerProvider).running) return;
+      }
+      await c.startTunnel();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final status = widget.status;
+    final url = status.publicUrl;
+
+    ref.listen(serverControllerProvider, (prev, next) {
+      if (prev?.publicUrl != null &&
+          next.error == ServerController.tunnelDroppedError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelDropped),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
+    return _SectionCard(
+      title: context.l10n.serverTunnelTitle,
+      badge: context.l10n.serverTunnelBeta,
+      subtitle: url != null
+          ? context.l10n.serverTunnelOnSubtitle
+          : context.l10n.serverTunnelOffSubtitle,
+      onTap: _busy ? null : () => _toggle(url == null),
+      trailing: _busy
+          ? const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          : Switch(value: url != null, onChanged: _toggle),
+      child: url == null
+          ? null
+          : Row(
+              children: [
+                Expanded(child: _UrlStrip(url: url, running: true)),
+                IconButton(
+                  icon: Icon(
+                    Icons.autorenew_rounded,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  tooltip: context.l10n.serverTunnelRotate,
+                  onPressed: _busy ? null : () => _run((c) => c.startTunnel()),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+// ─── 3c. NAMED API TOKENS ────────────────────────────────────────────────────
+
+class _ApiTokensCard extends ConsumerWidget {
+  const _ApiTokensCard();
+
+  Future<void> _create(BuildContext context, WidgetRef ref) async {
+    // No controller: disposing one here would race the dialog's exit
+    // animation, which still renders the TextField.
+    var typed = '';
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTokenNew),
+        content: TextField(
+          autofocus: true,
+          maxLength: 40,
+          decoration: InputDecoration(
+            labelText: context.l10n.serverTokenNameLabel,
+          ),
+          onChanged: (v) => typed = v,
+          onSubmitted: (v) => Navigator.pop(context, v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, typed),
+            child: Text(context.l10n.serverTokenCreate),
+          ),
+        ],
+      ),
+    );
+    if (name == null) return;
+    await ref.read(apiTokensProvider.notifier).create(name);
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref, ApiToken t) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTokenDeleteTitle(t.name)),
+        content: Text(context.l10n.serverTokenDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.serverTokenDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(apiTokensProvider.notifier).delete(t.id);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final tokens = ref.watch(apiTokensProvider);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateFmt = DateFormat('d MMM y, HH:mm', locale);
+
+    return _SectionCard(
+      title: context.l10n.serverTokensTitle,
+      subtitle: context.l10n.serverTokensSubtitle,
+      trailing: TextButton.icon(
+        icon: const Icon(Icons.add_rounded, size: 18),
+        label: Text(context.l10n.serverTokenNew),
+        onPressed: () => _create(context, ref),
+      ),
+      child: tokens.isEmpty
+          ? Text(
+              context.l10n.serverTokensEmpty,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+            )
+          : Column(
+              children: [
+                for (final t in tokens) ...[
+                  _ValueRow(
+                    label: t.name,
+                    sublabel: context.l10n.serverTokenCreatedOn(
+                      dateFmt.format(t.createdAt),
+                    ),
+                    value:
+                        '${t.token.substring(0, 4)}••••••${t.token.substring(t.token.length - 4)}',
+                    actions: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.copy_rounded,
+                          size: 15,
+                          color: Color(0xFF2CA048),
+                        ),
+                        tooltip: context.l10n.serverTokenCopyTooltip,
+                        onPressed: () => _copyText(context, t.token, t.name),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          size: 16,
+                          color: scheme.error,
+                        ),
+                        tooltip: context.l10n.serverTokenDelete,
+                        onPressed: () => _delete(context, ref, t),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+    );
+  }
+}
+
+void _copyText(BuildContext context, String text, String label) {
+  Clipboard.setData(ClipboardData(text: text));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(context.l10n.serverCopiedLabel(label)),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
+
+/// The bordered full-width section the Server page stacks: a title,
+/// subtitle and trailing control, with optional content below.
+class _SectionCard extends StatelessWidget {
+  final String title;
+
+  /// A small tag after the title, e.g. "Beta".
+  final String? badge;
+  final String subtitle;
+  final Widget trailing;
+  final Widget? child;
+
+  /// Makes the whole header row tappable, not just [trailing].
+  final VoidCallback? onTap;
+
+  const _SectionCard({
+    required this.title,
+    this.badge,
+    required this.subtitle,
+    required this.trailing,
+    this.child,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14.5,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scheme.tertiaryContainer,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                badge!,
+                                style: TextStyle(
+                                  color: scheme.onTertiaryContainer,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                trailing,
+              ],
+            ),
+          ),
+          if (child != null) ...[const SizedBox(height: 12), child!],
+        ],
+      ),
+    );
+  }
+}
+
+/// A labelled monospace value in the page's tinted pill, with trailing
+/// actions.
+class _ValueRow extends StatelessWidget {
+  final String label;
+  final String sublabel;
+  final String value;
+  final List<Widget> actions;
+
+  const _ValueRow({
+    required this.label,
+    required this.value,
+    required this.actions,
+    required this.sublabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelStyle = TextStyle(
+      fontSize: 11.5,
+      fontWeight: FontWeight.w700,
+      color: scheme.onSurfaceVariant,
+    );
+    final valueText = SelectableText(
+      value,
+      style: TextStyle(
+        fontFamily: 'monospace',
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF131722)
+            : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : scheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: labelStyle),
+                Text(
+                  sublabel,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                valueText,
+              ],
+            ),
+          ),
+          ...actions,
+        ],
+      ),
+    );
+  }
+}
+
 // ─── 4. FULL-WIDTH DEVELOPER QUICK CONNECT ───────────────────────────────────
 
 class _DeveloperQuickStartCard extends StatefulWidget {
   final String base;
-  final String apiHost;
-  final int port;
   final String chatId;
   final bool lanShare;
 
   const _DeveloperQuickStartCard({
     required this.base,
-    required this.apiHost,
-    required this.port,
     required this.chatId,
     required this.lanShare,
   });
@@ -1151,8 +1433,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final openAiBase = 'http://${widget.apiHost}:${widget.port}/v1';
-    final ollamaBase = 'http://${widget.apiHost}:${widget.port}';
+    final openAiBase = '${widget.base}/v1';
+    final ollamaBase = widget.base;
 
     return Container(
       width: double.infinity,

@@ -21,12 +21,12 @@ import '../models_repo/recommender.dart';
 import '../models_repo/importer.dart';
 import '../models_repo/model_store.dart';
 import '../server/api_server.dart';
+import '../server/api_tokens.dart';
 import '../server/foreground_handler.dart';
 import '../server/lan_address.dart';
+import '../server/quick_tunnel.dart';
 import '../update/app_updater.dart';
 import '../web/web_search.dart';
-
-import 'dart:math';
 
 final llmEngineProvider = Provider<LlmEngine>((ref) => LlmEngine.instance);
 final modelStoreProvider = Provider<ModelStore>((ref) => ModelStore.instance);
@@ -76,8 +76,6 @@ const _kServerPortKey = 'server_port';
 const _kChatHistoryKey = 'chat_history_v1'; // superseded, migrated on load
 const _kChatSessionsKey = 'chat_sessions_v1';
 const _kWebSearchKey = 'web_search_enabled';
-
-const _kServerBearerTokenKey = 'server_bearer_token';
 
 // ─── theme ──────────────────────────────────────────────────────────────────
 
@@ -1160,47 +1158,53 @@ String _normalizeModelKey(String input) {
   return key;
 }
 
-Future<String> _getOrCreateServerBearerToken() async {
-  final prefs = await SharedPreferences.getInstance();
-
-  final existing = prefs.getString(_kServerBearerTokenKey);
-  if (existing != null && existing.isNotEmpty) {
-    return existing;
+/// Named API tokens. Changes reach a running server at once, so a deleted
+/// token stops working without a restart.
+class ApiTokensController extends StateNotifier<List<ApiToken>> {
+  ApiTokensController(this._server, [ApiTokenStore? store])
+    : _store = store ?? ApiTokenStore(),
+      super(const []) {
+    _ready = _reload();
   }
 
-  final random = Random.secure();
+  final ApiServer _server;
+  final ApiTokenStore _store;
+  late Future<void> _ready;
 
-  // 32 random bytes = 256 bits of entropy.
-  final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+  /// Completes once the saved tokens have loaded.
+  Future<void> get ready => _ready;
 
-  final token = base64UrlEncode(bytes);
+  Future<void> _reload() async {
+    final tokens = await _store.load();
+    if (!mounted) return;
+    state = tokens;
+    _server.setTokens(tokens.map((t) => t.token));
+  }
 
-  await prefs.setString(_kServerBearerTokenKey, token);
+  Future<ApiToken> create(String name) async {
+    final token = await _store.create(name);
+    await _reload();
+    return token;
+  }
 
-  return token;
+  Future<void> delete(String id) async {
+    await _store.delete(id);
+    await _reload();
+  }
+
+  /// The tokens to authenticate with, creating a "Default" one if there are
+  /// none, since LAN and the tunnel never run open.
+  Future<Set<String>> ensureOne() async {
+    await _ready;
+    if (state.isEmpty) await create('Default');
+    return state.map((t) => t.token).toSet();
+  }
 }
 
-/// Returns the current LAN API bearer token, if one has been created.
-final serverBearerTokenProvider = FutureProvider<String?>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString(_kServerBearerTokenKey);
-});
-
-/// Generates a new LAN API bearer token.
-///
-/// The running server must be restarted by the UI after this operation so
-/// that the new token becomes the active authentication credential.
-Future<String> regenerateServerBearerToken() async {
-  final prefs = await SharedPreferences.getInstance();
-
-  final random = Random.secure();
-  final bytes = List<int>.generate(32, (_) => random.nextInt(256));
-  final token = base64UrlEncode(bytes);
-
-  await prefs.setString(_kServerBearerTokenKey, token);
-
-  return token;
-}
+final apiTokensProvider =
+    StateNotifierProvider<ApiTokensController, List<ApiToken>>(
+      (ref) => ApiTokensController(ref.watch(apiServerProvider)),
+    );
 
 // ─── server ─────────────────────────────────────────────────────────────────
 
@@ -1214,6 +1218,9 @@ class ServerStatus {
   /// The device's LAN IPv4 address when [lan] is on and one is available;
   /// null for loopback-only or when off-network.
   final String? lanIp;
+
+  /// The public https URL while a tunnel is open.
+  final String? publicUrl;
   final String? error;
 
   const ServerStatus({
@@ -1221,25 +1228,44 @@ class ServerStatus {
     required this.port,
     this.lan = false,
     this.lanIp,
+    this.publicUrl,
     this.error,
   });
 }
 
 class ServerController extends StateNotifier<ServerStatus> {
   final ApiServer _server;
-  ServerController(this._server)
-    : super(const ServerStatus(running: false, port: 11434));
+  final Future<Set<String>> Function() _tokens;
+  final QuickTunnel _tunnel;
+  ServerController(
+    this._server, {
+    Future<Set<String>> Function()? tokens,
+    QuickTunnel? tunnel,
+  }) : _tokens = tokens ?? (() async => const <String>{}),
+       _tunnel = tunnel ?? QuickTunnel(),
+       super(const ServerStatus(running: false, port: 11434)) {
+    _tunnel.onExit = _tunnelDropped;
+  }
+
+  /// cloudflared stopped by itself, so the shown URL is dead: switch the
+  /// tunnel off and say why.
+  void _tunnelDropped() {
+    if (!mounted || state.publicUrl == null) return;
+    if (_server.running) _server.setTunnelAuth(false);
+    state = _with(error: tunnelDroppedError);
+  }
+
+  /// The [ServerStatus.error] set when the tunnel drops on its own.
+  static const tunnelDroppedError = 'tunnel-dropped';
 
   Future<void> start({required int port, bool lanMode = false}) async {
     try {
-      String? bearerToken;
-
-      if (lanMode) {
-        bearerToken = await _getOrCreateServerBearerToken();
-      }
-
       await _server.start(
-        ApiServerConfig(port: port, lanMode: lanMode, bearerToken: bearerToken),
+        ApiServerConfig(
+          port: port,
+          lanMode: lanMode,
+          tokens: lanMode ? await _tokens() : const {},
+        ),
       );
 
       final ip = lanMode ? await lanIpv4() : null;
@@ -1264,7 +1290,38 @@ class ServerController extends StateNotifier<ServerStatus> {
     }
   }
 
+  /// Opens a public tunnel to the running server, or rotates it to a fresh
+  /// URL if one is already open. Token auth is on for as long as it is.
+  Future<void> startTunnel() async {
+    if (!state.running) return;
+    try {
+      _server.setTokens(await _tokens());
+      _server.setTunnelAuth(true);
+      final url = await _tunnel.start(state.port);
+      state = _with(publicUrl: url);
+    } catch (e) {
+      await stopTunnel();
+      state = _with(error: e.toString());
+    }
+  }
+
+  Future<void> stopTunnel() async {
+    await _tunnel.stop();
+    if (_server.running) _server.setTunnelAuth(false);
+    state = _with();
+  }
+
+  ServerStatus _with({String? publicUrl, String? error}) => ServerStatus(
+    running: state.running,
+    port: state.port,
+    lan: state.lan,
+    lanIp: state.lanIp,
+    publicUrl: publicUrl,
+    error: error,
+  );
+
   Future<void> stop() async {
+    await _tunnel.stop();
     await _server.stop();
     state = ServerStatus(running: false, port: state.port, lan: state.lan);
     await _remember(running: false, port: state.port);
@@ -1290,7 +1347,10 @@ final apiServerProvider = Provider<ApiServer>((ref) {
 
 final serverControllerProvider =
     StateNotifierProvider<ServerController, ServerStatus>((ref) {
-      return ServerController(ref.watch(apiServerProvider));
+      return ServerController(
+        ref.watch(apiServerProvider),
+        tokens: () => ref.read(apiTokensProvider.notifier).ensureOne(),
+      );
     });
 
 /// The port to show in the Server page field: whatever was last used.
