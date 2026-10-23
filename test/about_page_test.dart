@@ -45,35 +45,35 @@ void main() {
 
   testWidgets('shows the running version in the header', (tester) async {
     await _pump(tester);
-    expect(find.text('v2.4.0 (13) · On-Device Sovereign AI'), findsOneWidget);
+    expect(find.text('v2.4.0 (13)'), findsOneWidget);
   });
 
   testWidgets('falls back to 1.0.0 while the version is unknown', (
     tester,
   ) async {
     await _pump(tester, version: () => Future.error('no platform'));
-    expect(find.text('v1.0.0 · On-Device Sovereign AI'), findsOneWidget);
+    expect(find.text('v1.0.0'), findsOneWidget);
   });
 
-  testWidgets('lists the pillars and the technical specs', (tester) async {
+  testWidgets('lists the features and the technical specs', (tester) async {
     await _pump(tester);
 
-    for (final pillar in [
-      '100% Private & Sovereign',
-      'Hardware Accelerated',
-      'Local OpenAI-Compatible API',
-      'Multimodal Vision & Web',
+    for (final feature in [
+      'Private and offline',
+      'GPU acceleration',
+      'Local OpenAI-compatible API',
+      'Images, documents, web search',
     ]) {
-      await tester.scrollUntilVisible(find.text(pillar), 200);
-      expect(find.text(pillar), findsOneWidget);
+      await tester.scrollUntilVisible(find.text(feature), 200);
+      expect(find.text(feature), findsOneWidget);
     }
 
-    await tester.scrollUntilVisible(find.text('Software License'), 200);
+    await tester.scrollUntilVisible(find.text('License'), 200);
     for (final (label, value) in [
-      ('Inference Engine', 'llama.cpp C++20 FFI'),
-      ('Model Format', 'GGUF (Q4_K_M, Q8_0, BF16)'),
-      ('Acceleration Backends', 'CPU, Vulkan, OpenCL'),
-      ('Software License', 'Open Source (MIT)'),
+      ('Engine', 'llama.cpp C++20 FFI'),
+      ('Format', 'GGUF (Q4_K_M, Q8_0, BF16)'),
+      ('Backends', 'CPU, Vulkan, OpenCL'),
+      ('License', 'MIT'),
     ]) {
       expect(find.text(label), findsOneWidget);
       expect(find.text(value), findsOneWidget);
@@ -105,13 +105,13 @@ void main() {
     expect(page.applicationVersion, 'v2.4.0 (13)');
   });
 
-  testWidgets('Contact Support opens the support page', (tester) async {
+  testWidgets('Support opens the support page', (tester) async {
     await _pump(tester);
 
-    await tester.scrollUntilVisible(find.text('Contact Support'), 200);
+    await tester.scrollUntilVisible(find.text('Support'), 200);
     await tester.drag(find.byType(ListView), const Offset(0, -300));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Contact Support'));
+    await tester.tap(find.text('Support'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ContactSupportPage), findsOneWidget);

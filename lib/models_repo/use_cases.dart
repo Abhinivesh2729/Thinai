@@ -5,6 +5,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 enum UseCase {
   fastChat,
   reasoning,
@@ -20,41 +22,67 @@ enum UseCase {
 extension UseCaseInfo on UseCase {
   /// Short label for a chip.
   String get label => switch (this) {
-        UseCase.fastChat => 'Fast chat',
-        UseCase.reasoning => 'Best reasoning',
-        UseCase.coding => 'Coding',
-        UseCase.tamil => 'Tamil',
-        UseCase.english => 'English',
-        UseCase.vision => 'Image understanding',
-        UseCase.translation => 'Offline translation',
-        UseCase.summarizing => 'Summarization',
-        UseCase.documents => 'Document analysis',
-      };
+    UseCase.fastChat => 'Fast chat',
+    UseCase.reasoning => 'Reasoning',
+    UseCase.coding => 'Coding',
+    UseCase.tamil => 'Tamil',
+    UseCase.english => 'English',
+    UseCase.vision => 'Images',
+    UseCase.translation => 'Translation',
+    UseCase.summarizing => 'Summaries',
+    UseCase.documents => 'Documents',
+  };
 
   /// What picking this actually optimises for, in the user's terms.
   String get blurb => switch (this) {
-        UseCase.fastChat => 'Quick back-and-forth, answers as fast as you type',
-        UseCase.reasoning => 'Harder questions, maths, step-by-step thinking',
-        UseCase.coding => 'Writing and explaining code',
-        UseCase.tamil => 'Chatting and writing in Tamil',
-        UseCase.english => 'Everyday English conversation and writing',
-        UseCase.vision => 'Asking questions about a photo or screenshot',
-        UseCase.translation => 'Translating between languages with no signal',
-        UseCase.summarizing => 'Shortening long text into the gist',
-        UseCase.documents => 'Reading long documents and answering about them',
-      };
+    UseCase.fastChat => 'Quick replies',
+    UseCase.reasoning => 'Maths and hard questions',
+    UseCase.coding => 'Write and explain code',
+    UseCase.tamil => 'Chat and write in Tamil',
+    UseCase.english => 'Everyday English',
+    UseCase.vision => 'Ask about a photo',
+    UseCase.translation => 'Translate with no internet',
+    UseCase.summarizing => 'The gist of long text',
+    UseCase.documents => 'Ask about long documents',
+  };
+
+  /// [label] in the app's language.
+  String localizedLabel(AppLocalizations l) => switch (this) {
+    UseCase.fastChat => l.modelsUseCaseFastChat,
+    UseCase.reasoning => l.modelsUseCaseReasoning,
+    UseCase.coding => l.modelsUseCaseCoding,
+    UseCase.tamil => l.modelsUseCaseTamil,
+    UseCase.english => l.modelsUseCaseEnglish,
+    UseCase.vision => l.modelsUseCaseVision,
+    UseCase.translation => l.modelsUseCaseTranslation,
+    UseCase.summarizing => l.modelsUseCaseSummarizing,
+    UseCase.documents => l.modelsUseCaseDocuments,
+  };
+
+  /// [blurb] in the app's language.
+  String localizedBlurb(AppLocalizations l) => switch (this) {
+    UseCase.fastChat => l.modelsUseCaseFastChatBlurb,
+    UseCase.reasoning => l.modelsUseCaseReasoningBlurb,
+    UseCase.coding => l.modelsUseCaseCodingBlurb,
+    UseCase.tamil => l.modelsUseCaseTamilBlurb,
+    UseCase.english => l.modelsUseCaseEnglishBlurb,
+    UseCase.vision => l.modelsUseCaseVisionBlurb,
+    UseCase.translation => l.modelsUseCaseTranslationBlurb,
+    UseCase.summarizing => l.modelsUseCaseSummarizingBlurb,
+    UseCase.documents => l.modelsUseCaseDocumentsBlurb,
+  };
 
   IconData get icon => switch (this) {
-        UseCase.fastChat => Icons.bolt_outlined,
-        UseCase.reasoning => Icons.psychology_outlined,
-        UseCase.coding => Icons.code,
-        UseCase.tamil => Icons.translate_outlined,
-        UseCase.english => Icons.chat_bubble_outline,
-        UseCase.vision => Icons.image_outlined,
-        UseCase.translation => Icons.g_translate_outlined,
-        UseCase.summarizing => Icons.short_text,
-        UseCase.documents => Icons.description_outlined,
-      };
+    UseCase.fastChat => Icons.bolt_outlined,
+    UseCase.reasoning => Icons.psychology_outlined,
+    UseCase.coding => Icons.code,
+    UseCase.tamil => Icons.translate_outlined,
+    UseCase.english => Icons.chat_bubble_outline,
+    UseCase.vision => Icons.image_outlined,
+    UseCase.translation => Icons.g_translate_outlined,
+    UseCase.summarizing => Icons.short_text,
+    UseCase.documents => Icons.description_outlined,
+  };
 
   /// Speed matters more than depth for these: the reply arriving while you are
   /// still looking at the screen is the whole point.

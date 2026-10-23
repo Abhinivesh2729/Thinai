@@ -130,7 +130,7 @@ void main() {
   testWidgets('says so when there is nothing saved', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await _pump(tester);
-    expect(find.text('No saved chats yet'), findsOneWidget);
+    expect(find.text('No chats yet'), findsOneWidget);
     expect(
       find.byIcon(Icons.delete_sweep_rounded),
       findsNothing,

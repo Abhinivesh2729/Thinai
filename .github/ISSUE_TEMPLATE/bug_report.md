@@ -25,7 +25,7 @@ A clear and concise description of what actually happened.
 - **Device**: [e.g., Google Pixel 7, Samsung Galaxy S23]
 - **Android version**: [e.g., Android 14]
 - **App version / commit**: [e.g., 2.3.11]
-- **Flutter version**: [e.g., 3.27.4, run `flutter --version`]
+- **Flutter version**: [e.g., 3.41.0, run `flutter --version`]
 - **Dart version**: [e.g., 3.6.0]
 
 ### Screenshots / Logs

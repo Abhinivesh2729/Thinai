@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ splash icon. Adaptive, so OEM skins (ColorOS) draw it as is
+     instead of boxing a plain bitmap in a white launcher-style tile. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/splash_bg" />
+    <foreground android:drawable="@drawable/splash_logo" />
+</adaptive-icon>

@@ -10,11 +10,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../chat/attachment_error.dart';
 import '../../chat/document_attachment.dart';
 import '../../chat/image_attachment.dart';
 import '../../chat/prompt_budget.dart';
 import '../../chat/system_prompt.dart';
 import '../../llm/generation_settings.dart';
+import '../../l10n/l10n.dart';
 import '../../llm/llm_engine.dart';
 import '../../state/providers.dart';
 import '../../web/web_search.dart';
@@ -122,6 +124,28 @@ String _briefly(String message) {
   return '${firstLine.substring(0, 157)}...';
 }
 
+/// The message for an attachment that was refused, in the user's language.
+/// A [FormatException] that is not an [AttachmentException] keeps its own
+/// text.
+String _attachmentError(AppLocalizations l10n, FormatException e) {
+  if (e is! AttachmentException) return e.message;
+  return switch (e.problem) {
+    AttachmentProblem.imageUnsupported => l10n.chatAttachImageUnsupported,
+    AttachmentProblem.imageEmpty => l10n.chatAttachImageEmpty,
+    AttachmentProblem.imageTooLarge => l10n.chatAttachImageTooLarge(
+      e.sizeMb ?? '',
+      e.limitMb ?? 0,
+    ),
+    AttachmentProblem.pdfUnsupported => l10n.chatAttachPdfUnsupported,
+    AttachmentProblem.binaryFormatUnsupported =>
+      l10n.chatAttachBinaryUnsupported(e.formatName ?? ''),
+    AttachmentProblem.fileEmpty => l10n.chatAttachFileEmpty,
+    AttachmentProblem.binaryFile => l10n.chatAttachBinaryFile,
+    AttachmentProblem.notUtf8 => l10n.chatAttachNotUtf8,
+    AttachmentProblem.noText => l10n.chatAttachNoText,
+  };
+}
+
 class ChatPage extends ConsumerStatefulWidget {
   const ChatPage({super.key});
 
@@ -206,22 +230,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (file == null) return;
       final bytes = file.bytes;
       if (bytes == null) {
-        _toast('Could not read that file.');
+        if (mounted) _toast(context.l10n.chatErrorReadFile);
         return;
       }
       final document = readDocument(file.name, bytes);
       if (!mounted) return;
       setState(() => _document = document);
       if (document.truncated) {
-        _toast(
-          'Attached the first ${document.sizeLabel}. '
-          'The rest did not fit the context window.',
-        );
+        _toast(context.l10n.chatDocumentTrimmed(document.sizeLabel));
       }
     } on FormatException catch (e) {
-      if (mounted) _toast(e.message);
+      if (mounted) _toast(_attachmentError(context.l10n, e));
     } catch (e) {
-      if (mounted) _toast('Could not attach that file: $e');
+      if (mounted) _toast(context.l10n.chatErrorAttachFile('$e'));
     }
   }
 
@@ -230,7 +251,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// framing a shot that the model is blind is the wrong order.
   bool _canSeeImages() {
     if (ref.read(visionReadyProvider)) return true;
-    _toast('This model cannot read images. Try Gemma 3 4B instead.');
+    _toast(context.l10n.chatErrorNoVision);
     return false;
   }
 
@@ -261,9 +282,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (!mounted) return;
       setState(() => _image = image);
     } on FormatException catch (e) {
-      if (mounted) _toast(e.message);
+      if (mounted) _toast(_attachmentError(context.l10n, e));
     } catch (e) {
-      if (mounted) _toast('Could not take that photo: $e');
+      if (mounted) _toast(context.l10n.chatErrorTakePhoto('$e'));
     }
   }
 
@@ -280,16 +301,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (file == null) return;
       final bytes = file.bytes;
       if (bytes == null) {
-        _toast('Could not read that image.');
+        if (mounted) _toast(context.l10n.chatErrorReadImage);
         return;
       }
       final image = readImage(file.name, bytes);
       if (!mounted) return;
       setState(() => _image = image);
     } on FormatException catch (e) {
-      if (mounted) _toast(e.message);
+      if (mounted) _toast(_attachmentError(context.l10n, e));
     } catch (e) {
-      if (mounted) _toast('Could not attach that image: $e');
+      if (mounted) _toast(context.l10n.chatErrorAttachImage('$e'));
     }
   }
 
@@ -328,9 +349,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         if (mounted) {
           _toast(
             results.blocked
-                ? 'Search engines are rate-limiting this network right now. '
-                      'Answering without the web.'
-                : 'No web results for that. Answering from the model itself.',
+                ? context.l10n.chatSearchBlocked
+                : context.l10n.chatSearchNoResults,
           );
         }
         return null;
@@ -342,11 +362,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ]);
       return results;
     } on WebSearchException catch (e) {
-      if (mounted) _toast('${e.message} Answering without it.');
+      if (mounted) _toast(context.l10n.chatSearchErrorFallback(e.message));
     } catch (_) {
       // A stop is the user's doing, not a failure worth a snack bar.
       if (!cancel.isCancelled && mounted) {
-        _toast('Web search failed. Answering without it.');
+        _toast(context.l10n.chatSearchFailed);
       }
     } finally {
       if (identical(_searchCancel, cancel)) _searchCancel = null;
@@ -364,12 +384,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (text.isEmpty || _generating) return;
     final activeId = ref.read(activeModelIdProvider);
     if (activeId == null) {
-      _toast('Load a model from the Models tab first.');
+      _toast(context.l10n.chatLoadModelFirst);
       return;
     }
     final model = await ref.read(modelStoreProvider).findById(activeId);
     if (model == null) {
-      _toast('Active model is missing from disk.');
+      if (mounted) _toast(context.l10n.chatActiveModelMissing);
       return;
     }
 
@@ -465,7 +485,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             _stickToBottom();
           },
           onError: (Object e) {
-            if (mounted) _toast('Error: $e');
+            if (mounted) _toast(context.l10n.chatErrorGeneric('$e'));
             if (!turnDone.isCompleted) turnDone.complete();
           },
           onDone: () {
@@ -519,7 +539,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final next = !ref.read(webSearchEnabledProvider);
     await ref.read(webSearchEnabledProvider.notifier).set(next);
     if (!mounted) return;
-    _toast(next ? 'Web search on.' : 'Web search off.');
+    _toast(next ? context.l10n.chatWebSearchOn : context.l10n.chatWebSearchOff);
   }
 
   /// Keeps the newest message in view as tokens arrive, but only while the
@@ -621,7 +641,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu_rounded),
-          tooltip: 'Menu & Chats',
+          tooltip: context.l10n.chatMenuTooltip,
           onPressed: () {
             if (shellScaffoldKey.currentState != null) {
               shellScaffoldKey.currentState!.openDrawer();
@@ -631,7 +651,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           },
         ),
         title: Text(
-          sessions.active?.title ?? 'Thinai',
+          sessions.active?.localizedTitle(context.l10n) ?? 'Thinai',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -752,8 +772,8 @@ class _NoModelWarningBanner extends ConsumerWidget {
           Expanded(
             child: Text(
               hasInstalled
-                  ? 'No model loaded — tap to select or browse.'
-                  : 'No model downloaded — tap to download.',
+                  ? context.l10n.chatBannerNoModelLoaded
+                  : context.l10n.chatBannerNoModelDownloaded,
               style: TextStyle(
                 color: scheme.onErrorContainer,
                 fontSize: 13,
@@ -777,7 +797,9 @@ class _NoModelWarningBanner extends ConsumerWidget {
               elevation: 0,
             ),
             child: Text(
-              hasInstalled ? 'Select' : 'Download',
+              hasInstalled
+                  ? context.l10n.chatSelect
+                  : context.l10n.commonDownload,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
@@ -839,8 +861,8 @@ class _ModelSwitcherAction extends ConsumerWidget {
           ],
         ),
         tooltip: activeId != null
-            ? 'Active model: $activeId (tap to switch)'
-            : 'No model loaded (tap to choose)',
+            ? context.l10n.chatActiveModelTooltip(activeId!)
+            : context.l10n.chatNoModelTooltip,
         onPressed: () => _showModelSwitchSheet(context, ref),
       ),
     );
@@ -857,6 +879,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
   final scheme = theme.colorScheme;
+  final l10n = context.l10n;
   const logoGreen = Color(0xFF2CA048);
 
   await showModalBottomSheet<void>(
@@ -905,7 +928,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Switch Model',
+                          l10n.chatSwitchModel,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -915,8 +938,10 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                         ),
                         Text(
                           installedModels.isEmpty
-                              ? 'No models installed'
-                              : '${installedModels.length} installed on device',
+                              ? l10n.chatNoModelsInstalled
+                              : l10n.chatModelsInstalledCount(
+                                  installedModels.length,
+                                ),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -950,7 +975,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No models downloaded yet',
+                        l10n.chatNoModelsDownloadedYet,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: scheme.onSurface,
@@ -958,7 +983,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Download an open model from the catalogue to begin chatting.',
+                        l10n.chatDownloadFromCatalogue,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12.5,
@@ -968,7 +993,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                       const SizedBox(height: 14),
                       FilledButton.icon(
                         icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                        label: const Text('Browse Models'),
+                        label: Text(l10n.chatBrowseModels),
                         style: FilledButton.styleFrom(
                           backgroundColor: logoGreen,
                           foregroundColor: Colors.white,
@@ -1074,7 +1099,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                                       size: 18,
                                     ),
                                     color: logoGreen,
-                                    tooltip: 'Model Parameters',
+                                    tooltip: l10n.chatModelParameters,
                                     onPressed: () async {
                                       Navigator.of(modalContext).pop();
                                       await showModelSettingsSheet(context, m);
@@ -1092,7 +1117,7 @@ Future<void> _showModelSwitchSheet(BuildContext context, WidgetRef ref) async {
                 const SizedBox(height: 14),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.add_rounded, size: 16),
-                  label: const Text('Download More Models'),
+                  label: Text(l10n.chatDownloadMoreModels),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: scheme.onSurface,
                     side: BorderSide(color: scheme.outlineVariant),
@@ -1181,9 +1206,9 @@ class _EmptyChat extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
             if (activeId == null) ...[
-              const Text(
-                'Private Offline AI',
-                style: TextStyle(
+              Text(
+                context.l10n.chatEmptyTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
@@ -1191,8 +1216,7 @@ class _EmptyChat extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Chat privately with AI models that run 100% on your phone. '
-                'No internet required, zero cloud tracking, and your data never leaves your device.',
+                context.l10n.chatEmptyBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: scheme.onSurfaceVariant,
@@ -1203,7 +1227,7 @@ class _EmptyChat extends ConsumerWidget {
               const SizedBox(height: 20),
               FilledButton.icon(
                 icon: const Icon(Icons.explore_rounded, size: 18),
-                label: const Text('Browse & Download Models'),
+                label: Text(context.l10n.chatBrowseDownloadModels),
                 style: FilledButton.styleFrom(
                   backgroundColor: logoGreen,
                   foregroundColor: Colors.white,
@@ -1247,8 +1271,8 @@ class _EmptyChat extends ConsumerWidget {
                     const SizedBox(width: 7),
                     Text(
                       webSearch
-                          ? 'AI Ready · Web Search On'
-                          : 'AI Ready · 100% Offline',
+                          ? context.l10n.chatReadyWebSearchOn
+                          : context.l10n.chatReadyOffline,
                       style: const TextStyle(
                         color: logoGreen,
                         fontSize: 11.5,
@@ -1259,12 +1283,6 @@ class _EmptyChat extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Running privately on your phone silicon.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
-              ),
               const SizedBox(height: 22),
               // Starter prompt suggestions
               Wrap(
@@ -1274,31 +1292,30 @@ class _EmptyChat extends ConsumerWidget {
                 children: [
                   _StarterChip(
                     icon: Icons.lightbulb_outline_rounded,
-                    label: 'Brainstorm ideas',
+                    label: context.l10n.chatStarterBrainstorm,
                     onTap: () => onSuggestion?.call(
-                      'Give me 5 creative ideas to build an on-device AI app',
+                      context.l10n.chatStarterBrainstormPrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.code_rounded,
-                    label: 'Write Python code',
+                    label: context.l10n.chatStarterPython,
                     onTap: () => onSuggestion?.call(
-                      'Write a Python script to sort and deduplicate a list of items',
+                      context.l10n.chatStarterPythonPrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.summarize_outlined,
-                    label: 'Summarize text',
+                    label: context.l10n.chatStarterSummarize,
                     onTap: () => onSuggestion?.call(
-                      'Summarize the key takeaways from the following:\n\n',
+                      context.l10n.chatStarterSummarizePrompt,
                     ),
                   ),
                   _StarterChip(
                     icon: Icons.speed_rounded,
-                    label: 'Measure speed',
-                    onTap: () => onSuggestion?.call(
-                      'What is your generation speed on this phone?',
-                    ),
+                    label: context.l10n.chatStarterSpeed,
+                    onTap: () =>
+                        onSuggestion?.call(context.l10n.chatStarterSpeedPrompt),
                   ),
                 ],
               ),
@@ -1439,7 +1456,9 @@ class _Composer extends StatelessWidget {
                         icon: Icons.description_outlined,
                         label: document!.name,
                         detail: document!.truncated
-                            ? '${document!.sizeLabel} · trimmed'
+                            ? context.l10n.chatAttachmentTrimmed(
+                                document!.sizeLabel,
+                              )
                             : document!.sizeLabel,
                         onRemove: onRemoveDocument,
                       ),
@@ -1482,8 +1501,9 @@ class _Composer extends StatelessWidget {
                       onSubmitted: (_) => onSubmit(),
                       decoration: InputDecoration(
                         hintText: generating
-                            ? 'Generating…'
-                            : 'Message your model',
+                            ? context.l10n.chatInputHintGenerating
+                            : context.l10n.chatInputHint,
+                        hintMaxLines: 1,
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -1508,7 +1528,9 @@ class _Composer extends StatelessWidget {
                   ),
                   child: IconButton(
                     iconSize: 22,
-                    tooltip: generating ? 'Stop' : 'Send',
+                    tooltip: generating
+                        ? context.l10n.chatStop
+                        : context.l10n.chatSend,
                     onPressed: generating
                         ? onStop
                         : (enabled ? onSubmit : null),
@@ -1554,7 +1576,7 @@ class _MessageBubble extends StatelessWidget {
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Copied to clipboard'),
+        content: Text(context.l10n.chatCopiedToClipboard),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1593,9 +1615,12 @@ class _MessageBubble extends StatelessWidget {
               const SizedBox(height: 14),
               ListTile(
                 leading: const Icon(Icons.copy_rounded, size: 20),
-                title: const Text(
-                  'Copy text',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                title: Text(
+                  context.l10n.chatCopyText,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1607,9 +1632,12 @@ class _MessageBubble extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.share_rounded, size: 20),
-                title: const Text(
-                  'Share text',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                title: Text(
+                  context.l10n.chatShareText,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1690,7 +1718,7 @@ class _MessageBubble extends StatelessWidget {
                               : const Color(0xFF64748B),
                         )
                       : Text(
-                          'Stopped',
+                          context.l10n.chatStopped,
                           style: TextStyle(
                             color: isDark
                                 ? const Color(0xFF94A3B8)
@@ -1725,13 +1753,13 @@ class _MessageBubble extends StatelessWidget {
                 children: [
                   _BubbleIconButton(
                     icon: Icons.copy_rounded,
-                    tooltip: 'Copy',
+                    tooltip: context.l10n.commonCopy,
                     onTap: () => _copyText(context, msg.content),
                   ),
                   const SizedBox(width: 4),
                   _BubbleIconButton(
                     icon: Icons.share_rounded,
-                    tooltip: 'Share',
+                    tooltip: context.l10n.commonShare,
                     onTap: () => _shareText(context, msg.content),
                   ),
                   if (msg.sources.isNotEmpty) ...[
@@ -1789,7 +1817,7 @@ class _SearchingLine extends StatelessWidget {
         Icon(Icons.travel_explore_rounded, size: 15, color: color),
         const SizedBox(width: 7),
         Text(
-          'Searching the web…',
+          context.l10n.chatSearchingWeb,
           style: TextStyle(color: color, fontSize: 13),
         ),
         const SizedBox(width: 8),
@@ -2023,38 +2051,42 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
   }
 
   Widget _items(ColorScheme scheme) {
+    final l10n = context.l10n;
     final entries = <Widget>[
       _DialItem(
         key: dialWebSearchKey,
         icon: Icons.travel_explore_rounded,
-        label: 'Web search',
-        detail: widget.webSearch ? 'Automatic, on when needed' : 'Off',
+        label: l10n.chatDialWebSearch,
+        detail: widget.webSearch ? l10n.chatDialWebSearchAuto : l10n.commonOff,
         active: widget.webSearch,
         onTap: () => _choose(widget.onToggleWebSearch),
       ),
       _DialItem(
         key: dialCameraKey,
         icon: Icons.photo_camera_outlined,
-        label: 'Camera',
+        label: l10n.chatDialCamera,
         detail: widget.visionReady
-            ? 'Take a photo now'
-            : 'Needs a vision model',
+            ? l10n.chatDialCameraDetail
+            : l10n.chatDialNeedsVision,
         enabled: widget.enabled,
         onTap: () => _choose(widget.onCamera),
       ),
       _DialItem(
         key: dialImageKey,
         icon: Icons.image_outlined,
-        label: 'Image',
-        detail: widget.visionReady ? 'PNG, JPEG, WebP' : 'Needs a vision model',
+        label: l10n.chatDialImage,
+        // Format names, the same in every language.
+        detail: widget.visionReady
+            ? 'PNG, JPEG, WebP'
+            : l10n.chatDialNeedsVision,
         enabled: widget.enabled,
         onTap: () => _choose(widget.onImage),
       ),
       _DialItem(
         key: dialDocumentKey,
         icon: Icons.description_outlined,
-        label: 'Document',
-        detail: 'Text, Markdown, CSV, code',
+        label: l10n.chatDialDocument,
+        detail: l10n.chatDialDocumentDetail,
         enabled: widget.enabled,
         onTap: () => _choose(widget.onDocument),
       ),
@@ -2222,9 +2254,9 @@ class _DialItem extends StatelessWidget {
                         color: logoGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        'ON',
-                        style: TextStyle(
+                      child: Text(
+                        context.l10n.commonOn.toUpperCase(),
+                        style: const TextStyle(
                           color: logoGreen,
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -2349,7 +2381,7 @@ class _SourcesPill extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              sources.length == 1 ? 'Source' : 'Sources',
+              context.l10n.chatSourcesCount(sources.length),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -2403,7 +2435,7 @@ class _SourcesSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sources',
+                    context.l10n.chatSourcesTitle,
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -2418,7 +2450,7 @@ class _SourcesSheet extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        'Searched: "${sources.first.query}"',
+                        context.l10n.chatSearchedQuery(sources.first.query),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -2594,7 +2626,7 @@ class _AttachmentChip extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(),
-              tooltip: 'Remove',
+              tooltip: context.l10n.chatRemoveAttachment,
               onPressed: onRemove,
               icon: const Icon(Icons.close_rounded),
             ),

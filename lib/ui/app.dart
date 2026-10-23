@@ -5,6 +5,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n.dart';
 import '../server/foreground_handler.dart';
 import '../state/providers.dart';
 import '../update/app_updater.dart';
@@ -24,11 +25,15 @@ class LocalLlmApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final tamil = ref.watch(isTamilUiProvider);
     return MaterialApp(
       title: 'Thinai',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(Brightness.light),
-      darkTheme: buildAppTheme(Brightness.dark),
+      locale: ref.watch(appLocaleProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: buildAppTheme(Brightness.light, tamil: tamil),
+      darkTheme: buildAppTheme(Brightness.dark, tamil: tamil),
       themeMode: themeMode,
       home: WithForegroundTask(child: const _Shell()),
     );
@@ -39,7 +44,7 @@ class LocalLlmApp extends ConsumerWidget {
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
 /// so every screen adapts automatically.
 @visibleForTesting
-ThemeData buildAppTheme(Brightness brightness) {
+ThemeData buildAppTheme(Brightness brightness, {bool tamil = false}) {
   final isDark = brightness == Brightness.dark;
   // Official Thinai logo leaf green and crisp error red
   const logoGreen = Color(0xFF2CA048);
@@ -140,7 +145,7 @@ ThemeData buildAppTheme(Brightness brightness) {
         return TextStyle(
           fontSize: 10.5,
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.25,
+          letterSpacing: tamil ? 0 : 1.25,
           color: selected
               ? (isDark ? Colors.white : const Color(0xFF090A0C))
               : scheme.onSurfaceVariant,
@@ -242,15 +247,17 @@ class _ShellState extends ConsumerState<_Shell> {
     // blocks the UI shell or welcome sheet from rendering immediately.
     unawaited(ref.read(appBootstrapProvider.future).catchError((Object _) {}));
 
+    // Long enough for the splash intro, not a fixed wait: restore already
+    // runs in the background, so a longer splash only adds latency.
+    final minSplash = Future<void>.delayed(SplashPage.introDuration);
+
     // Pre-check whether this is the first launch while splash is displaying
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
     final seen = prefs.getBool(OnboardingTourScreen.tourSeenKey) ?? false;
     _needsOnboarding = !seen;
 
-    // Show the logo and brand presence for ~2.8s (~3s as requested: "likely 3s")
-    // while all heavy database & model checks finish in the background.
-    await Future<void>.delayed(const Duration(milliseconds: 2800));
+    await minSplash;
     if (!mounted) return;
     setState(() => _booted = true);
   }
@@ -447,19 +454,16 @@ class _MainShellState extends ConsumerState<_MainShell> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Restart now?'),
-          content: const Text(
-            'A model is still downloading. Restarting pauses it, and you can '
-            'resume it from the Models page.',
-          ),
+          title: Text(ctx.l10n.chatAppRestartTitle),
+          content: Text(ctx.l10n.chatAppRestartBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Later'),
+              child: Text(ctx.l10n.commonLater),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restart'),
+              child: Text(ctx.l10n.chatAppRestart),
             ),
           ],
         ),
@@ -533,7 +537,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (update != null && !_liveTourActive)
-            _UpdateBanner(
+            UpdateBanner(
               status: update,
               busy: _updateBusy,
               onAct: update.state == UpdateState.readyToInstall
@@ -551,23 +555,23 @@ class _MainShellState extends ConsumerState<_MainShell> {
                 key: CoachMarkTargets.chatTab,
                 icon: const Icon(Icons.chat_bubble_outline_rounded),
                 selectedIcon: const Icon(Icons.chat_bubble_rounded),
-                label: 'Chat',
+                label: context.l10n.navChat,
               ),
               NavigationDestination(
                 key: CoachMarkTargets.modelsTab,
                 icon: const Icon(Icons.memory_outlined),
                 selectedIcon: const Icon(Icons.memory_rounded),
-                label: 'Models',
+                label: context.l10n.navModels,
               ),
-              const NavigationDestination(
-                icon: Icon(Icons.dns_outlined),
-                selectedIcon: Icon(Icons.dns_rounded),
-                label: 'Server',
+              NavigationDestination(
+                icon: const Icon(Icons.dns_outlined),
+                selectedIcon: const Icon(Icons.dns_rounded),
+                label: context.l10n.navServer,
               ),
-              const NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings_rounded),
-                label: 'Settings',
+              NavigationDestination(
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings_rounded),
+                label: context.l10n.navSettings,
               ),
             ],
           ),
@@ -583,8 +587,9 @@ class _MainShellState extends ConsumerState<_MainShell> {
 /// Deliberately not a dialog. Nothing here is urgent enough to interrupt a
 /// conversation for — an update that is urgent goes through Play's own
 /// full-screen flow instead, before this ever renders.
-class _UpdateBanner extends StatelessWidget {
-  const _UpdateBanner({
+@visibleForTesting
+class UpdateBanner extends StatelessWidget {
+  const UpdateBanner({
     required this.status,
     required this.busy,
     required this.onAct,
@@ -604,7 +609,7 @@ class _UpdateBanner extends StatelessWidget {
     return Material(
       color: scheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
         child: Row(
           children: [
             Icon(
@@ -615,30 +620,18 @@ class _UpdateBanner extends StatelessWidget {
               size: 22,
             ),
             const SizedBox(width: 12),
+            // One short line. The button says what happens next.
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ready ? 'Update ready' : 'Update available',
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    busy
-                        ? 'Downloading in the background…'
-                        : ready
-                        ? 'Restart Thinai to finish installing.'
-                        : 'A newer version of Thinai is on Play Store.',
-                    style: TextStyle(
-                      color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ],
+              child: Text(
+                busy
+                    ? context.l10n.chatAppUpdateDownloading
+                    : ready
+                    ? context.l10n.chatAppUpdateReady
+                    : context.l10n.chatAppUpdateAvailable,
+                style: TextStyle(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             if (busy)
@@ -653,12 +646,21 @@ class _UpdateBanner extends StatelessWidget {
             else ...[
               TextButton(
                 onPressed: onAct,
-                child: Text(ready ? 'Restart' : 'Download'),
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                child: Text(
+                  ready
+                      ? context.l10n.chatAppRestart
+                      : context.l10n.commonDownload,
+                ),
               ),
               IconButton(
-                tooltip: 'Dismiss',
+                tooltip: context.l10n.commonDismiss,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 color: scheme.onPrimaryContainer,
+                visualDensity: VisualDensity.compact,
                 onPressed: onDismiss,
               ),
             ],

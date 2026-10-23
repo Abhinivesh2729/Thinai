@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 
 /// The list of saved conversations, reached from the Chat tab.
@@ -38,29 +40,28 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
         ? allConversations
         : allConversations.where((c) {
             final q = _query.toLowerCase();
-            return c.title.toLowerCase().contains(q) ||
-                c.preview.toLowerCase().contains(q);
+            return c.localizedTitle(context.l10n).toLowerCase().contains(q) ||
+                c.localizedPreview(context.l10n).toLowerCase().contains(q);
           }).toList();
 
     // Group by date sections
-    final groups = _groupByDate(filtered);
+    final l10n = context.l10n;
+    final groups = _groupByDate(filtered, l10n);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat history'),
+        title: Text(l10n.chatHistoryTitle),
         actions: [
           if (sessions.conversations.isNotEmpty)
             IconButton(
-              tooltip: 'Delete all chats',
+              tooltip: l10n.chatHistoryDeleteAllTooltip,
               icon: const Icon(Icons.delete_sweep_rounded),
               onPressed: () async {
                 final ok = await _confirm(
                   context,
-                  title: 'Delete all chats?',
-                  body:
-                      'Every saved conversation is removed. This cannot be '
-                      'undone.',
-                  action: 'Delete all',
+                  title: l10n.chatHistoryDeleteAllTitle,
+                  body: l10n.chatHistoryDeleteAllBody,
+                  action: l10n.chatHistoryDeleteAll,
                 );
                 if (ok) await controller.deleteAll();
               },
@@ -70,7 +71,7 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add_comment_rounded),
-        label: const Text('New chat'),
+        label: Text(l10n.chatNewChat),
         backgroundColor: const Color(0xFF2CA048),
         foregroundColor: Colors.white,
         onPressed: () {
@@ -106,8 +107,7 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: _SwipeableConversationCard(
                                 conversation: conversation,
-                                current:
-                                    conversation.id == sessions.activeId,
+                                current: conversation.id == sessions.activeId,
                                 onOpen: () {
                                   controller.open(conversation.id);
                                   Navigator.of(context).pop();
@@ -115,10 +115,9 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                 onRename: () async {
                                   final newTitle = await _showRenameDialog(
                                     context,
-                                    conversation.title,
+                                    conversation.localizedTitle(context.l10n),
                                   );
-                                  if (newTitle != null &&
-                                      newTitle.isNotEmpty) {
+                                  if (newTitle != null && newTitle.isNotEmpty) {
                                     await controller.rename(
                                       conversation.id,
                                       newTitle,
@@ -128,13 +127,14 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
                                 onDelete: () async {
                                   final ok = await _confirm(
                                     context,
-                                    title: 'Delete this chat?',
-                                    body: conversation.title,
-                                    action: 'Delete',
+                                    title: l10n.chatHistoryDeleteOneTitle,
+                                    body: conversation.localizedTitle(
+                                      context.l10n,
+                                    ),
+                                    action: l10n.commonDelete,
                                   );
                                   if (ok) {
-                                    await controller
-                                        .delete(conversation.id);
+                                    await controller.delete(conversation.id);
                                   }
                                 },
                               ),
@@ -152,7 +152,10 @@ class _ChatHistoryPageState extends ConsumerState<ChatHistoryPage> {
 // ─── Date grouping logic ──────────────────────────────────────────────────
 
 /// Groups conversations by relative date buckets.
-List<_DateGroup> _groupByDate(List<ChatConversation> conversations) {
+List<_DateGroup> _groupByDate(
+  List<ChatConversation> conversations,
+  AppLocalizations l10n,
+) {
   if (conversations.isEmpty) return const [];
 
   final now = DateTime.now();
@@ -183,11 +186,12 @@ List<_DateGroup> _groupByDate(List<ChatConversation> conversations) {
   }
 
   return [
-    if (todayList.isNotEmpty) _DateGroup('Today', todayList),
-    if (yesterdayList.isNotEmpty) _DateGroup('Yesterday', yesterdayList),
-    if (weekList.isNotEmpty) _DateGroup('Previous 7 Days', weekList),
-    if (monthList.isNotEmpty) _DateGroup('This Month', monthList),
-    if (olderList.isNotEmpty) _DateGroup('Older', olderList),
+    if (todayList.isNotEmpty) _DateGroup(l10n.chatGroupToday, todayList),
+    if (yesterdayList.isNotEmpty)
+      _DateGroup(l10n.chatGroupYesterday, yesterdayList),
+    if (weekList.isNotEmpty) _DateGroup(l10n.chatGroupPrevious7Days, weekList),
+    if (monthList.isNotEmpty) _DateGroup(l10n.chatGroupThisMonth, monthList),
+    if (olderList.isNotEmpty) _DateGroup(l10n.chatGroupOlder, olderList),
   ];
 }
 
@@ -249,7 +253,7 @@ class _SearchBar extends StatelessWidget {
               onChanged: onChanged,
               style: TextStyle(fontSize: 14, color: scheme.onSurface),
               decoration: InputDecoration(
-                hintText: 'Search conversations…',
+                hintText: context.l10n.chatHistorySearchHint,
                 hintStyle: TextStyle(
                   color: scheme.onSurfaceVariant,
                   fontSize: 14,
@@ -293,7 +297,7 @@ class _DateHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w800,
-          letterSpacing: 1.0,
+          letterSpacing: context.tracking(1.0),
           color: scheme.onSurfaceVariant,
         ),
       ),
@@ -327,9 +331,9 @@ class _SwipeableConversationCard extends StatelessWidget {
         HapticFeedback.mediumImpact();
         return _confirm(
           context,
-          title: 'Delete this chat?',
-          body: conversation.title,
-          action: 'Delete',
+          title: context.l10n.chatHistoryDeleteOneTitle,
+          body: conversation.localizedTitle(context.l10n),
+          action: context.l10n.commonDelete,
         );
       },
       onDismissed: (_) => onDelete(),
@@ -374,7 +378,7 @@ class _NoSearchResults extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No chats matching "$query"',
+              context.l10n.chatHistoryNoResults(query),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -404,7 +408,7 @@ Future<bool> _confirm(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(c, false),
-          child: const Text('Cancel'),
+          child: Text(c.l10n.commonCancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -432,12 +436,12 @@ Future<String?> _showRenameDialog(
     context: context,
     builder: (c) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('Rename chat'),
+      title: Text(c.l10n.chatRenameChat),
       content: TextField(
         controller: controller,
         autofocus: true,
         decoration: InputDecoration(
-          hintText: 'Conversation title',
+          hintText: c.l10n.chatConversationTitleHint,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
@@ -449,14 +453,14 @@ Future<String?> _showRenameDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(c),
-          child: const Text('Cancel'),
+          child: Text(c.l10n.commonCancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF2CA048),
           ),
           onPressed: () => Navigator.pop(c, controller.text.trim()),
-          child: const Text('Save'),
+          child: Text(c.l10n.commonSave),
         ),
       ],
     ),
@@ -510,9 +514,7 @@ class _ConversationCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: current
-                      ? logoGreen
-                      : scheme.surfaceContainerHigh,
+                  color: current ? logoGreen : scheme.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(
@@ -520,8 +522,7 @@ class _ConversationCard extends StatelessWidget {
                       ? Icons.chat_rounded
                       : Icons.chat_bubble_outline_rounded,
                   size: 18,
-                  color:
-                      current ? Colors.white : scheme.onSurfaceVariant,
+                  color: current ? Colors.white : scheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 12),
@@ -535,7 +536,7 @@ class _ConversationCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            conversation.title,
+                            conversation.localizedTitle(context.l10n),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -557,12 +558,12 @@ class _ConversationCard extends StatelessWidget {
                               color: logoGreen.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            child: const Text(
-                              'ACTIVE',
+                            child: Text(
+                              context.l10n.chatHistoryActiveBadge,
                               style: TextStyle(
-                                fontSize: 9,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
+                                letterSpacing: context.tracking(0.6),
                                 color: logoGreen,
                               ),
                             ),
@@ -573,7 +574,7 @@ class _ConversationCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     // Preview
                     Text(
-                      conversation.preview,
+                      conversation.localizedPreview(context.l10n),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -583,52 +584,32 @@ class _ConversationCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Metadata row
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 12,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formatChatTimestamp(conversation.updatedAt),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          size: 11,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${conversation.turns.length} messages',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                    // When and how long, as one quiet line.
+                    Text(
+                      '${formatChatTimestamp(conversation.updatedAt, l10n: context.l10n)}'
+                      ' · '
+                      '${context.l10n.chatHistoryMessageCount(conversation.turns.length)}',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (onRename != null)
                 IconButton(
-                  tooltip: 'Rename chat',
+                  tooltip: context.l10n.chatRenameChat,
                   icon: const Icon(Icons.edit_outlined, size: 19),
+                  visualDensity: VisualDensity.compact,
                   color: scheme.onSurfaceVariant,
                   onPressed: onRename,
                 ),
               // Delete button
               IconButton(
-                tooltip: 'Delete chat',
+                tooltip: context.l10n.chatDeleteChat,
                 icon: const Icon(Icons.delete_outline_rounded, size: 19),
+                visualDensity: VisualDensity.compact,
                 color: scheme.onSurfaceVariant,
                 onPressed: onDelete,
               ),
@@ -666,13 +647,13 @@ class _EmptyHistory extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'No saved chats yet',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            Text(
+              context.l10n.chatHistoryEmptyTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
-              'Start a conversation and it will appear here.\nEverything stays on this device.',
+              context.l10n.chatHistoryEmptyBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -688,14 +669,34 @@ class _EmptyHistory extends StatelessWidget {
 }
 
 /// Relative for anything recent, absolute once it stops being useful.
-String formatChatTimestamp(DateTime when, {DateTime? now}) {
+///
+/// [l10n] picks the language; without it the text is English.
+String formatChatTimestamp(
+  DateTime when, {
+  DateTime? now,
+  AppLocalizations? l10n,
+}) {
+  final strings = l10n ?? lookupAppLocalizations(const Locale('en'));
   final reference = now ?? DateTime.now();
   final diff = reference.difference(when);
-  if (diff.inSeconds < 60) return 'Just now';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-  if (diff.inHours < 24) return '${diff.inHours}h ago';
-  if (diff.inDays == 1) return 'Yesterday';
-  if (diff.inDays < 7) return '${diff.inDays} days ago';
+  if (diff.inSeconds < 60) return strings.chatTimeJustNow;
+  if (diff.inMinutes < 60) return strings.chatTimeMinutesAgo(diff.inMinutes);
+  if (diff.inHours < 24) return strings.chatTimeHoursAgo(diff.inHours);
+  if (diff.inDays == 1) return strings.chatGroupYesterday;
+  if (diff.inDays < 7) return strings.chatTimeDaysAgo(diff.inDays);
+
+  // The locale's own month names once its date data is loaded, which
+  // flutter_localizations does at startup. Before that — a widget pumped
+  // without delegates, or a plain unit test — the English names below.
+  final locale = strings.localeName;
+  try {
+    final date = DateFormat('d MMM', locale).format(when);
+    return when.year == reference.year
+        ? date
+        : '$date ${DateFormat('y', locale).format(when)}';
+  } on Exception {
+    // intl throws when the locale's date data is not loaded yet.
+  }
 
   const months = [
     'Jan',

@@ -5,11 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_llm/ui/widgets/onboarding_tour_screen.dart';
 
 const _tags = [
-  '100% PRIVATE & OFFLINE',
-  'VERIFIED GGUF CATALOG',
-  'HARDWARE ACCELERATION',
-  'MULTIMODAL STUDIO',
-  'LOCAL DEVELOPER API',
+  'PRIVATE & OFFLINE',
+  'MODEL CATALOG',
+  'GPU ACCELERATION',
+  'IMAGES & DOCUMENTS',
+  'LOCAL API',
 ];
 
 Finder get _nextArrow => find.byIcon(Icons.arrow_forward_rounded);
@@ -57,7 +57,7 @@ void main() {
     expect(find.text(_tags.first), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
     expect(
-      find.text('Zero data leaves your device RAM or storage'),
+      find.text('Nothing leaves your device. Works in Airplane mode.'),
       findsOneWidget,
     );
     final back = tester.widget<IgnorePointer>(
@@ -73,7 +73,7 @@ void main() {
       await _next(tester);
       expect(find.text(tag), findsOneWidget);
     }
-    expect(find.text('Start Using Thinai Now'), findsOneWidget);
+    expect(find.text('Get started'), findsOneWidget);
     expect(await _seen(), isNull, reason: 'nothing is saved before the end');
   });
 
@@ -133,15 +133,15 @@ void main() {
     expect(find.byType(OnboardingTourScreen), findsNothing);
   });
 
-  testWidgets('Start Using Thinai Now finishes the tour', (tester) async {
+  testWidgets('Get started finishes the tour', (tester) async {
     final completions = await _openTour(tester);
     for (var i = 0; i < 4; i++) {
       await _next(tester);
     }
 
-    await tester.ensureVisible(find.text('Start Using Thinai Now'));
+    await tester.ensureVisible(find.text('Get started'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Using Thinai Now'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
 
     expect(await _seen(), isTrue);

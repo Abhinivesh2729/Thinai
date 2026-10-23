@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models_repo/model_store.dart';
 import '../../state/providers.dart';
 import '../pages/about_page.dart';
@@ -53,11 +54,12 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
         ? allConversations
         : allConversations.where((c) {
             final q = _searchQuery.toLowerCase();
-            return c.title.toLowerCase().contains(q) ||
-                c.preview.toLowerCase().contains(q);
+            return c.localizedTitle(context.l10n).toLowerCase().contains(q) ||
+                c.localizedPreview(context.l10n).toLowerCase().contains(q);
           }).toList();
 
-    final groups = _groupByDate(filtered);
+    final l10n = context.l10n;
+    final groups = _groupByDate(filtered, l10n);
 
     return Drawer(
       backgroundColor: scheme.surface,
@@ -78,7 +80,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                      tooltip: 'Exit manage mode',
+                      tooltip: l10n.chatDrawerExitManage,
                       color: scheme.onSurfaceVariant,
                       onPressed: () => setState(() {
                         _isManageMode = false;
@@ -92,7 +94,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Manage chats',
+                            l10n.chatDrawerManageChats,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -101,8 +103,11 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                           ),
                           Text(
                             _selectedIds.isEmpty
-                                ? 'Tap to select'
-                                : '${_selectedIds.length} of ${filtered.length} selected',
+                                ? l10n.chatDrawerTapToSelect
+                                : l10n.chatDrawerSelectedCount(
+                                    _selectedIds.length,
+                                    filtered.length,
+                                  ),
                             style: TextStyle(
                               fontSize: 12,
                               color: scheme.onSurfaceVariant,
@@ -133,8 +138,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                       child: Text(
                         _selectedIds.length == filtered.length &&
                                 filtered.isNotEmpty
-                            ? 'Deselect all'
-                            : 'Select all',
+                            ? l10n.chatDrawerDeselectAll
+                            : l10n.chatDrawerSelectAll,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -187,7 +192,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close_rounded, size: 20),
-                      tooltip: 'Close menu',
+                      tooltip: l10n.chatDrawerCloseMenu,
                       color: scheme.onSurfaceVariant,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -240,7 +245,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'New chat',
+                              l10n.chatNewChat,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -281,7 +286,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     style: TextStyle(fontSize: 13, color: scheme.onSurface),
                     decoration: InputDecoration(
                       isDense: true,
-                      hintText: 'Search chats…',
+                      hintText: l10n.chatDrawerSearchHint,
                       hintStyle: TextStyle(
                         fontSize: 13,
                         color: scheme.onSurfaceVariant,
@@ -424,8 +429,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                         ),
                         label: Text(
                           _selectedIds.isEmpty
-                              ? 'Delete'
-                              : 'Delete (${_selectedIds.length})',
+                              ? l10n.commonDelete
+                              : l10n.chatDrawerDeleteCount(_selectedIds.length),
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 13.5,
@@ -448,9 +453,9 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                         _isManageMode = false;
                         _selectedIds.clear();
                       }),
-                      child: const Text(
-                        'Done',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      child: Text(
+                        l10n.commonDone,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -465,9 +470,10 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                   children: [
                     _DrawerFooterTile(
                       icon: Icons.checklist_rounded,
-                      label: 'Manage chats',
-                      subtitle:
-                          '${allConversations.length} conversation${allConversations.length == 1 ? '' : 's'}',
+                      label: l10n.chatDrawerManageChats,
+                      subtitle: l10n.chatDrawerConversationCount(
+                        allConversations.length,
+                      ),
                       onTap: () {
                         setState(() {
                           _isManageMode = true;
@@ -477,8 +483,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     ),
                     _DrawerFooterTile(
                       icon: Icons.tune_rounded,
-                      label: 'Model Settings',
-                      subtitle: 'Context, sampling & thinking',
+                      label: l10n.chatDrawerModelSettings,
+                      subtitle: l10n.chatDrawerModelSettingsSubtitle,
                       onTap: () async {
                         Navigator.of(context).pop();
                         final activeId = ref.read(activeModelIdProvider);
@@ -500,10 +506,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                           await showModelSettingsSheet(context, model);
                         } else if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'No model downloaded yet. Download a model from the Models tab first.',
-                              ),
+                            SnackBar(
+                              content: Text(l10n.chatDrawerNoModelSnack),
                             ),
                           );
                         }
@@ -511,8 +515,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     ),
                     _DrawerFooterTile(
                       icon: Icons.settings_outlined,
-                      label: 'App Settings',
-                      subtitle: 'Theme, GPU, downloads & server',
+                      label: l10n.chatDrawerAppSettings,
+                      subtitle: l10n.chatDrawerAppSettingsSubtitle,
                       onTap: () {
                         Navigator.of(context).pop();
                         ref.read(shellTabIndexProvider.notifier).state = 3;
@@ -520,8 +524,8 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     ),
                     _DrawerFooterTile(
                       icon: Icons.info_outline_rounded,
-                      label: 'About Thinai',
-                      subtitle: 'Version, privacy & details',
+                      label: l10n.chatDrawerAbout,
+                      subtitle: l10n.chatDrawerAboutSubtitle,
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
@@ -541,6 +545,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
   /// Dialog to confirm batch deletion of multiple selected conversations.
   Future<void> _confirmBatchDelete(WidgetRef ref) async {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final count = _selectedIds.length;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -552,17 +557,17 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            'Delete $count chat${count == 1 ? '' : 's'}?',
+            l10n.chatDrawerDeleteManyTitle(count),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           content: Text(
-            'Are you sure you want to permanently delete $count selected conversation${count == 1 ? '' : 's'}? This action cannot be undone.',
+            l10n.chatDrawerDeleteManyBody,
             style: TextStyle(fontSize: 13.5, color: scheme.onSurfaceVariant),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -572,7 +577,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 ),
               ),
               onPressed: () => Navigator.of(dialogCtx).pop(true),
-              child: const Text('Delete'),
+              child: Text(l10n.commonDelete),
             ),
           ],
         );
@@ -595,7 +600,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Deleted $count chat${count == 1 ? '' : 's'}'),
+        content: Text(l10n.chatDrawerDeletedCount(count)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -609,6 +614,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
     ChatConversation conversation,
   ) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     const logoGreen = Color(0xFF2CA048);
 
     showModalBottomSheet<void>(
@@ -656,7 +662,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        conversation.title,
+                        conversation.localizedTitle(context.l10n),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -675,9 +681,12 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 // Select / Manage option
                 ListTile(
                   leading: const Icon(Icons.checklist_rounded, size: 21),
-                  title: const Text(
-                    'Select / Manage',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  title: Text(
+                    l10n.chatDrawerSelectManage,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                   shape: RoundedRectangleBorder(
@@ -695,9 +704,12 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 // Rename option
                 ListTile(
                   leading: const Icon(Icons.edit_outlined, size: 21),
-                  title: const Text(
-                    'Rename title',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  title: Text(
+                    l10n.chatDrawerRenameTitle,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                   shape: RoundedRectangleBorder(
@@ -717,7 +729,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     color: scheme.error,
                   ),
                   title: Text(
-                    'Delete chat',
+                    l10n.chatDeleteChat,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -748,6 +760,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
     ChatConversation conversation,
   ) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     const logoGreen = Color(0xFF2CA048);
     final renameController = TextEditingController(text: conversation.title);
     renameController.selection = TextSelection(
@@ -764,9 +777,9 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            'Rename chat',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          title: Text(
+            l10n.chatRenameChat,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -776,7 +789,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 autofocus: true,
                 style: TextStyle(fontSize: 14, color: scheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Conversation title',
+                  hintText: l10n.chatConversationTitleHint,
                   filled: true,
                   fillColor: scheme.surfaceContainerLow,
                   border: OutlineInputBorder(
@@ -807,7 +820,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -825,7 +838,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                 }
                 if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
               },
-              child: const Text('Save'),
+              child: Text(l10n.commonSave),
             ),
           ],
         );
@@ -840,6 +853,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
     ChatConversation conversation,
   ) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     showDialog<void>(
       context: context,
@@ -850,18 +864,18 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            'Delete chat?',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          title: Text(
+            l10n.chatDrawerDeleteOneTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           content: Text(
-            'Are you sure you want to delete "${conversation.title}"? This cannot be undone.',
+            l10n.chatDrawerDeleteOneBody(conversation.localizedTitle(l10n)),
             style: TextStyle(fontSize: 13.5, color: scheme.onSurfaceVariant),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogCtx).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -876,7 +890,7 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
                     .delete(conversation.id);
                 if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
               },
-              child: const Text('Delete'),
+              child: Text(l10n.commonDelete),
             ),
           ],
         );
@@ -969,7 +983,7 @@ class _DrawerConversationTile extends StatelessWidget {
                 ],
                 Expanded(
                   child: Text(
-                    conversation.title,
+                    conversation.localizedTitle(context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -1023,7 +1037,7 @@ class _DrawerDateHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 10.5,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
+          letterSpacing: context.tracking(0.8),
           color: scheme.onSurfaceVariant,
         ),
       ),
@@ -1116,7 +1130,7 @@ class _EmptyDrawerHistory extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'No past conversations',
+              context.l10n.chatDrawerNoHistory,
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
@@ -1125,7 +1139,7 @@ class _EmptyDrawerHistory extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Start a chat to keep history here.',
+              context.l10n.chatDrawerNoHistoryHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -1152,7 +1166,7 @@ class _DrawerNoResults extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Text(
-          'No chats found for "$query"',
+          context.l10n.chatDrawerNoResults(query),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
         ),
@@ -1163,7 +1177,10 @@ class _DrawerNoResults extends StatelessWidget {
 
 // ─── Date Grouping Helpers ──────────────────────────────────────────────────
 
-List<_DrawerDateGroup> _groupByDate(List<ChatConversation> conversations) {
+List<_DrawerDateGroup> _groupByDate(
+  List<ChatConversation> conversations,
+  AppLocalizations l10n,
+) {
   if (conversations.isEmpty) return const [];
 
   final now = DateTime.now();
@@ -1194,11 +1211,14 @@ List<_DrawerDateGroup> _groupByDate(List<ChatConversation> conversations) {
   }
 
   return [
-    if (todayList.isNotEmpty) _DrawerDateGroup('Today', todayList),
-    if (yesterdayList.isNotEmpty) _DrawerDateGroup('Yesterday', yesterdayList),
-    if (weekList.isNotEmpty) _DrawerDateGroup('Previous 7 Days', weekList),
-    if (monthList.isNotEmpty) _DrawerDateGroup('This Month', monthList),
-    if (olderList.isNotEmpty) _DrawerDateGroup('Older', olderList),
+    if (todayList.isNotEmpty) _DrawerDateGroup(l10n.chatGroupToday, todayList),
+    if (yesterdayList.isNotEmpty)
+      _DrawerDateGroup(l10n.chatGroupYesterday, yesterdayList),
+    if (weekList.isNotEmpty)
+      _DrawerDateGroup(l10n.chatGroupPrevious7Days, weekList),
+    if (monthList.isNotEmpty)
+      _DrawerDateGroup(l10n.chatGroupThisMonth, monthList),
+    if (olderList.isNotEmpty) _DrawerDateGroup(l10n.chatGroupOlder, olderList),
   ];
 }
 

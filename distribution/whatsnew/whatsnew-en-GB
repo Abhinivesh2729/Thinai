@@ -1,5 +1,8 @@
-What's new in 2.4.0
-• Confirm before downloading, cancelling or deleting a model, so a stray tap can't lose a download
-• Every launch opens a fresh chat; past chats stay in the menu
-• Settings > System Prompt: set your own instructions for every chat
-• Model settings: Top-K, Top-P, and a Thinking on/off switch for models like Qwen3
+What's new in 2.5.0
+• Thinai in Tamil: choose English or தமிழ் in Settings > Appearance
+• Tamil eval: tap த on the Models page to score how well a model understands and writes Tamil
+• Search Hugging Face and install public GGUF models
+• Downloads resume after a pause, a lost connection or closing the app
+• Faster app start
+• Chats now use the full context window you set
+• Fixes: Qwen3.5 models load, the server port shows before starting, the LAN switch is visible in dark theme

@@ -107,10 +107,7 @@ void main() {
 
     expect(find.text(model.id), findsOneWidget);
     expect(find.text('8K tokens'), findsOneWidget);
-    expect(
-      find.text("Maximum 32K, this model's training limit."),
-      findsOneWidget,
-    );
+    expect(find.text("Max 32K, the model's limit."), findsOneWidget);
     expect(find.text('0.70'), findsOneWidget);
     expect(find.text('40'), findsOneWidget);
     expect(find.text('0.95'), findsOneWidget);
@@ -125,17 +122,14 @@ void main() {
     tester,
   ) async {
     await _pump(tester, _model());
-    expect(find.text('Maximum 32K.'), findsOneWidget);
+    expect(find.text('Max 32K.'), findsOneWidget);
   });
 
   testWidgets('a long-context model shows its window in millions', (
     tester,
   ) async {
     await _pump(tester, _model(trainedContext: 1 << 20));
-    expect(
-      find.text("Maximum 1M, this model's training limit."),
-      findsOneWidget,
-    );
+    expect(find.text("Max 1M, the model's limit."), findsOneWidget);
   });
 
   testWidgets('shows saved values instead of the defaults', (tester) async {

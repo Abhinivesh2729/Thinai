@@ -1,4 +1,19 @@
-# Thinai
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/images/logo_dark.png">
+    <img src="assets/images/logo_transparent.png" alt="Thinai" width="280">
+  </picture>
+</p>
+
+[![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAbhinivesh2729/Thinai%2Fmain%2Fpubspec.yaml&query=%24.version&label=version&color=blue)](pubspec.yaml)
+[![CI](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/Abhinivesh2729/Thinai)](LICENSE)
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.41%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-%5E3.11-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Android](https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![llama.cpp](https://img.shields.io/badge/llama.cpp-GGUF-000000)](https://github.com/ggml-org/llama.cpp)
+[![API](https://img.shields.io/badge/API-Ollama%20%7C%20OpenAI-412991)](#api-surface)
 
 On-device LLM server and companion chat application for Android. Thinai wraps [llama.cpp](https://github.com/ggml-org/llama.cpp) (via a vendored fork of [fllama](https://github.com/Telosnex/fllama)) and exposes a local Ollama- and OpenAI-compatible HTTP API on `127.0.0.1:11434`.
 
@@ -76,10 +91,11 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 
 ## Requirements
 
-- **Flutter SDK**: `^3.11.0` (Flutter 3.27+)
+- **Flutter SDK**: 3.41+ (Dart `^3.11.0`)
 - **Android SDK**: API level 24 (Android 7.0 Nougat) or higher
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
+- **iOS (early)**: Xcode 16.4+ with CocoaPods, an Apple ID for signing, and an iPhone on iOS 15 or later. Tested on an iPhone 12.
 
 ---
 
@@ -102,6 +118,14 @@ flutter run
 ```
 
 > **Note:** The first build compiles the native `llama.cpp` C++ engine from source and takes several minutes.
+
+On iOS, open `ios/Runner.xcworkspace` once and pick your team under **Signing & Capabilities**, then run a release build (the mode tested so far):
+
+```bash
+flutter run --release
+```
+
+The API server runs only while Thinai is in the foreground on iOS. There is no equivalent of Android's foreground service.
 
 ### 3. Start the Server
 

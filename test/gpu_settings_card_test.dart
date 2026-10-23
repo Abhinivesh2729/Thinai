@@ -8,7 +8,7 @@ import 'package:local_llm/llm/gpu_support.dart';
 import 'package:local_llm/state/providers.dart';
 import 'package:local_llm/ui/widgets/gpu_settings_card.dart';
 
-const _checkLabel = "Check this phone's GPU";
+const _checkLabel = 'Find GPU';
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -75,9 +75,7 @@ void main() {
   testWidgets('says which backend crashed the app last time', (tester) async {
     await _pump(tester, crashed: GpuBackend.vulkan);
     expect(
-      find.text(
-        'Vulkan crashed the app last time, so GPU acceleration was turned off.',
-      ),
+      find.text('Vulkan crashed last time, so the GPU was turned off.'),
       findsOneWidget,
     );
   });

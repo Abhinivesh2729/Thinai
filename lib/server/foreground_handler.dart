@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' show Color;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -37,7 +38,15 @@ class _ThinaiTaskHandler extends TaskHandler {
   }
 }
 
+/// The service is an Android concept. iOS has no equivalent for keeping an
+/// HTTP server alive in the background, so there the server and downloads
+/// run only while the app is in the foreground and every call here is a
+/// no-op.
+bool get foregroundServiceSupported =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
 void initForegroundTaskOptions() {
+  if (!foregroundServiceSupported) return;
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'thinai_server',
@@ -163,7 +172,9 @@ class ForegroundServiceManager {
   }
 
   static bool get _needed =>
-      _serverRunning || _activeDownloads.isNotEmpty || _recentCompletedModel != null;
+      _serverRunning ||
+      _activeDownloads.isNotEmpty ||
+      _recentCompletedModel != null;
 
   static String _formatBytes(int bytes) {
     if (bytes < 1024 * 1024) {
@@ -197,7 +208,9 @@ class ForegroundServiceManager {
       final first = _activeDownloads.values.first;
       final parts = <String>[];
       if (first.total != null && first.total! > 0) {
-        parts.add('${_formatBytes(first.received)} of ${_formatBytes(first.total!)}');
+        parts.add(
+          '${_formatBytes(first.received)} of ${_formatBytes(first.total!)}',
+        );
       } else if (first.received > 0) {
         parts.add(_formatBytes(first.received));
       }
@@ -219,8 +232,11 @@ class ForegroundServiceManager {
   }
 
   static Future<void> _sync() async {
+    if (!foregroundServiceSupported) return;
     final running = await FlutterForegroundTask.isRunningService;
-    final buttons = _serverRunning ? [_stopServerButton] : <NotificationButton>[];
+    final buttons = _serverRunning
+        ? [_stopServerButton]
+        : <NotificationButton>[];
     if (_needed) {
       if (running) {
         await FlutterForegroundTask.updateService(
