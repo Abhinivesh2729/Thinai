@@ -90,6 +90,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 - **Android SDK**: API level 24 (Android 7.0 Nougat) or higher
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
+- **iOS (early)**: Xcode 16.4+ with CocoaPods, an Apple ID for signing, and an iPhone on iOS 15 or later. Tested on an iPhone 12.
 
 ---
 
@@ -112,6 +113,14 @@ flutter run
 ```
 
 > **Note:** The first build compiles the native `llama.cpp` C++ engine from source and takes several minutes.
+
+On iOS, open `ios/Runner.xcworkspace` once and pick your team under **Signing & Capabilities**, then run a release build (the mode tested so far):
+
+```bash
+flutter run --release
+```
+
+The API server runs only while Thinai is in the foreground on iOS. There is no equivalent of Android's foreground service.
 
 ### 3. Start the Server
 
