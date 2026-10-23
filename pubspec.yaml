@@ -57,6 +57,14 @@ dependencies:
   file_picker: ^8.1.2
   dio: ^5.11.1
 
+  # MCP client protocol support (JSON-RPC over Streamable HTTP). Wrapped behind
+  # our own types in lib/mcp/; pulls in no new transitive packages, since
+  # crypto, http and meta are already pinned in pubspec.lock.
+  mcp_dart: ^2.4.3
+
+  # @visibleForTesting, so test-only seams are declared rather than implied.
+  meta: ^1.16.0
+
   # State management
   flutter_riverpod: ^2.5.1
 
