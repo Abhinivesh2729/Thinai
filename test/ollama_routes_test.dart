@@ -379,4 +379,90 @@ void main() {
       expect(res.statusCode, 404);
     });
   });
+
+  group('collectOllamaReply', () {
+    test('joins the deltas and keeps the final stats and reason', () async {
+      final reply = await collectOllamaReply(
+        Stream.fromIterable(const [
+          LlmToken(delta: 'வணக்', full: 'வணக்', done: false),
+          LlmToken(
+            delta: 'கம்',
+            full: 'வணக்கம்',
+            done: true,
+            finishReason: 'length',
+            stats: LlmStats(tokens: 2, promptTokens: 7),
+          ),
+        ]),
+      );
+      expect(reply.failure, isNull);
+      expect(reply.text, 'வணக்கம்');
+      expect(reply.doneReason, 'length');
+      expect(reply.stats.promptTokens, 7);
+    });
+
+    test(
+      'reports a native failure instead of passing it off as a reply',
+      () async {
+        const message =
+            'request (2457 tokens) exceeds the available context size '
+            '(2048 tokens), try increasing it';
+        final reply = await collectOllamaReply(
+          Stream.fromIterable(const [
+            LlmToken(delta: message, full: message, done: true, isError: true),
+          ]),
+        );
+        expect(reply.failure, message);
+        expect(reply.text, isEmpty);
+      },
+    );
+  });
+
+  group('ollamaNdjson', () {
+    Future<List<Map<String, dynamic>>> lines(Stream<LlmToken> tokens) async {
+      final text = await utf8.decodeStream(
+        ollamaNdjson(tokens, (t) => {'response': t.delta, 'done': t.done}),
+      );
+      return [
+        for (final l in const LineSplitter().convert(text))
+          jsonDecode(l) as Map<String, dynamic>,
+      ];
+    }
+
+    test('writes one line per token', () async {
+      expect(
+        await lines(
+          Stream.fromIterable(const [
+            LlmToken(delta: 'a', full: 'a', done: false),
+            LlmToken(delta: 'b', full: 'ab', done: true),
+          ]),
+        ),
+        [
+          {'response': 'a', 'done': false},
+          {'response': 'b', 'done': true},
+        ],
+      );
+    });
+
+    test('ends with an error line on a native failure', () async {
+      expect(
+        await lines(
+          Stream.fromIterable(const [
+            LlmToken(delta: 'a', full: 'a', done: false),
+            LlmToken(delta: 'boom', full: 'boom', done: true, isError: true),
+            LlmToken(delta: 'late', full: 'late', done: true),
+          ]),
+        ),
+        [
+          {'response': 'a', 'done': false},
+          {'error': 'boom', 'done': true},
+        ],
+      );
+    });
+
+    test('ends with an error line when the stream throws', () async {
+      expect(await lines(Stream.error(StateError('No model loaded'))), [
+        {'error': 'Bad state: No model loaded', 'done': true},
+      ]);
+    });
+  });
 }
