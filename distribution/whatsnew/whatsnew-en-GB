@@ -1,7 +1,8 @@
 What's new in 2.5.0
-• Search Hugging Face and install any public GGUF model from the Models page
+• Thinai in Tamil: choose English or தமிழ் in Settings > Appearance
+• Tamil eval: tap த on the Models page to score how well a model understands and writes Tamil
+• Search Hugging Face and install public GGUF models
 • Downloads resume after a pause, a lost connection or closing the app
-• Newer Qwen3.5 models load correctly
-• Server tab shows its port before the server starts
-• LAN switch is easier to see in dark theme
-• LFM2.5 350M is the new featured model
+• Faster app start
+• Chats now use the full context window you set
+• Fixes: Qwen3.5 models load, the server port shows before starting, the LAN switch is visible in dark theme

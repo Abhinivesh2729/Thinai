@@ -2,6 +2,16 @@
 
 ## v2.5.0
 
+### Thinai in Tamil
+Every screen is available in English and Tamil. Choose the language in
+Settings → Appearance. When the app is in Tamil, the model answers in Tamil.
+
+### A Tamil score for every model
+Tap த on the Models page to test a model on 60 short Tamil questions. You get
+a score from 0 to 100 for how well it understands and writes Tamil, with the
+answers behind it. A run takes a few minutes on a mid-range phone, and
+everything stays on the device.
+
 ### Find any model on Hugging Face
 Search from the Models page to find public GGUF models beyond the catalog.
 Each repo shows its files with size, quantisation and whether your phone has
@@ -12,6 +22,14 @@ only goes online while you search.
 Pausing, losing signal or closing the app no longer throws a download away.
 The saved part resumes from the same point, from the model's card or the
 Model Manager.
+
+### Faster start
+The app opens without the fixed wait it had before, and the Android 12+
+splash shows the logo.
+
+### The full context window
+Chats, attachments and API requests now use all of the context window you set.
+They were getting a quarter of it.
 
 ### Fixes
 Newer Qwen3.5 models load again, the Server tab shows its port before it
