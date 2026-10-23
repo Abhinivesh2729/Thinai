@@ -1,4 +1,9 @@
-# Thinai
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/images/logo_dark.png">
+    <img src="assets/images/logo_transparent.png" alt="Thinai" width="280">
+  </picture>
+</p>
 
 [![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAbhinivesh2729/Thinai%2Fmain%2Fpubspec.yaml&query=%24.version&label=version&color=blue)](pubspec.yaml)
 [![CI](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml)
