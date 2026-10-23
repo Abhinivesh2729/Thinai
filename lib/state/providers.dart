@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/l10n.dart';
@@ -18,6 +19,7 @@ import '../models_repo/device_profile.dart';
 import '../models_repo/downloader.dart';
 import '../models_repo/hf_hub.dart';
 import '../models_repo/recommender.dart';
+import '../models_repo/tamil_eval_store.dart';
 import '../models_repo/importer.dart';
 import '../models_repo/model_store.dart';
 import '../server/api_server.dart';
@@ -405,6 +407,51 @@ final benchmarkResultsProvider =
       BenchmarkResultsController,
       Map<String, BenchmarkResult>
     >((ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)));
+
+// ─── Tamil eval ─────────────────────────────────────────────────────────────
+
+/// Each model's latest Tamil eval, keyed by model id.
+///
+/// App-wide for the same reason as the benchmark results: the Models page
+/// shows the score on the model's card, not only the eval page.
+class TamilEvalResultsController
+    extends StateNotifier<Map<String, EvalReport>> {
+  TamilEvalResultsController(this._store) : super(const {}) {
+    _load();
+  }
+
+  final TamilEvalStore _store;
+
+  Future<void> _load() async {
+    final loaded = await _store.load();
+    if (mounted) state = {...loaded, ...state};
+  }
+
+  Future<void> record(EvalReport report) async {
+    state = {...state, report.modelId: report};
+    await _store.record(report);
+  }
+}
+
+final tamilEvalStoreProvider = Provider<TamilEvalStore>(
+  (ref) => const TamilEvalStore(),
+);
+
+final tamilEvalResultsProvider =
+    StateNotifierProvider<TamilEvalResultsController, Map<String, EvalReport>>(
+      (ref) => TamilEvalResultsController(ref.watch(tamilEvalStoreProvider)),
+    );
+
+/// The Tamil score to show for a model: its latest report, but only one from
+/// the bundled dataset version, since scores from different versions are not
+/// comparable.
+final tamilScoreProvider = Provider.family<double?, String>((ref, modelId) {
+  final report = ref.watch(tamilEvalResultsProvider)[modelId];
+  if (report == null || report.datasetVersion != tamilV1().version) {
+    return null;
+  }
+  return report.overall;
+});
 
 /// Everything known about speed on this phone: the device class, plus whatever
 /// the Benchmark page has actually measured.

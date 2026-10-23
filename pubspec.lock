@@ -801,6 +801,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  thinai_tamil_evals:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "v0.1.0"
+      resolved-ref: fb4009670264127c5b0dc2a6dc5a5857834317cf
+      url: "https://github.com/Abhinivesh2729/thinai-tamil-evals.git"
+    source: git
+    version: "0.1.0"
   typed_data:
     dependency: transitive
     description:
