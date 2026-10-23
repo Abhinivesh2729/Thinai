@@ -3852,6 +3852,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top picks'**
   String get modelsTopPicks;
+
+  /// No description provided for @tamilEvalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tamil eval'**
+  String get tamilEvalTitle;
+
+  /// No description provided for @tamilEvalTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tamil eval'**
+  String get tamilEvalTooltip;
+
+  /// No description provided for @tamilEvalRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Tamil eval'**
+  String get tamilEvalRun;
+
+  /// No description provided for @tamilEvalRunAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Run again'**
+  String get tamilEvalRunAgain;
+
+  /// No description provided for @tamilEvalRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running…'**
+  String get tamilEvalRunning;
+
+  /// No description provided for @tamilEvalStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get tamilEvalStop;
+
+  /// No description provided for @tamilEvalScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Tamil score'**
+  String get tamilEvalScore;
+
+  /// No description provided for @tamilEvalQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'questions'**
+  String get tamilEvalQuestions;
+
+  /// No description provided for @tamilEvalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String tamilEvalProgress(int done, int total);
+
+  /// No description provided for @tamilEvalTimeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'about {time} left'**
+  String tamilEvalTimeLeft(String time);
+
+  /// No description provided for @tamilEvalEstimating.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimating time…'**
+  String get tamilEvalEstimating;
+
+  /// No description provided for @tamilEvalLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading model…'**
+  String get tamilEvalLoading;
+
+  /// No description provided for @tamilEvalIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} short questions on reading, grammar, writing and translation. Takes a few minutes.'**
+  String tamilEvalIntro(int count);
+
+  /// No description provided for @tamilEvalNotRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Not tested yet'**
+  String get tamilEvalNotRun;
+
+  /// No description provided for @tamilEvalLastRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Took {time}'**
+  String tamilEvalLastRun(String time);
+
+  /// No description provided for @tamilEvalSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get tamilEvalSkills;
+
+  /// No description provided for @tamilEvalOnThisPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tested on this phone'**
+  String get tamilEvalOnThisPhone;
+
+  /// No description provided for @tamilEvalStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped. Nothing was saved.'**
+  String get tamilEvalStopped;
+
+  /// No description provided for @tamilEvalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The eval stopped: {error}'**
+  String tamilEvalFailed(String error);
+
+  /// No description provided for @tamilEvalCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'{correct} of {total} right'**
+  String tamilEvalCorrect(int correct, int total);
+
+  /// No description provided for @tamilEvalReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get tamilEvalReply;
+
+  /// No description provided for @tamilEvalExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get tamilEvalExpected;
+
+  /// No description provided for @tamilEvalNoReply.
+  ///
+  /// In en, this message translates to:
+  /// **'No reply'**
+  String get tamilEvalNoReply;
+
+  /// No description provided for @tamilEvalLiveReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Live reply'**
+  String get tamilEvalLiveReply;
+
+  /// No description provided for @tamilEvalFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'Guessing scores 0. Scores on small sets vary, so treat gaps under 10 points as a tie.'**
+  String get tamilEvalFootnote;
+
+  /// No description provided for @tamilEvalVerdictNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Little Tamil'**
+  String get tamilEvalVerdictNone;
+
+  /// No description provided for @tamilEvalVerdictBasic.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic'**
+  String get tamilEvalVerdictBasic;
+
+  /// No description provided for @tamilEvalVerdictFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get tamilEvalVerdictFair;
+
+  /// No description provided for @tamilEvalVerdictStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get tamilEvalVerdictStrong;
+
+  /// No description provided for @tamilEvalLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the Tamil eval?'**
+  String get tamilEvalLeaveTitle;
+
+  /// No description provided for @tamilEvalLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving now stops the run, and nothing is saved.'**
+  String get tamilEvalLeaveBody;
+
+  /// No description provided for @tamilEvalLeaveStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep running'**
+  String get tamilEvalLeaveStay;
+
+  /// No description provided for @tamilEvalLeaveStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop and leave'**
+  String get tamilEvalLeaveStop;
+
+  /// No description provided for @tamilEvalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No models to test'**
+  String get tamilEvalEmptyTitle;
+
+  /// No description provided for @tamilEvalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a model to test its Tamil.'**
+  String get tamilEvalEmptyBody;
+
+  /// No description provided for @tamilEvalRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules: {rules}'**
+  String tamilEvalRules(String rules);
 }
 
 class _AppLocalizationsDelegate

@@ -2348,4 +2348,128 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelsTopPicks => 'Top picks';
+
+  @override
+  String get tamilEvalTitle => 'Tamil eval';
+
+  @override
+  String get tamilEvalTooltip => 'Tamil eval';
+
+  @override
+  String get tamilEvalRun => 'Start Tamil eval';
+
+  @override
+  String get tamilEvalRunAgain => 'Run again';
+
+  @override
+  String get tamilEvalRunning => 'Running…';
+
+  @override
+  String get tamilEvalStop => 'Stop';
+
+  @override
+  String get tamilEvalScore => 'Tamil score';
+
+  @override
+  String get tamilEvalQuestions => 'questions';
+
+  @override
+  String tamilEvalProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String tamilEvalTimeLeft(String time) {
+    return 'about $time left';
+  }
+
+  @override
+  String get tamilEvalEstimating => 'Estimating time…';
+
+  @override
+  String get tamilEvalLoading => 'Loading model…';
+
+  @override
+  String tamilEvalIntro(int count) {
+    return '$count short questions on reading, grammar, writing and translation. Takes a few minutes.';
+  }
+
+  @override
+  String get tamilEvalNotRun => 'Not tested yet';
+
+  @override
+  String tamilEvalLastRun(String time) {
+    return 'Took $time';
+  }
+
+  @override
+  String get tamilEvalSkills => 'Skills';
+
+  @override
+  String get tamilEvalOnThisPhone => 'Tested on this phone';
+
+  @override
+  String get tamilEvalStopped => 'Stopped. Nothing was saved.';
+
+  @override
+  String tamilEvalFailed(String error) {
+    return 'The eval stopped: $error';
+  }
+
+  @override
+  String tamilEvalCorrect(int correct, int total) {
+    return '$correct of $total right';
+  }
+
+  @override
+  String get tamilEvalReply => 'Reply';
+
+  @override
+  String get tamilEvalExpected => 'Expected';
+
+  @override
+  String get tamilEvalNoReply => 'No reply';
+
+  @override
+  String get tamilEvalLiveReply => 'Live reply';
+
+  @override
+  String get tamilEvalFootnote =>
+      'Guessing scores 0. Scores on small sets vary, so treat gaps under 10 points as a tie.';
+
+  @override
+  String get tamilEvalVerdictNone => 'Little Tamil';
+
+  @override
+  String get tamilEvalVerdictBasic => 'Basic';
+
+  @override
+  String get tamilEvalVerdictFair => 'Fair';
+
+  @override
+  String get tamilEvalVerdictStrong => 'Strong';
+
+  @override
+  String get tamilEvalLeaveTitle => 'Stop the Tamil eval?';
+
+  @override
+  String get tamilEvalLeaveBody =>
+      'Leaving now stops the run, and nothing is saved.';
+
+  @override
+  String get tamilEvalLeaveStay => 'Keep running';
+
+  @override
+  String get tamilEvalLeaveStop => 'Stop and leave';
+
+  @override
+  String get tamilEvalEmptyTitle => 'No models to test';
+
+  @override
+  String get tamilEvalEmptyBody => 'Download a model to test its Tamil.';
+
+  @override
+  String tamilEvalRules(String rules) {
+    return 'Rules: $rules';
+  }
 }

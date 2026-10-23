@@ -73,6 +73,10 @@ class GenerationOptions {
   /// server params, but fllama's request struct has no field for them.
   final List<String> stop;
 
+  /// GBNF grammar every sampled token must fit, ex. `root ::= [ABCD]` for a
+  /// one-letter answer. Null leaves sampling unconstrained.
+  final String? grammar;
+
   const GenerationOptions({
     this.temperature = 0.7,
     this.topP = 1.0,
@@ -83,6 +87,7 @@ class GenerationOptions {
     this.numGpuLayers = 0,
     this.gpuBackend = GpuBackend.none,
     this.stop = const [],
+    this.grammar,
   });
 }
 
@@ -467,6 +472,7 @@ class LlmEngine {
       topP: job.options.topP,
       topK: job.options.topK,
       enableThinking: job.options.enableThinking,
+      grammar: job.options.grammar,
       maxTokens: job.options.maxTokens,
       // Guard: a non-positive n_ctx collapses native batch sizing (n_batch =
       // min(n_ctx, 2048) → 0), so fall back to the default window.
