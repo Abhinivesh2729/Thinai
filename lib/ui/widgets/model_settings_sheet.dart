@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../llm/context_limits.dart';
 import '../../llm/generation_settings.dart';
 import '../../models_repo/model_store.dart';
@@ -87,7 +88,10 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Model settings', style: theme.textTheme.titleLarge),
+                    Text(
+                      context.l10n.modelsSettingsTitle,
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       widget.model.id,
@@ -96,8 +100,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Used by chat and the API server. Requests can override '
-                      'these, up to the maximum.',
+                      context.l10n.modelsSettingsBody,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -120,7 +123,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                       child: TextButton.icon(
                         onPressed: _reset,
                         icon: const Icon(Icons.restart_alt_rounded),
-                        label: const Text('Reset to defaults'),
+                        label: Text(context.l10n.modelsSettingsResetDefaults),
                       ),
                     ),
                   ],
@@ -141,10 +144,13 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
         Row(
           children: [
             Expanded(
-              child: Text('Context window', style: theme.textTheme.titleSmall),
+              child: Text(
+                context.l10n.modelsSettingsContextWindow,
+                style: theme.textTheme.titleSmall,
+              ),
             ),
             Text(
-              '${_tokens(_context)} tokens',
+              context.l10n.modelsTokensValue(_tokens(_context)),
               style: theme.textTheme.titleSmall?.copyWith(
                 color: scheme.primary,
               ),
@@ -163,14 +169,14 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
                 _store.update(widget.model.id, contextSize: steps[v.round()]),
           ),
         Text(
-          _capExplanation(limit),
+          _capExplanation(context.l10n, limit),
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 2),
         Text(
-          'Longer windows remember more but use more RAM and run slower.',
+          context.l10n.modelsSettingsContextHelp,
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
@@ -187,7 +193,10 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
         Row(
           children: [
             Expanded(
-              child: Text('Temperature', style: theme.textTheme.titleSmall),
+              child: Text(
+                context.l10n.modelsSettingsTemperature,
+                style: theme.textTheme.titleSmall,
+              ),
             ),
             Text(
               _temperature.toStringAsFixed(2),
@@ -209,14 +218,14 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
         Row(
           children: [
             Text(
-              'Precise',
+              context.l10n.modelsSettingsPrecise,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
             ),
             const Spacer(),
             Text(
-              'Creative',
+              context.l10n.modelsSettingsCreative,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -229,7 +238,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
 
   Widget _topKSection(ThemeData theme) {
     final scheme = theme.colorScheme;
-    final label = _topK == 0 ? 'Off' : '$_topK';
+    final label = _topK == 0 ? context.l10n.commonOff : '$_topK';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,8 +264,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           onChangeEnd: (v) => _store.update(widget.model.id, topK: v.round()),
         ),
         Text(
-          'Picks each word from only the K likeliest. Lower is more focused; '
-          '0 turns the limit off.',
+          context.l10n.modelsSettingsTopKHelp,
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
@@ -292,8 +300,7 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
           onChangeEnd: (v) => _store.update(widget.model.id, topP: v),
         ),
         Text(
-          'Picks from the likeliest words that together make up this share of '
-          'the probability. 1.00 keeps them all.',
+          context.l10n.modelsSettingsTopPHelp,
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
@@ -307,9 +314,12 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
     return SwitchListTile(
       key: const ValueKey('modelSettings.thinking'),
       contentPadding: EdgeInsets.zero,
-      title: Text('Thinking', style: theme.textTheme.titleSmall),
+      title: Text(
+        context.l10n.modelsSettingsThinking,
+        style: theme.textTheme.titleSmall,
+      ),
       subtitle: Text(
-        'Reasons step by step before answering. Off answers sooner.',
+        context.l10n.modelsSettingsThinkingHelp,
         style: theme.textTheme.bodySmall?.copyWith(
           color: scheme.onSurfaceVariant,
         ),
@@ -324,18 +334,13 @@ class _ModelSettingsSheetState extends State<ModelSettingsSheet> {
 
   /// Says which ceiling holds the window down, since "why can't I pick 32K"
   /// has a different answer for a small phone than for a small model.
-  String _capExplanation(ContextLimit limit) {
-    final max = 'Maximum ${_tokens(limit.cap)}';
-    final trained = limit.trained;
-    if (limit.ramLimited) {
-      return trained == null
-          ? '$max, limited by this phone\'s RAM.'
-          : '$max, limited by RAM (model supports ${_tokens(trained)}).';
+  String _capExplanation(AppLocalizations l, ContextLimit limit) {
+    final max = _tokens(limit.cap);
+    if (limit.ramLimited) return l.modelsSettingsCapPhoneRam(max);
+    if (limit.trained != null) {
+      return l.modelsSettingsCapTraining(max);
     }
-    if (trained != null) {
-      return '$max, this model\'s training limit.';
-    }
-    return '$max.';
+    return l.modelsSettingsCap(max);
   }
 
   static String _tokens(int n) {

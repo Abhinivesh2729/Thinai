@@ -1,4 +1,4 @@
-/// "What do you want to do?" — the top of the Models page.
+/// "What do you want to do?": the top of the Models page.
 ///
 /// A catalogue of thirty GGUF files asks the reader to already know what
 /// "Qwen 3.5 · 2B Q4_K_M" buys them over "Phi-4 · Mini". This asks the one
@@ -7,6 +7,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models_repo/catalog.dart';
 import '../../models_repo/downloader.dart';
 import '../../models_repo/recommender.dart';
@@ -112,11 +113,15 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 Expanded(
                   child: Text(
                     choice != null
-                        ? 'Goal: ${choice.label} · tap to customize'
-                        : 'What do you want to do? · tap to pick a goal',
+                        ? context.l10n.modelsTargeting(
+                            choice.localizedLabel(context.l10n),
+                          )
+                        : context.l10n.modelsAdvisorPrompt,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: choice != null ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: choice != null
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: choice != null ? logoGreen : scheme.onSurface,
                     ),
                   ),
@@ -124,7 +129,7 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 if (choice != null) ...[
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 16),
-                    tooltip: 'Clear goal',
+                    tooltip: context.l10n.modelsClearGoal,
                     onPressed: _clear,
                     style: IconButton.styleFrom(
                       padding: EdgeInsets.zero,
@@ -166,7 +171,7 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'What do you want to do?',
+                  context.l10n.modelsAdvisorPrompt,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -178,17 +183,26 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 TextButton(
                   onPressed: _clear,
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     foregroundColor: scheme.error,
                   ),
-                  child: const Text('Clear', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    context.l10n.modelsClear,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               if (widget.onToggleCollapse != null)
                 IconButton(
                   icon: const Icon(Icons.expand_less_rounded, size: 20),
-                  tooltip: 'Collapse guide',
+                  tooltip: context.l10n.modelsAdvisorCollapse,
                   onPressed: widget.onToggleCollapse,
                   style: IconButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -198,13 +212,13 @@ class _ModelAdvisorState extends State<ModelAdvisor> {
                 ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            device.known
-                ? 'Thinai picks a model that fits your phone · ${device.summary}'
-                : 'Thinai picks a model for the job',
-            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-          ),
+          if (device.known) ...[
+            const SizedBox(height: 2),
+            Text(
+              device.localizedSummary(context.l10n),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+            ),
+          ],
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -253,7 +267,9 @@ class _ChoiceChip extends StatelessWidget {
     const logoGreen = Color(0xFF2CA048);
 
     return Material(
-      color: selected ? logoGreen : scheme.surfaceContainerHigh.withValues(alpha: 0.65),
+      color: selected
+          ? logoGreen
+          : scheme.surfaceContainerHigh.withValues(alpha: 0.65),
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -279,7 +295,7 @@ class _ChoiceChip extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                useCase.label,
+                useCase.localizedLabel(context.l10n),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
@@ -315,15 +331,16 @@ class _Answer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final device = speed.device;
     final result = recommend(
       useCase,
-      device,
+      speed.device,
       installedIds: installedCatalogIds,
       speed: speed,
     );
 
-    final unavailable = result.unavailable;
+    final l = context.l10n;
+    final unavailable = result.localizedUnavailable(l);
+    final caveat = result.localizedCaveat(l);
     if (unavailable != null) {
       return _Note(text: unavailable, icon: Icons.info_outline_rounded);
     }
@@ -331,7 +348,7 @@ class _Answer extends StatelessWidget {
     final best = result.best;
     if (best == null) {
       return _Note(
-        text: result.caveat ?? 'Nothing in the catalogue fits this one.',
+        text: caveat ?? l.modelsAdvisorNothingFits,
         icon: Icons.info_outline_rounded,
       );
     }
@@ -339,16 +356,16 @@ class _Answer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (result.caveat != null) ...[
-          _Note(text: result.caveat!, icon: Icons.warning_amber_rounded),
+        if (caveat != null) ...[
+          _Note(text: caveat, icon: Icons.warning_amber_rounded),
           const SizedBox(height: 10),
         ],
         Text(
-          device.known ? 'Best model for your phone' : 'Best model for this',
+          l.modelsTopPick,
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
+            letterSpacing: context.tracking(0.4),
             color: scheme.onSurfaceVariant,
           ),
         ),
@@ -362,11 +379,11 @@ class _Answer extends StatelessWidget {
         if (result.alternatives.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(
-            'Also worth considering',
+            l.modelsAdvisorAlsoConsider,
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
+              letterSpacing: context.tracking(0.4),
               color: scheme.onSurfaceVariant,
             ),
           ),
@@ -395,6 +412,7 @@ class _BestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final model = pick.model;
+    final l = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -431,7 +449,7 @@ class _BestCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${model.author} · ${model.approxSize} download',
+                      '${model.author} · ${model.approxSize}',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: scheme.onSurfaceVariant,
@@ -447,34 +465,30 @@ class _BestCard extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: [
-              _Stat(icon: Icons.speed_rounded, label: pick.speedLabel),
-              _Stat(icon: Icons.memory_rounded, label: pick.ramLabel),
+              _Stat(
+                icon: Icons.speed_rounded,
+                label: pick.localizedSpeedLabel(l),
+              ),
               _Stat(
                 icon: Icons.article_outlined,
-                label: '${model.contextLabel} context',
+                label: '${model.contextLabel} ctx',
               ),
             ],
           ),
           const SizedBox(height: 10),
           _FitLine(fit: pick.fit),
           const SizedBox(height: 8),
-          for (final reason in pick.reasons)
+          for (final reason in pick.localizedReasons(l).take(1))
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '• ',
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                  ),
+                  Text('• ', style: TextStyle(color: scheme.onSurfaceVariant)),
                   Expanded(
                     child: Text(
                       reason,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: scheme.onSurface,
-                      ),
+                      style: TextStyle(fontSize: 12.5, color: scheme.onSurface),
                     ),
                   ),
                 ],
@@ -487,32 +501,16 @@ class _BestCard extends StatelessWidget {
                 ? OutlinedButton.icon(
                     onPressed: null,
                     icon: const Icon(Icons.check_rounded, size: 18),
-                    label: const Text('Already downloaded'),
+                    label: Text(l.modelsInstalled),
                   )
                 : download != null
-                    ? _DownloadingButton(
-                        handle: download!,
-                        onCancel: onCancel,
-                      )
-                    : FilledButton.icon(
-                        onPressed: onDownload,
-                        icon: const Icon(Icons.download_rounded, size: 18),
-                        label: Text('Download ${model.approxSize}'),
-                      ),
+                ? _DownloadingButton(handle: download!, onCancel: onCancel)
+                : FilledButton.icon(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download_rounded, size: 18),
+                    label: Text(l.modelsDownloadSize(model.approxSize)),
+                  ),
           ),
-          if (pick.estimatedTokensPerSecond != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                pick.speedIsMeasured
-                    ? 'Speed measured on this phone by Benchmark.'
-                    : 'Estimated speed. Run Benchmark for the real number.',
-                style: TextStyle(
-                  fontSize: 10.5,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -536,12 +534,15 @@ class _AlternativeRow extends StatelessWidget {
           Expanded(
             child: Text(
               pick.model.displayName,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
-            '${pick.speedLabel} · ${pick.model.approxSize}',
+            '${pick.localizedSpeedLabel(context.l10n)} · ${pick.model.approxSize}',
             style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
           ),
         ],
@@ -598,12 +599,14 @@ class _FitLine extends StatelessWidget {
       children: [
         Icon(icon, size: 15, color: color),
         const SizedBox(width: 6),
-        Text(
-          fit.label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
+        Flexible(
+          child: Text(
+            fit.localizedLabel(context.l10n),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
       ],
@@ -663,8 +666,9 @@ class _DownloadingButton extends StatelessWidget {
       builder: (context, snapshot) {
         final progress = snapshot.data;
         final fraction = progress?.fraction;
-        final percent =
-            fraction == null ? null : (fraction * 100).toStringAsFixed(0);
+        final percent = fraction == null
+            ? null
+            : (fraction * 100).toStringAsFixed(0);
 
         return Material(
           color: scheme.surfaceContainerHighest,
@@ -692,12 +696,16 @@ class _DownloadingButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.close_rounded, size: 16, color: scheme.primary),
+                      Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: scheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         percent == null
-                            ? 'Starting… · tap to cancel'
-                            : 'Downloading $percent% · tap to cancel',
+                            ? context.l10n.modelsStatusStarting
+                            : '$percent%',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

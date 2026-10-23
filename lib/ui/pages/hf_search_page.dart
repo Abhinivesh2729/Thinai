@@ -102,7 +102,7 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
         children: [
           _SearchBar(
             controller: _controller,
-            hintText: 'Search GGUF models on Hugging Face',
+            hintText: context.l10n.hfSearchHint,
             autofocus: widget.initialQuery.isEmpty,
             onChanged: _onChanged,
             onSubmitted: (v) {
@@ -126,18 +126,17 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: _brandGreen));
     }
     if (_error != null) {
       return _HubMessage(
         icon: Icons.cloud_off_rounded,
-        title: 'Search did not work',
+        title: context.l10n.hfSearchFailedTitle,
         message: _error!,
         action: OutlinedButton.icon(
           icon: const Icon(Icons.refresh_rounded, size: 16),
-          label: const Text('Try again'),
+          label: Text(context.l10n.hfTryAgain),
           onPressed: () {
             final q = _searched;
             _searched = '';
@@ -147,19 +146,17 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
       );
     }
     if (_searched.isEmpty) {
-      return const _HubMessage(
+      return _HubMessage(
         icon: Icons.travel_explore_rounded,
-        title: 'Find any GGUF model',
-        message:
-            'Search by name or maker, like "gemma", "phi" or "unsloth". '
-            'Results are public repos with GGUF files.',
+        title: context.l10n.hfEmptyTitle,
+        message: context.l10n.hfEmptyMessage,
       );
     }
     if (_results.isEmpty) {
       return _HubMessage(
         icon: Icons.search_off_rounded,
-        title: 'No GGUF models match "$_searched"',
-        message: 'Try a shorter name or a different spelling.',
+        title: context.l10n.hfNoMatchTitle(_searched),
+        message: context.l10n.hfNoMatchMessage,
       );
     }
     return ListView(
@@ -167,8 +164,8 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
       children: [
         _SectionHeader(
           icon: Icons.travel_explore_rounded,
-          title: 'Results (${_results.length})',
-          subtitle: 'Most downloaded first',
+          title: context.l10n.hfResultsTitle(_results.length),
+          subtitle: context.l10n.hfResultsSubtitle,
         ),
         const SizedBox(height: 10),
         for (final repo in _results) ...[
@@ -180,11 +177,6 @@ class _HfSearchPageState extends ConsumerState<HfSearchPage> {
           ),
           const SizedBox(height: 10),
         ],
-        Text(
-          'Showing up to ${HfHub.searchLimit} results.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
-        ),
       ],
     );
   }
@@ -221,22 +213,27 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
     required int? budget,
   }) async {
     final tooBig = fit == RamFit.tooBig;
-    final warning = switch (fit) {
+    final l10n = context.l10n;
+    final file = model.filename;
+    final size = _fmtSize(model.approxBytes);
+    final message = switch (fit) {
       RamFit.tooBig =>
         budget == null
-            ? '\n\nThis is likely too large for this phone and may not load.'
-            : '\n\nIt needs about ${_fmtSize(needs)} of memory and this phone '
-                  'has ${_fmtSize(budget)} to spare, so it will probably not load.',
-      RamFit.tight => '\n\nA tight fit. Other apps may close while this runs.',
-      _ => '',
+            ? l10n.hfDownloadMessageTooBig(file, size)
+            : l10n.hfDownloadMessageTooBigBudget(
+                file,
+                size,
+                _fmtSize(needs),
+                _fmtSize(budget),
+              ),
+      RamFit.tight => l10n.hfDownloadMessageTight(file, size),
+      _ => l10n.hfDownloadMessage(file, size),
     };
     final confirmed = await _confirmDialog(
       context,
-      title: tooBig ? 'Too big for this phone?' : 'Download model?',
-      message:
-          'Do you want to download ${model.filename} '
-          '(${_fmtSize(model.approxBytes)}) from Hugging Face?$warning',
-      confirmLabel: tooBig ? 'Download anyway' : 'Download',
+      title: tooBig ? l10n.hfTooBigTitle : l10n.hfDownloadTitle,
+      message: message,
+      confirmLabel: tooBig ? l10n.hfDownloadAnyway : l10n.commonDownload,
       destructive: tooBig,
     );
     if (!confirmed || !mounted) return;
@@ -263,11 +260,11 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
           if (snap.hasError) {
             return _HubMessage(
               icon: Icons.cloud_off_rounded,
-              title: 'Could not open this model',
+              title: context.l10n.hfOpenFailedTitle,
               message: snap.error.toString(),
               action: OutlinedButton.icon(
                 icon: const Icon(Icons.refresh_rounded, size: 16),
-                label: const Text('Try again'),
+                label: Text(context.l10n.hfTryAgain),
                 // A block, not an arrow: an arrow would hand setState the Future,
                 // which it rejects.
                 onPressed: () => setState(() {
@@ -303,36 +300,30 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
       children: [
         _HfRepoHeader(detail: detail),
         if (detail.gated)
-          const _HubMessage(
+          _HubMessage(
             icon: Icons.lock_outline_rounded,
-            title: 'Sign-in required',
-            message:
-                'This model needs a Hugging Face account to download, which '
-                'Thinai does not support yet.',
+            title: context.l10n.hfSignInTitle,
+            message: context.l10n.hfSignInMessage,
           ),
         const SizedBox(height: 6),
         _SectionHeader(
           icon: Icons.inventory_2_rounded,
-          title: 'GGUF files (${detail.files.length})',
-          subtitle: 'Smaller files load faster and use less memory',
+          title: context.l10n.hfFilesTitle(detail.files.length),
+          subtitle: context.l10n.hfFilesSubtitle,
         ),
         if (detail.skippedFiles > 0)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              '${detail.skippedFiles} other GGUF '
-              '${detail.skippedFiles == 1 ? 'file is' : 'files are'} hidden: '
-              'split files, image encoders and helper files cannot be '
-              'loaded on their own.',
+              context.l10n.hfSkippedFiles(detail.skippedFiles),
               style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
             ),
           ),
         if (detail.files.isEmpty && !detail.gated)
-          const _HubMessage(
+          _HubMessage(
             icon: Icons.inventory_2_outlined,
-            title: 'Nothing to install here',
-            message:
-                'This repo has no single-file GGUF models that Thinai can load.',
+            title: context.l10n.hfNothingTitle,
+            message: context.l10n.hfNothingMessage,
           ),
         for (final file in detail.gated ? const <HfFile>[] : detail.files) ...[
           () {
@@ -361,8 +352,6 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
           }(),
           const SizedBox(height: 10),
         ],
-        const SizedBox(height: 4),
-        const _HubNetworkNotice(),
       ],
     );
   }
@@ -388,9 +377,7 @@ class _HubNetworkNotice extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Search uses the internet. Thinai contacts huggingface.co only '
-              'while you search here or open a model, never in the background. '
-              'Your chats stay on this phone.',
+              context.l10n.hfNetworkNotice,
               style: TextStyle(
                 color: scheme.onSurfaceVariant,
                 fontSize: 11.5,
@@ -520,12 +507,12 @@ String _compactCount(int n) {
   return '$n';
 }
 
-String _ago(DateTime when) {
+String _ago(AppLocalizations l10n, DateTime when) {
   final days = DateTime.now().difference(when).inDays;
-  if (days < 1) return 'today';
-  if (days < 30) return '${days}d ago';
-  if (days < 365) return '${(days / 30).floor()}mo ago';
-  return '${(days / 365).floor()}y ago';
+  if (days < 1) return l10n.hfAgoToday;
+  if (days < 30) return l10n.hfAgoDays(days);
+  if (days < 365) return l10n.hfAgoMonths((days / 30).floor());
+  return l10n.hfAgoYears((days / 365).floor());
 }
 
 class _HfRepoTile extends StatelessWidget {
@@ -588,7 +575,7 @@ class _HfRepoTile extends StatelessWidget {
                         ),
                         if (modified != null)
                           _SpecPill(
-                            label: _ago(modified),
+                            label: _ago(context.l10n, modified),
                             icon: Icons.update_rounded,
                           ),
                       ],
@@ -638,7 +625,7 @@ class _HfRepoHeader extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'by ${detail.author}',
+                      context.l10n.hfByAuthor(detail.author),
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSurfaceVariant,
@@ -676,7 +663,7 @@ class _HfRepoHeader extends StatelessWidget {
                   icon: Icons.receipt_long_outlined,
                 ),
               _SpecPill(
-                label: detail.license ?? 'No licence listed',
+                label: detail.license ?? context.l10n.hfNoLicence,
                 icon: Icons.gavel_rounded,
                 tone: detail.license == null
                     ? _ChipTone.neutral
@@ -791,7 +778,7 @@ class _HfFileTile extends StatelessWidget {
                 Icon(Icons.memory_rounded, size: 13, color: fitColor),
                 const SizedBox(width: 4),
                 Text(
-                  fit.label,
+                  fit.localizedLabel(context.l10n),
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
@@ -841,7 +828,7 @@ class _HfFileTile extends StatelessWidget {
             Icon(Icons.check_circle_rounded, size: 13, color: primaryBrand),
             const SizedBox(width: 4),
             Text(
-              'Installed',
+              context.l10n.hfInstalled,
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
@@ -857,7 +844,7 @@ class _HfFileTile extends StatelessWidget {
         height: 32,
         child: OutlinedButton.icon(
           icon: const Icon(Icons.pause_rounded, size: 14),
-          label: const Text('Pause'),
+          label: Text(context.l10n.hfPause),
           onPressed: onPause,
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -894,7 +881,7 @@ class _HfFileTile extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                p != null ? _resumeLabel(p) : 'Download',
+                p != null ? _resumeLabel(p) : context.l10n.commonDownload,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11.5,
@@ -946,8 +933,8 @@ class _HubSearchPrompt extends StatelessWidget {
                   children: [
                     Text(
                       query.isEmpty
-                          ? 'Find more on Hugging Face'
-                          : 'Search Hugging Face for "$query"',
+                          ? context.l10n.hfFindMore
+                          : context.l10n.hfSearchFor(query),
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -956,8 +943,7 @@ class _HubSearchPrompt extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Any public GGUF model, installed into your library. '
-                      'Uses the internet.',
+                      context.l10n.hfPromptSubtitle,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: scheme.onSurfaceVariant,

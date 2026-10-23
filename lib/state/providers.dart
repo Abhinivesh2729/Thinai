@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/l10n.dart';
 import '../llm/generation_settings.dart';
 import '../llm/gpu_support.dart';
 import '../llm/llm_engine.dart';
@@ -16,6 +19,7 @@ import '../models_repo/device_profile.dart';
 import '../models_repo/downloader.dart';
 import '../models_repo/hf_hub.dart';
 import '../models_repo/recommender.dart';
+import '../models_repo/tamil_eval_store.dart';
 import '../models_repo/importer.dart';
 import '../models_repo/model_store.dart';
 import '../server/api_server.dart';
@@ -107,6 +111,62 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(),
 );
+
+// ─── language ───────────────────────────────────────────────────────────────
+
+/// The UI language the user picked. [system] follows the phone.
+enum AppLanguage { system, english, tamil }
+
+/// The language picked in Settings, persisted across launches.
+class AppLanguageController extends StateNotifier<AppLanguage> {
+  AppLanguageController() : super(AppLanguage.system) {
+    _load();
+  }
+
+  static const _key = 'app_language';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state =
+        AppLanguage.values.asNameMap()[prefs.getString(_key)] ??
+        AppLanguage.system;
+  }
+
+  Future<void> set(AppLanguage language) async {
+    state = language;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, language.name);
+  }
+}
+
+final appLanguageProvider =
+    StateNotifierProvider<AppLanguageController, AppLanguage>(
+      (ref) => AppLanguageController(),
+    );
+
+/// The phone's own language code. A provider so tests can pin it.
+final systemLanguageCodeProvider = Provider<String>(
+  (ref) => PlatformDispatcher.instance.locale.languageCode,
+);
+
+/// The locale handed to MaterialApp: null lets Flutter match the phone.
+final appLocaleProvider = Provider<Locale?>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => null,
+    AppLanguage.english => const Locale('en'),
+    AppLanguage.tamil => const Locale('ta'),
+  };
+});
+
+/// Whether the app is showing Tamil right now. Drives more than strings: the
+/// default system prompt and the recommender's starting goal follow it.
+final isTamilUiProvider = Provider<bool>((ref) {
+  return switch (ref.watch(appLanguageProvider)) {
+    AppLanguage.system => ref.watch(systemLanguageCodeProvider) == 'ta',
+    AppLanguage.english => false,
+    AppLanguage.tamil => true,
+  };
+});
 
 // ─── server LAN sharing ─────────────────────────────────────────────────────
 
@@ -348,6 +408,51 @@ final benchmarkResultsProvider =
       Map<String, BenchmarkResult>
     >((ref) => BenchmarkResultsController(ref.watch(benchmarkStoreProvider)));
 
+// ─── Tamil eval ─────────────────────────────────────────────────────────────
+
+/// Each model's latest Tamil eval, keyed by model id.
+///
+/// App-wide for the same reason as the benchmark results: the Models page
+/// shows the score on the model's card, not only the eval page.
+class TamilEvalResultsController
+    extends StateNotifier<Map<String, EvalReport>> {
+  TamilEvalResultsController(this._store) : super(const {}) {
+    _load();
+  }
+
+  final TamilEvalStore _store;
+
+  Future<void> _load() async {
+    final loaded = await _store.load();
+    if (mounted) state = {...loaded, ...state};
+  }
+
+  Future<void> record(EvalReport report) async {
+    state = {...state, report.modelId: report};
+    await _store.record(report);
+  }
+}
+
+final tamilEvalStoreProvider = Provider<TamilEvalStore>(
+  (ref) => const TamilEvalStore(),
+);
+
+final tamilEvalResultsProvider =
+    StateNotifierProvider<TamilEvalResultsController, Map<String, EvalReport>>(
+      (ref) => TamilEvalResultsController(ref.watch(tamilEvalStoreProvider)),
+    );
+
+/// The Tamil score to show for a model: its latest report, but only one from
+/// the bundled dataset version, since scores from different versions are not
+/// comparable.
+final tamilScoreProvider = Provider.family<double?, String>((ref, modelId) {
+  final report = ref.watch(tamilEvalResultsProvider)[modelId];
+  if (report == null || report.datasetVersion != tamilV1().version) {
+    return null;
+  }
+  return report.overall;
+});
+
 /// Everything known about speed on this phone: the device class, plus whatever
 /// the Benchmark page has actually measured.
 final speedKnowledgeProvider = Provider<SpeedKnowledge>((ref) {
@@ -446,6 +551,26 @@ class ChatConversation {
     }
     return 'No messages yet';
   }
+
+  /// [title] for display: "New chat" in the UI language when there is
+  /// nothing to derive one from.
+  String localizedTitle(AppLocalizations l10n) =>
+      _hasTitle ? title : l10n.chatNewChat;
+
+  /// [preview] for display, in the UI language.
+  String localizedPreview(AppLocalizations l10n) {
+    for (final turn in turns.reversed) {
+      if (turn.content.trim().isEmpty) continue;
+      final line = turn.content.trim().replaceAll(RegExp(r'\s+'), ' ');
+      final body = line.length <= 70 ? line : '${line.substring(0, 69)}…';
+      return turn.role == 'user' ? l10n.chatPreviewYou(body) : body;
+    }
+    return l10n.chatNoMessagesYet;
+  }
+
+  bool get _hasTitle =>
+      (customTitle?.trim().isNotEmpty ?? false) ||
+      turns.any((t) => t.role == 'user' && t.content.trim().isNotEmpty);
 
   bool get isEmpty => turns.isEmpty;
 
@@ -1282,7 +1407,8 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
 
 Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
   try {
-    if (await FlutterForegroundTask.isRunningService) {
+    if (foregroundServiceSupported &&
+        await FlutterForegroundTask.isRunningService) {
       await FlutterForegroundTask.stopService();
     }
     if (prefs.getBool(_kServerRunningKey) ?? false) {

@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
+
 /// Redesigned comprehensive App Tour dialog featuring an interactive 5-stage
 /// showcase of Thinai's on-device AI capabilities, zero cloud dependencies,
 /// model catalog, chat studio, and local server.
@@ -49,6 +51,10 @@ class _AppTourDialogState extends State<AppTourDialog> {
   static const Color _surfaceDark = Color(0xFF0F141E);
   static const Color _cardDark = Color(0xFF161E2E);
   static const Color _borderDark = Color(0xFF222E46);
+
+  // Model names and sizes are never translated.
+  static const String _starterModel = 'Qwen 2.5 0.5B';
+  static const String _starterSize = '390 MB';
 
   @override
   void dispose() {
@@ -143,45 +149,55 @@ class _AppTourDialogState extends State<AppTourDialog> {
     return Container(
       padding: EdgeInsets.fromLTRB(20, isCompact ? 14 : 18, 16, 12),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0x22FFFFFF), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0x22FFFFFF), width: 1)),
       ),
       child: Row(
         children: [
-          // App Logo Icon Pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _brandGreen.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _brandGreen.withValues(alpha: 0.35),
-                width: 1,
-              ),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.energy_savings_leaf_rounded,
-                  color: _emeraldAccent,
-                  size: 15,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'THINAI TOUR',
-                  style: TextStyle(
-                    color: _emeraldAccent,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
+          // App Logo Icon Pill. Takes the free space and scales down rather
+          // than overflowing when the label runs long (Tamil).
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _brandGreen.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _brandGreen.withValues(alpha: 0.35),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.energy_savings_leaf_rounded,
+                        color: _emeraldAccent,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        context.l10n.tourBadge,
+                        style: TextStyle(
+                          color: _emeraldAccent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: context.tracking(0.8),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-          const Spacer(),
           // Dot Indicators
           Row(
             children: List.generate(_totalPages, (i) {
@@ -203,7 +219,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           const SizedBox(width: 10),
           // Close button
           IconButton(
-            tooltip: 'Close Tour',
+            tooltip: context.l10n.tourCloseTooltip,
             icon: const Icon(Icons.close_rounded, size: 20),
             color: Colors.white70,
             splashRadius: 18,
@@ -216,16 +232,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
 
   // --- SLIDE 1: 100% PRIVATE & SOVEREIGN AI ---
   Widget _buildSlideSovereignAi(bool isCompact) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(isCompact ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStagePill('STAGE 1 OF 5', '100% PRIVATE & SOVEREIGN'),
+          _buildStagePill(1, l10n.tourPrivateTag),
           const SizedBox(height: 12),
-          const Text(
-            'Your Hardware.\nYour Intelligence.',
-            style: TextStyle(
+          Text(
+            l10n.tourPrivateTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -235,7 +252,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Thinai executes large language models directly on your phone’s processor. Zero chat queries, images, or documents ever leave your device.',
+            l10n.tourPrivateBody,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 13.5,
@@ -256,45 +273,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
                 _buildComparisonRow(
                   icon: Icons.shield_rounded,
                   iconColor: _emeraldAccent,
-                  title: 'Thinai (On-Device)',
-                  subtitle:
-                      'Runs offline in Airplane mode · Zero data collection · llama.cpp silicon execution · No subscription',
+                  title: l10n.tourOnDeviceTitle,
+                  subtitle: l10n.tourOnDeviceBody,
                   highlight: true,
                 ),
                 const Divider(color: Color(0x1AFFFFFF), height: 24),
                 _buildComparisonRow(
                   icon: Icons.cloud_off_rounded,
                   iconColor: Colors.white60,
-                  title: 'Traditional Cloud AI',
-                  subtitle:
-                      'Logs queries on remote servers · Requires high-speed internet · Subject to monthly API paywalls',
+                  title: l10n.tourCloudTitle,
+                  subtitle: l10n.tourCloudBody,
                   highlight: false,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Status Chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0x1410B981),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0x3310B981)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.bolt_rounded, color: _emeraldAccent, size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Device Ready: Hardware acceleration available for local GGUF models.',
-                    style: TextStyle(
-                      color: Color(0xFFD1FAE5),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -306,16 +295,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
 
   // --- SLIDE 2: CURATED OPEN WEIGHTS & RAM ADVISOR ---
   Widget _buildSlideModelCatalog(bool isCompact) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(isCompact ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStagePill('STAGE 2 OF 5', 'CURATED GGUF CATALOG'),
+          _buildStagePill(2, l10n.tourCatalogTag),
           const SizedBox(height: 12),
-          const Text(
-            'World-Class Models,\nTailored to Your RAM.',
-            style: TextStyle(
+          Text(
+            l10n.tourCatalogTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -325,7 +315,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Explore open-weight models from Alibaba, Meta, Google, and Microsoft. Thinai automatically inspects your phone’s memory to advise what runs smoothly.',
+            l10n.tourCatalogBody,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 13.5,
@@ -344,37 +334,43 @@ class _AppTourDialogState extends State<AppTourDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.memory_rounded, color: _emeraldAccent, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Smart Memory Fit System',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
+                    const Icon(
+                      Icons.memory_rounded,
+                      color: _emeraldAccent,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        l10n.tourMemoryFitTitle,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 _buildRamFitBadge(
-                  label: 'Fits Easily',
+                  label: l10n.tourFitEasyLabel,
                   color: const Color(0xFF4ADE80),
-                  desc: 'Guaranteed smooth response, low battery footprint.',
+                  desc: l10n.tourFitEasyBody,
                 ),
                 const SizedBox(height: 8),
                 _buildRamFitBadge(
-                  label: 'Tight Fit',
+                  label: l10n.tourFitTightLabel,
                   color: const Color(0xFFFACC15),
-                  desc: 'Runs well, close other heavy background apps.',
+                  desc: l10n.tourFitTightBody,
                 ),
                 const SizedBox(height: 8),
                 _buildRamFitBadge(
-                  label: 'Too Big',
+                  label: l10n.tourFitTooBigLabel,
                   color: const Color(0xFFF87171),
-                  desc: 'Warns you so your operating system never crashes.',
+                  desc: l10n.tourFitTooBigBody,
                 ),
               ],
             ),
@@ -388,25 +384,32 @@ class _AppTourDialogState extends State<AppTourDialog> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: const Color(0x1FFFFFFF)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.verified_rounded, color: _emeraldAccent, size: 20),
-                SizedBox(width: 10),
+                const Icon(
+                  Icons.verified_rounded,
+                  color: _emeraldAccent,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Recommended Starter: Qwen 2.5 0.5B (~390 MB)',
-                        style: TextStyle(
+                        l10n.tourStarterTitle(_starterModel, _starterSize),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        'Smallest and fastest chat model, runs instantly on any phone.',
-                        style: TextStyle(color: Colors.white60, fontSize: 11.5),
+                        l10n.tourStarterBody,
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 11.5,
+                        ),
                       ),
                     ],
                   ),
@@ -421,16 +424,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
 
   // --- SLIDE 3: CHAT STUDIO & MULTIMODAL ---
   Widget _buildSlideChatStudio(bool isCompact) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(isCompact ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStagePill('STAGE 3 OF 5', 'CHAT STUDIO & VISION'),
+          _buildStagePill(3, l10n.tourChatTag),
           const SizedBox(height: 12),
-          const Text(
-            'Full Multimodal Studio\nWith Live Reasoning.',
-            style: TextStyle(
+          Text(
+            l10n.tourChatTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -440,7 +444,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Chat with zero lag, attach camera photos for vision models, and watch real-time generation speed right on the response bubbles.',
+            l10n.tourChatBody,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 13.5,
@@ -471,9 +475,12 @@ class _AppTourDialogState extends State<AppTourDialog> {
                       color: _brandGreen,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Text(
-                      'Explain quantum superposition simply.',
-                      style: TextStyle(color: Colors.white, fontSize: 12.5),
+                    child: Text(
+                      l10n.tourDemoPrompt,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                      ),
                     ),
                   ),
                 ),
@@ -491,9 +498,9 @@ class _AppTourDialogState extends State<AppTourDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'A particle can exist in multiple possible states at once until measured, like a spinning coin before it lands.',
-                          style: TextStyle(
+                        Text(
+                          l10n.tourDemoReply,
+                          style: const TextStyle(
                             color: Color(0xFFE2E8F0),
                             fontSize: 12.5,
                             height: 1.35,
@@ -503,21 +510,23 @@ class _AppTourDialogState extends State<AppTourDialog> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0x2810B981),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text(
-                                '⚡ 31.4 t/s · On-Device',
-                                style: TextStyle(
-                                  color: Color(0xFF4ADE80),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0x2810B981),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  l10n.tourDemoSpeed('31.4'),
+                                  style: const TextStyle(
+                                    color: Color(0xFF4ADE80),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ),
@@ -536,9 +545,15 @@ class _AppTourDialogState extends State<AppTourDialog> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildFeaturePill(Icons.psychology_rounded, 'Reasoning Traces'),
-              _buildFeaturePill(Icons.photo_camera_rounded, 'Camera & Vision'),
-              _buildFeaturePill(Icons.tune_rounded, 'Custom Personas'),
+              _buildFeaturePill(
+                Icons.psychology_rounded,
+                l10n.tourFeatureReasoning,
+              ),
+              _buildFeaturePill(
+                Icons.photo_camera_rounded,
+                l10n.tourFeatureVision,
+              ),
+              _buildFeaturePill(Icons.tune_rounded, l10n.tourFeaturePersonas),
             ],
           ),
         ],
@@ -548,16 +563,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
 
   // --- SLIDE 4: LOCAL DEVELOPER SERVER ---
   Widget _buildSlideLocalServer(bool isCompact) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(isCompact ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStagePill('STAGE 4 OF 5', 'OPENAI COMPATIBLE API'),
+          _buildStagePill(4, l10n.tourServerTag),
           const SizedBox(height: 12),
-          const Text(
-            'Turn Your Phone Into\nA Private AI Server.',
-            style: TextStyle(
+          Text(
+            l10n.tourServerTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -567,7 +583,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Thinai includes a built-in HTTP server. Run on-device inference as a drop-in replacement for OpenAI and Ollama APIs for external developer tools.',
+            l10n.tourServerBody,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 13.5,
@@ -586,22 +602,27 @@ class _AppTourDialogState extends State<AppTourDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.dns_rounded, color: _emeraldAccent, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Localhost Endpoints',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                    const Icon(
+                      Icons.dns_rounded,
+                      color: _emeraldAccent,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.tourEndpointsTitle,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                    Spacer(),
                     Text(
-                      'PORT 8080',
-                      style: TextStyle(
+                      l10n.tourPortBadge('8080'),
+                      style: const TextStyle(
                         color: _emeraldAccent,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -614,9 +635,9 @@ class _AppTourDialogState extends State<AppTourDialog> {
                 _buildEndpointRow('GET', '/v1/models'),
                 _buildEndpointRow('POST', '/v1/embeddings'),
                 const Divider(color: Color(0x1AFFFFFF), height: 20),
-                const Text(
-                  'Compatible with: Cursor · Continue · VS Code · Python SDK · LangChain · cURL',
-                  style: TextStyle(
+                Text(
+                  l10n.tourCompatibleWith('Cursor · Continue · VS Code · cURL'),
+                  style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 11.5,
                     height: 1.35,
@@ -632,16 +653,17 @@ class _AppTourDialogState extends State<AppTourDialog> {
 
   // --- SLIDE 5: READY TO GET STARTED ---
   Widget _buildSlideGetStarted(bool isCompact) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(isCompact ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStagePill('STAGE 5 OF 5', 'READY TO LAUNCH'),
+          _buildStagePill(5, l10n.tourStartTag),
           const SizedBox(height: 12),
-          const Text(
-            'Choose Your\nStarting Point.',
-            style: TextStyle(
+          Text(
+            l10n.tourStartTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -649,22 +671,12 @@ class _AppTourDialogState extends State<AppTourDialog> {
               height: 1.2,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Select how you want to experience Thinai today:',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.72),
-              fontSize: 13.5,
-            ),
-          ),
           const SizedBox(height: 18),
           // Option 1: Starter Model Download
           _buildLaunchOption(
             icon: Icons.download_rounded,
-            title: '1. Download Starter Model (Qwen 2.5 0.5B)',
-            subtitle:
-                'Smallest verified model (~390 MB). Fast download, runs smoothly on any device.',
-            buttonText: 'Get Starter Model',
+            title: l10n.tourOptionStarterTitle,
+            subtitle: l10n.tourOptionStarterBody(_starterModel, _starterSize),
             onTap: () {
               Navigator.of(context).pop();
               widget.onSelectStarterModel?.call();
@@ -674,10 +686,8 @@ class _AppTourDialogState extends State<AppTourDialog> {
           // Option 2: Explore Catalog
           _buildLaunchOption(
             icon: Icons.explore_rounded,
-            title: '2. Browse Complete Catalog',
-            subtitle:
-                'Explore 30+ GGUF models from Meta, Google, Microsoft, and Alibaba.',
-            buttonText: 'Open Models Catalog',
+            title: l10n.tourOptionCatalogTitle,
+            subtitle: l10n.tourOptionCatalogBody,
             onTap: () {
               Navigator.of(context).pop();
               widget.onNavigateTab?.call(1);
@@ -687,10 +697,8 @@ class _AppTourDialogState extends State<AppTourDialog> {
           // Option 3: Live Interactive Guided Walkthrough
           _buildLaunchOption(
             icon: Icons.navigation_rounded,
-            title: '3. Take Live In-App Guided Tour',
-            subtitle:
-                'Follow our step-by-step floating guide through the live tabs.',
-            buttonText: 'Start Live Guide',
+            title: l10n.tourOptionLiveTitle,
+            subtitle: l10n.tourOptionLiveBody,
             highlight: true,
             onTap: () {
               Navigator.of(context).pop();
@@ -703,7 +711,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
   }
 
   // --- HELPER WIDGETS ---
-  Widget _buildStagePill(String stage, String label) {
+  Widget _buildStagePill(int stage, String label) {
     return Row(
       children: [
         Container(
@@ -713,23 +721,25 @@ class _AppTourDialogState extends State<AppTourDialog> {
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
-            stage,
-            style: const TextStyle(
+            context.l10n.tourStageLabel(stage, _totalPages),
+            style: TextStyle(
               color: _emeraldAccent,
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              letterSpacing: context.tracking(0.5),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: context.tracking(0.5),
+            ),
           ),
         ),
       ],
@@ -790,7 +800,10 @@ class _AppTourDialogState extends State<AppTourDialog> {
   }) {
     return Row(
       children: [
+        // Capped so a long translated label wraps inside the pill instead of
+        // pushing the description off the card.
         Container(
+          constraints: const BoxConstraints(maxWidth: 120),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.15),
@@ -830,12 +843,14 @@ class _AppTourDialogState extends State<AppTourDialog> {
         children: [
           Icon(icon, color: _emeraldAccent, size: 15),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -865,12 +880,14 @@ class _AppTourDialogState extends State<AppTourDialog> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            path,
-            style: const TextStyle(
-              color: Color(0xFFCBD5E1),
-              fontSize: 12,
-              fontFamily: 'monospace',
+          Flexible(
+            child: Text(
+              path,
+              style: const TextStyle(
+                color: Color(0xFFCBD5E1),
+                fontSize: 12,
+                fontFamily: 'monospace',
+              ),
             ),
           ),
         ],
@@ -878,117 +895,124 @@ class _AppTourDialogState extends State<AppTourDialog> {
     );
   }
 
+  /// One way to begin. The whole card is the button, so the copy gets the
+  /// full width instead of sharing it with a label.
   Widget _buildLaunchOption({
     required IconData icon,
     required String title,
     required String subtitle,
-    required String buttonText,
     required VoidCallback onTap,
     bool highlight = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: highlight
-            ? _brandGreen.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.04),
+    return Material(
+      color: highlight
+          ? _brandGreen.withValues(alpha: 0.12)
+          : Colors.white.withValues(alpha: 0.04),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
+        side: BorderSide(
           color: highlight
               ? _brandGreen.withValues(alpha: 0.4)
               : const Color(0x1FFFFFFF),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: (highlight ? _brandGreen : Colors.white).withValues(
-                alpha: 0.12,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: highlight ? _emeraldAccent : Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: (highlight ? _brandGreen : Colors.white).withValues(
+                    alpha: 0.12,
                   ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white60, fontSize: 11.5),
+                child: Icon(
+                  icon,
+                  color: highlight ? _emeraldAccent : Colors.white,
+                  size: 20,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: highlight ? _brandGreen : const Color(0xFF1E283C),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
               ),
-            ),
-            onPressed: onTap,
-            child: Text(buttonText),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: highlight ? _emeraldAccent : Colors.white54,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBottomNavigation(bool isCompact) {
+    final l10n = context.l10n;
     final isLast = _currentPage == _totalPages - 1;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, isCompact ? 14 : 18),
       decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Color(0x22FFFFFF), width: 1),
-        ),
+        border: Border(top: BorderSide(color: Color(0x22FFFFFF), width: 1)),
       ),
-      child: Row(
+      // An OverflowBar lays the two buttons out like a spaced row and only
+      // stacks them when longer translations no longer fit side by side.
+      child: OverflowBar(
+        alignment: MainAxisAlignment.spaceBetween,
+        overflowAlignment: OverflowBarAlignment.end,
+        overflowSpacing: 8,
         children: [
           if (_currentPage > 0)
             OutlinedButton(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white70,
                 side: const BorderSide(color: Color(0x33FFFFFF)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               onPressed: _prevPage,
-              child: const Text('Back'),
+              child: Text(l10n.commonBack),
             )
           else
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Skip',
-                style: TextStyle(color: Colors.white54),
+              child: Text(
+                l10n.commonSkip,
+                style: const TextStyle(color: Colors.white54),
               ),
             ),
-          const Spacer(),
           FilledButton.icon(
             style: FilledButton.styleFrom(
               backgroundColor: _brandGreen,
@@ -1006,7 +1030,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
               isLast ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
               size: 16,
             ),
-            label: Text(isLast ? 'Complete Tour' : 'Next Step'),
+            label: Text(isLast ? l10n.tourCompleteTour : l10n.tourNextStep),
             onPressed: _nextPage,
           ),
         ],
@@ -1037,7 +1061,8 @@ class LiveGuidedTourDock extends StatelessWidget {
     final media = MediaQuery.of(context);
     final width = math.min(media.size.width - 24, 460.0);
 
-    final info = _stepInfo(step);
+    final l10n = context.l10n;
+    final info = _stepInfo(l10n, step);
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -1071,23 +1096,27 @@ class LiveGuidedTourDock extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: _brandGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'STEP ${step + 1} OF 4',
-                      style: const TextStyle(
+                      l10n.tourDockStep(step + 1, 4),
+                      style: TextStyle(
                         color: Color(0xFF4ADE80),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
+                        letterSpacing: context.tracking(0.6),
                       ),
                     ),
                   ),
                   const Spacer(),
                   IconButton(
+                    tooltip: l10n.tourExitTour,
                     icon: const Icon(Icons.close_rounded, size: 18),
                     color: Colors.white54,
                     padding: EdgeInsets.zero,
@@ -1107,7 +1136,11 @@ class LiveGuidedTourDock extends StatelessWidget {
                       color: const Color(0x224ADE80),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(info.icon, color: const Color(0xFF4ADE80), size: 20),
+                    child: Icon(
+                      info.icon,
+                      color: const Color(0xFF4ADE80),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1137,25 +1170,36 @@ class LiveGuidedTourDock extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              // Navigation Buttons
-              Row(
+              // Navigation Buttons. OverflowBar keeps the row layout and only
+              // stacks when longer translations no longer fit.
+              OverflowBar(
+                alignment: MainAxisAlignment.spaceBetween,
+                overflowAlignment: OverflowBarAlignment.end,
+                overflowSpacing: 4,
                 children: [
-                  TextButton(
-                    onPressed: onDismiss,
-                    child: const Text('Exit Tour', style: TextStyle(color: Colors.white54)),
-                  ),
+                  // Leaving is the close icon above, so the left side only
+                  // needs a way back.
                   if (step > 0)
                     TextButton(
                       onPressed: () => onStepChanged(step - 1),
-                      child: const Text('Previous', style: TextStyle(color: Colors.white70)),
-                    ),
-                  const Spacer(),
+                      child: Text(
+                        l10n.tourPrevious,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    )
+                  else
+                    const SizedBox.shrink(),
                   FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: _brandGreen,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                     onPressed: () {
                       if (step < 3) {
@@ -1165,8 +1209,11 @@ class LiveGuidedTourDock extends StatelessWidget {
                       }
                     },
                     child: Text(
-                      step == 3 ? 'Finish Tour' : 'Next Step',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                      step == 3 ? l10n.tourFinishTour : l10n.tourNextStep,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -1178,36 +1225,32 @@ class LiveGuidedTourDock extends StatelessWidget {
     );
   }
 
-  _GuidedStepInfo _stepInfo(int index) {
+  _GuidedStepInfo _stepInfo(AppLocalizations l10n, int index) {
     switch (index) {
       case 0:
-        return const _GuidedStepInfo(
+        return _GuidedStepInfo(
           icon: Icons.memory_rounded,
-          title: 'Models Catalog (Tab 2)',
-          description:
-              'Browse verified GGUF models. Check the RAM fit indicator (Safe / Tight) to choose a model that runs smoothly on your phone.',
+          title: l10n.tourDockModelsTitle,
+          description: l10n.tourDockModelsBody,
         );
       case 1:
-        return const _GuidedStepInfo(
+        return _GuidedStepInfo(
           icon: Icons.speed_rounded,
-          title: 'Management & Benchmarking',
-          description:
-              'Use the top-right icons to manage downloads or tap the Speedometer icon to benchmark real token generation speed on your phone.',
+          title: l10n.tourDockManageTitle,
+          description: l10n.tourDockManageBody,
         );
       case 2:
-        return const _GuidedStepInfo(
+        return _GuidedStepInfo(
           icon: Icons.chat_bubble_outline_rounded,
-          title: 'Chat Studio (Tab 1)',
-          description:
-              'Chat with full privacy. Attach photos or documents for multimodal analysis, and watch live tokens-per-second streaming.',
+          title: l10n.tourDockChatTitle,
+          description: l10n.tourDockChatBody,
         );
       case 3:
       default:
-        return const _GuidedStepInfo(
+        return _GuidedStepInfo(
           icon: Icons.dns_rounded,
-          title: 'Local API Server (Tab 3)',
-          description:
-              'Turn your phone into a private OpenAI-compatible endpoint on localhost:8080 for Cursor, Continue, or your own developer scripts.',
+          title: l10n.tourDockServerTitle,
+          description: l10n.tourDockServerBody('localhost:8080'),
         );
     }
   }

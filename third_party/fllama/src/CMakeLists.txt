@@ -134,8 +134,16 @@ if(ANDROID)
 endif()
 
 if(WIN32 AND NOT ANDROID)
-  set(GGML_VULKAN ON CACHE BOOL "ggml: use Vulkan" FORCE)
-  message(STATUS "Windows detected, enabling GGML_VULKAN")
+  # Vulkan only when the SDK is installed; otherwise CPU-only so a plain
+  # Windows host can still build (e.g. for `flutter test`).
+  find_package(Vulkan QUIET COMPONENTS glslc)
+  if(Vulkan_FOUND)
+    set(GGML_VULKAN ON CACHE BOOL "ggml: use Vulkan" FORCE)
+    message(STATUS "Windows detected, enabling GGML_VULKAN")
+  else()
+    set(GGML_VULKAN OFF CACHE BOOL "ggml: use Vulkan" FORCE)
+    message(WARNING "Vulkan SDK not found, building fllama CPU-only")
+  endif()
 endif()
 
 if(APPLE)

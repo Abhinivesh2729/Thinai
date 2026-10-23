@@ -174,16 +174,15 @@ void main() {
     expect(find.text('Benchmark'), findsOneWidget);
     expect(find.text('0.0'), findsOneWidget);
     expect(find.text('tokens / second'), findsOneWidget);
-    expect(find.text('Idle'), findsOneWidget);
-    expect(find.text('Run a benchmark to plot it'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
+    expect(find.text('No data yet'), findsOneWidget);
     expect(find.text('First token'), findsOneWidget);
     expect(find.text('Total'), findsOneWidget);
     expect(find.text('-'), findsNWidgets(2));
     expect(find.text('Run benchmark'), findsOneWidget);
-    expect(find.textContaining('Generates 128 tokens'), findsOneWidget);
     expect(find.byTooltip('Stop'), findsNothing);
     expect(find.text('This session'), findsNothing);
-    expect(find.text('Sample output'), findsNothing);
+    expect(find.text('Output'), findsNothing);
   });
 
   testWidgets('defaults to the model loaded for chat', (tester) async {
@@ -245,11 +244,8 @@ void main() {
     tester,
   ) async {
     await _pump(tester);
-    expect(find.text('Best for your hardware'), findsOneWidget);
-    expect(
-      find.textContaining('run a benchmark to replace the estimates'),
-      findsOneWidget,
-    );
+    expect(find.text('Best for this phone'), findsOneWidget);
+    expect(find.textContaining('· estimated'), findsOneWidget);
     expect(find.textContaining('8.0 GB RAM'), findsOneWidget);
   });
 
@@ -257,7 +253,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester, device: const DeviceProfile(cores: 4));
-    expect(find.text('Run a benchmark to calibrate these'), findsOneWidget);
+    expect(find.text('Estimated'), findsOneWidget);
   });
 
   testWidgets('hardware advice uses a stored measurement once there is one', (
@@ -274,7 +270,7 @@ void main() {
       ]),
     });
     await _pump(tester);
-    expect(find.textContaining('measured 20.0 GB/s effective'), findsOneWidget);
+    expect(find.textContaining('20.0 GB/s measured'), findsOneWidget);
     expect(find.text('Fast chat'), findsOneWidget);
   });
 
@@ -294,27 +290,24 @@ void main() {
     // The graph has samples to plot. Its first sample also counts the first
     // token (prompt processing), so the peak is not asserted exactly.
     expect(find.textContaining('peak '), findsOneWidget);
-    expect(find.text('Run a benchmark to plot it'), findsNothing);
+    expect(find.text('No data yet'), findsNothing);
     // Stat tiles: first token, token count and total time.
     expect(find.text('0.30s'), findsOneWidget);
     expect(find.text('5'), findsOneWidget);
     expect(find.text('1.30s'), findsOneWidget);
-    expect(find.text('Sample output'), findsOneWidget);
+    expect(find.text('Output'), findsOneWidget);
     expect(find.textContaining('Neural networks learn 5'), findsOneWidget);
     expect(find.text('This session'), findsOneWidget);
     expect(find.text('alpha.gguf'), findsWidgets);
-    expect(
-      find.text('5 tokens · first token 0.30s · total 1.30s'),
-      findsOneWidget,
-    );
-    expect(find.text('Idle'), findsOneWidget);
+    expect(find.text('5 tokens · first 0.30s · total 1.30s'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
     expect(find.text('Run benchmark'), findsOneWidget);
 
     // The rate is kept for the Models page and recalibrates the advice.
     final saved = container.read(benchmarkResultsProvider)['alpha'];
     expect(saved?.tokensPerSecond, closeTo(4.0, 1e-9));
     expect(saved?.modelBytes, 1 << 30);
-    expect(find.textContaining('measured 4.0 GB/s effective'), findsOneWidget);
+    expect(find.textContaining('4.0 GB/s measured'), findsOneWidget);
   });
 
   testWidgets('history keeps only the six most recent runs', (tester) async {

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Search Hugging Face from the Models page and install any public single-file GGUF. Repo pages show the licence, context length, quantisation, size and RAM fit for each file; downloads are pinned to the listed commit. The app goes online only while you search or open a repo (#58).
 - Downloads resume where they stopped after a pause, a lost connection or the app closing, using HTTP Range with If-Range on the ETag. Cancel is now Pause; the Model Manager lists paused downloads with Resume and Discard (#62).
+- Tamil eval: Models → த runs 60 short Tamil questions on the selected model and gives a Tamil score from 0 to 100, with Understanding, Expression and Knowledge scores and every reply behind them. A full run of LFM2.5-350M on a mid-range phone takes about 2.5 minutes. The latest score shows on the model's card. The dataset and scorers live in the [`thinai_tamil_evals`](https://github.com/Abhinivesh2729/thinai-tamil-evals) library (#3).
+- The API server takes a GBNF `grammar` on `/v1/chat/completions`, like llama-server.
 
 ### Changed
 - LFM2.5 350M is the featured model on the Models page.

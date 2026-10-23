@@ -100,15 +100,14 @@ void main() {
   ) async {
     await _pump(tester);
 
-    expect(find.text('How can we help?'), findsOneWidget);
-    expect(find.text('Instagram Support'), findsOneWidget);
+    expect(find.text('Instagram'), findsOneWidget);
     expect(find.text('@27_ai_27'), findsOneWidget);
     expect(find.text('Thinai v2.4.0 (13)'), findsOneWidget);
-    expect(find.text('8 CPU Cores'), findsOneWidget);
+    expect(find.text('8 CPU cores'), findsOneWidget);
     expect(find.text('8.0 GB RAM'), findsOneWidget);
     expect(find.text('Tier: FLAGSHIP'), findsOneWidget);
-    expect(find.text('No active model'), findsOneWidget);
-    expect(find.text('Server: Stopped'), findsOneWidget);
+    expect(find.text('No model loaded'), findsOneWidget);
+    expect(find.text('Server stopped'), findsOneWidget);
   });
 
   testWidgets('names the loaded model and a running server', (tester) async {
@@ -132,7 +131,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Model: qwen-test'), findsOneWidget);
-    expect(find.text('Server: Active'), findsOneWidget);
+    expect(find.text('Server running'), findsOneWidget);
   });
 
   testWidgets('leaves out RAM when the phone did not report it', (
@@ -140,7 +139,7 @@ void main() {
   ) async {
     await _pump(tester, device: const DeviceProfile(cores: 4));
 
-    expect(find.text('4 CPU Cores'), findsOneWidget);
+    expect(find.text('4 CPU cores'), findsOneWidget);
     expect(find.textContaining('GB RAM'), findsNothing);
     expect(find.text('Tier: UNKNOWN'), findsOneWidget);
   });
@@ -150,7 +149,7 @@ void main() {
   ) async {
     await _pump(tester, device: null);
 
-    expect(find.textContaining('CPU Cores'), findsNothing);
+    expect(find.textContaining('CPU cores'), findsNothing);
     expect(find.textContaining('Tier:'), findsNothing);
     expect(find.text('Thinai v2.4.0 (13)'), findsOneWidget);
   });
@@ -159,7 +158,7 @@ void main() {
     final copied = _captureClipboard();
     await _pump(tester);
 
-    await _tapScrolled(tester, find.text('Copy Diagnostic Specs'));
+    await _tapScrolled(tester, find.text('Copy device info'));
 
     expect(copied, hasLength(1));
     expect(
@@ -174,7 +173,7 @@ void main() {
         '• Local API Server: Stopped',
       ]),
     );
-    expect(find.text('System diagnostics copied to clipboard'), findsOneWidget);
+    expect(find.text('Device info copied'), findsOneWidget);
   });
 
   testWidgets('the report says Unknown for what could not be read', (
@@ -183,7 +182,7 @@ void main() {
     final copied = _captureClipboard();
     await _pump(tester, device: null);
 
-    await _tapScrolled(tester, find.text('Copy Diagnostic Specs'));
+    await _tapScrolled(tester, find.text('Copy device info'));
 
     expect(copied.single, contains('• CPU Cores: Unknown'));
     expect(copied.single, contains('• Total RAM: Unknown'));
@@ -194,11 +193,11 @@ void main() {
     final copied = _captureClipboard();
     await _pump(tester);
 
-    await tester.tap(find.byTooltip('Copy Instagram handle'));
+    await tester.tap(find.byTooltip('Copy handle'));
     await tester.pump();
 
     expect(copied, ['@27_ai_27']);
-    expect(find.text('Instagram handle copied to clipboard'), findsOneWidget);
+    expect(find.text('Handle copied'), findsOneWidget);
   });
 
   testWidgets('Open Instagram hands the profile link to the platform', (
@@ -223,7 +222,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Unable to open Instagram link'), findsOneWidget);
+    expect(find.text("Couldn't open Instagram"), findsOneWidget);
   });
 
   testWidgets('reports an error from the platform link opener', (tester) async {
@@ -258,7 +257,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Contact Support'), findsOneWidget);
+    expect(find.text('Help & Support'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

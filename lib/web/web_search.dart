@@ -1275,7 +1275,7 @@ String webSearchPrompt(
   return '$context\n\n'
       'Answer the question below in your own words, using the results above. '
       'Write two to four sentences of plain prose. Name the specific things '
-      'the results name — products, versions, numbers, dates — rather than '
+      'the results name (products, versions, numbers, dates) rather than '
       'describing them in general terms. Do not copy a headline, and do not '
       'list the results back. You may put [1] or [2] after a sentence to show '
       'which result it came from. If the results do not answer the question, '

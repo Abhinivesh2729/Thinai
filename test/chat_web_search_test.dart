@@ -199,6 +199,6 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('100% Offline'), findsNothing);
-    expect(find.text('AI Ready · Web Search On'), findsOneWidget);
+    expect(find.text('Ready · Web search on'), findsOneWidget);
   });
 }

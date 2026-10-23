@@ -35,7 +35,7 @@ Future<_Calls> _openTour(WidgetTester tester) async {
 }
 
 Future<void> _next(WidgetTester tester) async {
-  await tester.tap(find.text('Next Step'));
+  await tester.tap(find.text('Next'));
   await tester.pumpAndSettle();
 }
 
@@ -63,10 +63,10 @@ void main() {
 
       expect(find.text('THINAI TOUR'), findsOneWidget);
       expect(find.text('STAGE 1 OF 5'), findsOneWidget);
-      expect(find.text('Thinai (On-Device)'), findsOneWidget);
+      expect(find.text('Thinai, on device'), findsOneWidget);
       expect(find.text('Skip'), findsOneWidget);
       expect(find.text('Back'), findsNothing);
-      expect(find.text('Next Step'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
     });
 
     testWidgets('Skip closes the tour', (tester) async {
@@ -78,7 +78,7 @@ void main() {
 
     testWidgets('the close button closes the tour', (tester) async {
       await _openTour(tester);
-      await tester.tap(find.byTooltip('Close Tour'));
+      await tester.tap(find.byTooltip('Close tour'));
       await tester.pumpAndSettle();
       expect(find.byType(AppTourDialog), findsNothing);
     });
@@ -88,13 +88,13 @@ void main() {
 
       await _next(tester);
       expect(find.text('STAGE 2 OF 5'), findsOneWidget);
-      expect(find.text('Smart Memory Fit System'), findsOneWidget);
-      expect(find.text('Fits Easily'), findsOneWidget);
+      expect(find.text('Memory fit'), findsOneWidget);
+      expect(find.text('Fits'), findsOneWidget);
       expect(find.text('Back'), findsOneWidget);
 
       await _next(tester);
       expect(find.text('STAGE 3 OF 5'), findsOneWidget);
-      expect(find.text('Reasoning Traces'), findsOneWidget);
+      expect(find.text('Reasoning'), findsOneWidget);
 
       await _next(tester);
       expect(find.text('STAGE 4 OF 5'), findsOneWidget);
@@ -102,8 +102,8 @@ void main() {
 
       await _next(tester);
       expect(find.text('STAGE 5 OF 5'), findsOneWidget);
-      expect(find.text('Complete Tour'), findsOneWidget);
-      expect(find.text('Next Step'), findsNothing);
+      expect(find.text('Finish'), findsOneWidget);
+      expect(find.text('Next'), findsNothing);
     });
 
     testWidgets('Back returns to the previous slide', (tester) async {
@@ -117,11 +117,11 @@ void main() {
       expect(find.text('STAGE 2 OF 5'), findsOneWidget);
     });
 
-    testWidgets('Complete Tour on the last slide closes it', (tester) async {
+    testWidgets('Finish on the last slide closes it', (tester) async {
       final calls = await _openTour(tester);
       await _toLastSlide(tester);
 
-      await tester.tap(find.text('Complete Tour'));
+      await tester.tap(find.text('Finish'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AppTourDialog), findsNothing);
@@ -130,33 +130,33 @@ void main() {
       expect(calls.starters, 0);
     });
 
-    testWidgets('Get Starter Model closes the tour and asks for the model', (
+    testWidgets('Starter model closes the tour and asks for the model', (
       tester,
     ) async {
       final calls = await _openTour(tester);
       await _toLastSlide(tester);
 
-      await _pressLaunchOption(tester, 'Get Starter Model');
+      await _pressLaunchOption(tester, 'Starter model');
 
       expect(find.byType(AppTourDialog), findsNothing);
       expect(calls.starters, 1);
     });
 
-    testWidgets('Open Models Catalog goes to the Models tab', (tester) async {
+    testWidgets('Full catalog goes to the Models tab', (tester) async {
       final calls = await _openTour(tester);
       await _toLastSlide(tester);
 
-      await _pressLaunchOption(tester, 'Open Models Catalog');
+      await _pressLaunchOption(tester, 'Full catalog');
 
       expect(find.byType(AppTourDialog), findsNothing);
       expect(calls.tabs, [1]);
     });
 
-    testWidgets('Start Live Guide starts the walkthrough', (tester) async {
+    testWidgets('Guided tour starts the walkthrough', (tester) async {
       final calls = await _openTour(tester);
       await _toLastSlide(tester);
 
-      await _pressLaunchOption(tester, 'Start Live Guide');
+      await _pressLaunchOption(tester, 'Guided tour');
 
       expect(find.byType(AppTourDialog), findsNothing);
       expect(calls.walkthroughs, 1);
@@ -192,12 +192,7 @@ void main() {
       return (steps, dismissals);
     }
 
-    const titles = [
-      'Models Catalog (Tab 2)',
-      'Management & Benchmarking',
-      'Chat Studio (Tab 1)',
-      'Local API Server (Tab 3)',
-    ];
+    const titles = ['Models', 'Downloads & speed', 'Chat', 'Local API server'];
 
     for (var step = 0; step < titles.length; step++) {
       testWidgets('step ${step + 1} explains ${titles[step]}', (tester) async {
@@ -207,40 +202,37 @@ void main() {
       });
     }
 
-    testWidgets('the first step has no Previous button', (tester) async {
+    testWidgets('the first step has no Back button', (tester) async {
       await pumpDock(tester, 0);
-      expect(find.text('Previous'), findsNothing);
-      expect(find.text('Next Step'), findsOneWidget);
+      expect(find.text('Back'), findsNothing);
+      expect(find.text('Next'), findsOneWidget);
     });
 
-    testWidgets('Next Step moves forward', (tester) async {
+    testWidgets('Next moves forward', (tester) async {
       final (steps, dismissals) = await pumpDock(tester, 1);
-      await tester.tap(find.text('Next Step'));
+      await tester.tap(find.text('Next'));
       expect(steps, [2]);
       expect(dismissals, isEmpty);
     });
 
-    testWidgets('Previous moves back', (tester) async {
+    testWidgets('Back moves back', (tester) async {
       final (steps, _) = await pumpDock(tester, 2);
-      await tester.tap(find.text('Previous'));
+      await tester.tap(find.text('Back'));
       expect(steps, [1]);
     });
 
-    testWidgets('Finish Tour on the last step dismisses the dock', (
-      tester,
-    ) async {
+    testWidgets('Finish on the last step dismisses the dock', (tester) async {
       final (steps, dismissals) = await pumpDock(tester, 3);
-      expect(find.text('Next Step'), findsNothing);
-      await tester.tap(find.text('Finish Tour'));
+      expect(find.text('Next'), findsNothing);
+      await tester.tap(find.text('Finish'));
       expect(steps, isEmpty);
       expect(dismissals, hasLength(1));
     });
 
-    testWidgets('Exit Tour and the close icon both dismiss', (tester) async {
+    testWidgets('the close icon exits the tour', (tester) async {
       final (_, dismissals) = await pumpDock(tester, 1);
-      await tester.tap(find.text('Exit Tour'));
-      await tester.tap(find.byIcon(Icons.close_rounded));
-      expect(dismissals, hasLength(2));
+      await tester.tap(find.byTooltip('Exit'));
+      expect(dismissals, hasLength(1));
     });
   });
 }
