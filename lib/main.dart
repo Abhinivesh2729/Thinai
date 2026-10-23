@@ -18,7 +18,9 @@ void main() async {
   // Opens the port the service's task isolate uses to reach this one. Must
   // run before the service starts, otherwise the notification's Stop button
   // has nowhere to deliver its tap.
-  FlutterForegroundTask.initCommunicationPort();
-  initForegroundTaskOptions();
+  if (foregroundServiceSupported) {
+    FlutterForegroundTask.initCommunicationPort();
+    initForegroundTaskOptions();
+  }
   runApp(const ProviderScope(child: LocalLlmApp()));
 }
