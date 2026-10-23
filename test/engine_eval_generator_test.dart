@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 
 import 'package:local_llm/eval/engine_eval_generator.dart';
-import 'package:local_llm/llm/chat_message.dart';
 import 'package:local_llm/llm/llm_engine.dart';
 
 const _prompt = EvalPrompt(
