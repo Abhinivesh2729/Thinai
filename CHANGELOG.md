@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Tamil eval: Models → த runs 60 short Tamil questions on the selected model and gives a Tamil score from 0 to 100, with Understanding, Expression and Knowledge scores and every reply behind them. A full run of LFM2.5-350M on a mid-range phone takes about 2.5 minutes. The latest score shows on the model's card. The dataset and scorers live in the [`thinai_tamil_evals`](https://github.com/Abhinivesh2729/thinai-tamil-evals) library (#3).
+- The API server takes a GBNF `grammar` on `/v1/chat/completions`, like llama-server.
+
 ## [2.4.0]
 
 ### Added

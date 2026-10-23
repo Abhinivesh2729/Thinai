@@ -3,9 +3,31 @@
 | | |
 |---|---|
 | **Issue** | [#3 Add Tamil LLM Evaluation & Benchmarking](https://github.com/Abhinivesh2729/Thinai/issues/3) |
-| **Status** | Draft, for maintainer review |
+| **Status** | Implemented in v1. §0 lists where the shipped version differs from the draft below. |
 | **Companion doc** | [LLD.md](LLD.md) (low-level design) |
 | **Target version** | 2.4.x |
+
+---
+
+## 0. What shipped (revision 2, 2026-10-24)
+
+The draft below was the starting point. Measuring it on a low-end phone changed several decisions, and the maintainer answered the open questions in §11. Where this section and a later one disagree, this section is right.
+
+**Measured target.** A Realme RMX3870 (MediaTek Dimensity) running LFM2.5-350M Q8 reads prompts at about 180 tokens/s and writes at about 20 tokens/s. LFM's tokenizer spends about 2.2 tokens per Tamil letter, so a 330-letter question costs 786 prompt tokens. The budget is **one full run in under 3 minutes on that phone**.
+
+| Topic | Draft | Shipped |
+|---|---|---|
+| Where the code lives | `lib/eval/` in the app | Its own pure-Dart library, [`thinai_tamil_evals`](https://github.com/Abhinivesh2729/thinai-tamil-evals), used by the app through a git dependency. The app adds only the engine adapter, the store and the page. |
+| Size | 140 items (Full), plus a 35-item Quick mode | **60 items in one mode.** Two modes would give two scores that can't be compared. Measured: 160 s for LFM2.5-350M on the Realme. |
+| Score structure | 7 equal tasks | **3 skills:** Understanding 40% (reading, grammar, context, Tamil → English), Expression 40% (English → Tamil, short answers, writing, correction), Knowledge 20%. This answers the real question: does the model understand Tamil, and can it write it? Knowledge weighs less because trivia isn't language skill. |
+| Multiple choice | Generated text parsed with regexes | **GBNF grammar `root ::= [ABCD]`, one output token.** Small models can't lose marks by rambling, and each item costs almost nothing to decode. This needed a small fix in vendored fllama: `grammar` is now passed through to llama.cpp's sampler. |
+| Chance | A "near chance" label | **Scores are skill above guessing.** 25% correct on multiple choice scores 0, and chrF below 15 (what an unrelated sentence earns) scores 0, so a model with no Tamil scores near 0. |
+| Fluency (T2) | Heuristic: script ratio, length, repetition | **Writing to rules a program can check** (IFEval style): Tamil script, sentence count, required words, no looping. A reply is gated on everyday Tamil vocabulary first, because LFM produced Tamil-script noise that passed every script check. |
+| New task | None | **Correction:** fix the one mistake in a sentence. It's scored on how much of the gap the fix closes, so copying the sentence unchanged scores 0. |
+| UI | A segment on the Benchmark page | **A separate page, opened from a த button** beside the speedometer on Models. It has an analog dial (progress while running, the score when done), a per-question strip, skill bars with a per-question drill-down, and a comparison of every model tested on this phone. The score also shows as a `த 72` chip on the model's card. |
+| Prompts (Q4/L1) | Proposed English instructions with Tamil content | As proposed. |
+| Thinking (L2) | Proposed off | Off, through `enable_thinking: false`. |
+| Licences (Q2) | Open | 100% hand-written, MIT. No FLORES or IndicQA in v1. |
 
 ---
 

@@ -4,9 +4,52 @@
 |---|---|
 | **Issue** | [#3](https://github.com/Abhinivesh2729/Thinai/issues/3) |
 | **Product doc** | [PRD.md](PRD.md) |
-| **Status** | Draft, for maintainer review |
+| **Status** | Implemented in v1. §0 lists where the code differs from the draft below. |
 
 This document says how the PRD gets built: modules, data formats, algorithms, flows, and how it is tested. Section numbers are referenced from the PRD.
+
+---
+
+## 0. What shipped (revision 2, 2026-10-24)
+
+The principles in §1 hold. The layout and several algorithms changed; [PRD §0](PRD.md#0-what-shipped-revision-2-2026-10-24) explains why.
+
+**Library: `thinai_tamil_evals`** (separate repo, pure Dart, 100% line coverage)
+
+```
+data/ta/v1.json              source of truth, 60 items, 9 tasks, 3 axes
+lib/src/data/ta_v1.g.dart    the JSON embedded as a Dart string (tool/embed_dataset.dart)
+lib/src/dataset.dart         EvalDataset/EvalTask/EvalItem (sealed), validate()
+lib/src/prompts.dart         buildPrompt: system + user, maxTokens, grammar, stop
+lib/src/scoring.dart         parseChoice, scoreItem, taskScore (skill above guessing)
+lib/src/scorers/             chrf (= sacreBLEU 2.4.3), qa, writing, lexicon, correction
+lib/src/report.dart          ItemResult, TaskScore, EvalReport (+ JSON)
+lib/src/runner.dart          EvalGenerator interface, EvalRunner, EvalEvent
+lib/openai.dart              OpenAiGenerator for any /v1 endpoint (dart:io)
+bin/thinai_tamil_evals.dart  CLI: --endpoint --model [--out] [--no-grammar]
+```
+
+**App**
+
+| File | Role |
+|---|---|
+| `lib/eval/engine_eval_generator.dart` | `EvalGenerator` over `LlmEngine.chat`, with `temperature: 0`, `enable_thinking: false`, a 1024-token context, the grammar and the stop words. Cancelling the stream cancels the engine request, but never a request that has already finished. |
+| `lib/models_repo/tamil_eval_store.dart` | Latest `EvalReport` per model in SharedPreferences, with tolerant decoding. |
+| `lib/state/providers.dart` | `tamilEvalResultsProvider`, plus `tamilScoreProvider(modelId)`, which only returns scores from the bundled dataset version. |
+| `lib/ui/pages/tamil_eval_page.dart` | The page. The run lives in page state, and leaving the page asks first, then stops. |
+| `lib/ui/widgets/tamil_dial.dart` | A 240° instrument dial with a tapered needle and a த hub. |
+| `lib/ui/widgets/model_picker.dart` | Moved out of the Benchmark page so both pages share it. |
+| `lib/llm/llm_engine.dart`, `lib/llm/generation_settings.dart`, `lib/server/routes/openai_routes.dart`, `third_party/fllama` | `GenerationOptions.grammar`, end to end. The API server takes `grammar` the way llama-server does, which is how the CLI runs against a phone over `adb forward`. |
+
+**Algorithm changes from §6**
+
+- **Multiple choice:** constrained to one letter, `maxTokens: 1`. The parser's fallbacks remain for generators without grammar support.
+- **Translation:** sentence chrF. The task score is `(chrF − 15) / 85`.
+- **Short answers:** full marks when an accepted answer appears in a reply of at most its length plus 3 words. Otherwise token F1. A predicted word that starts with a gold word of at least 3 letters matches it, so case endings count (`சந்தைக்கு` matches `சந்தை`).
+- **Writing:** 0 if under 50% Tamil script, or if under 34% of words are everyday Tamil (a stem plus up to 6 letters of ending). Otherwise the share of rules kept: script at least 0.9, sentence count in range, each required stem used, distinct word trigrams at least 0.7.
+- **Correction:** `(chrF(reply) − chrF(source)) / (100 − chrF(source))`, clamped to 0–1. An exact fix scores 1.
+- **Aggregation:** a task is the mean of its items, an axis the mean of its tasks, and the overall score the axes by weight.
+- **Prompt budget:** every user prompt is at most 340 characters, which a test enforces.
 
 ---
 
