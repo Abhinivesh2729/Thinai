@@ -2411,4 +2411,129 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get modelsTopPicks => 'சிறந்த தேர்வுகள்';
+
+  @override
+  String get tamilEvalTitle => 'தமிழ் மதிப்பீடு';
+
+  @override
+  String get tamilEvalTooltip => 'தமிழ் மதிப்பீடு';
+
+  @override
+  String get tamilEvalRun => 'மதிப்பீட்டைத் தொடங்கு';
+
+  @override
+  String get tamilEvalRunAgain => 'மீண்டும் இயக்கு';
+
+  @override
+  String get tamilEvalRunning => 'இயங்குகிறது…';
+
+  @override
+  String get tamilEvalStop => 'நிறுத்து';
+
+  @override
+  String get tamilEvalScore => 'தமிழ் மதிப்பெண்';
+
+  @override
+  String get tamilEvalQuestions => 'கேள்விகள்';
+
+  @override
+  String tamilEvalProgress(int done, int total) {
+    return '$totalஇல் $done';
+  }
+
+  @override
+  String tamilEvalTimeLeft(String time) {
+    return 'இன்னும் சுமார் $time';
+  }
+
+  @override
+  String get tamilEvalEstimating => 'நேரம் கணிக்கப்படுகிறது…';
+
+  @override
+  String get tamilEvalLoading => 'அறிவுரு ஏற்றப்படுகிறது…';
+
+  @override
+  String tamilEvalIntro(int count) {
+    return 'வாசிப்பு, இலக்கணம், எழுதுதல், மொழிபெயர்ப்பு பற்றிய $count சிறு கேள்விகள். சில நிமிடங்கள் ஆகும்.';
+  }
+
+  @override
+  String get tamilEvalNotRun => 'இன்னும் மதிப்பிடவில்லை';
+
+  @override
+  String tamilEvalLastRun(String time) {
+    return '$time ஆனது';
+  }
+
+  @override
+  String get tamilEvalSkills => 'திறன்கள்';
+
+  @override
+  String get tamilEvalOnThisPhone => 'இந்தக் கைப்பேசியில் மதிப்பிட்டவை';
+
+  @override
+  String get tamilEvalStopped => 'நிறுத்தப்பட்டது. எதுவும் சேமிக்கப்படவில்லை.';
+
+  @override
+  String tamilEvalFailed(String error) {
+    return 'மதிப்பீடு நின்றது: $error';
+  }
+
+  @override
+  String tamilEvalCorrect(int correct, int total) {
+    return '$totalஇல் $correct சரி';
+  }
+
+  @override
+  String get tamilEvalReply => 'பதில்';
+
+  @override
+  String get tamilEvalExpected => 'எதிர்பார்த்தது';
+
+  @override
+  String get tamilEvalNoReply => 'பதில் இல்லை';
+
+  @override
+  String get tamilEvalLiveReply => 'நேரடிப் பதில்';
+
+  @override
+  String get tamilEvalFootnote =>
+      'ஊகித்தால் 0. சிறிய தொகுப்பில் மதிப்பெண் மாறலாம், எனவே 10 புள்ளிக்குக் குறைவான வேறுபாடு சமம்.';
+
+  @override
+  String get tamilEvalVerdictNone => 'தமிழ் குறைவு';
+
+  @override
+  String get tamilEvalVerdictBasic => 'அடிப்படை';
+
+  @override
+  String get tamilEvalVerdictFair => 'நன்று';
+
+  @override
+  String get tamilEvalVerdictStrong => 'சிறப்பு';
+
+  @override
+  String get tamilEvalLeaveTitle => 'தமிழ் மதிப்பீட்டை நிறுத்தவா?';
+
+  @override
+  String get tamilEvalLeaveBody =>
+      'இப்போது வெளியேறினால் மதிப்பீடு நிற்கும், எதுவும் சேமிக்கப்படாது.';
+
+  @override
+  String get tamilEvalLeaveStay => 'தொடரட்டும்';
+
+  @override
+  String get tamilEvalLeaveStop => 'நிறுத்தி வெளியேறு';
+
+  @override
+  String get tamilEvalEmptyTitle => 'மதிப்பிட அறிவுரு இல்லை';
+
+  @override
+  String get tamilEvalEmptyBody =>
+      'தமிழ்த் திறனைச் சோதிக்க ஓர் அறிவுருவைப் பதிவிறக்கவும்.';
+
+  @override
+  String tamilEvalRules(String rules) {
+    return 'விதிகள்: $rules';
+  }
 }
