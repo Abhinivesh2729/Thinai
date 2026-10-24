@@ -32,7 +32,7 @@ Package: thinai
 Version: $version
 Architecture: amd64
 Maintainer: Thinai <https://github.com/Abhinivesh2729/Thinai>
-Depends: libgtk-3-0, libgomp1
+Depends: libgtk-3-0, libegl1, libgomp1
 Section: utils
 Priority: optional
 Homepage: https://github.com/Abhinivesh2729/Thinai
