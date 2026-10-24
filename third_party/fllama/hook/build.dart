@@ -174,7 +174,8 @@ void main(List<String> args) async {
     // can find it at runtime.
     final outLibs = await output.findAndAddCodeAssets(
       input,
-      names: {r'(lib)?fllama\.(dll|so|dylib)': 'fllama_io.dart'},
+      // Anchored: MSBuild leaves fllama.dll.recipe beside the DLL on Windows.
+      names: {r'^(lib)?fllama\.(dll|so|dylib)$': 'fllama_io.dart'},
       outDir: input.outputDirectory,
       logger: logger,
       regExp: true,

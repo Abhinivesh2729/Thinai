@@ -148,7 +148,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்த Wi-Fi-இல் உள்ள சாதனங்கள் இணையலாம்';
 
   @override
-  String get serverLanShareOffSubtitle => 'இந்தக் கைப்பேசி மட்டும்';
+  String serverLanShareOffSubtitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினி',
+      'other': 'கைப்பேசி',
+    });
+    return 'இந்தக் $_temp0 மட்டும்';
+  }
 
   @override
   String get serverCopyLanUrlTooltip => 'LAN URL-ஐ நகலெடு';
@@ -209,7 +215,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get hfDownloadTitle => 'அறிவுருவைப் பதிவிறக்கவா?';
 
   @override
-  String get hfTooBigTitle => 'இந்தக் கைப்பேசிக்கு மிகப் பெரியதா?';
+  String hfTooBigTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்கு',
+      'other': 'கைப்பேசிக்கு',
+    });
+    return 'இந்தக் $_temp0 மிகப் பெரியதா?';
+  }
 
   @override
   String get hfDownloadAnyway => 'இருந்தாலும் பதிவிறக்கு';
@@ -220,18 +232,27 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String hfDownloadMessageTooBig(String file, String size) {
-    return '$file ($size) பதிவிறக்கவா?\n\nஇந்தக் கைப்பேசியில் ஏற்றப்படாமல் போகலாம்.';
+  String hfDownloadMessageTooBig(String device, String file, String size) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return '$file ($size) பதிவிறக்கவா?\n\nஇந்தக் $_temp0 ஏற்றப்படாமல் போகலாம்.';
   }
 
   @override
   String hfDownloadMessageTooBigBudget(
+    String device,
     String file,
     String size,
     String needs,
     String budget,
   ) {
-    return '$file ($size) பதிவிறக்கவா?\n\nசுமார் $needs நினைவகம் தேவை, இந்தக் கைப்பேசியில் $budget மட்டுமே உள்ளது. ஏற்றப்படாமல் போகலாம்.';
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return '$file ($size) பதிவிறக்கவா?\n\nசுமார் $needs நினைவகம் தேவை, இந்தக் $_temp0 $budget மட்டுமே உள்ளது. ஏற்றப்படாமல் போகலாம்.';
   }
 
   @override
@@ -608,8 +629,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get aboutTitle => 'Thinai பற்றி';
 
   @override
-  String get aboutHeroDescription =>
-      'உங்கள் கைப்பேசியிலேயே இயங்கும் தனிப்பட்ட AI. இணையம் தேவையில்லை.';
+  String aboutHeroDescription(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return 'உங்கள் $_temp0 இயங்கும் தனிப்பட்ட AI. இணையம் தேவையில்லை.';
+  }
 
   @override
   String get aboutPrivateTitle => 'தனிப்பட்டது, ஆஃப்லைன்';
@@ -725,12 +751,22 @@ class AppLocalizationsTa extends AppLocalizations {
       'அறிவுருக்கள் 1 முதல் 4 GB வரை இருக்கும். பதிவிறக்க வேகம் இணைப்பைப் பொறுத்தது. ஏற்ற RAM தேவை, எனவே முதலில் மற்ற ஆப்களை மூடவும்.';
 
   @override
-  String get supportFaqPrivacyQuestion =>
-      'என் உரையாடல்கள் கைப்பேசியை விட்டு வெளியேறுமா?';
+  String supportFaqPrivacyQuestion(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியை',
+      'other': 'கைப்பேசியை',
+    });
+    return 'என் உரையாடல்கள் $_temp0 விட்டு வெளியேறுமா?';
+  }
 
   @override
-  String get supportFaqPrivacyAnswer =>
-      'இல்லை. அறிவுருக்கள் முழுவதும் உங்கள் கைப்பேசியிலேயே இயங்கும்; உரையாடல்களும் அதிலேயே இருக்கும்.';
+  String supportFaqPrivacyAnswer(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return 'இல்லை. அறிவுருக்கள் முழுவதும் உங்கள் $_temp0 இயங்கும்; உரையாடல்களும் அதிலேயே இருக்கும்.';
+  }
 
   @override
   String get supportFaqGpuQuestion => 'GPU-வை எப்படிப் பயன்படுத்துவது?';
@@ -837,7 +873,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'வேகத்தை அளவிட ஒரு அறிவுருவைப் பதிவிறக்கவும்.';
 
   @override
-  String get benchmarkBestForHardware => 'இந்தக் கைப்பேசிக்குச் சிறந்தவை';
+  String benchmarkBestForHardware(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்குச்',
+      'other': 'கைப்பேசிக்குச்',
+    });
+    return 'இந்தக் $_temp0 சிறந்தவை';
+  }
 
   @override
   String benchmarkMeasuredWithDevice(String device, String bandwidth) {
@@ -875,11 +917,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tourPrivateTag => 'தனிப்பட்டது';
 
   @override
-  String get tourPrivateTitle => 'உங்கள் கைப்பேசி.\nஉங்கள் AI.';
+  String tourPrivateTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினி',
+      'other': 'கைப்பேசி',
+    });
+    return 'உங்கள் $_temp0.\nஉங்கள் AI.';
+  }
 
   @override
-  String get tourPrivateBody =>
-      'அறிவுருக்கள் உங்கள் கைப்பேசியிலேயே இயங்கும். எதுவும் வெளியே போகாது.';
+  String tourPrivateBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return 'அறிவுருக்கள் உங்கள் $_temp0 இயங்கும். எதுவும் வெளியே போகாது.';
+  }
 
   @override
   String get tourOnDeviceTitle => 'Thinai, சாதனத்தில்';
@@ -930,7 +983,13 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get tourStarterBody => 'சிறியது, எந்தக் கைப்பேசியிலும் வேகமானது.';
+  String tourStarterBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலும்',
+      'other': 'கைப்பேசியிலும்',
+    });
+    return 'சிறியது, எந்தக் $_temp0 வேகமானது.';
+  }
 
   @override
   String get tourChatTag => 'உரையாடல் & படங்கள்';
@@ -966,7 +1025,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tourServerTag => 'உள்ளூர் API';
 
   @override
-  String get tourServerTitle => 'உங்கள் கைப்பேசி,\nதனிப்பட்ட AI சேவகம்.';
+  String tourServerTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினி',
+      'other': 'கைப்பேசி',
+    });
+    return 'உங்கள் $_temp0,\nதனிப்பட்ட AI சேவகம்.';
+  }
 
   @override
   String get tourServerBody =>
@@ -1070,14 +1135,25 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tourWelcomeTitle => 'Thinai-க்கு நல்வரவு';
 
   @override
-  String get tourWelcomeSubtitle => 'உங்கள் கைப்பேசியில் தனிப்பட்ட AI';
+  String tourWelcomeSubtitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return 'உங்கள் $_temp0 தனிப்பட்ட AI';
+  }
 
   @override
   String get tourWelcomePrivateTitle => 'தனிப்பட்டது, ஆஃப்லைன்';
 
   @override
-  String get tourWelcomePrivateBody =>
-      'கைப்பேசியிலேயே இயங்கும். இணையம் தேவையில்லை.';
+  String tourWelcomePrivateBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return '$_temp0 இயங்கும். இணையம் தேவையில்லை.';
+  }
 
   @override
   String get tourWelcomeCatalogTitle => 'திறந்த அறிவுருக்கள்';
@@ -1108,7 +1184,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get onboardingPrivateTag => 'தனிப்பட்டது, ஆஃப்லைன்';
 
   @override
-  String get onboardingPrivateHeadline => 'கைப்பேசியிலேயே\nஇயங்கும் AI';
+  String onboardingPrivateHeadline(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return '$_temp0\nஇயங்கும் AI';
+  }
 
   @override
   String get onboardingPrivateBody =>
@@ -1124,8 +1206,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get onboardingCatalogHeadline => 'திறந்த அறிவுருக்கள்,\nஒரே தட்டலில்';
 
   @override
-  String get onboardingCatalogBody =>
-      'Llama, Gemma, Qwen மற்றும் பல, கைப்பேசிக்கு ஏற்ற அளவில்.';
+  String onboardingCatalogBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்கு',
+      'other': 'கைப்பேசிக்கு',
+    });
+    return 'Llama, Gemma, Qwen மற்றும் பல, $_temp0 ஏற்ற அளவில்.';
+  }
 
   @override
   String get onboardingCatalogGraphic => 'தேர்ந்தெடுத்த GGUF அறிவுரு பட்டியல்';
@@ -1159,7 +1246,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get onboardingServerTag => 'உள்ளூர் API';
 
   @override
-  String get onboardingServerHeadline => 'உங்கள் கைப்பேசி,\nஒரு AI சேவகம்';
+  String onboardingServerHeadline(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினி',
+      'other': 'கைப்பேசி',
+    });
+    return 'உங்கள் $_temp0,\nஒரு AI சேவகம்';
+  }
 
   @override
   String onboardingServerBody(String port) {
@@ -1175,7 +1268,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get onboardingStartButton => 'தொடங்குங்கள்';
 
   @override
-  String get splashTagline => 'உங்கள் கைப்பேசியில் தனிப்பட்ட AI';
+  String get splashTagline => 'உங்கள் சாதனத்தில் தனிப்பட்ட AI';
 
   @override
   String splashCraftedIn(String place) {
@@ -1269,6 +1362,21 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatBannerNoModelDownloaded => 'அறிவுரு இல்லை.';
 
   @override
+  String chatBannerNoModelLoadedDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count அறிவுருக்கள் பதிவிறக்கப்பட்டுள்ளன.',
+      one: '1 அறிவுரு பதிவிறக்கப்பட்டுள்ளது.',
+    );
+    return '$_temp0 அரட்டையைத் தொடங்க ஒன்றைத் தேர்ந்தெடுங்கள்.';
+  }
+
+  @override
+  String get chatBannerNoModelDownloadedDetail =>
+      'அரட்டையடிக்க Thinai-க்கு ஒரு அறிவுரு தேவை. அறிவுருக்கள் பக்கத்தில் ஒன்றைப் பதிவிறக்குங்கள்: சிறியவை (1-2 GB) தொடங்க ஏற்றவை, பதிவிறக்கிய பின் இணையம் இல்லாமலே இயங்கும்.';
+
+  @override
   String get chatSelect => 'தேர்ந்தெடு';
 
   @override
@@ -1318,8 +1426,21 @@ class AppLocalizationsTa extends AppLocalizations {
   String get chatEmptyTitle => 'தனிப்பட்ட ஆஃப்லைன் AI';
 
   @override
-  String get chatEmptyBody =>
-      'முழுக்க உங்கள் கைப்பேசியில் இயங்கும். தரவு வெளியே போகாது.';
+  String get chatGreeting => 'வணக்கம்';
+
+  @override
+  String chatGreetingName(String name) {
+    return 'வணக்கம், $name';
+  }
+
+  @override
+  String chatEmptyBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return 'முழுக்க உங்கள் $_temp0 இயங்கும். தரவு வெளியே போகாது.';
+  }
 
   @override
   String get chatBrowseDownloadModels => 'அறிவுருவைப் பெறு';
@@ -1810,8 +1931,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsEmbeddingTitle => 'Embedding அறிவுருக்கள்';
 
   @override
-  String get modelsOfflineFooter =>
-      'அறிவுருக்கள் இந்தக் கைப்பேசியிலேயே ஆஃப்லைனில் இயங்கும்.';
+  String modelsOfflineFooter(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியிலேயே',
+      'other': 'கைப்பேசியிலேயே',
+    });
+    return 'அறிவுருக்கள் இந்தக் $_temp0 ஆஃப்லைனில் இயங்கும்.';
+  }
 
   @override
   String get modelsSearchHint => 'அறிவுருக்களைத் தேடு';
@@ -2009,11 +2135,21 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsCapInstruct => 'Instruct';
 
   @override
-  String get modelsFitTooLarge => 'இந்தக் கைப்பேசிக்கு மிகப் பெரியது.';
+  String modelsFitTooLarge(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்கு',
+      'other': 'கைப்பேசிக்கு',
+    });
+    return 'இந்தக் $_temp0 மிகப் பெரியது.';
+  }
 
   @override
-  String modelsFitNeeds(String needs, String available) {
-    return '$needs தேவை, இந்தக் கைப்பேசியில் $available மட்டுமே காலியாக உள்ளது.';
+  String modelsFitNeeds(String device, String needs, String available) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return '$needs தேவை, இந்தக் $_temp0 $available மட்டுமே காலியாக உள்ளது.';
   }
 
   @override
@@ -2204,30 +2340,70 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String modelsCaveatNoneFits(String task) {
-    String _temp0 = intl.Intl.selectLogic(task, {
-      'fastChat':
-          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'reasoning':
-          'படிப்படியான பகுத்தறிவுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'coding':
-          'நிரல் எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'tamil':
-          'தமிழுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'english':
-          'ஆங்கிலத்துக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'vision':
-          'படங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'translation':
-          'மொழிபெயர்ப்புக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'summarizing':
-          'சுருக்கி எழுதுவதற்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'documents':
-          'நீண்ட ஆவணங்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
-      'other':
-          'விரைவான உரையாடல்களுக்கு இந்தக் கைப்பேசியில் பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+  String modelsCaveatNoneFits(String device, String task) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
     });
-    return '$_temp0';
+    String _temp1 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp2 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp3 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp4 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp5 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp6 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp7 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp8 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp9 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    String _temp10 = intl.Intl.selectLogic(task, {
+      'fastChat':
+          'விரைவான உரையாடல்களுக்கு இந்தக் $_temp0 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'reasoning':
+          'படிப்படியான பகுத்தறிவுக்கு இந்தக் $_temp1 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'coding':
+          'நிரல் எழுதுவதற்கு இந்தக் $_temp2 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'tamil':
+          'தமிழுக்கு இந்தக் $_temp3 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'english':
+          'ஆங்கிலத்துக்கு இந்தக் $_temp4 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'vision':
+          'படங்களுக்கு இந்தக் $_temp5 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'translation':
+          'மொழிபெயர்ப்புக்கு இந்தக் $_temp6 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'summarizing':
+          'சுருக்கி எழுதுவதற்கு இந்தக் $_temp7 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'documents':
+          'நீண்ட ஆவணங்களுக்கு இந்தக் $_temp8 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+      'other':
+          'விரைவான உரையாடல்களுக்கு இந்தக் $_temp9 பொருந்தும் அறிவுரு எதுவும் பட்டியலில் இல்லை.',
+    });
+    return '$_temp10';
   }
 
   @override
@@ -2294,7 +2470,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsFitTightShort => 'RAM குறைவு';
 
   @override
-  String get modelsFitTooBig => 'உங்கள் கைப்பேசிக்கு மிகப் பெரியது';
+  String modelsFitTooBig(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்கு',
+      'other': 'கைப்பேசிக்கு',
+    });
+    return 'உங்கள் $_temp0 மிகப் பெரியது';
+  }
 
   @override
   String get modelsFitUnknown => 'பொருத்தம் தெரியவில்லை';
@@ -2312,8 +2494,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsAdvisorCollapse => 'வழிகாட்டியைச் சுருக்கு';
 
   @override
-  String get modelsAdvisorNothingFits =>
-      'இந்தக் கைப்பேசிக்குப் பொருந்துவது எதுவும் இல்லை.';
+  String modelsAdvisorNothingFits(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினிக்குப்',
+      'other': 'கைப்பேசிக்குப்',
+    });
+    return 'இந்தக் $_temp0 பொருந்துவது எதுவும் இல்லை.';
+  }
 
   @override
   String get modelsAdvisorAlsoConsider => 'இவையும் நல்லவை';
@@ -2382,7 +2569,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get chatStarterBrainstormPrompt =>
-      'கைப்பேசியிலேயே இயங்கும் AI app உருவாக்க 5 புதுமையான யோசனைகள் கொடு';
+      'சாதனத்திலேயே இயங்கும் AI app உருவாக்க 5 புதுமையான யோசனைகள் கொடு';
 
   @override
   String get chatStarterPythonPrompt =>
@@ -2393,8 +2580,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'பின்வருவதன் முக்கியக் கருத்துகளைச் சுருக்கமாகச் சொல்:\n\n';
 
   @override
-  String get chatStarterSpeedPrompt =>
-      'இந்தக் கைப்பேசியில் உன் பதில் உருவாக்கும் வேகம் என்ன?';
+  String chatStarterSpeedPrompt(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return 'இந்தக் $_temp0 உன் பதில் உருவாக்கும் வேகம் என்ன?';
+  }
 
   @override
   String deviceSummaryRam(String ram, int cores) {
@@ -2469,7 +2661,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tamilEvalSkills => 'திறன்கள்';
 
   @override
-  String get tamilEvalOnThisPhone => 'இந்தக் கைப்பேசியில் மதிப்பிட்டவை';
+  String tamilEvalOnThisPhone(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'கணினியில்',
+      'other': 'கைப்பேசியில்',
+    });
+    return 'இந்தக் $_temp0 மதிப்பிட்டவை';
+  }
 
   @override
   String get tamilEvalStopped => 'நிறுத்தப்பட்டது. எதுவும் சேமிக்கப்படவில்லை.';

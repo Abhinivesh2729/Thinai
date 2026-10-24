@@ -23,7 +23,9 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <deque>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <random>
@@ -34,6 +36,19 @@
 #include "ggml-backend.h"
 
 // ── Logging ──────────────────────────────────────────────────────────────────
+
+static char *fllama_copy_string(const char *s) {
+  const size_t n = std::strlen(s) + 1;
+  char *copy = static_cast<char *>(std::malloc(n));
+  if (copy) std::memcpy(copy, s, n);
+  return copy;
+}
+
+// Set on fllama_inference's thread. Its Dart logger is a
+// NativeCallable.listener that reads the message after this thread has moved
+// on, so it gets a copy it releases with fllama_free_string. The synchronous
+// (WASM) caller reads the message during the call and needs no copy.
+static thread_local bool t_logger_takes_copy = false;
 
 static void log_message(const char *msg,
                         fllama_log_callback logger = nullptr) {
@@ -47,6 +62,10 @@ static void log_message(const char *msg,
   std::string s(msg);
   for (size_t p = 0; (p = s.find('\n', p)) != std::string::npos; p += 4)
     s.replace(p, 1, "[NL]");
+  if (t_logger_takes_copy) {
+    logger(fllama_copy_string(s.c_str()));
+    return;
+  }
   std::lock_guard<std::mutex> lk(mtx);
   q.push_back(std::move(s));
   while (q.size() > 1000)
@@ -266,14 +285,25 @@ static void fllama_copy_cstr(char * dst, size_t cap, const char * src) {
 
 // ── The actual inference logic (runs on per-request thread) ──────────────────
 
-static void run_inference(fllama_inference_request request,
-                          fllama_inference_callback callback) {
-  try {
-    int64_t t0 = ggml_time_ms();
-    log_message("[fllama] Inference start", request.dart_logger);
+using fllama_emit = std::function<void(const char *, const char *, bool)>;
 
+static void run_inference(fllama_inference_request request,
+                          const fllama_emit &callback) {
+  try {
     // One-time backend init.
     fllama_backend_init_once();
+
+    // Timed with our own clock, not ggml_time_ms(): on Windows that divides by
+    // a frequency only ggml_time_init() sets (reading it first crashed the
+    // first chat), and model loading re-initialises its start point, which
+    // made "Model ready" come out negative.
+    const auto t0 = std::chrono::steady_clock::now();
+    auto elapsed_ms = [&t0] {
+      return std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::steady_clock::now() - t0)
+          .count();
+    };
+    log_message("[fllama] Inference start", request.dart_logger);
 
     // ── 1. Build common_params ────────────────────────────────────────
 
@@ -351,7 +381,7 @@ static void run_inference(fllama_inference_request request,
     } guard{g_mgr, request.model_path};
 
     log_message("[fllama] Model ready (" +
-                    std::to_string(ggml_time_ms() - t0) + " ms)",
+                    std::to_string(elapsed_ms()) + " ms)",
                 request.dart_logger);
 
     // ── 3. Build the prompt ───────────────────────────────────────────
@@ -365,6 +395,10 @@ static void run_inference(fllama_inference_request request,
     // GBNF grammar constraining every sampled token, as llama-server's
     // `grammar` field. Empty = unconstrained.
     std::string grammar;
+    // Constraints the chat template asks for: with tools this is what makes
+    // tool_choice "required" actually force a call. Same handling as
+    // llama-server (params_from_json_cmpl).
+    common_params_sampling chat_constraints;
 
     if (request.openai_request_json_string) {
       is_oai = true;
@@ -441,6 +475,27 @@ static void run_inference(fllama_inference_request request,
           auto result =
               common_chat_templates_apply(tmpls.get(), inputs);
           prompt = result.prompt;
+
+          chat_constraints.grammar      = result.grammar;
+          chat_constraints.grammar_lazy = result.grammar_lazy;
+          const auto *vocab = llama_model_get_vocab(model);
+          for (const auto &t : result.preserved_tokens) {
+            auto ids = common_tokenize(vocab, t, /* add_special= */ false,
+                                       /* parse_special= */ true);
+            if (ids.size() == 1) chat_constraints.preserved_tokens.insert(ids[0]);
+          }
+          for (const auto &t : result.grammar_triggers) {
+            if (t.type == COMMON_GRAMMAR_TRIGGER_TYPE_WORD) {
+              auto ids = common_tokenize(vocab, t.value, false, true);
+              if (ids.size() == 1 &&
+                  chat_constraints.preserved_tokens.count(ids[0])) {
+                chat_constraints.grammar_triggers.push_back(
+                    {COMMON_GRAMMAR_TRIGGER_TYPE_TOKEN, t.value, ids[0]});
+                continue;
+              }
+            }
+            chat_constraints.grammar_triggers.push_back(t);
+          }
           parser_params = common_chat_parser_params(result);
           parser_params.reasoning_format = inputs.reasoning_format;
           parser_params.reasoning_in_content =
@@ -500,7 +555,20 @@ static void run_inference(fllama_inference_request request,
     if (top_k >= 0) task.params.sampling.top_k = top_k;
     task.params.sampling.penalty_freq   = request.penalty_freq;
     task.params.sampling.penalty_repeat = request.penalty_repeat;
-    if (!grammar.empty()) task.params.sampling.grammar = grammar;
+
+    // The template's grammar (tools) wins; otherwise the caller's own: the
+    // request JSON's `grammar`, then the FFI struct's.
+    if (chat_constraints.grammar.empty()) {
+      if (!grammar.empty()) {
+        chat_constraints.grammar = grammar;
+      } else if (request.grammar && request.grammar[0] != '\0') {
+        chat_constraints.grammar = request.grammar;
+      }
+    }
+    task.params.sampling.grammar          = chat_constraints.grammar;
+    task.params.sampling.grammar_lazy     = chat_constraints.grammar_lazy;
+    task.params.sampling.grammar_triggers = chat_constraints.grammar_triggers;
+    task.params.sampling.preserved_tokens = chat_constraints.preserved_tokens;
 
     std::random_device rd;
     task.params.sampling.seed = rd();
@@ -589,7 +657,7 @@ static void run_inference(fllama_inference_request request,
 
         log_message("[fllama] Done. " +
                         std::to_string(final_r->n_decoded) + " tok, " +
-                        std::to_string(ggml_time_ms() - t0) + " ms",
+                        std::to_string(elapsed_ms()) + " ms",
                     request.dart_logger);
         g_mgr.clear_cancel(rid);
         g_mgr.unregister_request_thread(rid);
@@ -696,15 +764,31 @@ EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT int fllama_get_gpu_memory_info(
 EMSCRIPTEN_KEEPALIVE void fllama_inference(fllama_inference_request request,
                                            fllama_inference_callback callback) {
   int rid = request.request_id;
-  std::thread t([request, callback] { run_inference(request, callback); });
+  std::thread t([request, callback] {
+    t_logger_takes_copy = true;
+    // Dart receives this through NativeCallable.listener, which runs after
+    // this thread has moved on, when the strings behind c_str() may already
+    // have grown or been destroyed. So it gets copies it owns and releases
+    // with fllama_free_string.
+    run_inference(request, [callback](const char *response,
+                                      const char *json, bool done) {
+      callback(fllama_copy_string(response), fllama_copy_string(json), done);
+    });
+  });
   g_mgr.register_request_thread(rid, std::move(t));
 }
 
 EMSCRIPTEN_KEEPALIVE void
 fllama_inference_sync(fllama_inference_request request,
                       fllama_inference_callback callback) {
-  // Synchronous variant — blocks the calling thread.
-  run_inference(request, callback);
+  // Synchronous variant — blocks the calling thread, and the callback reads
+  // the strings before returning, so no copies.
+  run_inference(request, [callback](const char *response, const char *json,
+                                    bool done) { callback(response, json, done); });
+}
+
+EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_free_string(char *s) {
+  std::free(s);
 }
 
 EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void

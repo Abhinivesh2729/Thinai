@@ -189,7 +189,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   children: [
                     _buildSlide(
                       tag: l10n.onboardingPrivateTag,
-                      headline: l10n.onboardingPrivateHeadline,
+                      headline: l10n.onboardingPrivateHeadline(deviceKind),
                       description: l10n.onboardingPrivateBody,
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_offline.gif',
@@ -199,7 +199,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                     _buildSlide(
                       tag: l10n.onboardingCatalogTag,
                       headline: l10n.onboardingCatalogHeadline,
-                      description: l10n.onboardingCatalogBody,
+                      description: l10n.onboardingCatalogBody(deviceKind),
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_models.gif',
                         l10n.onboardingCatalogGraphic,
@@ -225,7 +225,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                     ),
                     _buildSlide(
                       tag: l10n.onboardingServerTag,
-                      headline: l10n.onboardingServerHeadline,
+                      headline: l10n.onboardingServerHeadline(deviceKind),
                       description: l10n.onboardingServerBody(_serverPort),
                       graphic: _buildGraphic(
                         'assets/onboarding/onboarding_server.gif',

@@ -1,0 +1,70 @@
+name: Desktop Build
+
+# Builds the desktop packages (Windows exe/msi/zip, Linux deb/tar.gz,
+# macOS dmg/zip) and uploads them as workflow artifacts. Manual only.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          channel: stable
+          cache: true
+      - name: Install WiX
+        run: |
+          dotnet tool install -g wix --version 5.0.1
+          wix extension add -g WixToolset.UI.wixext/5.0.1 WixToolset.Util.wixext/5.0.1 WixToolset.BootstrapperApplications.wixext/5.0.1
+      - name: Build and package
+        shell: pwsh
+        run: ./packaging/package-windows.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thinai-windows
+          path: dist/*
+
+  linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang g++ cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          channel: stable
+          cache: true
+      - name: Build and package
+        run: bash packaging/package-linux.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thinai-linux
+          path: dist/*
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.4"
+          channel: stable
+          cache: true
+      - name: Build and package
+        run: bash packaging/package-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thinai-macos
+          path: dist/*

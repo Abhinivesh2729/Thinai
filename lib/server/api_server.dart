@@ -62,13 +62,16 @@ class ApiServer {
     );
 
     var pipeline = const Pipeline()
-        .addMiddleware(_corsMiddleware())
-        .addMiddleware(_errorMiddleware());
+        .addMiddleware(
+          corsMiddleware(
+            lanMode: config.lanMode,
+            extraOrigins: parseOrigins(Platform.environment['THINAI_ORIGINS']),
+          ),
+        )
+        .addMiddleware(errorMiddleware());
 
     if (config.lanMode) {
-      pipeline = pipeline.addMiddleware(
-        _authMiddleware(config.bearerToken!),
-      );
+      pipeline = pipeline.addMiddleware(_authMiddleware(config.bearerToken!));
     }
 
     final handler = pipeline.addHandler(root.call);
@@ -77,11 +80,7 @@ class ApiServer {
         ? InternetAddress.anyIPv4
         : InternetAddress.loopbackIPv4;
 
-    _server = await shelf_io.serve(
-      handler,
-      address,
-      config.port,
-    );
+    _server = await shelf_io.serve(handler, address, config.port);
   }
 
   Future<void> stop() async {
@@ -91,23 +90,64 @@ class ApiServer {
   }
 }
 
-Middleware _corsMiddleware() {
+/// Origins listed in `THINAI_ORIGINS`: comma-separated, `*` for any, the way
+/// Ollama's OLLAMA_ORIGINS works.
+Set<String> parseOrigins(String? value) => {
+  for (final o in (value ?? '').split(','))
+    if (o.trim().isNotEmpty) o.trim(),
+};
+
+const _loopbackHosts = {'localhost', '127.0.0.1', '::1'};
+
+String? _hostOf(String url) {
+  final uri = Uri.tryParse(url);
+  // Uri keeps IPv6 hosts without brackets.
+  return uri == null || uri.host.isEmpty ? null : uri.host.toLowerCase();
+}
+
+/// Whether a browser page at [origin] may call the loopback API: pages on
+/// this machine, and anything in [extraOrigins].
+bool isAllowedOrigin(String origin, Set<String> extraOrigins) =>
+    extraOrigins.contains('*') ||
+    extraOrigins.contains(origin) ||
+    _loopbackHosts.contains(_hostOf(origin));
+
+/// Browser access control. On loopback there is no token, so without this any
+/// website open on the machine could drive the models and read the replies:
+/// only pages from this machine (or [extraOrigins]) are let through, and a
+/// Host that is not loopback is refused, which stops DNS rebinding. Clients
+/// that send no Origin (curl, SDKs, editors) are unaffected. In LAN mode
+/// every request needs the bearer token anyway, so any origin may call.
+Middleware corsMiddleware({
+  required bool lanMode,
+  Set<String> extraOrigins = const {},
+}) {
   return (Handler inner) {
     return (Request req) async {
-      if (req.method == 'OPTIONS') {
-        return Response.ok('', headers: _corsHeaders);
+      final origin = req.headers['origin'];
+      if (!lanMode) {
+        final host = req.headers['host'];
+        if (host != null && !_loopbackHosts.contains(_hostOf('http://$host'))) {
+          return Response.forbidden('Host not allowed');
+        }
+        if (origin != null && !isAllowedOrigin(origin, extraOrigins)) {
+          return Response.forbidden(
+            'Origin not allowed. Add it to THINAI_ORIGINS to permit it.',
+          );
+        }
       }
+      final cors = {
+        'Access-Control-Allow-Origin': lanMode || origin == null ? '*' : origin,
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        if (!lanMode && origin != null) 'Vary': 'Origin',
+      };
+      if (req.method == 'OPTIONS') return Response.ok('', headers: cors);
       final resp = await inner(req);
-      return resp.change(headers: {...resp.headersAll, ..._corsHeaders});
+      return resp.change(headers: {...resp.headersAll, ...cors});
     };
   };
 }
-
-const _corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
 Middleware _authMiddleware(String token) {
   return (Handler inner) {
@@ -116,12 +156,8 @@ Middleware _authMiddleware(String token) {
 
       if (authorization != 'Bearer $token') {
         return Response.unauthorized(
-          jsonEncode({
-            'error': 'unauthorized',
-          }),
-          headers: {
-            'content-type': 'application/json',
-          },
+          jsonEncode({'error': 'unauthorized'}),
+          headers: {'content-type': 'application/json'},
         );
       }
 
@@ -130,12 +166,15 @@ Middleware _authMiddleware(String token) {
   };
 }
 
-Middleware _errorMiddleware() {
+/// Turns an unexpected exception into a 500 the client can parse. The stack
+/// trace goes to stderr only: it names files and internals no client needs.
+Middleware errorMiddleware() {
   return (Handler inner) {
     return (Request req) async {
       try {
         return await inner(req);
       } catch (e, st) {
+        stderr.writeln('API error on ${req.method} /${req.url.path}: $e\n$st');
         // The two surfaces spell an error differently, and a client parsing
         // the wrong shape is left with no message at all: OpenAI SDKs read
         // `error.message` off an object, Ollama clients read `error` as a
@@ -146,7 +185,6 @@ Middleware _errorMiddleware() {
             'error': openAi
                 ? {'message': e.toString(), 'type': 'server_error'}
                 : e.toString(),
-            'stack': st.toString(),
           }),
           headers: {'content-type': 'application/json'},
         );

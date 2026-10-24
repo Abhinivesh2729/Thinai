@@ -41,7 +41,7 @@ class _ThinaiTaskHandler extends TaskHandler {
 /// The service is an Android concept. iOS has no equivalent for keeping an
 /// HTTP server alive in the background, so there the server and downloads
 /// run only while the app is in the foreground and every call here is a
-/// no-op.
+/// no-op. Desktop has none either: the server lives as long as the window.
 bool get foregroundServiceSupported =>
     !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 

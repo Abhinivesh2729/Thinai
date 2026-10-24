@@ -1002,7 +1002,7 @@ class _HardwareAdvice extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  context.l10n.benchmarkBestForHardware,
+                  context.l10n.benchmarkBestForHardware(deviceKind),
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
