@@ -75,7 +75,7 @@ The app is **not signed with a Developer ID or notarised**, so Gatekeeper warns 
 - The API server runs only while the app window is open: desktop has no foreground service.
 - The landing screen greets the signed-in OS account by name ("Welcome, Kalidas" / "வணக்கம், Kalidas"); Android shows the greeting without a name.
 - Strings that name the hardware say "computer" (கணினி) instead of "phone" (கைப்பேசி).
-- App data (settings, chats, models) is stored under the OS app-data folder, e.g. `%APPDATA%\in.atmega\Thinai` on Windows.
+- App data (settings, chats, models) is stored in `%LOCALAPPDATA%\in.atmega\Thinai` on Windows and `~/.local/share/thinai` on Linux.
 
 ## Native chat tests
 
