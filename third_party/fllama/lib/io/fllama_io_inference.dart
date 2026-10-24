@@ -136,6 +136,8 @@ Pointer<fllama_inference_request> _toNative(
   if (dart.logger != null) {
     void onResponse(Pointer<Char> responsePointer) {
       final message = pointerCharToString(responsePointer);
+      // A copy this callback owns (see log_message in fllama.cpp).
+      fllamaBindings.fllama_free_string(responsePointer);
       // Send log message back to main isolate if we have a sendPort
       if (sendPort != null) {
         sendPort.send(_IsolateLogMessage(requestId, message));
@@ -278,7 +280,8 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           final codeUnits = responsePointer.cast<Uint8>();
 
           var length = 0;
-          while (codeUnits[length] != 0) {
+          // Null only if native malloc failed: read it as an empty string.
+          while (codeUnits != nullptr && codeUnits[length] != 0) {
             length++;
           }
 
@@ -306,7 +309,8 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           final codeUnits = openaiReponseJsonStringPointer.cast<Uint8>();
 
           var length = 0;
-          while (codeUnits[length] != 0) {
+          // Null only if native malloc failed: read it as an empty string.
+          while (codeUnits != nullptr && codeUnits[length] != 0) {
             length++;
           }
 
@@ -328,6 +332,10 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           }
         }
 
+        // Both strings are copies this callback owns (see fllama_inference).
+        fllamaBindings.fllama_free_string(responsePointer);
+        fllamaBindings.fllama_free_string(openaiReponseJsonStringPointer);
+
         final _IsolateInferenceResponse response = _IsolateInferenceResponse(
           id: data.id,
           response: decodedString,
@@ -345,6 +353,9 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
             calloc.free(nativeRequest.model_mmproj_path);
           }
           calloc.free(nativeRequestPointer);
+          // done is the last call fllama_inference makes on this callback.
+          // Left open, each request leaked one.
+          callback.close();
         }
       }
 

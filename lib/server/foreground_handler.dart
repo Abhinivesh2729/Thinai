@@ -1,12 +1,18 @@
 import 'dart:async';
 import 'dart:ui' show Color;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Id of the notification's "Stop server" action, shared by the task handler
 /// that receives the tap and the main isolate that acts on it.
 const kStopServerAction = 'stop_server';
+
+/// The foreground service and its notification are Android-only. On desktop
+/// the server simply lives as long as the app window.
+bool get hasForegroundService =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
 /// Entry point for the service's Dart task isolate.
 ///
@@ -163,7 +169,9 @@ class ForegroundServiceManager {
   }
 
   static bool get _needed =>
-      _serverRunning || _activeDownloads.isNotEmpty || _recentCompletedModel != null;
+      _serverRunning ||
+      _activeDownloads.isNotEmpty ||
+      _recentCompletedModel != null;
 
   static String _formatBytes(int bytes) {
     if (bytes < 1024 * 1024) {
@@ -197,7 +205,9 @@ class ForegroundServiceManager {
       final first = _activeDownloads.values.first;
       final parts = <String>[];
       if (first.total != null && first.total! > 0) {
-        parts.add('${_formatBytes(first.received)} of ${_formatBytes(first.total!)}');
+        parts.add(
+          '${_formatBytes(first.received)} of ${_formatBytes(first.total!)}',
+        );
       } else if (first.received > 0) {
         parts.add(_formatBytes(first.received));
       }
@@ -219,8 +229,11 @@ class ForegroundServiceManager {
   }
 
   static Future<void> _sync() async {
+    if (!hasForegroundService) return;
     final running = await FlutterForegroundTask.isRunningService;
-    final buttons = _serverRunning ? [_stopServerButton] : <NotificationButton>[];
+    final buttons = _serverRunning
+        ? [_stopServerButton]
+        : <NotificationButton>[];
     if (_needed) {
       if (running) {
         await FlutterForegroundTask.updateService(

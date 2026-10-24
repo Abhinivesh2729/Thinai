@@ -236,8 +236,8 @@ class ContactSupportPage extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           _FaqCard(
-            question: l10n.supportFaqPrivacyQuestion,
-            answer: l10n.supportFaqPrivacyAnswer,
+            question: l10n.supportFaqPrivacyQuestion(deviceKind),
+            answer: l10n.supportFaqPrivacyAnswer(deviceKind),
           ),
           const SizedBox(height: 10),
           _FaqCard(

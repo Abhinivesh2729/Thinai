@@ -365,8 +365,8 @@ abstract class AppLocalizations {
   /// No description provided for @serverLanShareOffSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'This phone only'**
-  String get serverLanShareOffSubtitle;
+  /// **'This {device, select, desktop{computer} other{phone}} only'**
+  String serverLanShareOffSubtitle(String device);
 
   /// No description provided for @serverCopyLanUrlTooltip.
   ///
@@ -479,8 +479,8 @@ abstract class AppLocalizations {
   /// No description provided for @hfTooBigTitle.
   ///
   /// In en, this message translates to:
-  /// **'Too big for this phone?'**
-  String get hfTooBigTitle;
+  /// **'Too big for this {device, select, desktop{computer} other{phone}}?'**
+  String hfTooBigTitle(String device);
 
   /// No description provided for @hfDownloadAnyway.
   ///
@@ -497,14 +497,15 @@ abstract class AppLocalizations {
   /// No description provided for @hfDownloadMessageTooBig.
   ///
   /// In en, this message translates to:
-  /// **'Download {file} ({size})?\n\nLikely too big to load on this phone.'**
-  String hfDownloadMessageTooBig(String file, String size);
+  /// **'Download {file} ({size})?\n\nLikely too big to load on this {device, select, desktop{computer} other{phone}}.'**
+  String hfDownloadMessageTooBig(String device, String file, String size);
 
   /// No description provided for @hfDownloadMessageTooBigBudget.
   ///
   /// In en, this message translates to:
-  /// **'Download {file} ({size})?\n\nNeeds about {needs} of memory, this phone has {budget}. It will probably not load.'**
+  /// **'Download {file} ({size})?\n\nNeeds about {needs} of memory, this {device, select, desktop{computer} other{phone}} has {budget}. It will probably not load.'**
   String hfDownloadMessageTooBigBudget(
+    String device,
     String file,
     String size,
     String needs,
@@ -1096,8 +1097,8 @@ abstract class AppLocalizations {
   /// No description provided for @aboutHeroDescription.
   ///
   /// In en, this message translates to:
-  /// **'Private AI that runs on your phone. No internet needed.'**
-  String get aboutHeroDescription;
+  /// **'Private AI that runs on your {device, select, desktop{computer} other{phone}}. No internet needed.'**
+  String aboutHeroDescription(String device);
 
   /// No description provided for @aboutPrivateTitle.
   ///
@@ -1300,14 +1301,14 @@ abstract class AppLocalizations {
   /// No description provided for @supportFaqPrivacyQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Do my chats leave the phone?'**
-  String get supportFaqPrivacyQuestion;
+  /// **'Do my chats leave the {device, select, desktop{computer} other{phone}}?'**
+  String supportFaqPrivacyQuestion(String device);
 
   /// No description provided for @supportFaqPrivacyAnswer.
   ///
   /// In en, this message translates to:
-  /// **'No. Models run entirely on your phone, and your chats stay on it.'**
-  String get supportFaqPrivacyAnswer;
+  /// **'No. Models run entirely on your {device, select, desktop{computer} other{phone}}, and your chats stay on it.'**
+  String supportFaqPrivacyAnswer(String device);
 
   /// No description provided for @supportFaqGpuQuestion.
   ///
@@ -1486,8 +1487,8 @@ abstract class AppLocalizations {
   /// No description provided for @benchmarkBestForHardware.
   ///
   /// In en, this message translates to:
-  /// **'Best for this phone'**
-  String get benchmarkBestForHardware;
+  /// **'Best for this {device, select, desktop{computer} other{phone}}'**
+  String benchmarkBestForHardware(String device);
 
   /// No description provided for @benchmarkMeasuredWithDevice.
   ///
@@ -1546,14 +1547,14 @@ abstract class AppLocalizations {
   /// No description provided for @tourPrivateTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone.\nYour AI.'**
-  String get tourPrivateTitle;
+  /// **'Your {device, select, desktop{computer} other{phone}}.\nYour AI.'**
+  String tourPrivateTitle(String device);
 
   /// No description provided for @tourPrivateBody.
   ///
   /// In en, this message translates to:
-  /// **'Models run on your phone. Nothing leaves it.'**
-  String get tourPrivateBody;
+  /// **'Models run on your {device, select, desktop{computer} other{phone}}. Nothing leaves it.'**
+  String tourPrivateBody(String device);
 
   /// No description provided for @tourOnDeviceTitle.
   ///
@@ -1648,8 +1649,8 @@ abstract class AppLocalizations {
   /// No description provided for @tourStarterBody.
   ///
   /// In en, this message translates to:
-  /// **'Small and fast on any phone.'**
-  String get tourStarterBody;
+  /// **'Small and fast on any {device, select, desktop{computer} other{phone}}.'**
+  String tourStarterBody(String device);
 
   /// No description provided for @tourChatTag.
   ///
@@ -1714,8 +1715,8 @@ abstract class AppLocalizations {
   /// No description provided for @tourServerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your phone,\na private AI server.'**
-  String get tourServerTitle;
+  /// **'Your {device, select, desktop{computer} other{phone}},\na private AI server.'**
+  String tourServerTitle(String device);
 
   /// No description provided for @tourServerBody.
   ///
@@ -1894,8 +1895,8 @@ abstract class AppLocalizations {
   /// No description provided for @tourWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Private AI on your phone'**
-  String get tourWelcomeSubtitle;
+  /// **'Private AI on your {device, select, desktop{computer} other{phone}}'**
+  String tourWelcomeSubtitle(String device);
 
   /// No description provided for @tourWelcomePrivateTitle.
   ///
@@ -1906,8 +1907,8 @@ abstract class AppLocalizations {
   /// No description provided for @tourWelcomePrivateBody.
   ///
   /// In en, this message translates to:
-  /// **'Runs on your phone. No internet needed.'**
-  String get tourWelcomePrivateBody;
+  /// **'Runs on your {device, select, desktop{computer} other{phone}}. No internet needed.'**
+  String tourWelcomePrivateBody(String device);
 
   /// No description provided for @tourWelcomeCatalogTitle.
   ///
@@ -1966,8 +1967,8 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPrivateHeadline.
   ///
   /// In en, this message translates to:
-  /// **'AI that runs\non your phone'**
-  String get onboardingPrivateHeadline;
+  /// **'AI that runs\non your {device, select, desktop{computer} other{phone}}'**
+  String onboardingPrivateHeadline(String device);
 
   /// No description provided for @onboardingPrivateBody.
   ///
@@ -1996,8 +1997,8 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingCatalogBody.
   ///
   /// In en, this message translates to:
-  /// **'Llama, Gemma, Qwen and more, sized for phones.'**
-  String get onboardingCatalogBody;
+  /// **'Llama, Gemma, Qwen and more, sized for {device, select, desktop{computers} other{phones}}.'**
+  String onboardingCatalogBody(String device);
 
   /// No description provided for @onboardingCatalogGraphic.
   ///
@@ -2062,8 +2063,8 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingServerHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Your phone,\nan AI server'**
-  String get onboardingServerHeadline;
+  /// **'Your {device, select, desktop{computer} other{phone}},\nan AI server'**
+  String onboardingServerHeadline(String device);
 
   /// No description provided for @onboardingServerBody.
   ///
@@ -2227,6 +2228,18 @@ abstract class AppLocalizations {
   /// **'No model yet.'**
   String get chatBannerNoModelDownloaded;
 
+  /// No description provided for @chatBannerNoModelLoadedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You have 1 model downloaded.} other{You have {count} models downloaded.}} Select one to load it and start chatting.'**
+  String chatBannerNoModelLoadedDetail(int count);
+
+  /// No description provided for @chatBannerNoModelDownloadedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinai needs a language model to chat. Download one from Models: small ones (1-2 GB) are a good start, and they run fully offline once downloaded.'**
+  String get chatBannerNoModelDownloadedDetail;
+
   /// No description provided for @chatSelect.
   ///
   /// In en, this message translates to:
@@ -2299,11 +2312,23 @@ abstract class AppLocalizations {
   /// **'Private Offline AI'**
   String get chatEmptyTitle;
 
+  /// No description provided for @chatGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get chatGreeting;
+
+  /// No description provided for @chatGreetingName.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome, {name}'**
+  String chatGreetingName(String name);
+
   /// No description provided for @chatEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Runs fully on your phone. Your data stays here.'**
-  String get chatEmptyBody;
+  /// **'Runs fully on your {device, select, desktop{computer} other{phone}}. Your data stays here.'**
+  String chatEmptyBody(String device);
 
   /// No description provided for @chatBrowseDownloadModels.
   ///
@@ -3076,8 +3101,8 @@ abstract class AppLocalizations {
   /// No description provided for @modelsOfflineFooter.
   ///
   /// In en, this message translates to:
-  /// **'Models run fully offline on this phone.'**
-  String get modelsOfflineFooter;
+  /// **'Models run fully offline on this {device, select, desktop{computer} other{phone}}.'**
+  String modelsOfflineFooter(String device);
 
   /// No description provided for @modelsSearchHint.
   ///
@@ -3418,14 +3443,14 @@ abstract class AppLocalizations {
   /// No description provided for @modelsFitTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'Too large for this phone.'**
-  String get modelsFitTooLarge;
+  /// **'Too large for this {device, select, desktop{computer} other{phone}}.'**
+  String modelsFitTooLarge(String device);
 
   /// No description provided for @modelsFitNeeds.
   ///
   /// In en, this message translates to:
-  /// **'Needs {needs}, this phone has {available} to spare.'**
-  String modelsFitNeeds(String needs, String available);
+  /// **'Needs {needs}, this {device, select, desktop{computer} other{phone}} has {available} to spare.'**
+  String modelsFitNeeds(String device, String needs, String available);
 
   /// No description provided for @modelsFitTight.
   ///
@@ -3622,8 +3647,8 @@ abstract class AppLocalizations {
   /// No description provided for @modelsCaveatNoneFits.
   ///
   /// In en, this message translates to:
-  /// **'{task, select, fastChat{No model in the catalogue fits this phone for quick conversations.} reasoning{No model in the catalogue fits this phone for step-by-step reasoning.} coding{No model in the catalogue fits this phone for code.} tamil{No model in the catalogue fits this phone for Tamil.} english{No model in the catalogue fits this phone for English.} vision{No model in the catalogue fits this phone for images.} translation{No model in the catalogue fits this phone for translation.} summarizing{No model in the catalogue fits this phone for summarising.} documents{No model in the catalogue fits this phone for long documents.} other{No model in the catalogue fits this phone for quick conversations.}}'**
-  String modelsCaveatNoneFits(String task);
+  /// **'{task, select, fastChat{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for quick conversations.} reasoning{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for step-by-step reasoning.} coding{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for code.} tamil{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for Tamil.} english{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for English.} vision{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for images.} translation{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for translation.} summarizing{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for summarising.} documents{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for long documents.} other{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for quick conversations.}}'**
+  String modelsCaveatNoneFits(String device, String task);
 
   /// No description provided for @modelsCaveatNothingFitsWell.
   ///
@@ -3658,8 +3683,8 @@ abstract class AppLocalizations {
   /// No description provided for @modelsFitTooBig.
   ///
   /// In en, this message translates to:
-  /// **'Too big for your phone'**
-  String get modelsFitTooBig;
+  /// **'Too big for your {device, select, desktop{computer} other{phone}}'**
+  String modelsFitTooBig(String device);
 
   /// No description provided for @modelsFitUnknown.
   ///
@@ -3694,8 +3719,8 @@ abstract class AppLocalizations {
   /// No description provided for @modelsAdvisorNothingFits.
   ///
   /// In en, this message translates to:
-  /// **'Nothing fits this phone.'**
-  String get modelsAdvisorNothingFits;
+  /// **'Nothing fits this {device, select, desktop{computer} other{phone}}.'**
+  String modelsAdvisorNothingFits(String device);
 
   /// No description provided for @modelsAdvisorAlsoConsider.
   ///
@@ -3826,8 +3851,8 @@ abstract class AppLocalizations {
   /// No description provided for @chatStarterSpeedPrompt.
   ///
   /// In en, this message translates to:
-  /// **'What is your generation speed on this phone?'**
-  String get chatStarterSpeedPrompt;
+  /// **'What is your generation speed on this {device, select, desktop{computer} other{phone}}?'**
+  String chatStarterSpeedPrompt(String device);
 
   /// No description provided for @deviceSummaryRam.
   ///

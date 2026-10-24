@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Thinai
+Comment=Private, offline LLM chat and local OpenAI/Ollama-compatible API
+Exec=thinai
+Icon=thinai
+Terminal=false
+Categories=Utility;Development;
+StartupWMClass=in.atmega.thinai

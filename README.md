@@ -90,6 +90,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 - **Android SDK**: API level 24 (Android 7.0 Nougat) or higher
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
+- **Desktop** (Windows, Linux, macOS): see [docs/DESKTOP.md](docs/DESKTOP.md) for build requirements and packaging.
 
 ---
 

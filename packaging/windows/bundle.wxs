@@ -1,0 +1,18 @@
+<!-- Setup .exe: a WiX bundle that wraps thinai.msi. Built by packaging/package-windows.ps1. -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle Name="Thinai" Manufacturer="Thinai" Version="$(Version)"
+          UpgradeCode="726E38EF-6C4D-4B10-9608-57EE798D8535" IconSourceFile="$(IconFile)">
+    <BootstrapperApplication>
+      <!-- LaunchTarget adds a "Launch" button to the success page. -->
+      <bal:WixStandardBootstrapperApplication Theme="rtfLicense" LicenseFile="$(LicenseRtf)"
+                                              LaunchTarget="[InstallFolder]\thinai.exe" />
+    </BootstrapperApplication>
+    <Variable Name="InstallFolder" Type="formatted" Value="[ProgramFiles64Folder]Thinai" />
+    <Chain>
+      <MsiPackage SourceFile="$(MsiFile)">
+        <MsiProperty Name="INSTALLFOLDER" Value="[InstallFolder]" />
+      </MsiPackage>
+    </Chain>
+  </Bundle>
+</Wix>

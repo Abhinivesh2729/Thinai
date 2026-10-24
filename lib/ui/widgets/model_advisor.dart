@@ -348,7 +348,7 @@ class _Answer extends StatelessWidget {
     final best = result.best;
     if (best == null) {
       return _Note(
-        text: caveat ?? l.modelsAdvisorNothingFits,
+        text: caveat ?? l.modelsAdvisorNothingFits(deviceKind),
         icon: Icons.info_outline_rounded,
       );
     }

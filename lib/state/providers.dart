@@ -1360,7 +1360,7 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
 
 Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
   try {
-    if (await FlutterForegroundTask.isRunningService) {
+    if (hasForegroundService && await FlutterForegroundTask.isRunningService) {
       await FlutterForegroundTask.stopService();
     }
     if (prefs.getBool(_kServerRunningKey) ?? false) {

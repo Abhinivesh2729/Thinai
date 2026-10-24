@@ -1,0 +1,62 @@
+<!-- MSI for the Windows build. Built by packaging/package-windows.ps1. -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package Name="Thinai" Manufacturer="Thinai" Version="$(Version)"
+           UpgradeCode="818113D6-03CB-4D0E-B5F5-567D13A9A29D" Scope="perMachine">
+    <!-- Installing over any earlier build (same version included) replaces it in
+         place; a running Thinai is asked to close first so no file is locked. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of Thinai is already installed." />
+    <util:CloseApplication Target="thinai.exe" CloseMessage="yes" RebootPrompt="no" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="ThinaiIcon" SourceFile="$(IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="ThinaiIcon" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(LicenseRtf)" />
+
+    <!-- "Launch Thinai" checkbox on the finish page, ticked by default. -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Thinai" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]thinai.exe" />
+    <CustomAction Id="LaunchApplication" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec" Impersonate="yes" />
+    <UI>
+      <ui:WixUI Id="WixUI_InstallDir" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Thinai" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(SourceDir)\**" />
+    </ComponentGroup>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut">
+        <Shortcut Id="StartMenu" Name="Thinai" Target="[INSTALLFOLDER]thinai.exe"
+                  WorkingDirectory="INSTALLFOLDER" Icon="ThinaiIcon" />
+        <RegistryValue Root="HKLM" Key="Software\Thinai" Name="StartMenuShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut">
+        <Shortcut Id="Desktop" Name="Thinai" Target="[INSTALLFOLDER]thinai.exe"
+                  WorkingDirectory="INSTALLFOLDER" Icon="ThinaiIcon" />
+        <RegistryValue Root="HKLM" Key="Software\Thinai" Name="DesktopShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="Main">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+  </Package>
+</Wix>

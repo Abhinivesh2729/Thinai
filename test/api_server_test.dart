@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shelf/shelf.dart';
 
 import 'package:local_llm/server/api_server.dart';
 
@@ -61,6 +64,122 @@ void main() {
       final server = ApiServer();
       await server.stop();
       expect(server.running, isFalse);
+    });
+  });
+
+  group('browser access on loopback', () {
+    Future<Response> call(
+      Map<String, String> headers, {
+      bool lanMode = false,
+      Set<String> extraOrigins = const {},
+      String method = 'POST',
+    }) async {
+      final handler = const Pipeline()
+          .addMiddleware(
+            corsMiddleware(lanMode: lanMode, extraOrigins: extraOrigins),
+          )
+          .addHandler((_) => Response.ok('reply'));
+      return handler(
+        Request(
+          method,
+          Uri.parse('http://127.0.0.1:11434/api/chat'),
+          headers: headers,
+        ),
+      );
+    }
+
+    test('a website elsewhere cannot drive the models', () async {
+      final res = await call({
+        'host': '127.0.0.1:11434',
+        'origin': 'https://evil.example',
+      });
+      expect(res.statusCode, 403);
+    });
+
+    test('its preflight is refused too', () async {
+      final res = await call({
+        'host': '127.0.0.1:11434',
+        'origin': 'https://evil.example',
+      }, method: 'OPTIONS');
+      expect(res.statusCode, 403);
+    });
+
+    test('a rebound DNS name pointing at loopback is refused', () async {
+      final res = await call({'host': 'attacker.example:11434'});
+      expect(res.statusCode, 403);
+    });
+
+    test('clients without an Origin (curl, SDKs) still work', () async {
+      final res = await call({'host': 'localhost:11434'});
+      expect(res.statusCode, 200);
+      expect(await res.readAsString(), 'reply');
+    });
+
+    test(
+      'a page served from this machine may call, and is named back',
+      () async {
+        for (final origin in [
+          'http://localhost:3000',
+          'http://127.0.0.1:8080',
+          'http://[::1]:5173',
+        ]) {
+          final res = await call({'host': '[::1]:11434', 'origin': origin});
+          expect(res.statusCode, 200, reason: origin);
+          expect(res.headers['access-control-allow-origin'], origin);
+          expect(res.headers['vary'], 'Origin');
+        }
+      },
+    );
+
+    test('THINAI_ORIGINS lets a listed site in', () async {
+      final res = await call({
+        'host': '127.0.0.1:11434',
+        'origin': 'https://my.tool',
+      }, extraOrigins: parseOrigins(' https://my.tool , https://other '));
+      expect(res.statusCode, 200);
+    });
+
+    test('THINAI_ORIGINS=* opens it to every site', () async {
+      final res = await call({
+        'host': '127.0.0.1:11434',
+        'origin': 'https://evil.example',
+      }, extraOrigins: parseOrigins('*'));
+      expect(res.statusCode, 200);
+    });
+
+    test('LAN mode leaves origins to the bearer token', () async {
+      final res = await call({
+        'host': '192.168.1.20:11434',
+        'origin': 'https://evil.example',
+      }, lanMode: true);
+      expect(res.statusCode, 200);
+      expect(res.headers['access-control-allow-origin'], '*');
+    });
+  });
+
+  group('unexpected errors', () {
+    Future<Map<String, dynamic>> fail(String path) async {
+      final handler = const Pipeline()
+          .addMiddleware(errorMiddleware())
+          .addHandler((_) => throw StateError('boom'));
+      final res = await handler(
+        Request('POST', Uri.parse('http://127.0.0.1:11434/$path')),
+      );
+      expect(res.statusCode, 500);
+      return jsonDecode(await res.readAsString()) as Map<String, dynamic>;
+    }
+
+    test('answer OpenAI clients without leaking the stack trace', () async {
+      final body = await fail('v1/chat/completions');
+      expect(body['error']['message'], contains('boom'));
+      expect(body.containsKey('stack'), isFalse);
+      expect(jsonEncode(body), isNot(contains('.dart')));
+    });
+
+    test('answer Ollama clients without leaking the stack trace', () async {
+      final body = await fail('api/chat');
+      expect(body['error'], contains('boom'));
+      expect(body.containsKey('stack'), isFalse);
     });
   });
 }

@@ -68,6 +68,11 @@ dependencies:
 
   # Config persistence
   shared_preferences: ^2.5.6
+  # Windows only: keep settings and chats in %LOCALAPPDATA% instead of the
+  # Roaming profile (see lib/main.dart). Already pulled in by the two above.
+  shared_preferences_platform_interface: ^2.4.2
+  shared_preferences_windows: ^2.4.1
+  path_provider_windows: ^2.3.0
 
   # Request IDs
   uuid: ^4.6.0

@@ -58,7 +58,14 @@
   "serverTokenRegenerated": "Token regenerated",
   "serverLanShareTitle": "Share on LAN",
   "serverLanShareOnSubtitle": "Devices on this Wi-Fi can connect",
-  "serverLanShareOffSubtitle": "This phone only",
+  "serverLanShareOffSubtitle": "This {device, select, desktop{computer} other{phone}} only",
+  "@serverLanShareOffSubtitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "serverCopyLanUrlTooltip": "Copy LAN URL",
   "serverDevQuickStartTitle": "Quick start",
   "serverEndpointOpenAiChat": "OpenAI chat",
@@ -91,7 +98,14 @@
   },
   "hfResultsSubtitle": "Most downloaded first",
   "hfDownloadTitle": "Download model?",
-  "hfTooBigTitle": "Too big for this phone?",
+  "hfTooBigTitle": "Too big for this {device, select, desktop{computer} other{phone}}?",
+  "@hfTooBigTitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "hfDownloadAnyway": "Download anyway",
   "hfDownloadMessage": "Download {file} ({size})?",
   "@hfDownloadMessage": {
@@ -104,9 +118,12 @@
       }
     }
   },
-  "hfDownloadMessageTooBig": "Download {file} ({size})?\n\nLikely too big to load on this phone.",
+  "hfDownloadMessageTooBig": "Download {file} ({size})?\n\nLikely too big to load on this {device, select, desktop{computer} other{phone}}.",
   "@hfDownloadMessageTooBig": {
     "placeholders": {
+      "device": {
+        "type": "String"
+      },
       "file": {
         "type": "String"
       },
@@ -115,9 +132,12 @@
       }
     }
   },
-  "hfDownloadMessageTooBigBudget": "Download {file} ({size})?\n\nNeeds about {needs} of memory, this phone has {budget}. It will probably not load.",
+  "hfDownloadMessageTooBigBudget": "Download {file} ({size})?\n\nNeeds about {needs} of memory, this {device, select, desktop{computer} other{phone}} has {budget}. It will probably not load.",
   "@hfDownloadMessageTooBigBudget": {
     "placeholders": {
+      "device": {
+        "type": "String"
+      },
       "file": {
         "type": "String"
       },
@@ -389,7 +409,14 @@
   "gpuReadingPrompt": "Prompt",
   "gpuWritingReply": "Reply",
   "aboutTitle": "About Thinai",
-  "aboutHeroDescription": "Private AI that runs on your phone. No internet needed.",
+  "aboutHeroDescription": "Private AI that runs on your {device, select, desktop{computer} other{phone}}. No internet needed.",
+  "@aboutHeroDescription": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "aboutPrivateTitle": "Private and offline",
   "aboutAcceleratedTitle": "GPU acceleration",
   "aboutApiTitle": "Local OpenAI-compatible API",
@@ -458,8 +485,22 @@
   "supportTroubleshooting": "Common questions",
   "supportFaqLoadQuestion": "Why is loading or downloading slow?",
   "supportFaqLoadAnswer": "Models are 1 to 4 GB. Downloads depend on your connection, and loading needs free RAM, so close other apps first.",
-  "supportFaqPrivacyQuestion": "Do my chats leave the phone?",
-  "supportFaqPrivacyAnswer": "No. Models run entirely on your phone, and your chats stay on it.",
+  "supportFaqPrivacyQuestion": "Do my chats leave the {device, select, desktop{computer} other{phone}}?",
+  "@supportFaqPrivacyQuestion": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "supportFaqPrivacyAnswer": "No. Models run entirely on your {device, select, desktop{computer} other{phone}}, and your chats stay on it.",
+  "@supportFaqPrivacyAnswer": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "supportFaqGpuQuestion": "How do I use the GPU?",
   "supportFaqGpuAnswer": "Go to Settings > Hardware > GPU acceleration. Run the speed test to check it is faster.",
   "systemPromptTitle": "System Prompt",
@@ -523,7 +564,14 @@
   },
   "benchmarkEmptyTitle": "No models to measure",
   "benchmarkEmptyBody": "Download a model to measure its speed.",
-  "benchmarkBestForHardware": "Best for this phone",
+  "benchmarkBestForHardware": "Best for this {device, select, desktop{computer} other{phone}}",
+  "@benchmarkBestForHardware": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "benchmarkMeasuredWithDevice": "{device} · {bandwidth} GB/s measured",
   "@benchmarkMeasuredWithDevice": {
     "placeholders": {
@@ -567,8 +615,22 @@
     }
   },
   "tourPrivateTag": "PRIVATE BY DESIGN",
-  "tourPrivateTitle": "Your phone.\nYour AI.",
-  "tourPrivateBody": "Models run on your phone. Nothing leaves it.",
+  "tourPrivateTitle": "Your {device, select, desktop{computer} other{phone}}.\nYour AI.",
+  "@tourPrivateTitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "tourPrivateBody": "Models run on your {device, select, desktop{computer} other{phone}}. Nothing leaves it.",
+  "@tourPrivateBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "tourOnDeviceTitle": "Thinai, on device",
   "tourOnDeviceBody": "Offline · No tracking · No subscription",
   "tourCloudTitle": "Cloud AI",
@@ -594,7 +656,14 @@
       }
     }
   },
-  "tourStarterBody": "Small and fast on any phone.",
+  "tourStarterBody": "Small and fast on any {device, select, desktop{computer} other{phone}}.",
+  "@tourStarterBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "tourChatTag": "CHAT & VISION",
   "tourChatTitle": "Chat with\nyour photos.",
   "tourChatBody": "Attach a photo and watch the speed live.",
@@ -612,7 +681,14 @@
   "tourFeatureVision": "Vision",
   "tourFeaturePersonas": "Personas",
   "tourServerTag": "LOCAL API",
-  "tourServerTitle": "Your phone,\na private AI server.",
+  "tourServerTitle": "Your {device, select, desktop{computer} other{phone}},\na private AI server.",
+  "@tourServerTitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "tourServerBody": "Use it from any OpenAI or Ollama tool.",
   "tourEndpointsTitle": "Endpoints",
   "tourPortBadge": "PORT {port}",
@@ -683,9 +759,23 @@
   "tourAppTour": "App Tour",
   "tourLocatingControl": "Finding…",
   "tourWelcomeTitle": "Welcome to Thinai",
-  "tourWelcomeSubtitle": "Private AI on your phone",
+  "tourWelcomeSubtitle": "Private AI on your {device, select, desktop{computer} other{phone}}",
+  "@tourWelcomeSubtitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "tourWelcomePrivateTitle": "Private and offline",
-  "tourWelcomePrivateBody": "Runs on your phone. No internet needed.",
+  "tourWelcomePrivateBody": "Runs on your {device, select, desktop{computer} other{phone}}. No internet needed.",
+  "@tourWelcomePrivateBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "tourWelcomeCatalogTitle": "Open models",
   "tourWelcomeCatalogBody": "Get Llama, Gemma, Qwen and more in one tap.",
   "tourWelcomeChatTitle": "Chat with files",
@@ -695,12 +785,26 @@
   "tourWelcomeSkipToChat": "Chat",
   "onboardingLogoLabel": "Thinai App Logo",
   "onboardingPrivateTag": "PRIVATE & OFFLINE",
-  "onboardingPrivateHeadline": "AI that runs\non your phone",
+  "onboardingPrivateHeadline": "AI that runs\non your {device, select, desktop{computer} other{phone}}",
+  "@onboardingPrivateHeadline": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingPrivateBody": "Nothing leaves your device. Works in Airplane mode.",
   "onboardingPrivateGraphic": "100% Private and Offline AI",
   "onboardingCatalogTag": "MODEL CATALOG",
   "onboardingCatalogHeadline": "Open models,\none tap away",
-  "onboardingCatalogBody": "Llama, Gemma, Qwen and more, sized for phones.",
+  "onboardingCatalogBody": "Llama, Gemma, Qwen and more, sized for {device, select, desktop{computers} other{phones}}.",
+  "@onboardingCatalogBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingCatalogGraphic": "Curated GGUF Model Catalog",
   "onboardingGpuTag": "GPU ACCELERATION",
   "onboardingGpuHeadline": "Fast on\nyour hardware",
@@ -711,7 +815,14 @@
   "onboardingStudioBody": "Attach a photo or file. Search the web too.",
   "onboardingStudioGraphic": "Multimodal Vision and Document QA",
   "onboardingServerTag": "LOCAL API",
-  "onboardingServerHeadline": "Your phone,\nan AI server",
+  "onboardingServerHeadline": "Your {device, select, desktop{computer} other{phone}},\nan AI server",
+  "@onboardingServerHeadline": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingServerBody": "OpenAI and Ollama API on port {port}.",
   "@onboardingServerBody": {
     "placeholders": {
@@ -819,6 +930,15 @@
   "chatMenuTooltip": "Menu & Chats",
   "chatBannerNoModelLoaded": "No model loaded.",
   "chatBannerNoModelDownloaded": "No model yet.",
+  "chatBannerNoModelLoadedDetail": "{count, plural, =1{You have 1 model downloaded.} other{You have {count} models downloaded.}} Select one to load it and start chatting.",
+  "@chatBannerNoModelLoadedDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatBannerNoModelDownloadedDetail": "Thinai needs a language model to chat. Download one from Models: small ones (1-2 GB) are a good start, and they run fully offline once downloaded.",
   "chatSelect": "Select",
   "chatActiveModelTooltip": "Active model: {modelId} (tap to switch)",
   "@chatActiveModelTooltip": {
@@ -845,7 +965,23 @@
   "chatModelParameters": "Model Parameters",
   "chatDownloadMoreModels": "Download More Models",
   "chatEmptyTitle": "Private Offline AI",
-  "chatEmptyBody": "Runs fully on your phone. Your data stays here.",
+  "chatGreeting": "Welcome",
+  "chatGreetingName": "Welcome, {name}",
+  "@chatGreetingName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatEmptyBody": "Runs fully on your {device, select, desktop{computer} other{phone}}. Your data stays here.",
+  "@chatEmptyBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "chatBrowseDownloadModels": "Get a model",
   "chatReadyWebSearchOn": "Ready · Web search on",
   "chatReadyOffline": "Ready · Offline",
@@ -1214,7 +1350,14 @@
   "modelsExploreModels": "More models",
   "modelsBrowseCatalogTitle": "Results",
   "modelsEmbeddingTitle": "Embedding models",
-  "modelsOfflineFooter": "Models run fully offline on this phone.",
+  "modelsOfflineFooter": "Models run fully offline on this {device, select, desktop{computer} other{phone}}.",
+  "@modelsOfflineFooter": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "modelsSearchHint": "Search models",
   "modelsClearSearch": "Clear search",
   "modelsFilterAll": "All",
@@ -1337,10 +1480,20 @@
   "modelsCapMultilingual": "Multilingual",
   "modelsCapCodeReasoning": "Code · Reasoning",
   "modelsCapInstruct": "Instruct",
-  "modelsFitTooLarge": "Too large for this phone.",
-  "modelsFitNeeds": "Needs {needs}, this phone has {available} to spare.",
+  "modelsFitTooLarge": "Too large for this {device, select, desktop{computer} other{phone}}.",
+  "@modelsFitTooLarge": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "modelsFitNeeds": "Needs {needs}, this {device, select, desktop{computer} other{phone}} has {available} to spare.",
   "@modelsFitNeeds": {
     "placeholders": {
+      "device": {
+        "type": "String"
+      },
       "needs": {
         "type": "String"
       },
@@ -1444,9 +1597,12 @@
       }
     }
   },
-  "modelsCaveatNoneFits": "{task, select, fastChat{No model in the catalogue fits this phone for quick conversations.} reasoning{No model in the catalogue fits this phone for step-by-step reasoning.} coding{No model in the catalogue fits this phone for code.} tamil{No model in the catalogue fits this phone for Tamil.} english{No model in the catalogue fits this phone for English.} vision{No model in the catalogue fits this phone for images.} translation{No model in the catalogue fits this phone for translation.} summarizing{No model in the catalogue fits this phone for summarising.} documents{No model in the catalogue fits this phone for long documents.} other{No model in the catalogue fits this phone for quick conversations.}}",
+  "modelsCaveatNoneFits": "{task, select, fastChat{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for quick conversations.} reasoning{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for step-by-step reasoning.} coding{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for code.} tamil{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for Tamil.} english{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for English.} vision{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for images.} translation{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for translation.} summarizing{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for summarising.} documents{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for long documents.} other{No model in the catalogue fits this {device, select, desktop{computer} other{phone}} for quick conversations.}}",
   "@modelsCaveatNoneFits": {
     "placeholders": {
+      "device": {
+        "type": "String"
+      },
       "task": {
         "type": "String"
       }
@@ -1471,13 +1627,27 @@
   "modelsVisionUnavailable": "Image understanding is not available in this build.",
   "modelsFitComfortable": "Runs well",
   "modelsFitTightShort": "Tight fit",
-  "modelsFitTooBig": "Too big for your phone",
+  "modelsFitTooBig": "Too big for your {device, select, desktop{computer} other{phone}}",
+  "@modelsFitTooBig": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "modelsFitUnknown": "Fit unknown",
   "modelsSpeedUnknown": "speed unknown",
   "modelsAdvisorPrompt": "What do you want to do?",
   "modelsClear": "Clear",
   "modelsAdvisorCollapse": "Collapse guide",
-  "modelsAdvisorNothingFits": "Nothing fits this phone.",
+  "modelsAdvisorNothingFits": "Nothing fits this {device, select, desktop{computer} other{phone}}.",
+  "@modelsAdvisorNothingFits": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "modelsAdvisorAlsoConsider": "Also good",
   "modelsSettingsTitle": "Model settings",
   "modelsSettingsBody": "Applies to chat and the server.",
@@ -1528,7 +1698,14 @@
   "chatStarterBrainstormPrompt": "Give me 5 creative ideas to build an on-device AI app",
   "chatStarterPythonPrompt": "Write a Python script to sort and deduplicate a list of items",
   "chatStarterSummarizePrompt": "Summarize the key takeaways from the following:\n\n",
-  "chatStarterSpeedPrompt": "What is your generation speed on this phone?",
+  "chatStarterSpeedPrompt": "What is your generation speed on this {device, select, desktop{computer} other{phone}}?",
+  "@chatStarterSpeedPrompt": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "deviceSummaryRam": "{ram} GB RAM · {cores} cores",
   "deviceSummaryCores": "{cores} cores",
   "@deviceSummaryRam": {

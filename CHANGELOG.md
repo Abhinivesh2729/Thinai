@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Desktop app for Windows, Linux and macOS from the same codebase (#56). See [docs/DESKTOP.md](docs/DESKTOP.md) and [ADR-001](docs/decisions/ADR-001-desktop-from-flutter-codebase.md).
+- Desktop packages: Windows `-setup.exe`, `.msi` and `.zip`; Linux `.deb` and `.tar.gz`; macOS `.dmg` and `.zip` (`packaging/`, plus a manual `Desktop Build` workflow).
+- Windows installers add Start menu and desktop shortcuts, offer to launch Thinai when they finish, and upgrade an existing install in place.
+- The landing screen greets you ("Welcome" / "வணக்கம்") and, on desktop, uses the signed-in account's name.
+
+### Changed
+- Text that names the hardware says "computer" (கணினி) on desktop and "phone" (கைப்பேசி) on Android.
+- "No model yet" / "No model loaded" is shown as an amber warning with a line explaining the next step, instead of a red error.
+- Desktop windows open maximized (a shortcut set to "Run: Minimized" is honoured).
+- Desktop runs one copy at a time: launching Thinai again brings the open window forward instead of starting a second server on the same port.
+- **Security:** the local API (loopback mode) only answers browser pages served from this machine, and refuses requests whose `Host` is not loopback (DNS rebinding). Before, any website open in a browser could run your models and read the replies. Clients that send no `Origin` (curl, SDKs) are unaffected; list other sites in `THINAI_ORIGINS` (`*` for any), like Ollama's `OLLAMA_ORIGINS`. LAN mode is unchanged (token required).
+- **Security:** API errors no longer include the server's stack trace; it goes to the app's log instead.
+- Windows: models, settings and chats live in `%LOCALAPPDATA%\in.atmega\Thinai`, not the Roaming profile that managed PCs copy to a server.
+
+### Fixed
+- Windows: the first chat no longer crashes the app. fllama read ggml's clock before initialising it, and on Windows that clock divides by a timer frequency that is still 0 at that point (`0xC0000094` in `fllama.dll`).
+- All platforms: streamed replies are no longer read from freed memory. llama.cpp handed Dart pointers to strings that changed or were destroyed before the asynchronous callback read them, which could crash the app at random or garble text and token counts. The callback now receives copies it owns.
+- All platforms: log lines sent to a Dart logger are no longer read from freed memory (same class of bug as streamed replies), and each chat no longer leaks its native callback.
+- All platforms: fllama's own timings ("Model ready", "Done") no longer come out negative; they used ggml's clock, which model loading resets.
+- All platforms: `tool_choice: "required"` now forces a tool call. fllama built the chat template's grammar but never passed it to the sampler. (A `grammar` set through fllama's Dart API now applies too; the HTTP API has no `grammar` parameter.)
+- Windows: `fllama.dll` and the Visual C++ runtime (with OpenMP) are now bundled with the app, so it starts on PCs without the VC++ redistributable. The build hook's library-name match also caught MSBuild's `fllama.dll.recipe`.
+
 ## [2.4.0]
 
 ### Added

@@ -219,8 +219,9 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
     final message = switch (fit) {
       RamFit.tooBig =>
         budget == null
-            ? l10n.hfDownloadMessageTooBig(file, size)
+            ? l10n.hfDownloadMessageTooBig(deviceKind, file, size)
             : l10n.hfDownloadMessageTooBigBudget(
+                deviceKind,
                 file,
                 size,
                 _fmtSize(needs),
@@ -231,7 +232,7 @@ class _HfRepoPageState extends ConsumerState<HfRepoPage> {
     };
     final confirmed = await _confirmDialog(
       context,
-      title: tooBig ? l10n.hfTooBigTitle : l10n.hfDownloadTitle,
+      title: tooBig ? l10n.hfTooBigTitle(deviceKind) : l10n.hfDownloadTitle,
       message: message,
       confirmLabel: tooBig ? l10n.hfDownloadAnyway : l10n.commonDownload,
       destructive: tooBig,

@@ -85,7 +85,11 @@ class ModelStore {
   Future<Directory> modelsDir() async {
     final cached = _dir;
     if (cached != null) return cached;
-    final base = await getApplicationSupportDirectory();
+    // On Windows the support directory is the Roaming profile, which managed
+    // PCs copy to a server: multi-GB models must stay in %LOCALAPPDATA%.
+    final base = Platform.isWindows
+        ? await getApplicationCacheDirectory()
+        : await getApplicationSupportDirectory();
     final dir = Directory('${base.path}/models');
     if (!await dir.exists()) {
       await dir.create(recursive: true);

@@ -81,6 +81,9 @@ EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_inference(struct fllama_infer
 EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_inference_sync(struct fllama_inference_request request,
                            fllama_inference_callback callback);
 EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_inference_cancel(int request_id);
+// Releases a string fllama_inference handed to its callback. The callback owns
+// both strings it receives from fllama_inference (not fllama_inference_sync).
+EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_free_string(char *s);
 
 // GPU device information.
 // Returns the number of GPU devices visible to ggml/llama.cpp.

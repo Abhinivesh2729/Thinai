@@ -1,8 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'app_localizations.dart';
 
 export 'app_localizations.dart';
+
+/// Fills the `{device}` select in strings that name the hardware: "computer"
+/// on desktop, "phone" everywhere else.
+String get deviceKind => switch (defaultTargetPlatform) {
+  TargetPlatform.windows ||
+  TargetPlatform.macOS ||
+  TargetPlatform.linux => 'desktop',
+  _ => 'phone',
+};
 
 extension AppLocalizationsX on BuildContext {
   /// The strings for the current locale. Falls back to English where no

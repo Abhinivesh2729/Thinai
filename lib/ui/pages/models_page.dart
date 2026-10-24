@@ -129,8 +129,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       RamFit.tight => l.modelsFitTight,
       RamFit.tooBig =>
         budget == null
-            ? l.modelsFitTooLarge
+            ? l.modelsFitTooLarge(deviceKind)
             : l.modelsFitNeeds(
+                deviceKind,
                 _FitWarning._gb(runtimeBytesFor(m)),
                 _FitWarning._gb(budget),
               ),
@@ -723,7 +724,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  context.l10n.modelsOfflineFooter,
+                  context.l10n.modelsOfflineFooter(deviceKind),
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
                     fontSize: 11.5,
@@ -3263,7 +3264,7 @@ List<Widget> _cardChips(
       ),
     if (flagTooBig)
       _SpecPill(
-        label: l.modelsFitTooBig,
+        label: l.modelsFitTooBig(deviceKind),
         icon: Icons.block_rounded,
         color: Colors.red.shade400,
         isDarkCard: isDarkCard,
@@ -3410,8 +3411,8 @@ class _FitWarning extends StatelessWidget {
     final l = context.l10n;
     final text = blocked
         ? available == null
-              ? l.modelsFitTooLarge
-              : l.modelsFitNeeds(_gb(needs), _gb(available))
+              ? l.modelsFitTooLarge(deviceKind)
+              : l.modelsFitNeeds(deviceKind, _gb(needs), _gb(available))
         : l.modelsFitTight;
 
     return Container(
