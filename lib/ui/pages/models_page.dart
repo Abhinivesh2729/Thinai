@@ -14,7 +14,9 @@ import '../../models_repo/use_cases.dart';
 import '../../state/providers.dart';
 import '../widgets/coach_mark_targets.dart';
 import '../widgets/model_brand_logo.dart';
+import '../widgets/tamil_glyph_icon.dart';
 import 'benchmark_page.dart';
+import 'tamil_eval_page.dart';
 
 part 'hf_search_page.dart';
 
@@ -287,6 +289,15 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         title: Text(context.l10n.navModels),
         actions: [
           IconButton(
+            tooltip: context.l10n.tamilEvalTooltip,
+            icon: const TamilGlyphIcon(),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const TamilEvalPage()));
+            },
+          ),
+          IconButton(
             key: CoachMarkTargets.benchmarkButton,
             tooltip: context.l10n.modelsBenchmark,
             icon: const Icon(Icons.speed_rounded),
@@ -505,6 +516,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             _InstalledCard(
               model: m,
               active: activeId == m.id,
+              tamilScore: ref.watch(tamilScoreProvider(m.id)),
               onTap: () => _load(m),
               onDelete: () => _delete(m),
             ),
@@ -2027,11 +2039,15 @@ class _InstalledCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
+  /// Latest Tamil eval score, when the model has been tested.
+  final double? tamilScore;
+
   const _InstalledCard({
     required this.model,
     required this.active,
     required this.onTap,
     required this.onDelete,
+    this.tamilScore,
   });
 
   @override
@@ -2123,6 +2139,13 @@ class _InstalledCard extends StatelessWidget {
                           icon: Icons.storage_rounded,
                         ),
                         const SizedBox(width: 8),
+                        if (tamilScore != null) ...[
+                          _SpecPill(
+                            label: 'த ${tamilScore!.round()}',
+                            tone: _ChipTone.accent,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         if (active)
                           _SpecPill(
                             label: context.l10n.modelsActiveInChat,

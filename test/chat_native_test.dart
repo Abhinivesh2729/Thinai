@@ -163,6 +163,15 @@ void main() {
       // One line per token arrives through a NativeCallable.listener, read after
       // the native thread has moved on: each must be the copy it was given, not
       // whatever later reused the memory.
+      //
+      // fllamaChat bypasses LlmEngine's queue, and the test before this one
+      // stops its reply early: the native side is still winding that down,
+      // and with one slot the two requests collide. The app always goes
+      // through the queue, so drain it first the way the app would.
+      await run([
+        const ChatMessage(role: 'user', content: 'Reply with: ok'),
+      ], options: const GenerationOptions(maxTokens: 4));
+
       final logs = <String>[];
       final finished = Completer<void>();
       await fllamaChat(

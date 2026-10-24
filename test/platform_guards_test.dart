@@ -7,20 +7,21 @@ import 'package:local_llm/ui/pages/chat_page.dart';
 void main() {
   tearDown(() => debugDefaultTargetPlatformOverride = null);
 
-  group('hasForegroundService', () {
+  group('foregroundServiceSupported', () {
     test('is on for Android, where the server needs the service', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      expect(hasForegroundService, isTrue);
+      expect(foregroundServiceSupported, isTrue);
     });
 
     for (final platform in [
+      TargetPlatform.iOS,
       TargetPlatform.windows,
       TargetPlatform.macOS,
       TargetPlatform.linux,
     ]) {
       test('is off on ${platform.name}, which has no such plugin', () {
         debugDefaultTargetPlatformOverride = platform;
-        expect(hasForegroundService, isFalse);
+        expect(foregroundServiceSupported, isFalse);
       });
     }
   });

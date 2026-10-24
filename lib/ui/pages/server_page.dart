@@ -85,7 +85,7 @@ class _ServerPageState extends ConsumerState<ServerPage> {
   }
 
   Future<void> _ensurePermissions() async {
-    if (!hasForegroundService) return;
+    if (!foregroundServiceSupported) return;
     await Permission.notification.request();
     await FlutterForegroundTask.canDrawOverlays;
   }

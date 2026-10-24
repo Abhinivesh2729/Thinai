@@ -41,6 +41,7 @@ The Tamil strings in `lib/l10n/app_ta.arb` use these terms. Keep new strings con
 | Recommended | பரிந்துரைக்கப்பட்டது |
 | Speed | வேகம் |
 | Benchmark | அளவுகோல் |
+| Tamil eval / Tamil score | தமிழ் மதிப்பீடு / தமிழ் மதிப்பெண் |
 | System prompt | அமைப்பு செய்தி |
 | Context (window) | context |
 | Attachment / image / document | இணைப்பு / படம் / ஆவணம் |

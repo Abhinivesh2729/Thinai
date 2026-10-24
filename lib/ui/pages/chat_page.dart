@@ -2119,7 +2119,7 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         onTap: () => _choose(widget.onToggleWebSearch),
       ),
       // image_picker has no camera source on desktop.
-      if (defaultTargetPlatform == TargetPlatform.android)
+      if (deviceKind != 'desktop')
         _DialItem(
           key: dialCameraKey,
           icon: Icons.photo_camera_outlined,

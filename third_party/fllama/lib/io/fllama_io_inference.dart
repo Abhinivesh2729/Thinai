@@ -31,6 +31,10 @@ Future<int> fllamaInference(
       _IsolateInferenceRequest(requestId, request);
   _isolateInferenceCallbacks[requestId] = callback;
   
+  for (final id in _finishedLoggerIds) {
+    _loggerCallbacks.remove(id);
+  }
+  _finishedLoggerIds.clear();
   // Store the logger callback so we can call it when we get messages from the isolate
   if (request.logger != null) {
     _loggerCallbacks[requestId] = request.logger;
@@ -89,6 +93,12 @@ final Map<int, FllamaInferenceCallback> _isolateInferenceCallbacks =
 /// Mapping from request IDs to the original logger callbacks
 final Map<int, void Function(String)?> _loggerCallbacks =
     <int, void Function(String)?>{};
+
+/// Requests whose reply is done but whose logger is kept a while longer: log
+/// lines come through a different port than the reply, so they can arrive
+/// after it, and removing the logger on done dropped them. They are removed
+/// when the next request starts.
+final Set<int> _finishedLoggerIds = <int>{};
 
 Pointer<fllama_inference_request> _toNative(
     FllamaInferenceRequest dart, int requestId, [Map<int, NativeCallable>? loggerCallbacks, SendPort? sendPort]) {
@@ -190,7 +200,7 @@ Future<SendPort> _helperIsolateSendPort = () async {
         }
         if (data.done) {
           _isolateInferenceCallbacks.remove(data.id);
-          _loggerCallbacks.remove(data.id);  // Clean up the logger callback
+          _finishedLoggerIds.add(data.id); // Late log lines still arrive
           // Note: NativeCallable cleanup happens in the isolate when inference is done
           return;
         } else {

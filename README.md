@@ -1,4 +1,9 @@
-# Thinai
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/images/logo_dark.png">
+    <img src="assets/images/logo_transparent.png" alt="Thinai" width="280">
+  </picture>
+</p>
 
 [![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAbhinivesh2729/Thinai%2Fmain%2Fpubspec.yaml&query=%24.version&label=version&color=blue)](pubspec.yaml)
 [![CI](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhinivesh2729/Thinai/actions/workflows/ci.yml)
@@ -90,6 +95,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 - **Android SDK**: API level 24 (Android 7.0 Nougat) or higher
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
+- **iOS (early)**: Xcode 16.4+ with CocoaPods, an Apple ID for signing, and an iPhone on iOS 15 or later. Tested on an iPhone 12.
 - **Desktop** (Windows, Linux, macOS): see [docs/DESKTOP.md](docs/DESKTOP.md) for build requirements and packaging.
 
 ---
@@ -113,6 +119,14 @@ flutter run
 ```
 
 > **Note:** The first build compiles the native `llama.cpp` C++ engine from source and takes several minutes.
+
+On iOS, open `ios/Runner.xcworkspace` once and pick your team under **Signing & Capabilities**, then run a release build (the mode tested so far):
+
+```bash
+flutter run --release
+```
+
+The API server runs only while Thinai is in the foreground on iOS. There is no equivalent of Android's foreground service.
 
 ### 3. Start the Server
 

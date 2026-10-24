@@ -72,6 +72,11 @@ class OpenAiRequest {
   final bool? enableThinking;
   final double frequencyPenalty;
   final double presencePenalty;
+
+  /// GBNF grammar every sampled token must fit, ex. `root ::= [ABCD]` for a
+  /// one-letter answer. Not in OpenAI's API, but llama-server takes it. Null
+  /// or empty leaves sampling unconstrained.
+  final String? grammar;
   // Not in OpenAI, but used by llama.
   final String modelPath;
   final String? mmprojPath;
@@ -120,6 +125,7 @@ class OpenAiRequest {
       'top_p': topP,
       if (topK != null) 'top_k': topK,
       if (enableThinking != null) 'enable_thinking': enableThinking,
+      if (grammar?.isNotEmpty == true) 'grammar': grammar,
       'frequency_penalty': frequencyPenalty,
       'presence_penalty': presencePenalty,
       if (toolChoice != null) 'tool_choice': toolChoice?.jsonName,
@@ -143,6 +149,7 @@ class OpenAiRequest {
     this.topP = 1.0,
     this.topK,
     this.enableThinking,
+    this.grammar,
     this.frequencyPenalty = 0.0,
     // Match default penalty_repeat of 1.1 in llama.cpp.
     this.presencePenalty = 1.1,

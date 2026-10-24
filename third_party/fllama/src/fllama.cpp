@@ -392,6 +392,9 @@ static void run_inference(fllama_inference_request request,
     // Sampling knobs the FFI struct has no field for, read from the request
     // JSON instead. -1 = not sent: keep llama.cpp's default (top_k = 40).
     int32_t top_k = -1;
+    // GBNF grammar constraining every sampled token, as llama-server's
+    // `grammar` field. Empty = unconstrained.
+    std::string grammar;
     // Constraints the chat template asks for: with tools this is what makes
     // tool_choice "required" actually force a call. Same handling as
     // llama-server (params_from_json_cmpl).
@@ -405,6 +408,9 @@ static void run_inference(fllama_inference_request request,
 
         if (body.contains("top_k") && body["top_k"].is_number_integer()) {
           top_k = std::max(0, body["top_k"].get<int32_t>());
+        }
+        if (body.contains("grammar") && body["grammar"].is_string()) {
+          grammar = body["grammar"].get<std::string>();
         }
 
         std::string jinja_tmpl;
@@ -550,10 +556,14 @@ static void run_inference(fllama_inference_request request,
     task.params.sampling.penalty_freq   = request.penalty_freq;
     task.params.sampling.penalty_repeat = request.penalty_repeat;
 
-    // The template's grammar wins; otherwise the caller's own, if any.
-    if (chat_constraints.grammar.empty() && request.grammar &&
-        request.grammar[0] != '\0') {
-      chat_constraints.grammar = request.grammar;
+    // The template's grammar (tools) wins; otherwise the caller's own: the
+    // request JSON's `grammar`, then the FFI struct's.
+    if (chat_constraints.grammar.empty()) {
+      if (!grammar.empty()) {
+        chat_constraints.grammar = grammar;
+      } else if (request.grammar && request.grammar[0] != '\0') {
+        chat_constraints.grammar = request.grammar;
+      }
     }
     task.params.sampling.grammar          = chat_constraints.grammar;
     task.params.sampling.grammar_lazy     = chat_constraints.grammar_lazy;

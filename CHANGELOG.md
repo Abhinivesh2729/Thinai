@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The landing screen greets you ("Welcome" / "வணக்கம்") and, on desktop, uses the signed-in account's name.
 
 ### Changed
-- Text that names the hardware says "computer" (கணினி) on desktop and "phone" (கைப்பேசி) on Android.
+- Text that names the hardware says "computer" (கணினி) on desktop and "phone" (கைப்பேசி) on phones.
 - "No model yet" / "No model loaded" is shown as an amber warning with a line explaining the next step, instead of a red error.
 - Desktop windows open maximized (a shortcut set to "Run: Minimized" is honoured).
 - Desktop runs one copy at a time: launching Thinai again brings the open window forward instead of starting a second server on the same port.
@@ -27,8 +27,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All platforms: streamed replies are no longer read from freed memory. llama.cpp handed Dart pointers to strings that changed or were destroyed before the asynchronous callback read them, which could crash the app at random or garble text and token counts. The callback now receives copies it owns.
 - All platforms: log lines sent to a Dart logger are no longer read from freed memory (same class of bug as streamed replies), and each chat no longer leaks its native callback.
 - All platforms: fllama's own timings ("Model ready", "Done") no longer come out negative; they used ggml's clock, which model loading resets.
-- All platforms: `tool_choice: "required"` now forces a tool call. fllama built the chat template's grammar but never passed it to the sampler. (A `grammar` set through fllama's Dart API now applies too; the HTTP API has no `grammar` parameter.)
+- All platforms: `tool_choice: "required"` now forces a tool call. fllama built the chat template's grammar but never passed it to the sampler. When a request sends tools, that grammar takes precedence over a request `grammar` (2.5.0); without tools, `grammar` applies as before.
 - Windows: `fllama.dll` and the Visual C++ runtime (with OpenMP) are now bundled with the app, so it starts on PCs without the VC++ redistributable. The build hook's library-name match also caught MSBuild's `fllama.dll.recipe`.
+
+## [2.5.0]
+
+### Added
+- Search Hugging Face from the Models page and install any public single-file GGUF. Repo pages show the licence, context length, quantisation, size and RAM fit for each file; downloads are pinned to the listed commit. The app goes online only while you search or open a repo (#58).
+- Downloads resume where they stopped after a pause, a lost connection or the app closing, using HTTP Range with If-Range on the ETag. Cancel is now Pause; the Model Manager lists paused downloads with Resume and Discard (#62).
+- Thinai in English and Tamil: every screen is translated, with a language picker and a glossary in Settings → Appearance. In Tamil, the model answers in Tamil (#67).
+- Tamil eval: Models → த runs 60 short Tamil questions on the selected model and gives a Tamil score from 0 to 100, with Understanding, Expression and Knowledge scores and every reply behind them. A full run of LFM2.5-350M on a mid-range phone takes about 2.5 minutes. The latest score shows on the model's card. The dataset and scorers live in the [`thinai_tamil_evals`](https://github.com/Abhinivesh2729/thinai-tamil-evals) library (#3).
+- The API server takes a GBNF `grammar` on `/v1/chat/completions`, like llama-server.
+
+### Changed
+- LFM2.5 350M is the featured model on the Models page.
+- Dependencies: dio 5.11.1, flutter_foreground_task 11.0.3, permission_handler 13.0.2, cupertino_icons 2.0.0, plus patch updates (#64).
+- Test coverage raised from 41% to 77%; the CI coverage gate is now 50%.
+- Faster launch: no fixed 2.8 s splash wait, and the Android 12+ system splash shows the logo (#73).
+
+### Fixed
+- Qwen3.5 GGUFs re-converted with an MTP block failed to load (#60).
+- The Server tab shows the saved port before the server starts (#41).
+- The LAN switch is visible in dark theme (#54).
+- A long goal name no longer pushes the Reset button off the Models filter row.
+- Chats, attachments and API requests got a quarter of the context window set in the app; each request now gets all of it. The Ollama routes report a native failure as an error instead of a 200 reply (#75).
 
 ## [2.4.0]
 

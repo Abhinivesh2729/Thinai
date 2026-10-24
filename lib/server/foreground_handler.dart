@@ -9,11 +9,6 @@ import 'package:permission_handler/permission_handler.dart';
 /// that receives the tap and the main isolate that acts on it.
 const kStopServerAction = 'stop_server';
 
-/// The foreground service and its notification are Android-only. On desktop
-/// the server simply lives as long as the app window.
-bool get hasForegroundService =>
-    !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-
 /// Entry point for the service's Dart task isolate.
 ///
 /// The service needs a task handler for one reason only: notification action
@@ -43,7 +38,15 @@ class _ThinaiTaskHandler extends TaskHandler {
   }
 }
 
+/// The service is an Android concept. iOS has no equivalent for keeping an
+/// HTTP server alive in the background, so there the server and downloads
+/// run only while the app is in the foreground and every call here is a
+/// no-op. Desktop has none either: the server lives as long as the window.
+bool get foregroundServiceSupported =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
 void initForegroundTaskOptions() {
+  if (!foregroundServiceSupported) return;
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'thinai_server',
@@ -229,7 +232,7 @@ class ForegroundServiceManager {
   }
 
   static Future<void> _sync() async {
-    if (!hasForegroundService) return;
+    if (!foregroundServiceSupported) return;
     final running = await FlutterForegroundTask.isRunningService;
     final buttons = _serverRunning
         ? [_stopServerButton]
