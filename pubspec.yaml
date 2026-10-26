@@ -56,8 +56,8 @@ dependencies:
       ref: v0.1.0
 
   # HTTP server
-  shelf: ^1.4.2
-  shelf_router: ^1.1.4
+  shelf: ^1.4.3
+  shelf_router: ^1.1.5
 
   # Filesystem / model management
   path_provider: ^2.1.6
