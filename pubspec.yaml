@@ -61,7 +61,7 @@ dependencies:
 
   # Filesystem / model management
   path_provider: ^2.1.6
-  file_picker: ^8.1.2
+  file_picker: ^12.0.0-beta.7
   dio: ^5.11.1
 
   # State management
@@ -88,7 +88,7 @@ dependencies:
   in_app_update: ^4.2.5
 
   # Reads the running versionName/versionCode to show in Settings
-  package_info_plus: ^9.0.1
+  package_info_plus: ^10.2.2
 
   # Camera capture for the chat composer. file_picker covers picking a photo
   # that already exists; this is the other half — taking one now. Deliberately
@@ -96,7 +96,7 @@ dependencies:
   # the system camera app, and declaring the permission would oblige the app to
   # request it at runtime for no extra capability.
   image_picker: ^1.2.4
-  share_plus: ^12.0.2
+  share_plus: ^13.3.1
 
 dev_dependencies:
   flutter_test:
