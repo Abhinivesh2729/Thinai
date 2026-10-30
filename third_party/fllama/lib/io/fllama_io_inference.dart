@@ -31,6 +31,10 @@ Future<int> fllamaInference(
       _IsolateInferenceRequest(requestId, request);
   _isolateInferenceCallbacks[requestId] = callback;
   
+  for (final id in _finishedLoggerIds) {
+    _loggerCallbacks.remove(id);
+  }
+  _finishedLoggerIds.clear();
   // Store the logger callback so we can call it when we get messages from the isolate
   if (request.logger != null) {
     _loggerCallbacks[requestId] = request.logger;
@@ -90,6 +94,12 @@ final Map<int, FllamaInferenceCallback> _isolateInferenceCallbacks =
 final Map<int, void Function(String)?> _loggerCallbacks =
     <int, void Function(String)?>{};
 
+/// Requests whose reply is done but whose logger is kept a while longer: log
+/// lines come through a different port than the reply, so they can arrive
+/// after it, and removing the logger on done dropped them. They are removed
+/// when the next request starts.
+final Set<int> _finishedLoggerIds = <int>{};
+
 Pointer<fllama_inference_request> _toNative(
     FllamaInferenceRequest dart, int requestId, [Map<int, NativeCallable>? loggerCallbacks, SendPort? sendPort]) {
   // Allocate memory for the request structure.
@@ -136,6 +146,8 @@ Pointer<fllama_inference_request> _toNative(
   if (dart.logger != null) {
     void onResponse(Pointer<Char> responsePointer) {
       final message = pointerCharToString(responsePointer);
+      // A copy this callback owns (see log_message in fllama.cpp).
+      fllamaBindings.fllama_free_string(responsePointer);
       // Send log message back to main isolate if we have a sendPort
       if (sendPort != null) {
         sendPort.send(_IsolateLogMessage(requestId, message));
@@ -188,7 +200,7 @@ Future<SendPort> _helperIsolateSendPort = () async {
         }
         if (data.done) {
           _isolateInferenceCallbacks.remove(data.id);
-          _loggerCallbacks.remove(data.id);  // Clean up the logger callback
+          _finishedLoggerIds.add(data.id); // Late log lines still arrive
           // Note: NativeCallable cleanup happens in the isolate when inference is done
           return;
         } else {
@@ -278,7 +290,8 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           final codeUnits = responsePointer.cast<Uint8>();
 
           var length = 0;
-          while (codeUnits[length] != 0) {
+          // Null only if native malloc failed: read it as an empty string.
+          while (codeUnits != nullptr && codeUnits[length] != 0) {
             length++;
           }
 
@@ -306,7 +319,8 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           final codeUnits = openaiReponseJsonStringPointer.cast<Uint8>();
 
           var length = 0;
-          while (codeUnits[length] != 0) {
+          // Null only if native malloc failed: read it as an empty string.
+          while (codeUnits != nullptr && codeUnits[length] != 0) {
             length++;
           }
 
@@ -328,6 +342,10 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
           }
         }
 
+        // Both strings are copies this callback owns (see fllama_inference).
+        fllamaBindings.fllama_free_string(responsePointer);
+        fllamaBindings.fllama_free_string(openaiReponseJsonStringPointer);
+
         final _IsolateInferenceResponse response = _IsolateInferenceResponse(
           id: data.id,
           response: decodedString,
@@ -345,6 +363,9 @@ void _fllamaInferenceIsolate(SendPort sendPort) async {
             calloc.free(nativeRequest.model_mmproj_path);
           }
           calloc.free(nativeRequestPointer);
+          // done is the last call fllama_inference makes on this callback.
+          // Left open, each request leaked one.
+          callback.close();
         }
       }
 

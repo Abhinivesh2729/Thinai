@@ -71,7 +71,7 @@ class AboutPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  l10n.aboutHeroDescription,
+                  l10n.aboutHeroDescription(deviceKind),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,

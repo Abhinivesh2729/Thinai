@@ -95,7 +95,7 @@ class WelcomeTourSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        l10n.tourWelcomeSubtitle,
+                        l10n.tourWelcomeSubtitle(deviceKind),
                         style: TextStyle(
                           fontSize: 12.5,
                           color: scheme.onSurfaceVariant,
@@ -113,7 +113,7 @@ class WelcomeTourSheet extends StatelessWidget {
             _FeatureTile(
               icon: Icons.shield_rounded,
               title: l10n.tourWelcomePrivateTitle,
-              subtitle: l10n.tourWelcomePrivateBody,
+              subtitle: l10n.tourWelcomePrivateBody(deviceKind),
             ),
             const SizedBox(height: 12),
             _FeatureTile(

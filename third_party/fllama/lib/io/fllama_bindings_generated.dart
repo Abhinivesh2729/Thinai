@@ -75,6 +75,23 @@ class FllamaBindings {
   late final _fllama_inference_cancel =
       _fllama_inference_cancelPtr.asFunction<void Function(int)>();
 
+  /// Releases a string fllama_inference handed to its callback. The callback
+  /// owns both strings it receives from fllama_inference (not
+  /// fllama_inference_sync).
+  void fllama_free_string(
+    ffi.Pointer<ffi.Char> s,
+  ) {
+    return _fllama_free_string(
+      s,
+    );
+  }
+
+  late final _fllama_free_stringPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>(
+          'fllama_free_string');
+  late final _fllama_free_string = _fllama_free_stringPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+
   /// GPU device information.
   /// Returns the number of GPU devices visible to ggml/llama.cpp.
   int fllama_get_gpu_device_count() {

@@ -96,6 +96,7 @@ Upstream fllama exposes no embedding FFI, so `third_party/fllama` is a vendored 
 - **Android NDK & CMake**: CMake `3.22.1` installed via Android SDK Manager
 - **Device**: Android device with 64-bit ARM architecture (`arm64-v8a`) recommended for adequate RAM and LLM performance.
 - **iOS (early)**: Xcode 16.4+ with CocoaPods, an Apple ID for signing, and an iPhone on iOS 15 or later. Tested on an iPhone 12.
+- **Desktop** (Windows, Linux, macOS): see [docs/DESKTOP.md](docs/DESKTOP.md) for build requirements and packaging.
 
 ---
 

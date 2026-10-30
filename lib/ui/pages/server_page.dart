@@ -928,7 +928,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                     Text(
                       widget.enabled
                           ? context.l10n.serverLanShareOnSubtitle
-                          : context.l10n.serverLanShareOffSubtitle,
+                          : context.l10n.serverLanShareOffSubtitle(deviceKind),
                       style: TextStyle(
                         color: scheme.onSurfaceVariant,
                         fontSize: 11.5,

@@ -29,9 +29,20 @@ send any placeholder (`"not-needed"`); the header is ignored.
 This is why LAN mode is a network-trust decision: anyone on the Wi-Fi can use
 the models, list them, and run generation on the device.
 
-CORS is wide open (`Access-Control-Allow-Origin: *`, methods `GET, POST,
-OPTIONS`, headers `Content-Type, Authorization`), so browser-based clients work
-without a proxy.
+Browser access (CORS) depends on the mode:
+
+- **Loopback (default):** only pages served from this machine (`localhost`,
+  `127.0.0.1`, `[::1]`, any port) may call the API, and requests whose `Host`
+  is not loopback are refused (`403`), which blocks DNS rebinding. Without
+  this, any website open on the machine could run the models and read the
+  replies. Clients that send no `Origin` (curl, SDKs, editor plugins) are
+  unaffected. To allow another site, list it in the `THINAI_ORIGINS`
+  environment variable (comma-separated; `*` allows any), like Ollama's
+  `OLLAMA_ORIGINS`.
+- **LAN mode:** any origin may call (`Access-Control-Allow-Origin: *`), since
+  every request needs the bearer token.
+
+Allowed methods are `GET, POST, OPTIONS`, headers `Content-Type, Authorization`.
 
 ## Model IDs
 

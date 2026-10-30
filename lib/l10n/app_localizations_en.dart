@@ -147,7 +147,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverLanShareOnSubtitle => 'Devices on this Wi-Fi can connect';
 
   @override
-  String get serverLanShareOffSubtitle => 'This phone only';
+  String serverLanShareOffSubtitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'This $_temp0 only';
+  }
 
   @override
   String get serverCopyLanUrlTooltip => 'Copy LAN URL';
@@ -208,7 +214,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hfDownloadTitle => 'Download model?';
 
   @override
-  String get hfTooBigTitle => 'Too big for this phone?';
+  String hfTooBigTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Too big for this $_temp0?';
+  }
 
   @override
   String get hfDownloadAnyway => 'Download anyway';
@@ -219,18 +231,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String hfDownloadMessageTooBig(String file, String size) {
-    return 'Download $file ($size)?\n\nLikely too big to load on this phone.';
+  String hfDownloadMessageTooBig(String device, String file, String size) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Download $file ($size)?\n\nLikely too big to load on this $_temp0.';
   }
 
   @override
   String hfDownloadMessageTooBigBudget(
+    String device,
     String file,
     String size,
     String needs,
     String budget,
   ) {
-    return 'Download $file ($size)?\n\nNeeds about $needs of memory, this phone has $budget. It will probably not load.';
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Download $file ($size)?\n\nNeeds about $needs of memory, this $_temp0 has $budget. It will probably not load.';
   }
 
   @override
@@ -583,8 +604,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutTitle => 'About Thinai';
 
   @override
-  String get aboutHeroDescription =>
-      'Private AI that runs on your phone. No internet needed.';
+  String aboutHeroDescription(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Private AI that runs on your $_temp0. No internet needed.';
+  }
 
   @override
   String get aboutPrivateTitle => 'Private and offline';
@@ -697,11 +723,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Models are 1 to 4 GB. Downloads depend on your connection, and loading needs free RAM, so close other apps first.';
 
   @override
-  String get supportFaqPrivacyQuestion => 'Do my chats leave the phone?';
+  String supportFaqPrivacyQuestion(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Do my chats leave the $_temp0?';
+  }
 
   @override
-  String get supportFaqPrivacyAnswer =>
-      'No. Models run entirely on your phone, and your chats stay on it.';
+  String supportFaqPrivacyAnswer(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'No. Models run entirely on your $_temp0, and your chats stay on it.';
+  }
 
   @override
   String get supportFaqGpuQuestion => 'How do I use the GPU?';
@@ -807,7 +844,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benchmarkEmptyBody => 'Download a model to measure its speed.';
 
   @override
-  String get benchmarkBestForHardware => 'Best for this phone';
+  String benchmarkBestForHardware(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Best for this $_temp0';
+  }
 
   @override
   String benchmarkMeasuredWithDevice(String device, String bandwidth) {
@@ -845,10 +888,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourPrivateTag => 'PRIVATE BY DESIGN';
 
   @override
-  String get tourPrivateTitle => 'Your phone.\nYour AI.';
+  String tourPrivateTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Your $_temp0.\nYour AI.';
+  }
 
   @override
-  String get tourPrivateBody => 'Models run on your phone. Nothing leaves it.';
+  String tourPrivateBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Models run on your $_temp0. Nothing leaves it.';
+  }
 
   @override
   String get tourOnDeviceTitle => 'Thinai, on device';
@@ -899,7 +954,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tourStarterBody => 'Small and fast on any phone.';
+  String tourStarterBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Small and fast on any $_temp0.';
+  }
 
   @override
   String get tourChatTag => 'CHAT & VISION';
@@ -935,7 +996,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourServerTag => 'LOCAL API';
 
   @override
-  String get tourServerTitle => 'Your phone,\na private AI server.';
+  String tourServerTitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Your $_temp0,\na private AI server.';
+  }
 
   @override
   String get tourServerBody => 'Use it from any OpenAI or Ollama tool.';
@@ -1035,14 +1102,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourWelcomeTitle => 'Welcome to Thinai';
 
   @override
-  String get tourWelcomeSubtitle => 'Private AI on your phone';
+  String tourWelcomeSubtitle(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Private AI on your $_temp0';
+  }
 
   @override
   String get tourWelcomePrivateTitle => 'Private and offline';
 
   @override
-  String get tourWelcomePrivateBody =>
-      'Runs on your phone. No internet needed.';
+  String tourWelcomePrivateBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Runs on your $_temp0. No internet needed.';
+  }
 
   @override
   String get tourWelcomeCatalogTitle => 'Open models';
@@ -1073,7 +1151,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingPrivateTag => 'PRIVATE & OFFLINE';
 
   @override
-  String get onboardingPrivateHeadline => 'AI that runs\non your phone';
+  String onboardingPrivateHeadline(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'AI that runs\non your $_temp0';
+  }
 
   @override
   String get onboardingPrivateBody =>
@@ -1089,8 +1173,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingCatalogHeadline => 'Open models,\none tap away';
 
   @override
-  String get onboardingCatalogBody =>
-      'Llama, Gemma, Qwen and more, sized for phones.';
+  String onboardingCatalogBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computers',
+      'other': 'phones',
+    });
+    return 'Llama, Gemma, Qwen and more, sized for $_temp0.';
+  }
 
   @override
   String get onboardingCatalogGraphic => 'Curated GGUF Model Catalog';
@@ -1124,7 +1213,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingServerTag => 'LOCAL API';
 
   @override
-  String get onboardingServerHeadline => 'Your phone,\nan AI server';
+  String onboardingServerHeadline(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Your $_temp0,\nan AI server';
+  }
 
   @override
   String onboardingServerBody(String port) {
@@ -1230,6 +1325,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatBannerNoModelDownloaded => 'No model yet.';
 
   @override
+  String chatBannerNoModelLoadedDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have $count models downloaded.',
+      one: 'You have 1 model downloaded.',
+    );
+    return '$_temp0 Select one to load it and start chatting.';
+  }
+
+  @override
+  String get chatBannerNoModelDownloadedDetail =>
+      'Thinai needs a language model to chat. Download one from Models: small ones (1-2 GB) are a good start, and they run fully offline once downloaded.';
+
+  @override
   String get chatSelect => 'Select';
 
   @override
@@ -1275,7 +1385,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEmptyTitle => 'Private Offline AI';
 
   @override
-  String get chatEmptyBody => 'Runs fully on your phone. Your data stays here.';
+  String get chatGreeting => 'Welcome';
+
+  @override
+  String chatGreetingName(String name) {
+    return 'Welcome, $name';
+  }
+
+  @override
+  String chatEmptyBody(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Runs fully on your $_temp0. Your data stays here.';
+  }
 
   @override
   String get chatBrowseDownloadModels => 'Get a model';
@@ -1764,7 +1888,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsEmbeddingTitle => 'Embedding models';
 
   @override
-  String get modelsOfflineFooter => 'Models run fully offline on this phone.';
+  String modelsOfflineFooter(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Models run fully offline on this $_temp0.';
+  }
 
   @override
   String get modelsSearchHint => 'Search models';
@@ -1959,11 +2089,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsCapInstruct => 'Instruct';
 
   @override
-  String get modelsFitTooLarge => 'Too large for this phone.';
+  String modelsFitTooLarge(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Too large for this $_temp0.';
+  }
 
   @override
-  String modelsFitNeeds(String needs, String available) {
-    return 'Needs $needs, this phone has $available to spare.';
+  String modelsFitNeeds(String device, String needs, String available) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Needs $needs, this $_temp0 has $available to spare.';
   }
 
   @override
@@ -2153,26 +2293,66 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String modelsCaveatNoneFits(String task) {
-    String _temp0 = intl.Intl.selectLogic(task, {
-      'fastChat':
-          'No model in the catalogue fits this phone for quick conversations.',
-      'reasoning':
-          'No model in the catalogue fits this phone for step-by-step reasoning.',
-      'coding': 'No model in the catalogue fits this phone for code.',
-      'tamil': 'No model in the catalogue fits this phone for Tamil.',
-      'english': 'No model in the catalogue fits this phone for English.',
-      'vision': 'No model in the catalogue fits this phone for images.',
-      'translation':
-          'No model in the catalogue fits this phone for translation.',
-      'summarizing':
-          'No model in the catalogue fits this phone for summarising.',
-      'documents':
-          'No model in the catalogue fits this phone for long documents.',
-      'other':
-          'No model in the catalogue fits this phone for quick conversations.',
+  String modelsCaveatNoneFits(String device, String task) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
     });
-    return '$_temp0';
+    String _temp1 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp2 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp3 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp4 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp5 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp6 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp7 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp8 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp9 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    String _temp10 = intl.Intl.selectLogic(task, {
+      'fastChat':
+          'No model in the catalogue fits this $_temp0 for quick conversations.',
+      'reasoning':
+          'No model in the catalogue fits this $_temp1 for step-by-step reasoning.',
+      'coding': 'No model in the catalogue fits this $_temp2 for code.',
+      'tamil': 'No model in the catalogue fits this $_temp3 for Tamil.',
+      'english': 'No model in the catalogue fits this $_temp4 for English.',
+      'vision': 'No model in the catalogue fits this $_temp5 for images.',
+      'translation':
+          'No model in the catalogue fits this $_temp6 for translation.',
+      'summarizing':
+          'No model in the catalogue fits this $_temp7 for summarising.',
+      'documents':
+          'No model in the catalogue fits this $_temp8 for long documents.',
+      'other':
+          'No model in the catalogue fits this $_temp9 for quick conversations.',
+    });
+    return '$_temp10';
   }
 
   @override
@@ -2232,7 +2412,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsFitTightShort => 'Tight fit';
 
   @override
-  String get modelsFitTooBig => 'Too big for your phone';
+  String modelsFitTooBig(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Too big for your $_temp0';
+  }
 
   @override
   String get modelsFitUnknown => 'Fit unknown';
@@ -2250,7 +2436,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsAdvisorCollapse => 'Collapse guide';
 
   @override
-  String get modelsAdvisorNothingFits => 'Nothing fits this phone.';
+  String modelsAdvisorNothingFits(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Nothing fits this $_temp0.';
+  }
 
   @override
   String get modelsAdvisorAlsoConsider => 'Also good';
@@ -2330,8 +2522,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Summarize the key takeaways from the following:\n\n';
 
   @override
-  String get chatStarterSpeedPrompt =>
-      'What is your generation speed on this phone?';
+  String chatStarterSpeedPrompt(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'What is your generation speed on this $_temp0?';
+  }
 
   @override
   String deviceSummaryRam(String ram, int cores) {
@@ -2406,7 +2603,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tamilEvalSkills => 'Skills';
 
   @override
-  String get tamilEvalOnThisPhone => 'Tested on this phone';
+  String tamilEvalOnThisPhone(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'desktop': 'computer',
+      'other': 'phone',
+    });
+    return 'Tested on this $_temp0';
+  }
 
   @override
   String get tamilEvalStopped => 'Stopped. Nothing was saved.';

@@ -7,7 +7,7 @@
 /// job first, then filtered by what the device can actually run.
 library;
 
-import '../l10n/app_localizations.dart';
+import '../l10n/l10n.dart';
 import 'benchmark_store.dart';
 import 'catalog.dart';
 import 'device_profile.dart';
@@ -42,7 +42,7 @@ extension RamFitInfo on RamFit {
   String localizedLabel(AppLocalizations l) => switch (this) {
     RamFit.comfortable => l.modelsFitComfortable,
     RamFit.tight => l.modelsFitTightShort,
-    RamFit.tooBig => l.modelsFitTooBig,
+    RamFit.tooBig => l.modelsFitTooBig(deviceKind),
     RamFit.unknown => l.modelsFitUnknown,
   };
 }
@@ -170,7 +170,10 @@ class RecommendationResult {
     final job = useCase;
     if (kind == null || job == null) return caveat;
     return switch (kind) {
-      RecommendationCaveat.noneFits => l.modelsCaveatNoneFits(job.name),
+      RecommendationCaveat.noneFits => l.modelsCaveatNoneFits(
+        deviceKind,
+        job.name,
+      ),
       RecommendationCaveat.nothingFitsWell => l.modelsCaveatNothingFitsWell(
         job.name,
       ),

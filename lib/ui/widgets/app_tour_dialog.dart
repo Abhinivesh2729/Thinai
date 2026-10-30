@@ -241,7 +241,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           _buildStagePill(1, l10n.tourPrivateTag),
           const SizedBox(height: 12),
           Text(
-            l10n.tourPrivateTitle,
+            l10n.tourPrivateTitle(deviceKind),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -252,7 +252,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.tourPrivateBody,
+            l10n.tourPrivateBody(deviceKind),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 13.5,
@@ -405,7 +405,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
                         ),
                       ),
                       Text(
-                        l10n.tourStarterBody,
+                        l10n.tourStarterBody(deviceKind),
                         style: const TextStyle(
                           color: Colors.white60,
                           fontSize: 11.5,
@@ -572,7 +572,7 @@ class _AppTourDialogState extends State<AppTourDialog> {
           _buildStagePill(4, l10n.tourServerTag),
           const SizedBox(height: 12),
           Text(
-            l10n.tourServerTitle,
+            l10n.tourServerTitle(deviceKind),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,

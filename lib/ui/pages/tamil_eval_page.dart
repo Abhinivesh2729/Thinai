@@ -940,7 +940,7 @@ class _CompareCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            context.l10n.tamilEvalOnThisPhone,
+            context.l10n.tamilEvalOnThisPhone(deviceKind),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,

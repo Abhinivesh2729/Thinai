@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -738,47 +740,66 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 }
 
-/// Red warning banner displayed at the top of the chat page when no local model
-/// is loaded into memory or downloaded in the app.
+/// Amber warning banner displayed at the top of the chat page when no local
+/// model is loaded into memory or downloaded in the app. A warning, not an
+/// error: nothing is broken, the user just has a step left.
 class _NoModelWarningBanner extends ConsumerWidget {
   const _NoModelWarningBanner();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final models = ref.watch(modelListProvider).valueOrNull ?? const [];
     final hasInstalled = models.isNotEmpty;
+    const amber = Color(0xFFB26A00);
+    final background = isDark
+        ? const Color(0xFF3A2A0C)
+        : const Color(0xFFFFF4E0);
+    final foreground = isDark
+        ? const Color(0xFFFFD58A)
+        : const Color(0xFF6B4100);
 
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: scheme.errorContainer,
+        color: background,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: scheme.error.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: amber.withValues(alpha: 0.4), width: 1),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: scheme.onErrorContainer,
-            size: 20,
-          ),
+          Icon(Icons.warning_amber_rounded, color: foreground, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              hasInstalled
-                  ? context.l10n.chatBannerNoModelLoaded
-                  : context.l10n.chatBannerNoModelDownloaded,
-              style: TextStyle(
-                color: scheme.onErrorContainer,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasInstalled
+                      ? context.l10n.chatBannerNoModelLoaded
+                      : context.l10n.chatBannerNoModelDownloaded,
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  hasInstalled
+                      ? context.l10n.chatBannerNoModelLoadedDetail(
+                          models.length,
+                        )
+                      : context.l10n.chatBannerNoModelDownloadedDetail,
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: 12,
+                    height: 1.35,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 8),
@@ -788,7 +809,7 @@ class _NoModelWarningBanner extends ConsumerWidget {
             },
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, 32),
-              backgroundColor: scheme.error,
+              backgroundColor: amber,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               shape: RoundedRectangleBorder(
@@ -816,8 +837,9 @@ class _ModelSwitcherAction extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     const logoGreen = Color(0xFF2CA048);
+    // No model is a step left to take, not an error: amber, like the banner.
+    const amber = Color(0xFFE09A1F);
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -830,7 +852,7 @@ class _ModelSwitcherAction extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: activeId != null
                     ? logoGreen.withValues(alpha: 0.12)
-                    : scheme.errorContainer,
+                    : amber.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -838,7 +860,7 @@ class _ModelSwitcherAction extends ConsumerWidget {
                     ? Icons.memory_rounded
                     : Icons.warning_amber_rounded,
                 size: 20,
-                color: activeId != null ? logoGreen : scheme.error,
+                color: activeId != null ? logoGreen : amber,
               ),
             ),
             // Live status indicator dot
@@ -849,7 +871,7 @@ class _ModelSwitcherAction extends ConsumerWidget {
                 width: 9,
                 height: 9,
                 decoration: BoxDecoration(
-                  color: activeId != null ? logoGreen : scheme.error,
+                  color: activeId != null ? logoGreen : amber,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: Theme.of(context).scaffoldBackgroundColor,
@@ -1168,6 +1190,28 @@ class _JumpToLatest extends StatelessWidget {
   }
 }
 
+/// The name for the landing greeting: the OS account on desktop, read from
+/// [env] (the process environment), and none on phones.
+@visibleForTesting
+String? greetingName(
+  String device,
+  Map<String, String> env, {
+  required bool windows,
+}) {
+  if (device != 'desktop') return null;
+  final raw = env[windows ? 'USERNAME' : 'USER']?.trim();
+  if (raw == null || raw.isEmpty) return null;
+  // Account names are often all caps ("KALIDAS") or all lower ("kalidas").
+  final plain = raw == raw.toUpperCase() || raw == raw.toLowerCase();
+  return plain ? raw[0].toUpperCase() + raw.substring(1).toLowerCase() : raw;
+}
+
+final String? _osUserName = greetingName(
+  deviceKind,
+  Platform.environment,
+  windows: Platform.isWindows,
+);
+
 class _EmptyChat extends ConsumerWidget {
   final String? activeId;
 
@@ -1205,6 +1249,18 @@ class _EmptyChat extends ConsumerWidget {
               filterQuality: FilterQuality.high,
             ),
             const SizedBox(height: 14),
+            Text(
+              _osUserName == null
+                  ? context.l10n.chatGreeting
+                  : context.l10n.chatGreetingName(_osUserName!),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: logoGreen,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
             if (activeId == null) ...[
               Text(
                 context.l10n.chatEmptyTitle,
@@ -1216,7 +1272,7 @@ class _EmptyChat extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.chatEmptyBody,
+                context.l10n.chatEmptyBody(deviceKind),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: scheme.onSurfaceVariant,
@@ -1314,8 +1370,9 @@ class _EmptyChat extends ConsumerWidget {
                   _StarterChip(
                     icon: Icons.speed_rounded,
                     label: context.l10n.chatStarterSpeed,
-                    onTap: () =>
-                        onSuggestion?.call(context.l10n.chatStarterSpeedPrompt),
+                    onTap: () => onSuggestion?.call(
+                      context.l10n.chatStarterSpeedPrompt(deviceKind),
+                    ),
                   ),
                 ],
               ),
@@ -2061,16 +2118,18 @@ class _ComposerSpeedDialState extends State<_ComposerSpeedDial>
         active: widget.webSearch,
         onTap: () => _choose(widget.onToggleWebSearch),
       ),
-      _DialItem(
-        key: dialCameraKey,
-        icon: Icons.photo_camera_outlined,
-        label: l10n.chatDialCamera,
-        detail: widget.visionReady
-            ? l10n.chatDialCameraDetail
-            : l10n.chatDialNeedsVision,
-        enabled: widget.enabled,
-        onTap: () => _choose(widget.onCamera),
-      ),
+      // image_picker has no camera source on desktop.
+      if (deviceKind != 'desktop')
+        _DialItem(
+          key: dialCameraKey,
+          icon: Icons.photo_camera_outlined,
+          label: l10n.chatDialCamera,
+          detail: widget.visionReady
+              ? l10n.chatDialCameraDetail
+              : l10n.chatDialNeedsVision,
+          enabled: widget.enabled,
+          onTap: () => _choose(widget.onCamera),
+        ),
       _DialItem(
         key: dialImageKey,
         icon: Icons.image_outlined,
