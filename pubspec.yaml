@@ -85,7 +85,7 @@ dependencies:
   # In-app updates. Wraps Play's AppUpdateManager, so Play itself holds the
   # version info and the APK; the app runs no update server of its own and
   # ships no extra permissions. Silently unavailable on sideloaded builds.
-  in_app_update: ^4.2.5
+  in_app_update: ^5.0.0
 
   # Reads the running versionName/versionCode to show in Settings
   package_info_plus: ^10.2.2
