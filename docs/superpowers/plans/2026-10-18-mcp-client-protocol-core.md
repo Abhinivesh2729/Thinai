@@ -1,5 +1,7 @@
 # MCP Client — Protocol Core Implementation Plan
 
+> **Status:** Complete (2026-10-30). Implemented on `feature/mcp-client-protocol-core` and open as PR #40. Verified after rebasing onto `main` (2.5.0): `dart format` clean, `flutter analyze` clean, 757 tests pass, coverage gate PASS with `lib/mcp/` at 100% (86/86, 8/8, 8/8). Every step below is checked off; the "Amendments after implementation" section records where the shipped code diverges from the plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a Dart client that connects to an MCP server over Streamable HTTP, lists its tools, and calls them — with normalized app-owned types and no UI or chat wiring.
@@ -65,7 +67,7 @@ Also pinned: a `401` maps to `McpAuthException`, a timeout to `McpTimeoutExcepti
 - Consumes: nothing.
 - Produces: `McpClientInfo({String name, String version})`; `McpTool({String name, String? description, Map<String, Object?> inputSchema})`; `enum McpContentType { text, image, audio, resourceLink, resource, other }`; `McpContent({McpContentType type, String? text, String? data, String? mimeType, Uri? uri, Map<String, Object?> raw})`; `McpToolResult({bool isError, List<McpContent> content, Map<String, Object?>? structuredContent})` with `String get text`; `sealed class McpException implements Exception { String get message; }` and subclasses `McpConnectionException`, `McpAuthException`, `McpTimeoutException`, `McpToolCallException({int? code, String message})`.
 
-- [ ] **Step 1: Add the dependency**
+- [x] **Step 1: Add the dependency**
 
 Edit `pubspec.yaml`, adding under `dependencies:` (alphabetical neighbours: after `dio`, before `flutter_riverpod`):
 
@@ -84,7 +86,7 @@ flutter pub get
 
 Expected: resolves with no new packages added.
 
-- [ ] **Step 2: Write the failing type tests**
+- [x] **Step 2: Write the failing type tests**
 
 Create `test/mcp_types_test.dart`:
 
@@ -132,12 +134,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the type tests to verify they fail**
+- [x] **Step 3: Run the type tests to verify they fail**
 
 Run: `flutter test test/mcp_types_test.dart`
 Expected: FAIL — `Target of URI doesn't exist: 'package:local_llm/mcp/mcp_types.dart'`.
 
-- [ ] **Step 4: Write the failing exception tests**
+- [x] **Step 4: Write the failing exception tests**
 
 Create `test/mcp_exceptions_test.dart`:
 
@@ -175,12 +177,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 5: Run the exception tests to verify they fail**
+- [x] **Step 5: Run the exception tests to verify they fail**
 
 Run: `flutter test test/mcp_exceptions_test.dart`
 Expected: FAIL — `Target of URI doesn't exist: 'package:local_llm/mcp/mcp_exceptions.dart'`.
 
-- [ ] **Step 6: Implement the types**
+- [x] **Step 6: Implement the types**
 
 Create `lib/mcp/mcp_types.dart`:
 
@@ -255,7 +257,7 @@ class McpToolResult {
 }
 ```
 
-- [ ] **Step 7: Implement the exceptions**
+- [x] **Step 7: Implement the exceptions**
 
 Create `lib/mcp/mcp_exceptions.dart`:
 
@@ -299,12 +301,12 @@ class McpToolCallException extends McpException {
 
 Note: the `sealed` base needs its subclasses in the same library — they are, since all four live in this one file.
 
-- [ ] **Step 8: Run all Task 1 tests to verify they pass**
+- [x] **Step 8: Run all Task 1 tests to verify they pass**
 
 Run: `flutter test test/mcp_types_test.dart test/mcp_exceptions_test.dart`
 Expected: PASS (both files).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add pubspec.yaml pubspec.lock lib/mcp/mcp_types.dart lib/mcp/mcp_exceptions.dart test/mcp_types_test.dart test/mcp_exceptions_test.dart
@@ -324,7 +326,7 @@ git commit -m "feat(mcp): add MCP value types and exceptions"
 - Consumes: `McpClientInfo`, `McpTool*` from `mcp_types.dart`; all exceptions from `mcp_exceptions.dart`.
 - Produces: `McpConnectionConfig({Uri endpoint, Map<String, String> headers, Duration requestTimeout})`; `McpConnection({required McpConnectionConfig config, McpClientInfo? clientInfo})` with `bool get isConnected`, `String? get serverName`, `String? get serverVersion`, `String? get protocolVersion`, `Future<void> connect()`, `Future<void> disconnect()`.
 
-- [ ] **Step 1: Write the test-server helper**
+- [x] **Step 1: Write the test-server helper**
 
 Create `test/support/mcp_test_server.dart`. This is test-only, so importing `mcp_dart` here is fine.
 
@@ -403,7 +405,7 @@ class TestMcpServer {
 
 **Implementation note for the engineer:** the `tools` factory parameter above is a placeholder for the registration the tests need; if `McpServer.registerTool` can only be called before `connect`, expose registration through `registerEchoTool` and call it inside `start()` before `server.connect(transport)`. Verify against the installed `mcp_dart` version and simplify to whatever the API actually allows — the tests below only require `registerEchoTool` to work on a started server *or* the helper to accept a registration callback. Do not leave the empty loop in the final file.
 
-- [ ] **Step 2: Write the failing connect tests**
+- [x] **Step 2: Write the failing connect tests**
 
 Create `test/mcp_connection_test.dart`:
 
@@ -481,12 +483,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the connect tests to verify they fail**
+- [x] **Step 3: Run the connect tests to verify they fail**
 
 Run: `flutter test test/mcp_connection_test.dart`
 Expected: FAIL — `Target of URI doesn't exist: 'package:local_llm/mcp/mcp_connection.dart'`.
 
-- [ ] **Step 4: Implement `McpConnectionConfig` and the connect lifecycle**
+- [x] **Step 4: Implement `McpConnectionConfig` and the connect lifecycle**
 
 Create `lib/mcp/mcp_connection.dart`:
 
@@ -579,12 +581,12 @@ class McpConnection {
 - If the client throws the same class for 401 as for other protocol errors, detect the HTTP status another way (the transport may expose it) — the `McpAuthException` mapping must be provable by a test in Task 4's HTTP suite. If it cannot be distinguished, move the auth mapping test there and map 401 by status.
 - Do not add `listTools`/`callTool` yet.
 
-- [ ] **Step 5: Run the connect tests to verify they pass**
+- [x] **Step 5: Run the connect tests to verify they pass**
 
 Run: `flutter test test/mcp_connection_test.dart`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/mcp/mcp_connection.dart test/support/mcp_test_server.dart test/mcp_connection_test.dart
@@ -605,7 +607,7 @@ git commit -m "feat(mcp): connect to an MCP server and expose its identity"
 - Consumes: `McpConnection` from Task 2, `McpTool` from Task 1.
 - Produces: `Future<List<McpTool>> McpConnection.listTools()`.
 
-- [ ] **Step 1: Write the raw-server helper**
+- [x] **Step 1: Write the raw-server helper**
 
 Create `test/support/raw_mcp_server.dart`:
 
@@ -666,7 +668,7 @@ class RawMcpServer {
 }
 ```
 
-- [ ] **Step 2: Write the failing `listTools` tests**
+- [x] **Step 2: Write the failing `listTools` tests**
 
 Append to `test/mcp_connection_test.dart`:
 
@@ -800,12 +802,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the new tests to verify they fail**
+- [x] **Step 3: Run the new tests to verify they fail**
 
 Run: `flutter test test/mcp_connection_test.dart test/mcp_connection_http_test.dart`
 Expected: FAIL — `The method 'listTools' isn't defined for the class 'McpConnection'`.
 
-- [ ] **Step 4: Implement `listTools`**
+- [x] **Step 4: Implement `listTools`**
 
 Add to `McpConnection` in `lib/mcp/mcp_connection.dart`:
 
@@ -875,12 +877,12 @@ Add to `McpConnection` in `lib/mcp/mcp_connection.dart`:
 - `tool.inputSchema`'s concrete type is the spec's flagged unknown: normalize whatever it is (a `Map`, or a `JsonSchema` with `toJson()`) into `Map<String, Object?>`.
 - Refactor the Task 2 `connect()` body to use `_guard` too, so auth/timeout mapping lives in one place.
 
-- [ ] **Step 5: Run the new tests to verify they pass**
+- [x] **Step 5: Run the new tests to verify they pass**
 
 Run: `flutter test test/mcp_connection_test.dart test/mcp_connection_http_test.dart`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/mcp/mcp_connection.dart test/support/raw_mcp_server.dart test/mcp_connection_test.dart test/mcp_connection_http_test.dart
@@ -900,7 +902,7 @@ git commit -m "feat(mcp): list tools with pagination"
 - Consumes: everything from Tasks 1–3.
 - Produces: `Future<McpToolResult> McpConnection.callTool(String name, {Map<String, Object?>? arguments})`.
 
-- [ ] **Step 1: Write the failing `callTool` tests**
+- [x] **Step 1: Write the failing `callTool` tests**
 
 Append to `test/mcp_connection_test.dart`:
 
@@ -1100,12 +1102,12 @@ Append to `test/mcp_connection_http_test.dart`:
   });
 ```
 
-- [ ] **Step 2: Run the new tests to verify they fail**
+- [x] **Step 2: Run the new tests to verify they fail**
 
 Run: `flutter test test/mcp_connection_test.dart test/mcp_connection_http_test.dart`
 Expected: FAIL — `The method 'callTool' isn't defined for the class 'McpConnection'`.
 
-- [ ] **Step 3: Implement `callTool` and content mapping**
+- [x] **Step 3: Implement `callTool` and content mapping**
 
 Add to `McpConnection`:
 
@@ -1198,12 +1200,12 @@ Update `_guard` so a tool-call `McpError` becomes `McpToolCallException`:
 - `ImageContent.data` / `AudioContent.data` may be `String` or bytes; normalize to `String` (base64) and adjust the pattern accordingly.
 - A `404` on a request carrying a session id (server expired the session) should surface as `McpConnectionException` with a message saying the session ended — the `_` catch in `_guard` already covers it; add a test only if the transport does not retry internally.
 
-- [ ] **Step 4: Run the callTool tests to verify they pass**
+- [x] **Step 4: Run the callTool tests to verify they pass**
 
 Run: `flutter test test/mcp_connection_test.dart test/mcp_connection_http_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5: Run the whole suite, analyzer, formatter, and the coverage gate**
+- [x] **Step 5: Run the whole suite, analyzer, formatter, and the coverage gate**
 
 ```bash
 dart format .
@@ -1214,7 +1216,7 @@ flutter test --exclude-tags native --coverage
 
 Expected: formatting reports no changes needed; analyze reports no issues; tests pass; coverage prints `100.00%` and `PASS`. If `check_coverage.sh` names any `lib/mcp/` line as missed, add the test that reaches it (do not lower the gate).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
