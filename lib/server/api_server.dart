@@ -142,20 +142,52 @@ Middleware _authMiddleware(ApiServer server) {
       if (!server.authRequired(req)) return inner(req);
 
       final authorization = req.headers['authorization'];
-      final token = authorization != null && authorization.startsWith('Bearer ')
-          ? authorization.substring('Bearer '.length)
-          : null;
-
-      if (token == null || !server._tokens.contains(token)) {
-        return Response.unauthorized(
-          jsonEncode({'error': 'unauthorized'}),
-          headers: {'content-type': 'application/json'},
-        );
+      if (server._tokens.any((t) => bearerMatches(authorization, t))) {
+        return inner(req);
       }
 
-      return inner(req);
+      // Say what is missing in the dialect the client parses, so a LAN user
+      // sees "send a token from the Server page" instead of a bare 401.
+      const message =
+          'Missing or wrong API key. Send "Authorization: Bearer <token>" '
+          'with a token from API tokens on the Thinai Server page.';
+      final openAi = req.url.path.startsWith('v1/');
+      return Response.unauthorized(
+        jsonEncode({
+          'error': openAi
+              ? {
+                  'message': message,
+                  'type': 'invalid_request_error',
+                  'code': 'invalid_api_key',
+                }
+              : message,
+        }),
+        headers: {
+          'content-type': 'application/json',
+          'www-authenticate': 'Bearer realm="thinai"',
+        },
+      );
     };
   };
+}
+
+/// Whether an `Authorization` header carries [token] as a bearer credential.
+///
+/// The scheme is case-insensitive (RFC 7235) and surrounding whitespace is
+/// ignored, since clients differ on both. The token itself is compared in
+/// constant time so a LAN peer cannot recover it byte by byte from timings.
+bool bearerMatches(String? authorization, String token) {
+  if (authorization == null || token.isEmpty) return false;
+  final parts = authorization.trim().split(RegExp(r'\s+'));
+  if (parts.length != 2 || parts[0].toLowerCase() != 'bearer') return false;
+  final given = utf8.encode(parts[1]);
+  final expected = utf8.encode(token);
+  if (given.length != expected.length) return false;
+  var diff = 0;
+  for (var i = 0; i < given.length; i++) {
+    diff |= given[i] ^ expected[i];
+  }
+  return diff == 0;
 }
 
 Middleware _errorMiddleware() {

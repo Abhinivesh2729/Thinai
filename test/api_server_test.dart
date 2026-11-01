@@ -151,4 +151,75 @@ void main() {
       expect((await get(server, '')).statusCode, 200);
     });
   });
+
+  group('bearerMatches', () {
+    const token = 'D5HTu_mwQt-abc123_XYZ=';
+
+    test('accepts the exact bearer token', () {
+      expect(bearerMatches('Bearer $token', token), isTrue);
+    });
+
+    test('reads the scheme case-insensitively and ignores padding', () {
+      expect(bearerMatches('bearer $token', token), isTrue);
+      expect(bearerMatches('BEARER $token', token), isTrue);
+      expect(bearerMatches('  Bearer   $token  ', token), isTrue);
+    });
+
+    test('rejects a missing, wrong or placeholder key', () {
+      expect(bearerMatches(null, token), isFalse);
+      expect(bearerMatches('', token), isFalse);
+      expect(bearerMatches('Bearer thinai', token), isFalse);
+      expect(bearerMatches('Bearer ${token}x', token), isFalse);
+      expect(bearerMatches('Bearer ${token.substring(1)}', token), isFalse);
+    });
+
+    test('rejects other schemes and malformed headers', () {
+      expect(bearerMatches('Basic $token', token), isFalse);
+      expect(bearerMatches(token, token), isFalse);
+      expect(bearerMatches('Bearer', token), isFalse);
+      expect(bearerMatches('Bearer $token extra', token), isFalse);
+    });
+
+    test('never matches an empty server token', () {
+      expect(bearerMatches('Bearer ', ''), isFalse);
+    });
+  });
+
+  group('auth rejection', () {
+    // Through the tunnel, so the middleware demands a token.
+    final server = ApiServer()
+      ..setTokens({'first-token', 'lan-token-123'})
+      ..setTunnelAuth(true);
+
+    Request get(String path, {String? auth}) => Request(
+      'GET',
+      Uri.parse('http://127.0.0.1:11434/$path'),
+      headers: {'cf-connecting-ip': '203.0.113.7', 'authorization': ?auth},
+    );
+
+    test('accepts any listed token, scheme case-insensitively', () async {
+      final resp = await server.handler(get('', auth: 'bearer lan-token-123'));
+      expect(resp.statusCode, 200);
+    });
+
+    test('answers an OpenAI path with an OpenAI-shaped 401', () async {
+      final resp = await server.handler(
+        get('v1/models', auth: 'Bearer thinai'),
+      );
+      expect(resp.statusCode, 401);
+      expect(resp.headers['www-authenticate'], 'Bearer realm="thinai"');
+      final body = jsonDecode(await resp.readAsString()) as Map;
+      final error = body['error'] as Map;
+      expect(error['code'], 'invalid_api_key');
+      expect(error['message'], contains('Server page'));
+    });
+
+    test('answers an Ollama path with a string error', () async {
+      final resp = await server.handler(get('api/tags'));
+      expect(resp.statusCode, 401);
+      final body = jsonDecode(await resp.readAsString()) as Map;
+      expect(body['error'], isA<String>());
+      expect(body['error'], contains('Authorization: Bearer'));
+    });
+  });
 }
