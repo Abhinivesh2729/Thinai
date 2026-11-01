@@ -182,6 +182,11 @@ class _ServerPageState extends ConsumerState<ServerPage> {
         : '127.0.0.1';
     final base = 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
+    // LAN mode rejects any request without the device's bearer token, so the
+    // snippets must carry it; loopback needs no key at all.
+    final apiKey = lanShare
+        ? ref.watch(serverBearerTokenProvider).valueOrNull
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -242,10 +247,11 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             port: port,
             chatId: chatId,
             lanShare: lanShare,
+            apiKey: apiKey,
           ),
 
           // 5. Full-Width Clean API Endpoints List (No bloated categories)
-          _ApiEndpointsSection(base: base, chatId: chatId),
+          _ApiEndpointsSection(base: base, chatId: chatId, apiKey: apiKey),
         ],
       ),
     );
@@ -1016,8 +1022,7 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                             if (token == null || token.isEmpty) {
                               return const SizedBox.shrink();
                             }
-                            final masked =
-                                '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
+                            final masked = _maskedToken(token);
 
                             return Container(
                               padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
@@ -1132,12 +1137,16 @@ class _DeveloperQuickStartCard extends StatefulWidget {
   final String chatId;
   final bool lanShare;
 
+  /// The LAN bearer token, or null on loopback where no key is checked.
+  final String? apiKey;
+
   const _DeveloperQuickStartCard({
     required this.base,
     required this.apiHost,
     required this.port,
     required this.chatId,
     required this.lanShare,
+    this.apiKey,
   });
 
   @override
@@ -1284,76 +1293,89 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
     );
   }
 
+  /// A file tab whose snippet carries the API key: masked on screen, real on
+  /// the clipboard. OpenAI SDKs refuse an empty key, so loopback gets a dummy.
+  _VsCodeFileTab _keyedTab({
+    required String filename,
+    required String language,
+    required IconData icon,
+    required String Function(String key) code,
+  }) {
+    final key = widget.apiKey;
+    return _VsCodeFileTab(
+      filename: filename,
+      language: language,
+      icon: icon,
+      code: code(key == null ? 'thinai' : _maskedToken(key)),
+      copyCode: code(key ?? 'thinai'),
+    );
+  }
+
   Widget _buildVsCodeTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final configJson =
-        '''{
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'config.json',
+          language: 'json',
+          icon: Icons.data_object_rounded,
+          code: (key) =>
+              '''{
   "models": [
     {
       "title": "Thinai Local",
       "provider": "openai",
       "model": "${widget.chatId}",
       "apiBase": "$openAiBase",
-      "apiKey": "thinai"
+      "apiKey": "$key"
     }
   ]
-}''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'config.json',
-          language: 'json',
-          code: configJson,
-          icon: Icons.data_object_rounded,
+}''',
         ),
       ],
     );
   }
 
   Widget _buildPythonTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final pyCode =
-        '''from openai import OpenAI
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'client.py',
+          language: 'python',
+          icon: Icons.code_rounded,
+          code: (key) =>
+              '''from openai import OpenAI
 
 client = OpenAI(
     base_url="$openAiBase",
-    api_key="thinai",
+    api_key="$key",
 )
 
 response = client.chat.completions.create(
     model="${widget.chatId}",
     messages=[{"role": "user", "content": "Hello on-device AI!"}],
 )
-print(response.choices[0].message.content)''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'client.py',
-          language: 'python',
-          code: pyCode,
-          icon: Icons.code_rounded,
+print(response.choices[0].message.content)''',
         ),
       ],
     );
   }
 
   Widget _buildCurlTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final curlCode =
-        '''curl $openAiBase/chat/completions \\
+    final lan = widget.apiKey != null;
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'request.sh',
+          language: 'bash',
+          icon: Icons.terminal_rounded,
+          code: (key) =>
+              '''curl $openAiBase/chat/completions \\
   -H "Content-Type: application/json" \\
-  -d '{
+${lan ? '  -H "Authorization: Bearer $key" \\\n' : ''}  -d '{
     "model": "${widget.chatId}",
     "messages": [{"role": "user", "content": "Hello on-device AI!"}],
     "stream": false
-  }' ''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'request.sh',
-          language: 'bash',
-          code: curlCode,
-          icon: Icons.terminal_rounded,
+  }' ''',
         ),
       ],
     );
@@ -1386,15 +1408,22 @@ print(response.choices[0].message.content)''';
   }
 
   Widget _buildOllamaTab(ColorScheme scheme, String ollamaBase, bool isDark) {
-    final envCmd = 'export OLLAMA_HOST=$ollamaBase';
-
+    // OLLAMA_HOST alone sends no Authorization header, so on the LAN it only
+    // works through a client that lets you add one.
+    final lan = widget.apiKey != null;
     return _VsCodeTerminalBox(
       tabs: [
-        _VsCodeFileTab(
+        _keyedTab(
           filename: 'env.sh',
           language: 'bash',
-          code: envCmd,
           icon: Icons.terminal_rounded,
+          code: (key) => lan
+              ? '# LAN mode needs the bearer token on every request.\n'
+                    '# The ollama CLI cannot send it; ollama-python can:\n'
+                    '#   Client(host="$ollamaBase",\n'
+                    '#          headers={"Authorization": "Bearer $key"})\n'
+                    'export OLLAMA_HOST=$ollamaBase'
+              : 'export OLLAMA_HOST=$ollamaBase',
         ),
       ],
     );
@@ -1407,7 +1436,14 @@ class _ApiEndpointsSection extends StatefulWidget {
   final String base;
   final String chatId;
 
-  const _ApiEndpointsSection({required this.base, required this.chatId});
+  /// The LAN bearer token, or null on loopback where no key is checked.
+  final String? apiKey;
+
+  const _ApiEndpointsSection({
+    required this.base,
+    required this.chatId,
+    this.apiKey,
+  });
 
   @override
   State<_ApiEndpointsSection> createState() => _ApiEndpointsSectionState();
@@ -1428,11 +1464,28 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
     );
   }
 
+  String _shown(String curl) {
+    final key = widget.apiKey;
+    return key == null
+        ? curl
+        : curl.replaceAll(_kKeyPlaceholder, _maskedToken(key));
+  }
+
+  String _real(String curl) {
+    final key = widget.apiKey;
+    return key == null ? curl : curl.replaceAll(_kKeyPlaceholder, key);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = context.l10n;
+    // The cURL strings carry a key placeholder; [_shown] masks it for the
+    // screen and [_real] fills in the token for the clipboard.
+    final lan = widget.apiKey != null;
+    const authHeader = '-H "Authorization: Bearer $_kKeyPlaceholder"';
+    final authLine = lan ? '  $authHeader \\\n' : '';
 
     final endpoints = [
       _EndpointItem(
@@ -1442,6 +1495,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/v1/chat/completions \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Hello!"}],\n'
@@ -1487,6 +1541,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/api/chat \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Why is the sky blue?"}],\n'
@@ -1520,6 +1575,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/v1/embeddings \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "input": "Search query text"\n'
@@ -1550,7 +1606,9 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         method: 'GET',
         path: '/v1/models',
         title: l10n.serverEndpointModels,
-        curl: 'curl ${widget.base}/v1/models',
+        curl: lan
+            ? 'curl ${widget.base}/v1/models \\\n  $authHeader'
+            : 'curl ${widget.base}/v1/models',
         requestJson: null,
         responseJson:
             '{\n'
@@ -1623,7 +1681,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _VsCodeFileTab(
         filename: 'curl.sh',
         language: 'bash',
-        code: item.curl,
+        code: _shown(item.curl),
+        copyCode: _real(item.curl),
         icon: Icons.terminal_rounded,
       ),
       if (item.requestJson != null)
@@ -1714,7 +1773,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       minWidth: 28,
                       minHeight: 28,
                     ),
-                    onPressed: () => _copy(item.curl, '${item.path} cURL'),
+                    onPressed: () =>
+                        _copy(_real(item.curl), '${item.path} cURL'),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -1776,15 +1836,27 @@ class _VsCodeFileTab {
   final String filename;
   final String language; // 'bash', 'json', 'python', 'text'
   final String code;
+
+  /// What Copy puts on the clipboard when it differs from what is shown,
+  /// e.g. the real API key where [code] shows it masked.
+  final String? copyCode;
   final IconData? icon;
 
   const _VsCodeFileTab({
     required this.filename,
     required this.language,
     required this.code,
+    this.copyCode,
     this.icon,
   });
 }
+
+/// Stands in for the API key inside endpoint cURL templates.
+const _kKeyPlaceholder = '<thinai-api-key>';
+
+/// Shows enough of a token to tell keys apart without revealing it.
+String _maskedToken(String token) =>
+    '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
 
 class _VsCodeSyntaxHighlighter {
   static const Color background = Color(0xFF1E1E1E);
@@ -2133,7 +2205,9 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
   void _handleCopy() {
     final activeTab =
         widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
-    Clipboard.setData(ClipboardData(text: activeTab.code));
+    Clipboard.setData(
+      ClipboardData(text: activeTab.copyCode ?? activeTab.code),
+    );
     HapticFeedback.lightImpact();
     setState(() => _copied = true);
     Future.delayed(const Duration(milliseconds: 1800), () {

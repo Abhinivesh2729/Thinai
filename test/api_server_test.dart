@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shelf/shelf.dart';
 
 import 'package:local_llm/server/api_server.dart';
 
@@ -61,6 +64,75 @@ void main() {
       final server = ApiServer();
       await server.stop();
       expect(server.running, isFalse);
+    });
+  });
+
+  group('bearerMatches', () {
+    const token = 'D5HTu_mwQt-abc123_XYZ=';
+
+    test('accepts the exact bearer token', () {
+      expect(bearerMatches('Bearer $token', token), isTrue);
+    });
+
+    test('reads the scheme case-insensitively and ignores padding', () {
+      expect(bearerMatches('bearer $token', token), isTrue);
+      expect(bearerMatches('BEARER $token', token), isTrue);
+      expect(bearerMatches('  Bearer   $token  ', token), isTrue);
+    });
+
+    test('rejects a missing, wrong or placeholder key', () {
+      expect(bearerMatches(null, token), isFalse);
+      expect(bearerMatches('', token), isFalse);
+      expect(bearerMatches('Bearer thinai', token), isFalse);
+      expect(bearerMatches('Bearer ${token}x', token), isFalse);
+      expect(bearerMatches('Bearer ${token.substring(1)}', token), isFalse);
+    });
+
+    test('rejects other schemes and malformed headers', () {
+      expect(bearerMatches('Basic $token', token), isFalse);
+      expect(bearerMatches(token, token), isFalse);
+      expect(bearerMatches('Bearer', token), isFalse);
+      expect(bearerMatches('Bearer $token extra', token), isFalse);
+    });
+
+    test('never matches an empty server token', () {
+      expect(bearerMatches('Bearer ', ''), isFalse);
+    });
+  });
+
+  group('bearerAuthMiddleware', () {
+    const token = 'lan-token-123';
+    final handler = const Pipeline()
+        .addMiddleware(bearerAuthMiddleware(token))
+        .addHandler((_) => Response.ok('ok'));
+
+    Request get(String path, {String? auth}) => Request(
+      'GET',
+      Uri.parse('http://192.168.1.33:11434/$path'),
+      headers: {'authorization': ?auth},
+    );
+
+    test('lets a request with the token through', () async {
+      final resp = await handler(get('v1/models', auth: 'Bearer $token'));
+      expect(resp.statusCode, 200);
+    });
+
+    test('answers an OpenAI path with an OpenAI-shaped 401', () async {
+      final resp = await handler(get('v1/models', auth: 'Bearer thinai'));
+      expect(resp.statusCode, 401);
+      expect(resp.headers['www-authenticate'], 'Bearer realm="thinai"');
+      final body = jsonDecode(await resp.readAsString()) as Map;
+      final error = body['error'] as Map;
+      expect(error['code'], 'invalid_api_key');
+      expect(error['message'], contains('Server page'));
+    });
+
+    test('answers an Ollama path with a string error', () async {
+      final resp = await handler(get('api/tags'));
+      expect(resp.statusCode, 401);
+      final body = jsonDecode(await resp.readAsString()) as Map;
+      expect(body['error'], isA<String>());
+      expect(body['error'], contains('Authorization: Bearer'));
     });
   });
 }
