@@ -40,7 +40,11 @@ void main() {
     final server = _FakeServer();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [serverControllerProvider.overrideWith((ref) => server)],
+        overrides: [
+          serverControllerProvider.overrideWith((ref) => server),
+          // cloudflared ships for arm64 only; test as such a phone.
+          quickTunnelSupportedProvider.overrideWithValue(true),
+        ],
         child: const MaterialApp(home: ServerPage()),
       ),
     );
@@ -71,7 +75,11 @@ void main() {
     final server = _FakeServer();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [serverControllerProvider.overrideWith((ref) => server)],
+        overrides: [
+          serverControllerProvider.overrideWith((ref) => server),
+          // cloudflared ships for arm64 only; test as such a phone.
+          quickTunnelSupportedProvider.overrideWithValue(true),
+        ],
         child: const MaterialApp(home: ServerPage()),
       ),
     );

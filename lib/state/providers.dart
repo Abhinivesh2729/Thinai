@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi' show Abi;
+import 'dart:io' show Platform;
 import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/material.dart' show Color, ThemeMode;
@@ -1247,6 +1249,13 @@ class ApiTokensController extends StateNotifier<List<ApiToken>> {
     return state.map((t) => t.token).toSet();
   }
 }
+
+/// Whether this device can open a public tunnel. cloudflared ships only as
+/// lib/arm64-v8a/libcloudflared.so, so on other ABIs the switch could only
+/// fail with a raw ProcessException; the Server page hides it there.
+final quickTunnelSupportedProvider = Provider<bool>(
+  (ref) => Platform.isAndroid && Abi.current() == Abi.androidArm64,
+);
 
 final apiTokensProvider =
     StateNotifierProvider<ApiTokensController, List<ApiToken>>(

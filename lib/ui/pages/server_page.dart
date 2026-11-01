@@ -246,7 +246,8 @@ class _ServerPageState extends ConsumerState<ServerPage> {
           ),
 
           // 3b. Temporary public URL through a free Cloudflare quick tunnel
-          _PublicTunnelCard(status: status, onStartServer: _start),
+          if (ref.watch(quickTunnelSupportedProvider))
+            _PublicTunnelCard(status: status, onStartServer: _start),
 
           // 3c. Named API tokens for LAN and tunnel clients
           const _ApiTokensCard(),
@@ -862,35 +863,38 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.serverLanShareTitle,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14.5,
-                        letterSpacing: -0.2,
+          InkWell(
+            onTap: () => widget.onChanged(!widget.enabled),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.l10n.serverLanShareTitle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.enabled
-                          ? context.l10n.serverLanShareOnSubtitle
-                          : context.l10n.serverLanShareOffSubtitle,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 11.5,
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.enabled
+                            ? context.l10n.serverLanShareOnSubtitle
+                            : context.l10n.serverLanShareOffSubtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Switch(value: widget.enabled, onChanged: widget.onChanged),
-            ],
+                Switch(value: widget.enabled, onChanged: widget.onChanged),
+              ],
+            ),
           ),
           AnimatedSize(
             duration: const Duration(milliseconds: 260),
@@ -1169,7 +1173,15 @@ class _ApiTokensCard extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(apiTokensProvider.notifier).delete(t.id);
+    final tokens = ref.read(apiTokensProvider.notifier);
+    await tokens.delete(t.id);
+    // LAN and the tunnel never run open, so a share left with no token locks
+    // every client out until a restart. Mint a fresh one now instead: the
+    // deleted token is still revoked, and the page shows the new one.
+    final status = ref.read(serverControllerProvider);
+    if (status.running && (status.lan || status.publicUrl != null)) {
+      await tokens.ensureOne();
+    }
   }
 
   @override
