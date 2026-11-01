@@ -21,8 +21,6 @@ class _FakeServer extends ServerController {
       lanIp: lan ? '192.168.1.33' : null,
     );
   }
-
-  void set(ServerStatus status) => state = status;
 }
 
 Future<void> _pump(WidgetTester tester, ProviderContainer container) async {
@@ -34,6 +32,23 @@ Future<void> _pump(WidgetTester tester, ProviderContainer container) async {
   );
   await tester.pump();
   await tester.pump();
+  // The tunnel and token cards push Quick start below the fold of a lazy
+  // ListView; bring the snippet into view so it is built.
+  await tester.scrollUntilVisible(
+    find.text('config.json'),
+    300,
+    scrollable: find.byType(Scrollable).first,
+  );
+}
+
+/// Opens a Quick start tab, scrolling it clear of the app bar first.
+Future<void> _tab(WidgetTester tester, String name) async {
+  await tester.scrollUntilVisible(
+    find.text('Quick start'),
+    -100,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.tap(find.text(name));
 }
 
 /// Records what the app puts on the clipboard.
@@ -58,25 +73,34 @@ List<String> _captureClipboard(WidgetTester tester) {
 }
 
 void main() {
-  // On a fresh install the token is only written by the first LAN start,
-  // after the Server page has read the provider; it must not stay null.
-  test('the token provider picks up a token created by a LAN start', () async {
-    SharedPreferences.setMockInitialValues({});
-    final fake = _FakeServer();
+  // #86: on a fresh install the token is only created by the first LAN start,
+  // after the Server page has built; the snippets must pick it up then.
+  testWidgets('snippets pick up the token a LAN start creates', (tester) async {
+    SharedPreferences.setMockInitialValues({'server_lan_share': true});
     final container = ProviderContainer(
-      overrides: [serverControllerProvider.overrideWith((ref) => fake)],
+      overrides: [
+        serverControllerProvider.overrideWith(
+          (ref) => _FakeServer(running: true, lan: true),
+        ),
+        deviceLanIpProvider.overrideWith((ref) async => '192.168.1.33'),
+      ],
     );
     addTearDown(container.dispose);
+    await _pump(tester, container);
+    expect(container.read(apiTokensProvider), isEmpty);
 
-    final sub = container.listen(serverBearerTokenProvider, (_, _) {});
-    addTearDown(sub.close);
-    expect(await container.read(serverBearerTokenProvider.future), isNull);
+    await tester.runAsync(
+      () => container.read(apiTokensProvider.notifier).ensureOne(),
+    );
+    await tester.pump();
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('server_bearer_token', _token);
-    fake.set(const ServerStatus(running: true, port: 11434, lan: true));
-
-    expect(await container.read(serverBearerTokenProvider.future), _token);
+    final token = container.read(apiTokensProvider).single.token;
+    final masked =
+        '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
+    expect(
+      find.textContaining('"apiKey": "$masked"', findRichText: true),
+      findsOneWidget,
+    );
   });
 
   group('LAN snippets', () {
@@ -109,14 +133,14 @@ void main() {
       );
       expect(find.textContaining('"thinai"', findRichText: true), findsNothing);
 
-      await tester.tap(find.text('Python'));
+      await _tab(tester, 'Python');
       await tester.pump();
       expect(
         find.textContaining('api_key="$_masked"', findRichText: true),
         findsOneWidget,
       );
 
-      await tester.tap(find.text('cURL'));
+      await _tab(tester, 'cURL');
       await tester.pump();
       expect(
         find.textContaining(
@@ -163,8 +187,7 @@ void main() {
       tester,
     ) async {
       await _pump(tester, container);
-      await tester.ensureVisible(find.text('Ollama'));
-      await tester.tap(find.text('Ollama'));
+      await _tab(tester, 'Ollama');
       await tester.pump();
       expect(
         find.textContaining('ollama CLI cannot send it', findRichText: true),
@@ -193,15 +216,14 @@ void main() {
       find.textContaining('"apiKey": "thinai"', findRichText: true),
       findsOneWidget,
     );
-    await tester.tap(find.text('cURL'));
+    await _tab(tester, 'cURL');
     await tester.pump();
     await tester.tap(find.text('Copy').first);
     await tester.pump();
     expect(copied.last, isNot(contains('Authorization')));
     await tester.pump(const Duration(seconds: 2));
 
-    await tester.ensureVisible(find.text('Ollama'));
-    await tester.tap(find.text('Ollama'));
+    await _tab(tester, 'Ollama');
     await tester.pump();
     expect(
       find.textContaining('export OLLAMA_HOST=', findRichText: true),

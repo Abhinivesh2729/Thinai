@@ -49,7 +49,9 @@ void main() {
     }
   }
 
-  testWidgets('LAN switch takes its colours from the theme', (tester) async {
+  testWidgets('Server switches take their colours from the theme', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(
       ProviderScope(
@@ -61,9 +63,13 @@ void main() {
     );
     await tester.pump();
 
-    final lanSwitch = tester.widget<Switch>(find.byType(Switch));
-    expect(lanSwitch.activeThumbColor, isNull);
-    expect(lanSwitch.thumbColor, isNull);
-    expect(lanSwitch.trackColor, isNull);
+    // LAN share and public URL.
+    final switches = tester.widgetList<Switch>(find.byType(Switch));
+    expect(switches, hasLength(2));
+    for (final s in switches) {
+      expect(s.activeThumbColor, isNull);
+      expect(s.thumbColor, isNull);
+      expect(s.trackColor, isNull);
+    }
   });
 }

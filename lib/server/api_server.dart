@@ -12,19 +12,21 @@ import 'routes/openai_routes.dart';
 class ApiServerConfig {
   final int port;
   final bool lanMode;
-  final String? bearerToken;
+
+  /// Bearer tokens any client may authenticate with.
+  final Set<String> tokens;
 
   const ApiServerConfig({
     this.port = 11434,
     this.lanMode = false,
-    this.bearerToken,
+    this.tokens = const {},
   });
 
-  ApiServerConfig copyWith({int? port, bool? lanMode, String? bearerToken}) {
+  ApiServerConfig copyWith({int? port, bool? lanMode, Set<String>? tokens}) {
     return ApiServerConfig(
       port: port ?? this.port,
       lanMode: lanMode ?? this.lanMode,
-      bearerToken: bearerToken ?? this.bearerToken,
+      tokens: tokens ?? this.tokens,
     );
   }
 }
@@ -32,24 +34,56 @@ class ApiServerConfig {
 class ApiServer {
   HttpServer? _server;
   ApiServerConfig _config = const ApiServerConfig();
+  Set<String> _tokens = const {};
+  bool _tunnelAuth = false;
 
   bool get running => _server != null;
   int? get port => _server?.port;
   ApiServerConfig get config => _config;
 
+  /// Whether [req] must carry a bearer token: everything on the LAN, and,
+  /// while a public tunnel is open, requests that came through it. Cloudflare
+  /// stamps those with `cf-connecting-ip`; apps on this phone calling
+  /// 127.0.0.1 directly don't have it and stay open.
+  bool authRequired(Request req) =>
+      _config.lanMode ||
+      (_tunnelAuth && req.headers.containsKey('cf-connecting-ip'));
+
+  /// Replaces the accepted tokens without a restart, so deleting a token
+  /// locks its client out immediately.
+  void setTokens(Iterable<String> tokens) => _tokens = tokens.toSet();
+
+  /// Turns auth on for a public tunnel. Refuses with no token, as LAN does.
+  void setTunnelAuth(bool on) {
+    if (on && _tokens.isEmpty) {
+      throw StateError('A public tunnel cannot start without an API token.');
+    }
+    _tunnelAuth = on;
+  }
+
   Future<void> start(ApiServerConfig config) async {
     if (_server != null) return;
 
     // LAN mode must never run without authentication.
-    if (config.lanMode &&
-        (config.bearerToken == null || config.bearerToken!.isEmpty)) {
+    if (config.lanMode && config.tokens.isEmpty) {
       throw StateError(
         'LAN API cannot start without a bearer authentication token.',
       );
     }
 
     _config = config;
+    _tokens = config.tokens;
 
+    final address = config.lanMode
+        ? InternetAddress.anyIPv4
+        : InternetAddress.loopbackIPv4;
+
+    _server = await shelf_io.serve(handler, address, config.port);
+  }
+
+  /// The full request pipeline, exposed so tests can drive it without
+  /// binding a socket.
+  Handler get handler {
     final root = Router();
 
     root.mount('/', ollamaRouter().call);
@@ -61,28 +95,17 @@ class ApiServer {
           Response.ok('Thinai is running. See /api/tags or /v1/models.'),
     );
 
-    var pipeline = const Pipeline()
+    return const Pipeline()
         .addMiddleware(_corsMiddleware())
-        .addMiddleware(_errorMiddleware());
-
-    if (config.lanMode) {
-      pipeline = pipeline.addMiddleware(
-        bearerAuthMiddleware(config.bearerToken!),
-      );
-    }
-
-    final handler = pipeline.addHandler(root.call);
-
-    final address = config.lanMode
-        ? InternetAddress.anyIPv4
-        : InternetAddress.loopbackIPv4;
-
-    _server = await shelf_io.serve(handler, address, config.port);
+        .addMiddleware(_errorMiddleware())
+        .addMiddleware(_authMiddleware(this))
+        .addHandler(root.call);
   }
 
   Future<void> stop() async {
     final server = _server;
     _server = null;
+    _tunnelAuth = false;
     await server?.close(force: true);
   }
 }
@@ -105,20 +128,29 @@ const _corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-/// Rejects any request that does not carry [token] as its bearer credential.
-/// Mounted only in LAN mode; loopback trusts the device itself.
-Middleware bearerAuthMiddleware(String token) {
+Response _healthz() => Response.ok(
+  jsonEncode({'status': 'ok'}),
+  headers: {'content-type': 'application/json'},
+);
+
+Middleware _authMiddleware(ApiServer server) {
   return (Handler inner) {
     return (Request req) async {
-      if (bearerMatches(req.headers['authorization'], token)) {
+      // Liveness only, no data: open so uptime checks work through a tunnel.
+      if (req.url.path == 'healthz') return _healthz();
+
+      if (!server.authRequired(req)) return inner(req);
+
+      final authorization = req.headers['authorization'];
+      if (server._tokens.any((t) => bearerMatches(authorization, t))) {
         return inner(req);
       }
 
       // Say what is missing in the dialect the client parses, so a LAN user
-      // sees "send the token from the Server page" instead of a bare 401.
+      // sees "send a token from the Server page" instead of a bare 401.
       const message =
-          'Missing or wrong API key. LAN mode needs the bearer token shown '
-          'on the Thinai Server page: send "Authorization: Bearer <token>".';
+          'Missing or wrong API key. Send "Authorization: Bearer <token>" '
+          'with a token from API tokens on the Thinai Server page.';
       final openAi = req.url.path.startsWith('v1/');
       return Response.unauthorized(
         jsonEncode({
