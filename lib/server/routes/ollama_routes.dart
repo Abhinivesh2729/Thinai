@@ -399,7 +399,7 @@ Future<GenerationOptions> _generationOptionsFor(
     topK: resolved.topK,
     enableThinking: resolved.thinking ? null : false,
     maxTokens: _asIntOrNull(options['num_predict'] ?? body['max_tokens']) ?? -1,
-    contextSize: resolved.contextSize,
+    contextSize: await store.fitToFreeMemory(model, resolved.contextSize),
     numGpuLayers: layers,
     gpuBackend: backend,
     stop: _stopFrom(options['stop'] ?? body['stop']),

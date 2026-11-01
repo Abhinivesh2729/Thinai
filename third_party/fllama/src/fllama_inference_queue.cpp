@@ -104,6 +104,11 @@ ServerManager::get_or_create(const std::string &model_path,
   // overwrites the return address with ASCII " using d" from a Metal log).
   std::lock_guard<std::mutex> load_lk(model_load_mutex);
 
+  // A new model is about to be loaded: drop any other that sits idle first.
+  // Waiting for the inactivity timeout kept two models resident when the app
+  // switched, which on a phone is enough to get the app killed.
+  release_idle(model_path);
+
   // Re-check: another thread may have loaded this model while we waited.
   {
     std::shared_lock<std::shared_mutex> lk(servers_lock);
@@ -155,6 +160,26 @@ void ServerManager::release(const std::string &model_path) {
     it->second->active_users.fetch_sub(1);
     it->second->last_used = std::chrono::steady_clock::now();
   }
+}
+
+int ServerManager::release_idle(const std::string &keep_path) {
+  std::vector<std::unique_ptr<ServerResources>> to_free;
+  {
+    std::unique_lock<std::shared_mutex> lk(servers_lock);
+    for (auto it = servers.begin(); it != servers.end();) {
+      if (it->first != keep_path && it->second->active_users.load() == 0) {
+        std::cout << "[ServerManager] Releasing idle: " << it->first << "\n";
+        to_free.push_back(std::move(it->second));
+        it = servers.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+  // Destructors (terminate + join + free) run outside the lock.
+  const int count = static_cast<int>(to_free.size());
+  to_free.clear();
+  return count;
 }
 
 // ---------------------------------------------------------------------------
