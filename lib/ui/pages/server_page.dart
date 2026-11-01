@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/l10n.dart';
+import '../../server/api_tokens.dart';
 import '../../server/foreground_handler.dart';
 import '../../state/providers.dart';
 import '../widgets/floating_lines_background.dart';
@@ -180,8 +182,16 @@ class _ServerPageState extends ConsumerState<ServerPage> {
     final apiHost = lanShare
         ? (status.lanIp ?? deviceIp ?? '127.0.0.1')
         : '127.0.0.1';
-    final base = 'http://$apiHost:$port';
+    // With a tunnel open, the examples point at the public URL clients use.
+    final base = status.publicUrl ?? 'http://$apiHost:$port';
     final chatId = activeId ?? 'model-id';
+    // LAN mode and the public URL reject any request without a token, so the
+    // snippets carry the first one (the "Default" a LAN start creates);
+    // loopback needs no key at all.
+    final tokens = ref.watch(apiTokensProvider);
+    final apiKey = (lanShare || status.publicUrl != null) && tokens.isNotEmpty
+        ? tokens.first.token
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -235,17 +245,23 @@ class _ServerPageState extends ConsumerState<ServerPage> {
             onChanged: _setLanShare,
           ),
 
+          // 3b. Temporary public URL through a free Cloudflare quick tunnel
+          if (ref.watch(quickTunnelSupportedProvider))
+            _PublicTunnelCard(status: status, onStartServer: _start),
+
+          // 3c. Named API tokens for LAN and tunnel clients
+          const _ApiTokensCard(),
+
           // 4. Full-Width Developer Quick Connect
           _DeveloperQuickStartCard(
             base: base,
-            apiHost: apiHost,
-            port: port,
             chatId: chatId,
             lanShare: lanShare,
+            apiKey: apiKey,
           ),
 
           // 5. Full-Width Clean API Endpoints List (No bloated categories)
-          _ApiEndpointsSection(base: base, chatId: chatId),
+          _ApiEndpointsSection(base: base, chatId: chatId, apiKey: apiKey),
         ],
       ),
     );
@@ -816,9 +832,6 @@ class _NetworkShareCard extends ConsumerStatefulWidget {
 }
 
 class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
-  bool _showToken = false;
-  bool _regenerating = false;
-
   void _copy(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -830,71 +843,11 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
     );
   }
 
-  Future<void> _regenerate() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.serverRegenerateTokenTitle),
-        content: Text(context.l10n.serverRegenerateTokenBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.l10n.serverRegenerate),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _regenerating = true);
-
-    try {
-      final controller = ref.read(serverControllerProvider.notifier);
-      final status = ref.read(serverControllerProvider);
-      final lan = ref.read(lanShareProvider);
-
-      if (status.running && lan) {
-        await controller.stop();
-      }
-
-      await regenerateServerBearerToken();
-
-      if (status.running && lan) {
-        await controller.start(port: status.port, lanMode: true);
-      }
-
-      ref.invalidate(serverBearerTokenProvider);
-
-      if (mounted) {
-        setState(() => _showToken = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.serverTokenRegenerated),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _regenerating = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shareIp = widget.lanIp ?? widget.deviceIp;
-    final tokenAsync = ref.watch(serverBearerTokenProvider);
 
     return Container(
       width: double.infinity,
@@ -910,35 +863,38 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.serverLanShareTitle,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14.5,
-                        letterSpacing: -0.2,
+          InkWell(
+            onTap: () => widget.onChanged(!widget.enabled),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.l10n.serverLanShareTitle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.enabled
-                          ? context.l10n.serverLanShareOnSubtitle
-                          : context.l10n.serverLanShareOffSubtitle,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 11.5,
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.enabled
+                            ? context.l10n.serverLanShareOnSubtitle
+                            : context.l10n.serverLanShareOffSubtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Switch(value: widget.enabled, onChanged: widget.onChanged),
-            ],
+                Switch(value: widget.enabled, onChanged: widget.onChanged),
+              ],
+            ),
           ),
           AnimatedSize(
             duration: const Duration(milliseconds: 260),
@@ -1009,109 +965,6 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
                           ),
                           const SizedBox(height: 8),
                         ],
-                        tokenAsync.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, _) => const SizedBox.shrink(),
-                          data: (token) {
-                            if (token == null || token.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            final masked =
-                                '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
-
-                            return Container(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF131722)
-                                    : scheme.surfaceContainerHigh.withValues(
-                                        alpha: 0.5,
-                                      ),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.06)
-                                      : scheme.outlineVariant.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Token: ',
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: SelectableText(
-                                      _showToken ? token : masked,
-                                      style: const TextStyle(
-                                        fontFamily: 'monospace',
-                                        fontSize: 11.5,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      _showToken
-                                          ? Icons.visibility_off_rounded
-                                          : Icons.visibility_rounded,
-                                      size: 15,
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: () => setState(
-                                      () => _showToken = !_showToken,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy_rounded,
-                                      size: 15,
-                                      color: Color(0xFF2CA048),
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: () =>
-                                        _copy(token, 'Bearer token'),
-                                  ),
-                                  IconButton(
-                                    icon: _regenerating
-                                        ? const SizedBox(
-                                            width: 12,
-                                            height: 12,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 1.5,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.refresh_rounded,
-                                            size: 15,
-                                          ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                      minHeight: 26,
-                                    ),
-                                    onPressed: _regenerating
-                                        ? null
-                                        : _regenerate,
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                       ],
                     ),
                   )
@@ -1123,21 +976,474 @@ class _NetworkShareCardState extends ConsumerState<_NetworkShareCard> {
   }
 }
 
+// ─── 3b. PUBLIC URL (CLOUDFLARE QUICK TUNNEL) ────────────────────────────────
+
+class _PublicTunnelCard extends ConsumerStatefulWidget {
+  final ServerStatus status;
+
+  /// Starts the server the way the Start button does, so turning the tunnel
+  /// on from a stopped server is one tap instead of a dead switch.
+  final Future<void> Function() onStartServer;
+
+  const _PublicTunnelCard({required this.status, required this.onStartServer});
+
+  @override
+  ConsumerState<_PublicTunnelCard> createState() => _PublicTunnelCardState();
+}
+
+class _PublicTunnelCardState extends ConsumerState<_PublicTunnelCard> {
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function(ServerController c) action) async {
+    setState(() => _busy = true);
+    final controller = ref.read(serverControllerProvider.notifier);
+    try {
+      await action(controller);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    final error = ref.read(serverControllerProvider).error;
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.serverTunnelFailed(error)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  static const _privacyAckKey = 'tunnel_privacy_ack';
+
+  /// Prompts and replies through the tunnel pass Cloudflare, which breaks
+  /// the on-device promise, so the first turn-on asks first.
+  Future<bool> _privacyAccepted() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_privacyAckKey) ?? false) return true;
+    if (!mounted) return false;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTunnelPrivacyTitle),
+        content: Text(context.l10n.serverTunnelPrivacyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.serverTunnelPrivacyConfirm),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return false;
+    await prefs.setBool(_privacyAckKey, true);
+    return true;
+  }
+
+  Future<void> _toggle(bool on) async {
+    if (on && !await _privacyAccepted()) return;
+    await _run((c) async {
+      if (!on) return c.stopTunnel();
+      if (!ref.read(serverControllerProvider).running) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelStartingServer),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        await widget.onStartServer();
+        if (!ref.read(serverControllerProvider).running) return;
+      }
+      await c.startTunnel();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final status = widget.status;
+    final url = status.publicUrl;
+
+    ref.listen(serverControllerProvider, (prev, next) {
+      if (prev?.publicUrl != null &&
+          next.error == ServerController.tunnelDroppedError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.serverTunnelDropped),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
+    return _SectionCard(
+      title: context.l10n.serverTunnelTitle,
+      badge: context.l10n.serverTunnelBeta,
+      subtitle: url != null
+          ? context.l10n.serverTunnelOnSubtitle
+          : context.l10n.serverTunnelOffSubtitle,
+      onTap: _busy ? null : () => _toggle(url == null),
+      trailing: _busy
+          ? const Padding(
+              padding: EdgeInsets.all(12),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          : Switch(value: url != null, onChanged: _toggle),
+      child: url == null
+          ? null
+          : Row(
+              children: [
+                Expanded(child: _UrlStrip(url: url, running: true)),
+                IconButton(
+                  icon: Icon(
+                    Icons.autorenew_rounded,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  tooltip: context.l10n.serverTunnelRotate,
+                  onPressed: _busy ? null : () => _run((c) => c.startTunnel()),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+// ─── 3c. NAMED API TOKENS ────────────────────────────────────────────────────
+
+class _ApiTokensCard extends ConsumerWidget {
+  const _ApiTokensCard();
+
+  Future<void> _create(BuildContext context, WidgetRef ref) async {
+    // No controller: disposing one here would race the dialog's exit
+    // animation, which still renders the TextField.
+    var typed = '';
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTokenNew),
+        content: TextField(
+          autofocus: true,
+          maxLength: 40,
+          decoration: InputDecoration(
+            labelText: context.l10n.serverTokenNameLabel,
+          ),
+          onChanged: (v) => typed = v,
+          onSubmitted: (v) => Navigator.pop(context, v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, typed),
+            child: Text(context.l10n.serverTokenCreate),
+          ),
+        ],
+      ),
+    );
+    if (name == null) return;
+    await ref.read(apiTokensProvider.notifier).create(name);
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref, ApiToken t) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.serverTokenDeleteTitle(t.name)),
+        content: Text(context.l10n.serverTokenDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.serverTokenDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final tokens = ref.read(apiTokensProvider.notifier);
+    await tokens.delete(t.id);
+    // LAN and the tunnel never run open, so a share left with no token locks
+    // every client out until a restart. Mint a fresh one now instead: the
+    // deleted token is still revoked, and the page shows the new one.
+    final status = ref.read(serverControllerProvider);
+    if (status.running && (status.lan || status.publicUrl != null)) {
+      await tokens.ensureOne();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final tokens = ref.watch(apiTokensProvider);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateFmt = DateFormat('d MMM y, HH:mm', locale);
+
+    return _SectionCard(
+      title: context.l10n.serverTokensTitle,
+      subtitle: context.l10n.serverTokensSubtitle,
+      trailing: TextButton.icon(
+        icon: const Icon(Icons.add_rounded, size: 18),
+        label: Text(context.l10n.serverTokenNew),
+        onPressed: () => _create(context, ref),
+      ),
+      child: tokens.isEmpty
+          ? Text(
+              context.l10n.serverTokensEmpty,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+            )
+          : Column(
+              children: [
+                for (final t in tokens) ...[
+                  _ValueRow(
+                    label: t.name,
+                    sublabel: context.l10n.serverTokenCreatedOn(
+                      dateFmt.format(t.createdAt),
+                    ),
+                    value:
+                        '${t.token.substring(0, 4)}••••••${t.token.substring(t.token.length - 4)}',
+                    actions: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.copy_rounded,
+                          size: 15,
+                          color: Color(0xFF2CA048),
+                        ),
+                        tooltip: context.l10n.serverTokenCopyTooltip,
+                        onPressed: () => _copyText(context, t.token, t.name),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          size: 16,
+                          color: scheme.error,
+                        ),
+                        tooltip: context.l10n.serverTokenDelete,
+                        onPressed: () => _delete(context, ref, t),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+    );
+  }
+}
+
+void _copyText(BuildContext context, String text, String label) {
+  Clipboard.setData(ClipboardData(text: text));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(context.l10n.serverCopiedLabel(label)),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
+
+/// The bordered full-width section the Server page stacks: a title,
+/// subtitle and trailing control, with optional content below.
+class _SectionCard extends StatelessWidget {
+  final String title;
+
+  /// A small tag after the title, e.g. "Beta".
+  final String? badge;
+  final String subtitle;
+  final Widget trailing;
+  final Widget? child;
+
+  /// Makes the whole header row tappable, not just [trailing].
+  final VoidCallback? onTap;
+
+  const _SectionCard({
+    required this.title,
+    this.badge,
+    required this.subtitle,
+    required this.trailing,
+    this.child,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14.5,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scheme.tertiaryContainer,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                badge!,
+                                style: TextStyle(
+                                  color: scheme.onTertiaryContainer,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                trailing,
+              ],
+            ),
+          ),
+          if (child != null) ...[const SizedBox(height: 12), child!],
+        ],
+      ),
+    );
+  }
+}
+
+/// A labelled monospace value in the page's tinted pill, with trailing
+/// actions.
+class _ValueRow extends StatelessWidget {
+  final String label;
+  final String sublabel;
+  final String value;
+  final List<Widget> actions;
+
+  const _ValueRow({
+    required this.label,
+    required this.value,
+    required this.actions,
+    required this.sublabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelStyle = TextStyle(
+      fontSize: 11.5,
+      fontWeight: FontWeight.w700,
+      color: scheme.onSurfaceVariant,
+    );
+    final valueText = SelectableText(
+      value,
+      style: TextStyle(
+        fontFamily: 'monospace',
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF131722)
+            : scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : scheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: labelStyle),
+                Text(
+                  sublabel,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                valueText,
+              ],
+            ),
+          ),
+          ...actions,
+        ],
+      ),
+    );
+  }
+}
+
 // ─── 4. FULL-WIDTH DEVELOPER QUICK CONNECT ───────────────────────────────────
 
 class _DeveloperQuickStartCard extends StatefulWidget {
   final String base;
-  final String apiHost;
-  final int port;
   final String chatId;
   final bool lanShare;
 
+  /// The LAN bearer token, or null on loopback where no key is checked.
+  final String? apiKey;
+
   const _DeveloperQuickStartCard({
     required this.base,
-    required this.apiHost,
-    required this.port,
     required this.chatId,
     required this.lanShare,
+    this.apiKey,
   });
 
   @override
@@ -1152,8 +1458,8 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final openAiBase = 'http://${widget.apiHost}:${widget.port}/v1';
-    final ollamaBase = 'http://${widget.apiHost}:${widget.port}';
+    final openAiBase = '${widget.base}/v1';
+    final ollamaBase = widget.base;
 
     return Container(
       width: double.infinity,
@@ -1284,76 +1590,89 @@ class _DeveloperQuickStartCardState extends State<_DeveloperQuickStartCard> {
     );
   }
 
+  /// A file tab whose snippet carries the API key: masked on screen, real on
+  /// the clipboard. OpenAI SDKs refuse an empty key, so loopback gets a dummy.
+  _VsCodeFileTab _keyedTab({
+    required String filename,
+    required String language,
+    required IconData icon,
+    required String Function(String key) code,
+  }) {
+    final key = widget.apiKey;
+    return _VsCodeFileTab(
+      filename: filename,
+      language: language,
+      icon: icon,
+      code: code(key == null ? 'thinai' : _maskedToken(key)),
+      copyCode: code(key ?? 'thinai'),
+    );
+  }
+
   Widget _buildVsCodeTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final configJson =
-        '''{
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'config.json',
+          language: 'json',
+          icon: Icons.data_object_rounded,
+          code: (key) =>
+              '''{
   "models": [
     {
       "title": "Thinai Local",
       "provider": "openai",
       "model": "${widget.chatId}",
       "apiBase": "$openAiBase",
-      "apiKey": "thinai"
+      "apiKey": "$key"
     }
   ]
-}''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'config.json',
-          language: 'json',
-          code: configJson,
-          icon: Icons.data_object_rounded,
+}''',
         ),
       ],
     );
   }
 
   Widget _buildPythonTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final pyCode =
-        '''from openai import OpenAI
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'client.py',
+          language: 'python',
+          icon: Icons.code_rounded,
+          code: (key) =>
+              '''from openai import OpenAI
 
 client = OpenAI(
     base_url="$openAiBase",
-    api_key="thinai",
+    api_key="$key",
 )
 
 response = client.chat.completions.create(
     model="${widget.chatId}",
     messages=[{"role": "user", "content": "Hello on-device AI!"}],
 )
-print(response.choices[0].message.content)''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'client.py',
-          language: 'python',
-          code: pyCode,
-          icon: Icons.code_rounded,
+print(response.choices[0].message.content)''',
         ),
       ],
     );
   }
 
   Widget _buildCurlTab(ColorScheme scheme, String openAiBase, bool isDark) {
-    final curlCode =
-        '''curl $openAiBase/chat/completions \\
+    final lan = widget.apiKey != null;
+    return _VsCodeTerminalBox(
+      tabs: [
+        _keyedTab(
+          filename: 'request.sh',
+          language: 'bash',
+          icon: Icons.terminal_rounded,
+          code: (key) =>
+              '''curl $openAiBase/chat/completions \\
   -H "Content-Type: application/json" \\
-  -d '{
+${lan ? '  -H "Authorization: Bearer $key" \\\n' : ''}  -d '{
     "model": "${widget.chatId}",
     "messages": [{"role": "user", "content": "Hello on-device AI!"}],
     "stream": false
-  }' ''';
-
-    return _VsCodeTerminalBox(
-      tabs: [
-        _VsCodeFileTab(
-          filename: 'request.sh',
-          language: 'bash',
-          code: curlCode,
-          icon: Icons.terminal_rounded,
+  }' ''',
         ),
       ],
     );
@@ -1386,15 +1705,22 @@ print(response.choices[0].message.content)''';
   }
 
   Widget _buildOllamaTab(ColorScheme scheme, String ollamaBase, bool isDark) {
-    final envCmd = 'export OLLAMA_HOST=$ollamaBase';
-
+    // OLLAMA_HOST alone sends no Authorization header, so on the LAN it only
+    // works through a client that lets you add one.
+    final lan = widget.apiKey != null;
     return _VsCodeTerminalBox(
       tabs: [
-        _VsCodeFileTab(
+        _keyedTab(
           filename: 'env.sh',
           language: 'bash',
-          code: envCmd,
           icon: Icons.terminal_rounded,
+          code: (key) => lan
+              ? '# LAN mode needs the bearer token on every request.\n'
+                    '# The ollama CLI cannot send it; ollama-python can:\n'
+                    '#   Client(host="$ollamaBase",\n'
+                    '#          headers={"Authorization": "Bearer $key"})\n'
+                    'export OLLAMA_HOST=$ollamaBase'
+              : 'export OLLAMA_HOST=$ollamaBase',
         ),
       ],
     );
@@ -1407,7 +1733,14 @@ class _ApiEndpointsSection extends StatefulWidget {
   final String base;
   final String chatId;
 
-  const _ApiEndpointsSection({required this.base, required this.chatId});
+  /// The LAN bearer token, or null on loopback where no key is checked.
+  final String? apiKey;
+
+  const _ApiEndpointsSection({
+    required this.base,
+    required this.chatId,
+    this.apiKey,
+  });
 
   @override
   State<_ApiEndpointsSection> createState() => _ApiEndpointsSectionState();
@@ -1428,11 +1761,28 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
     );
   }
 
+  String _shown(String curl) {
+    final key = widget.apiKey;
+    return key == null
+        ? curl
+        : curl.replaceAll(_kKeyPlaceholder, _maskedToken(key));
+  }
+
+  String _real(String curl) {
+    final key = widget.apiKey;
+    return key == null ? curl : curl.replaceAll(_kKeyPlaceholder, key);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = context.l10n;
+    // The cURL strings carry a key placeholder; [_shown] masks it for the
+    // screen and [_real] fills in the token for the clipboard.
+    final lan = widget.apiKey != null;
+    const authHeader = '-H "Authorization: Bearer $_kKeyPlaceholder"';
+    final authLine = lan ? '  $authHeader \\\n' : '';
 
     final endpoints = [
       _EndpointItem(
@@ -1442,6 +1792,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/v1/chat/completions \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Hello!"}],\n'
@@ -1487,6 +1838,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/api/chat \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "messages": [{"role": "user", "content": "Why is the sky blue?"}],\n'
@@ -1520,6 +1872,7 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         curl:
             'curl ${widget.base}/v1/embeddings \\\n'
             '  -H "Content-Type: application/json" \\\n'
+            '$authLine'
             '  -d \'{\n'
             '    "model": "${widget.chatId}",\n'
             '    "input": "Search query text"\n'
@@ -1550,7 +1903,9 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
         method: 'GET',
         path: '/v1/models',
         title: l10n.serverEndpointModels,
-        curl: 'curl ${widget.base}/v1/models',
+        curl: lan
+            ? 'curl ${widget.base}/v1/models \\\n  $authHeader'
+            : 'curl ${widget.base}/v1/models',
         requestJson: null,
         responseJson:
             '{\n'
@@ -1623,7 +1978,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
       _VsCodeFileTab(
         filename: 'curl.sh',
         language: 'bash',
-        code: item.curl,
+        code: _shown(item.curl),
+        copyCode: _real(item.curl),
         icon: Icons.terminal_rounded,
       ),
       if (item.requestJson != null)
@@ -1714,7 +2070,8 @@ class _ApiEndpointsSectionState extends State<_ApiEndpointsSection> {
                       minWidth: 28,
                       minHeight: 28,
                     ),
-                    onPressed: () => _copy(item.curl, '${item.path} cURL'),
+                    onPressed: () =>
+                        _copy(_real(item.curl), '${item.path} cURL'),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
@@ -1776,15 +2133,27 @@ class _VsCodeFileTab {
   final String filename;
   final String language; // 'bash', 'json', 'python', 'text'
   final String code;
+
+  /// What Copy puts on the clipboard when it differs from what is shown,
+  /// e.g. the real API key where [code] shows it masked.
+  final String? copyCode;
   final IconData? icon;
 
   const _VsCodeFileTab({
     required this.filename,
     required this.language,
     required this.code,
+    this.copyCode,
     this.icon,
   });
 }
+
+/// Stands in for the API key inside endpoint cURL templates.
+const _kKeyPlaceholder = '<thinai-api-key>';
+
+/// Shows enough of a token to tell keys apart without revealing it.
+String _maskedToken(String token) =>
+    '${token.substring(0, 4)}••••••${token.substring(token.length - 4)}';
 
 class _VsCodeSyntaxHighlighter {
   static const Color background = Color(0xFF1E1E1E);
@@ -2133,7 +2502,9 @@ class _VsCodeTerminalBoxState extends State<_VsCodeTerminalBox> {
   void _handleCopy() {
     final activeTab =
         widget.tabs[_activeTabIndex.clamp(0, widget.tabs.length - 1)];
-    Clipboard.setData(ClipboardData(text: activeTab.code));
+    Clipboard.setData(
+      ClipboardData(text: activeTab.copyCode ?? activeTab.code),
+    );
     HapticFeedback.lightImpact();
     setState(() => _copied = true);
     Future.delayed(const Duration(milliseconds: 1800), () {

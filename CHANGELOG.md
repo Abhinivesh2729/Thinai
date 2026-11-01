@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.6.0]
+
+### Added
+- Public URL (Beta): a temporary `https://…trycloudflare.com` link to the local API through a free Cloudflare quick tunnel, with Rotate URL. The first turn-on warns that requests and replies pass through Cloudflare. Shown on arm64 phones, where the bundled cloudflared (Apache-2.0) runs (#71, #72).
+- Named API tokens: create one per client and delete it to cut that client off at once, without a restart. LAN and the public URL always need one; the old single LAN token carries over as "Default" (#72).
+- `GET /healthz` for uptime checks; it needs no token and returns no data (#72).
+
+### Fixed
+- LAN clients got 401 on every request: the Server page never showed the token on a fresh install, and every example sent the placeholder key "thinai". The VS Code, Python, cURL and endpoint examples now carry the real token, masked on screen and copied in full; the Ollama tab says `OLLAMA_HOST` alone cannot authenticate (#86).
+- The API accepts the `Bearer` scheme in any case, compares tokens in constant time, and answers a missing or wrong key with `WWW-Authenticate` and a message that says where the token is, in the OpenAI or Ollama error shape (#86).
+- Deleting the last API token while sharing no longer locks every client out until a restart: a new token replaces it at once.
+- The whole Share on LAN row toggles it, like Public URL, not just the switch.
+
+### Changed
+- Dependencies: file_picker 13.3.0, share_plus 13, package_info_plus 10, in_app_update 5.0.0, plus patch updates (#81, #82, #83, #85).
+- Groundwork for MCP tools: an MCP client that connects to a server over Streamable HTTP, lists its tools and calls them. Nothing in the app uses it yet (#15, #40).
+
 ## [2.5.0]
 
 ### Added

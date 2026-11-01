@@ -1,8 +1,6 @@
-What's new in 2.5.0
-• Thinai in Tamil: choose English or தமிழ் in Settings > Appearance
-• Tamil eval: tap த on the Models page to score how well a model understands and writes Tamil
-• Search Hugging Face and install public GGUF models
-• Downloads resume after a pause, a lost connection or closing the app
-• Faster app start
-• Chats now use the full context window you set
-• Fixes: Qwen3.5 models load, the server port shows before starting, the LAN switch is visible in dark theme
+What's new in 2.6.0
+• Public URL (Beta): share your phone's AI server through a temporary link
+• API tokens: create one per app or device, delete it to cut that one off
+• Fixed: apps on your Wi-Fi could not connect to the server. The examples on the Server page now include your token, ready to copy
+• Clearer error when an app sends a missing or wrong token
+• Tap anywhere on the Share on LAN row to turn it on or off

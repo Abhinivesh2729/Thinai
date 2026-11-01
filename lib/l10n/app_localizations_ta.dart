@@ -128,19 +128,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get serverBrowseModels => 'அறிவுருவைத் தேர்';
 
   @override
-  String get serverRegenerateTokenTitle => 'Token-ஐ மாற்றவா?';
-
-  @override
-  String get serverRegenerateTokenBody =>
-      'LAN சாதனங்களுக்குப் புதிய token தேவைப்படும்.';
-
-  @override
-  String get serverRegenerate => 'மாற்று';
-
-  @override
-  String get serverTokenRegenerated => 'Token மாற்றப்பட்டது';
-
-  @override
   String get serverLanShareTitle => 'LAN-இல் பகிர்';
 
   @override
@@ -152,6 +139,86 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get serverCopyLanUrlTooltip => 'LAN URL-ஐ நகலெடு';
+
+  @override
+  String get serverTunnelTitle => 'பொது URL';
+
+  @override
+  String get serverTunnelOffSubtitle =>
+      'இலவச Cloudflare tunnel வழியாகத் தற்காலிக இணைப்பு';
+
+  @override
+  String get serverTunnelOnSubtitle =>
+      'இந்த URL-உம் token-உம் உள்ள எவரும் இணையலாம்';
+
+  @override
+  String get serverTunnelStartingServer =>
+      'பொது URL-க்காக server தொடங்குகிறது…';
+
+  @override
+  String get serverTunnelRotate => 'URL-ஐ மாற்று';
+
+  @override
+  String get serverTunnelBeta => 'பீட்டா';
+
+  @override
+  String get serverTunnelPrivacyTitle => 'இயக்குவதற்கு முன்';
+
+  @override
+  String get serverTunnelPrivacyBody =>
+      'உங்கள் பொது URL-க்கு வரும் கோரிக்கைகளும் model-இன் பதில்களும் Cloudflare servers வழியாகச் செல்கின்றன, Cloudflare அவற்றைப் படிக்க முடியும். இந்த phone-இல் உள்ள apps-உம் உங்கள் Wi-Fi-இல் உள்ள சாதனங்களும் Thinai-உடன் நேரடியாகவே பேசுகின்றன.';
+
+  @override
+  String get serverTunnelPrivacyConfirm => 'இயக்கு';
+
+  @override
+  String get serverTunnelDropped =>
+      'பொது URL நின்றுவிட்டது. புதிய இணைப்புக்கு மீண்டும் இயக்கவும்.';
+
+  @override
+  String serverTunnelFailed(String error) {
+    return 'Tunnel தோல்வி: $error';
+  }
+
+  @override
+  String get serverTokensTitle => 'API tokens';
+
+  @override
+  String get serverTokensSubtitle =>
+      'LAN அல்லது பொது URL வழி இணைபவர்களுக்குத் தேவை';
+
+  @override
+  String get serverTokensEmpty =>
+      'இன்னும் token இல்லை. பகிரும்போது ஒன்று உருவாகும்.';
+
+  @override
+  String get serverTokenNew => 'புதிய token';
+
+  @override
+  String get serverTokenNameLabel => 'பெயர், எ.கா. Laptop';
+
+  @override
+  String get serverTokenCreate => 'உருவாக்கு';
+
+  @override
+  String serverTokenCreatedOn(String date) {
+    return 'உருவாக்கியது $date';
+  }
+
+  @override
+  String serverTokenDeleteTitle(String name) {
+    return '\"$name\"-ஐ நீக்கவா?';
+  }
+
+  @override
+  String get serverTokenDeleteBody =>
+      'இந்த token-ஐப் பயன்படுத்துபவர்கள் உடனே அணுகலை இழப்பார்கள்.';
+
+  @override
+  String get serverTokenDelete => 'நீக்கு';
+
+  @override
+  String get serverTokenCopyTooltip => 'Token-ஐ நகலெடு';
 
   @override
   String get serverDevQuickStartTitle => 'விரைவுத் தொடக்கம்';

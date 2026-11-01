@@ -221,15 +221,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// Picks a text document and pins it to the conversation.
   Future<void> _attachDocument() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: kTextExtensions.toList(),
-        withData: true,
       );
-      final file = result?.files.singleOrNull;
       if (file == null) return;
-      final bytes = file.bytes;
-      if (bytes == null) {
+      final Uint8List bytes;
+      try {
+        bytes = await file.readAsBytes();
+      } on Object {
         if (mounted) _toast(context.l10n.chatErrorReadFile);
         return;
       }
@@ -292,15 +292,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Future<void> _attachImage() async {
     if (!_canSeeImages()) return;
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: kImageExtensions.toList(),
-        withData: true,
       );
-      final file = result?.files.singleOrNull;
       if (file == null) return;
-      final bytes = file.bytes;
-      if (bytes == null) {
+      final Uint8List bytes;
+      try {
+        bytes = await file.readAsBytes();
+      } on Object {
         if (mounted) _toast(context.l10n.chatErrorReadImage);
         return;
       }
