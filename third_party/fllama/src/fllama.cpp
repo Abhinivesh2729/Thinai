@@ -712,4 +712,9 @@ fllama_inference_cancel(int request_id) {
   g_mgr.cancel(request_id);
 }
 
+EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT int
+fllama_release_idle_models(const char *keep_model_path) {
+  return g_mgr.release_idle(keep_model_path ? keep_model_path : "");
+}
+
 } // extern "C"

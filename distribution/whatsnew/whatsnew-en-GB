@@ -1,6 +1,3 @@
-What's new in 2.6.0
-• Public URL (Beta): share your phone's AI server through a temporary link
-• API tokens: create one per app or device, delete it to cut that one off
-• Fixed: apps on your Wi-Fi could not connect to the server. The examples on the Server page now include your token, ready to copy
-• Clearer error when an app sends a missing or wrong token
-• Tap anywhere on the Share on LAN row to turn it on or off
+What's new in 2.6.1
+• Fewer crashes on phones with less free memory: Thinai now sizes each model's memory to what your phone has free right now
+• Switching models frees the old one straight away
