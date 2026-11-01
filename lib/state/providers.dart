@@ -1228,7 +1228,13 @@ Future<String> _getOrCreateServerBearerToken() async {
 }
 
 /// Returns the current LAN API bearer token, if one has been created.
+///
+/// The token is first written when the server starts in LAN mode, which is
+/// after the Server page has already read this provider. Watching the LAN
+/// running state re-reads it then; otherwise a fresh install caches `null`
+/// and the page never shows the token LAN clients need.
 final serverBearerTokenProvider = FutureProvider<String?>((ref) async {
+  ref.watch(serverControllerProvider.select((s) => s.running && s.lan));
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString(_kServerBearerTokenKey);
 });

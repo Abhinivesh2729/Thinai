@@ -61,7 +61,7 @@ dependencies:
 
   # Filesystem / model management
   path_provider: ^2.1.6
-  file_picker: ^12.0.0-beta.7
+  file_picker: ^13.3.0
   dio: ^5.11.1
 
   # State management
