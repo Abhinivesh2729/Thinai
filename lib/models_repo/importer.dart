@@ -9,15 +9,9 @@ class ModelImporter {
   const ModelImporter();
 
   Future<LocalModel?> pickAndImport() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-      allowMultiple: false,
-      withData: false,
-      withReadStream: false,
-    );
-    if (result == null || result.files.isEmpty) return null;
+    final picked = await FilePicker.pickFile(type: FileType.any);
+    if (picked == null) return null;
 
-    final picked = result.files.single;
     final sourcePath = picked.path;
     // Distinct from a cancelled pick, which returned above: a file was chosen
     // but the picker could not give a readable path for it. Reported rather

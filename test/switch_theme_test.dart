@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:local_llm/state/providers.dart';
 import 'package:local_llm/ui/app.dart';
 import 'package:local_llm/ui/pages/server_page.dart';
 
@@ -49,10 +50,14 @@ void main() {
     }
   }
 
-  testWidgets('LAN switch takes its colours from the theme', (tester) async {
+  testWidgets('Server switches take their colours from the theme', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(
       ProviderScope(
+        // Test as an arm64 phone, where the Public URL switch shows.
+        overrides: [quickTunnelSupportedProvider.overrideWithValue(true)],
         child: MaterialApp(
           theme: buildAppTheme(Brightness.dark),
           home: const ServerPage(),
@@ -61,9 +66,13 @@ void main() {
     );
     await tester.pump();
 
-    final lanSwitch = tester.widget<Switch>(find.byType(Switch));
-    expect(lanSwitch.activeThumbColor, isNull);
-    expect(lanSwitch.thumbColor, isNull);
-    expect(lanSwitch.trackColor, isNull);
+    // LAN share and public URL.
+    final switches = tester.widgetList<Switch>(find.byType(Switch));
+    expect(switches, hasLength(2));
+    for (final s in switches) {
+      expect(s.activeThumbColor, isNull);
+      expect(s.thumbColor, isNull);
+      expect(s.trackColor, isNull);
+    }
   });
 }

@@ -128,19 +128,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverBrowseModels => 'Choose model';
 
   @override
-  String get serverRegenerateTokenTitle => 'Regenerate token?';
-
-  @override
-  String get serverRegenerateTokenBody =>
-      'LAN devices will need the new token.';
-
-  @override
-  String get serverRegenerate => 'Regenerate';
-
-  @override
-  String get serverTokenRegenerated => 'Token regenerated';
-
-  @override
   String get serverLanShareTitle => 'Share on LAN';
 
   @override
@@ -151,6 +138,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serverCopyLanUrlTooltip => 'Copy LAN URL';
+
+  @override
+  String get serverTunnelTitle => 'Public URL';
+
+  @override
+  String get serverTunnelOffSubtitle =>
+      'Temporary link via a free Cloudflare tunnel';
+
+  @override
+  String get serverTunnelOnSubtitle =>
+      'Anyone with this URL and a token can connect';
+
+  @override
+  String get serverTunnelStartingServer =>
+      'Starting the server for your public URL…';
+
+  @override
+  String get serverTunnelRotate => 'Rotate URL';
+
+  @override
+  String get serverTunnelBeta => 'Beta';
+
+  @override
+  String get serverTunnelPrivacyTitle => 'Before you turn this on';
+
+  @override
+  String get serverTunnelPrivacyBody =>
+      'Requests to your public URL, and the model\'s replies, pass through Cloudflare\'s servers, and Cloudflare can read them. Apps on this phone and devices on your Wi-Fi still talk to Thinai directly.';
+
+  @override
+  String get serverTunnelPrivacyConfirm => 'Turn on';
+
+  @override
+  String get serverTunnelDropped =>
+      'Public URL stopped. Turn it on again for a new link.';
+
+  @override
+  String serverTunnelFailed(String error) {
+    return 'Tunnel failed: $error';
+  }
+
+  @override
+  String get serverTokensTitle => 'API tokens';
+
+  @override
+  String get serverTokensSubtitle =>
+      'Clients on the LAN or public URL need one';
+
+  @override
+  String get serverTokensEmpty =>
+      'No tokens yet. One is created when you share.';
+
+  @override
+  String get serverTokenNew => 'New token';
+
+  @override
+  String get serverTokenNameLabel => 'Name, e.g. Laptop';
+
+  @override
+  String get serverTokenCreate => 'Create';
+
+  @override
+  String serverTokenCreatedOn(String date) {
+    return 'Created $date';
+  }
+
+  @override
+  String serverTokenDeleteTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get serverTokenDeleteBody =>
+      'Clients using this token lose access at once.';
+
+  @override
+  String get serverTokenDelete => 'Delete';
+
+  @override
+  String get serverTokenCopyTooltip => 'Copy token';
 
   @override
   String get serverDevQuickStartTitle => 'Quick start';
