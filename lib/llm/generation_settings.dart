@@ -333,6 +333,7 @@ class GenerationSettingsStore {
     bool? requestedThinking,
     int maxTokens = -1,
     List<String> stop = const [],
+    String? grammar,
     GpuBackend? gpu,
   }) async {
     final resolved = await resolve(
@@ -365,6 +366,7 @@ class GenerationSettingsStore {
       numGpuLayers: backend == GpuBackend.none ? 0 : kAllGpuLayers,
       gpuBackend: backend,
       stop: stop,
+      grammar: grammar,
     );
   }
 }

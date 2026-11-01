@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.4.0+13
+version: 2.5.0+14
 
 environment:
   sdk: ^3.11.0
@@ -48,13 +48,20 @@ dependencies:
   fllama:
     path: third_party/fllama
 
+  # Tamil eval: the dataset, scorers and runner behind the Tamil score. Pure
+  # Dart; the app supplies the generator (lib/eval/engine_eval_generator.dart).
+  thinai_tamil_evals:
+    git:
+      url: https://github.com/Abhinivesh2729/thinai-tamil-evals.git
+      ref: v0.1.0
+
   # HTTP server
-  shelf: ^1.4.2
-  shelf_router: ^1.1.4
+  shelf: ^1.4.3
+  shelf_router: ^1.1.5
 
   # Filesystem / model management
   path_provider: ^2.1.6
-  file_picker: ^8.1.2
+  file_picker: ^12.0.0-beta.7
   dio: ^5.11.1
 
   # State management
@@ -78,10 +85,10 @@ dependencies:
   # In-app updates. Wraps Play's AppUpdateManager, so Play itself holds the
   # version info and the APK; the app runs no update server of its own and
   # ships no extra permissions. Silently unavailable on sideloaded builds.
-  in_app_update: ^4.2.5
+  in_app_update: ^5.0.0
 
   # Reads the running versionName/versionCode to show in Settings
-  package_info_plus: ^9.0.1
+  package_info_plus: ^10.2.2
 
   # Camera capture for the chat composer. file_picker covers picking a photo
   # that already exists; this is the other half — taking one now. Deliberately
@@ -89,7 +96,7 @@ dependencies:
   # the system camera app, and declaring the permission would oblige the app to
   # request it at runtime for no extra capability.
   image_picker: ^1.2.4
-  share_plus: ^12.0.2
+  share_plus: ^13.3.1
 
 dev_dependencies:
   flutter_test:

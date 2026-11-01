@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -127,48 +128,33 @@ Router ollamaRouter() {
     );
 
     if (!stream) {
-      final buf = StringBuffer();
-      var stats = const LlmStats();
-      var doneReason = 'stop';
-      await for (final t in tokenStream) {
-        buf.write(t.delta);
-        stats = t.stats;
-        if (t.done) {
-          doneReason = t.finishReason ?? 'stop';
-          break;
-        }
-      }
+      final reply = await collectOllamaReply(tokenStream);
+      if (reply.failure != null) return _failure(reply.failure!);
       return Response.ok(
         jsonEncode({
           'model': model.id,
           'created_at': DateTime.now().toUtc().toIso8601String(),
-          'response': buf.toString(),
+          'response': reply.text,
           'done': true,
-          'done_reason': doneReason,
-          ..._counters(stats, startedAt),
+          'done_reason': reply.doneReason,
+          ..._counters(reply.stats, startedAt),
         }),
         headers: {'content-type': 'application/json'},
       );
     }
 
-    final controller = StreamController<List<int>>();
-    () async {
-      try {
-        await for (final t in tokenStream) {
-          final line =
-              '${jsonEncode({'model': model.id, 'created_at': DateTime.now().toUtc().toIso8601String(), 'response': t.delta, 'done': t.done, if (t.done) 'done_reason': t.finishReason ?? 'stop', if (t.done) ..._counters(t.stats, startedAt)})}\n';
-          controller.add(utf8.encode(line));
-        }
-      } catch (e) {
-        final line = '${jsonEncode({'error': e.toString(), 'done': true})}\n';
-        controller.add(utf8.encode(line));
-      } finally {
-        await controller.close();
-      }
-    }();
-
     return Response.ok(
-      controller.stream,
+      ollamaNdjson(
+        tokenStream,
+        (t) => {
+          'model': model.id,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+          'response': t.delta,
+          'done': t.done,
+          if (t.done) 'done_reason': t.finishReason ?? 'stop',
+          if (t.done) ..._counters(t.stats, startedAt),
+        },
+      ),
       headers: {
         'content-type': 'application/x-ndjson',
         'cache-control': 'no-cache',
@@ -315,62 +301,42 @@ Router ollamaRouter() {
     );
 
     if (!stream) {
-      final buf = StringBuffer();
-      var stats = const LlmStats();
-      var doneReason = 'stop';
-      List<Map<String, dynamic>>? toolCalls;
-      await for (final t in tokenStream) {
-        buf.write(t.delta);
-        stats = t.stats;
-        if (t.done) {
-          doneReason = t.finishReason ?? 'stop';
-          toolCalls = t.toolCalls;
-          break;
-        }
-      }
+      final reply = await collectOllamaReply(tokenStream);
+      if (reply.failure != null) return _failure(reply.failure!);
+      final toolCalls = reply.toolCalls;
       return Response.ok(
         jsonEncode({
           'model': model.id,
           'created_at': DateTime.now().toUtc().toIso8601String(),
           'message': {
             'role': 'assistant',
-            'content': buf.toString(),
+            'content': reply.text,
             if (toolCalls != null) 'tool_calls': _ollamaToolCalls(toolCalls),
           },
           'done': true,
-          'done_reason': doneReason,
-          ..._counters(stats, startedAt),
+          'done_reason': reply.doneReason,
+          ..._counters(reply.stats, startedAt),
         }),
         headers: {'content-type': 'application/json'},
       );
     }
 
-    final controller = StreamController<List<int>>();
-    () async {
-      try {
-        await for (final t in tokenStream) {
-          final toolCalls = t.done ? t.toolCalls : null;
-          final line =
-              '${jsonEncode({
-                'model': model.id,
-                'created_at': DateTime.now().toUtc().toIso8601String(),
-                'message': {'role': 'assistant', 'content': t.delta, if (toolCalls != null) 'tool_calls': _ollamaToolCalls(toolCalls)},
-                'done': t.done,
-                if (t.done) 'done_reason': t.finishReason ?? 'stop',
-                if (t.done) ..._counters(t.stats, startedAt),
-              })}\n';
-          controller.add(utf8.encode(line));
-        }
-      } catch (e) {
-        final line = '${jsonEncode({'error': e.toString(), 'done': true})}\n';
-        controller.add(utf8.encode(line));
-      } finally {
-        await controller.close();
-      }
-    }();
-
     return Response.ok(
-      controller.stream,
+      ollamaNdjson(tokenStream, (t) {
+        final toolCalls = t.done ? t.toolCalls : null;
+        return {
+          'model': model.id,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+          'message': {
+            'role': 'assistant',
+            'content': t.delta,
+            if (toolCalls != null) 'tool_calls': _ollamaToolCalls(toolCalls),
+          },
+          'done': t.done,
+          if (t.done) 'done_reason': t.finishReason ?? 'stop',
+          if (t.done) ..._counters(t.stats, startedAt),
+        };
+      }),
       headers: {
         'content-type': 'application/x-ndjson',
         'cache-control': 'no-cache',
@@ -500,6 +466,90 @@ dynamic _decodeArguments(dynamic arguments) {
 
 /// The token counters and timings Ollama clients read off a `done` message.
 /// Durations are nanoseconds, as Ollama reports them.
+/// A non-streaming reply drained from the engine.
+@visibleForTesting
+class OllamaReply {
+  final String text;
+  final LlmStats stats;
+  final String doneReason;
+  final List<Map<String, dynamic>>? toolCalls;
+
+  /// The native failure message, when the engine reported one instead of a
+  /// reply. [text] is empty then.
+  final String? failure;
+
+  const OllamaReply({
+    this.text = '',
+    this.stats = const LlmStats(),
+    this.doneReason = 'stop',
+    this.toolCalls,
+    this.failure,
+  });
+}
+
+/// Drains [tokens] into one reply.
+///
+/// A native failure arrives as text on the token stream, flagged
+/// [LlmToken.isError], not as a thrown error. Without the check, "request
+/// exceeds the available context size" went out as a 200 with the message as
+/// the assistant's reply.
+@visibleForTesting
+Future<OllamaReply> collectOllamaReply(Stream<LlmToken> tokens) async {
+  final buf = StringBuffer();
+  var stats = const LlmStats();
+  await for (final t in tokens) {
+    if (t.isError) return OllamaReply(failure: t.full);
+    buf.write(t.delta);
+    stats = t.stats;
+    if (t.done) {
+      return OllamaReply(
+        text: buf.toString(),
+        stats: stats,
+        doneReason: t.finishReason ?? 'stop',
+        toolCalls: t.toolCalls,
+      );
+    }
+  }
+  return OllamaReply(text: buf.toString(), stats: stats);
+}
+
+/// Ollama's NDJSON stream for [tokens], one [frame] per token.
+///
+/// The 200 has already gone out by the time a failure arrives, so a native
+/// failure or a thrown one ends the stream with an `error` line instead, as
+/// Ollama does, rather than streaming the message as reply text.
+@visibleForTesting
+Stream<List<int>> ollamaNdjson(
+  Stream<LlmToken> tokens,
+  Map<String, dynamic> Function(LlmToken t) frame,
+) {
+  final controller = StreamController<List<int>>();
+  void line(Map<String, dynamic> json) =>
+      controller.add(utf8.encode('${jsonEncode(json)}\n'));
+  () async {
+    try {
+      await for (final t in tokens) {
+        if (t.isError) {
+          line({'error': t.full, 'done': true});
+          return;
+        }
+        line(frame(t));
+      }
+    } catch (e) {
+      line({'error': e.toString(), 'done': true});
+    } finally {
+      await controller.close();
+    }
+  }();
+  return controller.stream;
+}
+
+Response _failure(String message) => Response(
+  500,
+  body: jsonEncode({'error': message}),
+  headers: {'content-type': 'application/json'},
+);
+
 Map<String, dynamic> _counters(LlmStats stats, DateTime startedAt) => {
   'total_duration': DateTime.now().difference(startedAt).inMicroseconds * 1000,
   'load_duration': 0,

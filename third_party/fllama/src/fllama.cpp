@@ -362,6 +362,9 @@ static void run_inference(fllama_inference_request request,
     // Sampling knobs the FFI struct has no field for, read from the request
     // JSON instead. -1 = not sent: keep llama.cpp's default (top_k = 40).
     int32_t top_k = -1;
+    // GBNF grammar constraining every sampled token, as llama-server's
+    // `grammar` field. Empty = unconstrained.
+    std::string grammar;
 
     if (request.openai_request_json_string) {
       is_oai = true;
@@ -371,6 +374,9 @@ static void run_inference(fllama_inference_request request,
 
         if (body.contains("top_k") && body["top_k"].is_number_integer()) {
           top_k = std::max(0, body["top_k"].get<int32_t>());
+        }
+        if (body.contains("grammar") && body["grammar"].is_string()) {
+          grammar = body["grammar"].get<std::string>();
         }
 
         std::string jinja_tmpl;
@@ -494,6 +500,7 @@ static void run_inference(fllama_inference_request request,
     if (top_k >= 0) task.params.sampling.top_k = top_k;
     task.params.sampling.penalty_freq   = request.penalty_freq;
     task.params.sampling.penalty_repeat = request.penalty_repeat;
+    if (!grammar.empty()) task.params.sampling.grammar = grammar;
 
     std::random_device rd;
     task.params.sampling.seed = rd();

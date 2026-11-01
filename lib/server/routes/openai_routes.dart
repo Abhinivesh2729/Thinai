@@ -182,6 +182,9 @@ Router openAiRouter() {
           _asIntOrNull(body['max_completion_tokens'] ?? body['max_tokens']) ??
           -1,
       stop: stop,
+      // GBNF, as llama-server takes it. Ignored beside tools: llama.cpp
+      // constrains tool calls with a grammar of its own.
+      grammar: tools.isEmpty ? _asStringOrNull(body['grammar']) : null,
     );
 
     final id = 'chatcmpl-${_uuid.v4()}';
@@ -402,6 +405,8 @@ double? _asDoubleOrNull(dynamic v) =>
 
 int? _asIntOrNull(dynamic v) =>
     v is num ? v.toInt() : (v is String ? int.tryParse(v) : null);
+
+String? _asStringOrNull(dynamic v) => v is String && v.isNotEmpty ? v : null;
 
 Future<LocalModel?> _resolveModel(String? name) async {
   if (name == null || name.isEmpty) {

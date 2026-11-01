@@ -54,7 +54,12 @@ struct ServerResources {
 // ---------------------------------------------------------------------------
 class ServerManager {
 public:
-  static constexpr int DEFAULT_N_PARALLEL = 4;
+  // One slot. llama.cpp splits n_ctx evenly across slots unless the KV cache
+  // is unified, so 4 slots left each request a quarter of the context it
+  // asked for. The Dart side never sends two chat requests at once
+  // (LlmEngine queues them), so the extra slots only cost context and broke
+  // prompt-cache reuse when consecutive requests landed on different slots.
+  static constexpr int DEFAULT_N_PARALLEL = 1;
   static int MODEL_INACTIVITY_TIMEOUT_SEC;
   static int CLEANUP_INTERVAL_SEC;
 
