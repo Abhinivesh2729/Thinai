@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:local_llm/state/providers.dart';
 import 'package:local_llm/ui/app.dart';
 import 'package:local_llm/ui/pages/server_page.dart';
 
@@ -55,6 +56,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(
       ProviderScope(
+        // Test as an arm64 phone, where the Public URL switch shows.
+        overrides: [quickTunnelSupportedProvider.overrideWithValue(true)],
         child: MaterialApp(
           theme: buildAppTheme(Brightness.dark),
           home: const ServerPage(),

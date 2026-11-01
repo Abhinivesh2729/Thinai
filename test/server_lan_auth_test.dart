@@ -82,6 +82,7 @@ void main() {
         serverControllerProvider.overrideWith(
           (ref) => _FakeServer(running: true, lan: true),
         ),
+        quickTunnelSupportedProvider.overrideWithValue(true),
         deviceLanIpProvider.overrideWith((ref) async => '192.168.1.33'),
       ],
     );
@@ -116,6 +117,7 @@ void main() {
           serverControllerProvider.overrideWith(
             (ref) => _FakeServer(running: true, lan: true),
           ),
+          quickTunnelSupportedProvider.overrideWithValue(true),
           deviceLanIpProvider.overrideWith((ref) async => '192.168.1.33'),
         ],
       );
@@ -205,6 +207,7 @@ void main() {
         serverControllerProvider.overrideWith(
           (ref) => _FakeServer(running: true),
         ),
+        quickTunnelSupportedProvider.overrideWithValue(true),
         deviceLanIpProvider.overrideWith((ref) async => null),
       ],
     );
