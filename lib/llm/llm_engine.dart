@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:fllama/fllama.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'gpu_support.dart';
 
@@ -311,9 +312,69 @@ class LlmEngine {
   /// Consecutive GPU load failures; a rested backend is served on the CPU.
   final gpuFailures = GpuFailureTracker();
 
+  /// How long a model counts as still loaded after its last request. fllama
+  /// unloads an idle model after 120 s, checked every 30 s; a little under
+  /// that, so a model that may already be gone is measured afresh.
+  static const residentWindow = Duration(seconds: 100);
+
+  /// Unloads every idle native model except `keepModelPath`. Swappable so
+  /// tests run without the native library.
+  Future<int> Function({String? keepModelPath}) releaseIdleModels =
+      fllamaReleaseIdleModels;
+
+  /// The clock [residentContext] reads. Swappable for tests.
+  DateTime Function() clock = DateTime.now;
+
+  String? _residentPath;
+  int? _residentContext;
+  DateTime? _residentAt;
+  bool _residentRunning = false;
+
+  /// The context [path] is loaded with, when it is running a request or ran
+  /// one recently enough to still be in memory; null otherwise.
+  ///
+  /// A loaded model's own weights and cache are missing from free memory, so
+  /// sizing it again would shrink its context and make llama.cpp reload it.
+  int? residentContext(String path) {
+    if (_residentPath != path) return null;
+    if (_residentRunning) return _residentContext;
+    final at = _residentAt;
+    if (at == null || clock().difference(at) >= residentWindow) return null;
+    return _residentContext;
+  }
+
+  /// Records [path] as loaded with [contextSize], as a request does.
+  @visibleForTesting
+  void markResident(String path, int contextSize, {bool running = false}) {
+    _residentPath = path;
+    _residentContext = contextSize;
+    _residentRunning = running;
+    _residentAt = clock();
+  }
+
+  /// Unloads every model that is not running a request, except [keep].
+  ///
+  /// A phone has room for one model, so the old one should go when the app
+  /// switches rather than when fllama's idle timer gets to it.
+  Future<void> releaseIdle({String? keep}) async {
+    if (_residentPath != keep && !_residentRunning) {
+      _residentPath = null;
+      _residentContext = null;
+      _residentAt = null;
+    }
+    try {
+      await releaseIdleModels(keepModelPath: keep);
+    } on Object {
+      // Best effort: where the native library cannot run (tests, the web),
+      // fllama's idle timer still frees the model later.
+    }
+  }
+
   void setActiveModel(String? path, {String? projectorPath}) {
+    final changed = path != _activeModelPath;
     _activeModelPath = path;
     _activeProjectorPath = projectorPath;
+    if (changed) unawaited(releaseIdle(keep: path));
   }
 
   /// Runs a chat completion.
@@ -430,6 +491,8 @@ class LlmEngine {
           job.controller.addError(e, st);
           await job.controller.close();
         }
+      } finally {
+        _residentRunning = false;
       }
     }
     _busy = false;
@@ -497,6 +560,10 @@ class LlmEngine {
 
     // A cancel from a previous request must not carry over into this one.
     _cancelPending = false;
+
+    _residentPath = job.modelPath;
+    _residentContext = request.contextSize;
+    _residentRunning = true;
 
     // Throughput bookkeeping. The native callback fires once per decoded
     // token, so counting non-empty deltas counts tokens; the final done
@@ -611,6 +678,8 @@ class LlmEngine {
 
     await completer.future;
     _currentRequestId = null;
+    _residentRunning = false;
+    _residentAt = clock();
     // A load that never produced a token counts towards resting the backend;
     // the first token clears the count (gpuProven doubles as the success mark).
     if (onGpu) {

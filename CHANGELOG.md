@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.6.1]
+
+### Fixed
+- Running a model rated "Tight fit" could make the phone thrash, close other apps and then close Thinai. The context window is now sized at load time against the memory actually free, counting the model's weights, its context cache and llama.cpp's working buffers; on a tight phone a smaller window is picked automatically (#91).
+- Switching models kept the old one in memory for up to two and a half minutes. It is now unloaded the moment you switch, and a new model never loads beside an idle one (#91).
+
 ## [2.6.0]
 
 ### Added

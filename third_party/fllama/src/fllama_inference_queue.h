@@ -78,6 +78,12 @@ public:
   // Decrement active_users (call when your request finishes).
   void release(const std::string &model_path);
 
+  // Unloads every model nobody is using, except [keep_path] when non-empty.
+  // A phone has room for one model, so the old one goes the moment the app
+  // switches, rather than after MODEL_INACTIVITY_TIMEOUT_SEC. Returns how
+  // many were unloaded.
+  int release_idle(const std::string &keep_path);
+
   // Cancellation.
   void cancel(int request_id);
   bool is_cancelled(int request_id);
