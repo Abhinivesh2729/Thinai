@@ -180,6 +180,42 @@ class GenerationSettingsStore {
   @visibleForTesting
   set deviceForTesting(DeviceProfile? device) => _device = device;
 
+  /// Reads how much memory is free right now (`MemAvailable`), or null where
+  /// that cannot be read. Swappable for tests.
+  @visibleForTesting
+  Future<int?> Function() readAvailableBytes = _readAvailableBytes;
+
+  static Future<int?> _readAvailableBytes() async =>
+      (await DeviceProfile.read()).availableRamBytes;
+
+  /// [contextSize] capped to what fits beside [model] in memory free right
+  /// now, counting the weights, the KV cache and the compute buffers.
+  ///
+  /// The cap in [limitFor] is a share of total RAM: what this phone could run,
+  /// not what it can run with everything else it has open. A model already
+  /// loaded from a recent request keeps its window, since its own footprint
+  /// is missing from free memory and sizing it again would only force a
+  /// reload. Otherwise every idle model is unloaded first, so the reading
+  /// counts other apps and not a model about to be replaced.
+  Future<int> fitToFreeMemory(LocalModel model, int contextSize) async {
+    final engine = LlmEngine.instance;
+    final loaded = engine.residentContext(model.path);
+    if (loaded != null) return contextSize < loaded ? contextSize : loaded;
+    // Off a phone (tests, a desktop without /proc/meminfo) there is nothing
+    // to measure against.
+    if (await readAvailableBytes() == null) return contextSize;
+    await engine.releaseIdle();
+    final available = await readAvailableBytes();
+    if (available == null) return contextSize;
+    final info = await readGgufInfo(model.path);
+    final cap = freeMemoryContextCap(
+      availableBytes: available,
+      fileBytes: model.sizeBytes,
+      kvBytesPerToken: info?.kvBytesPerToken,
+    );
+    return cap == null || cap >= contextSize ? contextSize : cap;
+  }
+
   /// Loads the saved settings once. Safe to call from anywhere, any number of
   /// times; later calls wait on the first.
   Future<void> ensureLoaded() => _loading ??= _load();
@@ -360,7 +396,7 @@ class GenerationSettingsStore {
       // leaving the field out keeps requests to other models unchanged.
       enableThinking: resolved.thinking ? null : false,
       maxTokens: maxTokens,
-      contextSize: resolved.contextSize,
+      contextSize: await fitToFreeMemory(model, resolved.contextSize),
       // Every layer: llama.cpp caps this at the model's layer count, and a
       // partial offload on a phone's shared memory only adds copying.
       numGpuLayers: backend == GpuBackend.none ? 0 : kAllGpuLayers,

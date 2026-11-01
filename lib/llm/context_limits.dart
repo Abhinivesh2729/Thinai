@@ -22,8 +22,8 @@ const int kContextOverheadBytes = 350 * 1024 * 1024;
 /// models are trained and how everyone talks about context, and because a
 /// slider of arbitrary numbers invites values that help nothing.
 List<int> contextSteps({int upTo = 1 << 20}) => [
-      for (var n = kMinContextSize; n <= upTo; n *= 2) n,
-    ];
+  for (var n = kMinContextSize; n <= upTo; n *= 2) n,
+];
 
 class ContextLimit {
   /// The largest window this model should be given on this phone.
@@ -44,9 +44,7 @@ class ContextLimit {
       ramCeiling != null && (trained == null || ramCeiling! < trained!);
 
   /// The steps up to [cap], for a slider.
-  List<int> get steps => [
-        for (final s in contextSteps(upTo: cap)) s,
-      ];
+  List<int> get steps => [for (final s in contextSteps(upTo: cap)) s];
 
   /// Clamps a requested window into what this model and phone can take,
   /// snapped down to a step.
@@ -91,4 +89,28 @@ ContextLimit contextLimitFor({
     if (s <= ceiling) cap = s;
   }
   return ContextLimit(cap: cap, trained: trained, ramCeiling: ramCeiling);
+}
+
+/// The largest window that fits in memory free right now beside a model of
+/// [fileBytes], or null when the model's cache size per token is unknown.
+///
+/// [contextLimitFor] sizes against a share of total RAM, which is right for
+/// what a phone could run but not for what it can run at this moment. While
+/// generating, every weight page is read for every token, so the weights stay
+/// resident however they were mapped, and the KV cache on top is memory the
+/// kernel cannot reclaim. Past [availableBytes] the phone thrashes and Android
+/// kills apps, Thinai among them. Never below [kMinContextSize].
+int? freeMemoryContextCap({
+  required int availableBytes,
+  required int fileBytes,
+  int? kvBytesPerToken,
+}) {
+  if (kvBytesPerToken == null || kvBytesPerToken <= 0) return null;
+  final spare = availableBytes - fileBytes - kContextOverheadBytes;
+  final tokens = spare > 0 ? spare ~/ kvBytesPerToken : 0;
+  var cap = kMinContextSize;
+  for (final s in contextSteps()) {
+    if (s <= tokens) cap = s;
+  }
+  return cap;
 }

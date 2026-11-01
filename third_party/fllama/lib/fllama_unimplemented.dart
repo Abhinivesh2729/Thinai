@@ -14,6 +14,9 @@ Future<List<FllamaGpuMemoryInfo>> fllamaGpuMemoryInfoGetAll() async {
   return const [];
 }
 
+/// Unloads idle models. Nothing is ever loaded natively here, so nothing to do.
+Future<int> fllamaReleaseIdleModels({String? keepModelPath}) async => 0;
+
 /// Returns the chat template embedded in the .gguf file.
 /// If none is found, returns an empty string.
 ///

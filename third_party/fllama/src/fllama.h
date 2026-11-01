@@ -82,6 +82,10 @@ EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_inference_sync(struct fllama_
                            fllama_inference_callback callback);
 EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT void fllama_inference_cancel(int request_id);
 
+// Unloads every loaded model that is not running a request, except the one
+// at [keep_model_path] (NULL or "" keeps none). Returns how many were freed.
+EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT int fllama_release_idle_models(const char *keep_model_path);
+
 // GPU device information.
 // Returns the number of GPU devices visible to ggml/llama.cpp.
 EMSCRIPTEN_KEEPALIVE FFI_PLUGIN_EXPORT int fllama_get_gpu_device_count(void);
