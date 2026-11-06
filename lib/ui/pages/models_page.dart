@@ -202,8 +202,6 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
 
   void _showDetails(
     CatalogModel m, {
-    required LocalModel? local,
-    required bool active,
     required RamFit fit,
     required int runtimeBytes,
     required int? budgetBytes,
@@ -211,14 +209,14 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     _openModelDetailsSheet(
       context,
       model: m,
-      local: local,
-      active: active,
       fit: fit,
       runtimeBytes: runtimeBytes,
       budgetBytes: budgetBytes,
       onDownload: () => _download(m),
-      onUse: local == null ? null : () => _load(local, openChat: true),
-      onDelete: local == null ? null : () => _delete(local),
+      onResume: () => _resume(m),
+      onPause: () => _pauseDownload(m.id),
+      onUse: (local) => _load(local, openChat: true),
+      onDelete: _delete,
     );
   }
 
@@ -424,22 +422,8 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     required String? activeId,
     required Map<String, DownloadHandle> downloads,
   }) {
-    final installedByKey = <String, LocalModel>{};
-    for (final m in installed) {
-      installedByKey[_normalizeModelKey(m.id)] = m;
-      installedByKey[_normalizeModelKey(m.displayName)] = m;
-      installedByKey[m.id.toLowerCase()] = m;
-      installedByKey[m.displayName.toLowerCase()] = m;
-    }
-
     /// The file on the phone for a catalog entry, when it is installed.
-    LocalModel? localFor(CatalogModel m) =>
-        installedByKey[_normalizeModelKey(m.id)] ??
-        installedByKey[_normalizeModelKey(m.filename)] ??
-        installedByKey[_normalizeModelKey(m.displayName)] ??
-        installedByKey[m.id.toLowerCase()] ??
-        installedByKey[m.filename.toLowerCase()] ??
-        installedByKey[m.displayName.toLowerCase()];
+    LocalModel? localFor(CatalogModel m) => _localFor(m, installed);
 
     bool isModelInstalled(CatalogModel m) => localFor(m) != null;
 
@@ -581,17 +565,12 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         p.filename: p,
     };
 
-    void openDetails(CatalogModel m) {
-      final local = localFor(m);
-      _showDetails(
-        m,
-        local: local,
-        active: local != null && local.id == activeId,
-        fit: fitFor(m, device),
-        runtimeBytes: runtimeBytesFor(m),
-        budgetBytes: device.modelBudgetBytes,
-      );
-    }
+    void openDetails(CatalogModel m) => _showDetails(
+      m,
+      fit: fitFor(m, device),
+      runtimeBytes: runtimeBytesFor(m),
+      budgetBytes: device.modelBudgetBytes,
+    );
 
     Widget catalogCard(
       CatalogModel m, {
@@ -3058,18 +3037,17 @@ const kDetailsSheetInitialSize = 0.55;
 void _openModelDetailsSheet(
   BuildContext context, {
   required CatalogModel model,
-  required LocalModel? local,
-  required bool active,
   required RamFit fit,
   required int runtimeBytes,
   required int? budgetBytes,
   required VoidCallback onDownload,
-  VoidCallback? onUse,
-  Future<bool> Function()? onDelete,
+  required VoidCallback onResume,
+  required VoidCallback onPause,
+  required ValueChanged<LocalModel> onUse,
+  required Future<bool> Function(LocalModel) onDelete,
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final capTag = _capabilityTagFor(model, context.l10n);
-  final installed = local != null;
 
   showModalBottomSheet<void>(
     context: context,
@@ -3083,228 +3061,300 @@ void _openModelDetailsSheet(
       maxChildSize: 0.95,
       snap: true,
       snapSizes: const [kDetailsSheetInitialSize],
-      builder: (ctx, scroll) => Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF131722) : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: ListView(
-          key: const Key('model-details-sheet'),
-          controller: scroll,
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF263040)
-                      : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      // Watches the same state as the card, so a download started, paused,
+      // resumed or finished anywhere shows here too.
+      builder: (ctx, scroll) => Consumer(
+        builder: (ctx, ref, _) {
+          final installedList =
+              ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
+          final local = _localFor(model, installedList);
+          final installed = local != null;
+          final active =
+              installed && ref.watch(activeModelIdProvider) == local.id;
+          final download = installed
+              ? null
+              : ref.watch(downloadsProvider)[model.id];
+          PartialDownload? paused;
+          if (!installed && download == null) {
+            for (final p
+                in ref.watch(partialDownloadsProvider).valueOrNull ??
+                    const <PartialDownload>[]) {
+              if (p.filename == model.filename) paused = p;
+            }
+          }
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF131722) : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
             ),
-            const SizedBox(height: 18),
-            Row(
+            child: ListView(
+              key: const Key('model-details-sheet'),
+              controller: scroll,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1A222E)
-                        : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4,
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? const Color(0xFF2A3648)
+                          ? const Color(0xFF263040)
                           : const Color(0xFFE2E8F0),
-                      width: 1,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  child: ModelBrandLogo.catalog(model: model, size: 30),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        model.author.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: context.tracking(1.1),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1A222E)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
                           color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                              ? const Color(0xFF2A3648)
+                              : const Color(0xFFE2E8F0),
+                          width: 1,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        model.displayName,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                        ),
+                      padding: const EdgeInsets.all(8),
+                      child: ModelBrandLogo.catalog(model: model, size: 30),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            model.author.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: context.tracking(1.1),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            model.displayName,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                  ],
+                ),
+                if (installed) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _SpecPill(
+                        label: context.l10n.modelsInstalled,
+                        icon: Icons.check_circle_rounded,
+                        color: _brandGreen,
+                      ),
+                      _SpecPill(
+                        label: _fmtSize(local.sizeBytes),
+                        icon: Icons.storage_rounded,
+                      ),
+                      if (active)
+                        _SpecPill(
+                          label: context.l10n.modelsActiveInChat,
+                          icon: Icons.bolt_rounded,
+                          color: _brandGreen,
+                        ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            if (installed) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _SpecPill(
-                    label: context.l10n.modelsInstalled,
-                    icon: Icons.check_circle_rounded,
-                    color: _brandGreen,
-                  ),
-                  _SpecPill(
-                    label: _fmtSize(local.sizeBytes),
-                    icon: Icons.storage_rounded,
-                  ),
-                  if (active)
-                    _SpecPill(
-                      label: context.l10n.modelsActiveInChat,
-                      icon: Icons.bolt_rounded,
-                      color: _brandGreen,
-                    ),
                 ],
-              ),
-            ],
-            const SizedBox(height: 14),
-            Text(
-              model.description,
-              style: TextStyle(
-                fontSize: 13.5,
-                height: 1.45,
-                color: isDark
-                    ? const Color(0xFFCBD5E1)
-                    : const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Divider(height: 1),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _DetailSpecTile(
-                  title: context.l10n.modelsDetailParameters,
-                  value: model.parameters,
-                  icon: Icons.bolt_rounded,
+                const SizedBox(height: 14),
+                Text(
+                  model.description,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.45,
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF334155),
+                  ),
                 ),
-                _DetailSpecTile(
-                  title: context.l10n.modelsDetailContextWindow,
-                  value: context.l10n.modelsTokensValue(model.contextLabel),
-                  icon: Icons.receipt_long_outlined,
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailParameters,
+                      value: model.parameters,
+                      icon: Icons.bolt_rounded,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailContextWindow,
+                      value: context.l10n.modelsTokensValue(model.contextLabel),
+                      icon: Icons.receipt_long_outlined,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailDownloadSize,
+                      value: model.approxSize,
+                      icon: Icons.download_rounded,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailCapability,
+                      value: capTag.$2,
+                      icon: capTag.$1,
+                    ),
+                  ],
                 ),
-                _DetailSpecTile(
-                  title: context.l10n.modelsDetailDownloadSize,
-                  value: model.approxSize,
-                  icon: Icons.download_rounded,
-                ),
-                _DetailSpecTile(
-                  title: context.l10n.modelsDetailCapability,
-                  value: capTag.$2,
-                  icon: capTag.$1,
-                ),
+                const SizedBox(height: 20),
+                if (!installed && download == null && paused == null)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.arrow_downward_rounded, size: 16),
+                      label: Text(
+                        context.l10n.modelsDownloadSize(model.approxSize),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      // Stays open: the sheet shows the progress once it starts.
+                      onPressed: onDownload,
+                    ),
+                  ),
+                if (download != null) ...[
+                  _DownloadProgressRow(handle: download),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.pause_rounded, size: 18),
+                      label: Text(context.l10n.modelsPause),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: onPause,
+                    ),
+                  ),
+                ],
+                if (paused != null) ...[
+                  _PausedProgressRow(partial: paused),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                      label: Text(_resumeLabel(paused, context.l10n)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: onResume,
+                    ),
+                  ),
+                ],
+                if (installed)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 16,
+                      ),
+                      label: Text(context.l10n.modelsUseInChat),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        onUse(local);
+                      },
+                    ),
+                  ),
+                if (installed) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: Text(context.l10n.modelsDeleteModel),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(ctx).colorScheme.error,
+                        side: BorderSide(
+                          color: Theme.of(
+                            ctx,
+                          ).colorScheme.error.withValues(alpha: 0.6),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      // Asks first; the sheet closes only once it is gone.
+                      onPressed: () async {
+                        final deleted = await onDelete(local);
+                        if (deleted && ctx.mounted) Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: 20),
-            if (!installed)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                  label: Text(
-                    context.l10n.modelsDownloadSize(model.approxSize),
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _brandGreen,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    onDownload();
-                  },
-                ),
-              ),
-            if (installed && onUse != null)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                  label: Text(context.l10n.modelsUseInChat),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _brandGreen,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    onUse();
-                  },
-                ),
-              ),
-            if (installed && onDelete != null) ...[
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                  label: Text(context.l10n.modelsDeleteModel),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(ctx).colorScheme.error,
-                    side: BorderSide(
-                      color: Theme.of(
-                        ctx,
-                      ).colorScheme.error.withValues(alpha: 0.6),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  // Asks first; the sheet closes only once it is gone.
-                  onPressed: () async {
-                    final deleted = await onDelete();
-                    if (deleted && ctx.mounted) Navigator.pop(ctx);
-                  },
-                ),
-              ),
-            ],
-          ],
-        ),
+          );
+        },
       ),
     ),
   );
@@ -3556,6 +3606,28 @@ class _SpecPill extends StatelessWidget {
 }
 
 typedef _Chip = _SpecPill;
+
+/// The installed file for a catalog entry, matched the same loose way the
+/// catalog marks a model as installed (id, file name or display name).
+LocalModel? _localFor(CatalogModel m, List<LocalModel> installed) {
+  final keys = {
+    _normalizeModelKey(m.id),
+    _normalizeModelKey(m.filename),
+    _normalizeModelKey(m.displayName),
+    m.id.toLowerCase(),
+    m.filename.toLowerCase(),
+    m.displayName.toLowerCase(),
+  };
+  for (final l in installed) {
+    if (keys.contains(_normalizeModelKey(l.id)) ||
+        keys.contains(_normalizeModelKey(l.displayName)) ||
+        keys.contains(l.id.toLowerCase()) ||
+        keys.contains(l.displayName.toLowerCase())) {
+      return l;
+    }
+  }
+  return null;
+}
 
 String _normalizeModelKey(String input) {
   var key = input.trim().toLowerCase();

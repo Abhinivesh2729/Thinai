@@ -624,6 +624,99 @@ void main() {
     });
   });
 
+  group('details sheet follows the download', () {
+    final sheet = find.byKey(const Key('model-details-sheet'));
+    Finder inSheet(Finder f) => find.descendant(of: sheet, matching: f);
+
+    Future<void> openSheet(WidgetTester tester, CatalogModel m) async {
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(sheet, findsOneWidget);
+    }
+
+    testWidgets('a download in flight shows progress and Pause, not Download', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (container, downloader) = await _pump(
+        tester,
+        size: const Size(420, 900),
+      );
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await _tapText(tester, m.approxSize);
+      await _tapText(tester, 'Download');
+      downloader.streams[m.filename]!.add(
+        DownloadProgress(
+          received: m.approxBytes ~/ 2,
+          total: m.approxBytes,
+          done: false,
+        ),
+      );
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      downloader.streams[m.filename]!.add(
+        DownloadProgress(
+          received: m.approxBytes ~/ 2,
+          total: m.approxBytes,
+          done: false,
+        ),
+      );
+      await _settle(tester);
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('50%')), findsOneWidget);
+
+      await tester.tap(inSheet(find.text('Pause')));
+      await _settle(tester);
+      expect(downloader.tokens[m.filename]!.isCancelled, isTrue);
+      expect(container.read(downloadsProvider), isEmpty);
+      expect(downloader.started, [m.filename]);
+    });
+
+    testWidgets('starting from the sheet keeps it open on the progress', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (_, downloader) = await _pump(tester, size: const Size(420, 900));
+      await openSheet(tester, m);
+
+      await tester.tap(inSheet(find.text('Download ${m.approxSize}')));
+      await _settle(tester);
+      expect(find.text('Download?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Download'));
+      await _settle(tester);
+      expect(downloader.started, [m.filename]);
+
+      expect(sheet, findsOneWidget);
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('Pause')), findsOneWidget);
+    });
+
+    testWidgets('a paused download offers Resume, not a fresh download', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (_, downloader) = await _pump(
+        tester,
+        partials: [_partial(m)],
+        size: const Size(420, 900),
+      );
+      await openSheet(tester, m);
+
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('Paused · 25%')), findsOneWidget);
+      await tester.tap(inSheet(find.text('Resume 25%')));
+      await _settle(tester);
+      expect(find.text('Download?'), findsNothing);
+      expect(downloader.started, [m.filename]);
+      expect(inSheet(find.text('Pause')), findsOneWidget);
+    });
+  });
+
   group('Model Manager', () {
     Future<void> open(WidgetTester tester) async {
       await tester.tap(find.byIcon(Icons.layers_rounded));
