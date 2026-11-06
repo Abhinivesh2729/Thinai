@@ -1,3 +1,4 @@
-What's new in 2.6.1
-• Fewer crashes on phones with less free memory: Thinai now sizes each model's memory to what your phone has free right now
-• Switching models frees the old one straight away
+What's new in 2.6.2
+• Tap any model to see its details in a panel you can drag up or down
+• Delete a downloaded model right from its details, with a confirmation first
+• The panel shows a download in progress, with Pause and Resume
