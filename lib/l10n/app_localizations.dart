@@ -3433,6 +3433,12 @@ abstract class AppLocalizations {
   /// **'Model details'**
   String get modelsModelDetails;
 
+  /// No description provided for @modelsUseInChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Use in chat'**
+  String get modelsUseInChat;
+
   /// No description provided for @modelsDimensions.
   ///
   /// In en, this message translates to:
