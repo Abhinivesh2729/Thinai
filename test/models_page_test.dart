@@ -306,6 +306,97 @@ void main() {
       await _settle(tester);
       expect(find.text(m.description), findsWidgets);
     });
+
+    testWidgets('tapping a card opens the details sheet half-way', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      await _pump(tester, size: const Size(420, 900));
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(find.byKey(const Key('model-details-sheet')), findsOneWidget);
+      final sheet = tester.widget<DraggableScrollableSheet>(
+        find.byType(DraggableScrollableSheet),
+      );
+      expect(sheet.initialChildSize, kDetailsSheetInitialSize);
+      expect(sheet.initialChildSize, lessThan(sheet.maxChildSize));
+      // Not installed: offers the download, no delete.
+      expect(find.text('Delete model'), findsNothing);
+      expect(find.text('Download ${m.approxSize}'), findsWidgets);
+    });
+
+    testWidgets('the sheet of an installed model can delete it, after asking', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final file = File('${_support.path}/${m.filename}')
+        ..writeAsStringSync('gguf');
+      final local = LocalModel(
+        id: m.servedId,
+        displayName: m.filename,
+        path: file.path,
+        sizeBytes: m.approxBytes,
+        modifiedAt: DateTime(2026),
+      );
+      final (container, _) = await _pump(
+        tester,
+        installed: [local],
+        size: const Size(420, 900),
+      );
+      await container.read(activeModelIdProvider.notifier).set(local);
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(find.text('Use in chat'), findsOneWidget);
+      expect(find.text('Delete model'), findsOneWidget);
+
+      // Declining keeps the file and the sheet.
+      await tester.tap(find.text('Delete model'));
+      await _settle(tester);
+      expect(find.text('Delete model?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await _settle(tester);
+      expect(file.existsSync(), isTrue);
+      expect(find.byKey(const Key('model-details-sheet')), findsOneWidget);
+
+      // Confirming removes it, clears the active model and closes the sheet.
+      await tester.tap(find.text('Delete model'));
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await _settle(tester);
+      // The file is deleted with real IO, which fake time does not run.
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await _settle(tester);
+      }
+      expect(file.existsSync(), isFalse);
+      expect(container.read(activeModelIdProvider), isNull);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('model-details-sheet')), findsNothing);
+    });
+
+    testWidgets('Use in chat loads the model', (tester) async {
+      final m = _uniqueSizedModel();
+      final (container, _) = await _pump(
+        tester,
+        installed: [_installed(m)],
+        size: const Size(420, 900),
+      );
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      await tester.tap(find.text('Use in chat'));
+      await _settle(tester);
+      expect(container.read(activeModelIdProvider), m.servedId);
+    });
   });
 
   group('search', () {

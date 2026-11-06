@@ -555,6 +555,7 @@
   "modelsPause": "இடைநிறுத்து",
   "modelsTopPick": "சிறந்த தேர்வு",
   "modelsModelDetails": "அறிவுரு விவரங்கள்",
+  "modelsUseInChat": "உரையாடலில் பயன்படுத்து",
   "modelsDimensions": "{count} பரிமாணம்",
   "modelsNeedsRam": "RAM தேவை",
   "modelsDetailParameters": "அளவுருக்கள்",

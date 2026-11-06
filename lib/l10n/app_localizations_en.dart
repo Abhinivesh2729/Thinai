@@ -1975,6 +1975,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelsModelDetails => 'Model details';
 
   @override
+  String get modelsUseInChat => 'Use in chat';
+
+  @override
   String modelsDimensions(String count) {
     return '$count dims';
   }
