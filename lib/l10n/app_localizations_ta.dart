@@ -2025,6 +2025,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get modelsModelDetails => 'அறிவுரு விவரங்கள்';
 
   @override
+  String get modelsUseInChat => 'உரையாடலில் பயன்படுத்து';
+
+  @override
   String modelsDimensions(String count) {
     return '$count பரிமாணம்';
   }

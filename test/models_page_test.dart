@@ -306,6 +306,97 @@ void main() {
       await _settle(tester);
       expect(find.text(m.description), findsWidgets);
     });
+
+    testWidgets('tapping a card opens the details sheet half-way', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      await _pump(tester, size: const Size(420, 900));
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(find.byKey(const Key('model-details-sheet')), findsOneWidget);
+      final sheet = tester.widget<DraggableScrollableSheet>(
+        find.byType(DraggableScrollableSheet),
+      );
+      expect(sheet.initialChildSize, kDetailsSheetInitialSize);
+      expect(sheet.initialChildSize, lessThan(sheet.maxChildSize));
+      // Not installed: offers the download, no delete.
+      expect(find.text('Delete model'), findsNothing);
+      expect(find.text('Download ${m.approxSize}'), findsWidgets);
+    });
+
+    testWidgets('the sheet of an installed model can delete it, after asking', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final file = File('${_support.path}/${m.filename}')
+        ..writeAsStringSync('gguf');
+      final local = LocalModel(
+        id: m.servedId,
+        displayName: m.filename,
+        path: file.path,
+        sizeBytes: m.approxBytes,
+        modifiedAt: DateTime(2026),
+      );
+      final (container, _) = await _pump(
+        tester,
+        installed: [local],
+        size: const Size(420, 900),
+      );
+      await container.read(activeModelIdProvider.notifier).set(local);
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(find.text('Use in chat'), findsOneWidget);
+      expect(find.text('Delete model'), findsOneWidget);
+
+      // Declining keeps the file and the sheet.
+      await tester.tap(find.text('Delete model'));
+      await _settle(tester);
+      expect(find.text('Delete model?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await _settle(tester);
+      expect(file.existsSync(), isTrue);
+      expect(find.byKey(const Key('model-details-sheet')), findsOneWidget);
+
+      // Confirming removes it, clears the active model and closes the sheet.
+      await tester.tap(find.text('Delete model'));
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await _settle(tester);
+      // The file is deleted with real IO, which fake time does not run.
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await _settle(tester);
+      }
+      expect(file.existsSync(), isFalse);
+      expect(container.read(activeModelIdProvider), isNull);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('model-details-sheet')), findsNothing);
+    });
+
+    testWidgets('Use in chat loads the model', (tester) async {
+      final m = _uniqueSizedModel();
+      final (container, _) = await _pump(
+        tester,
+        installed: [_installed(m)],
+        size: const Size(420, 900),
+      );
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      await tester.tap(find.text('Use in chat'));
+      await _settle(tester);
+      expect(container.read(activeModelIdProvider), m.servedId);
+    });
   });
 
   group('search', () {
@@ -530,6 +621,99 @@ void main() {
       await _tapText(tester, 'Resume 25%');
       expect(find.text('Download?'), findsNothing);
       expect(downloader.started, [m.filename]);
+    });
+  });
+
+  group('details sheet follows the download', () {
+    final sheet = find.byKey(const Key('model-details-sheet'));
+    Finder inSheet(Finder f) => find.descendant(of: sheet, matching: f);
+
+    Future<void> openSheet(WidgetTester tester, CatalogModel m) async {
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      expect(sheet, findsOneWidget);
+    }
+
+    testWidgets('a download in flight shows progress and Pause, not Download', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (container, downloader) = await _pump(
+        tester,
+        size: const Size(420, 900),
+      );
+      await tester.enterText(find.byType(TextField), m.displayName);
+      await _settle(tester);
+      await _tapText(tester, m.approxSize);
+      await _tapText(tester, 'Download');
+      downloader.streams[m.filename]!.add(
+        DownloadProgress(
+          received: m.approxBytes ~/ 2,
+          total: m.approxBytes,
+          done: false,
+        ),
+      );
+      await _settle(tester);
+
+      await tester.tap(find.text(m.displayName).last);
+      await _settle(tester);
+      downloader.streams[m.filename]!.add(
+        DownloadProgress(
+          received: m.approxBytes ~/ 2,
+          total: m.approxBytes,
+          done: false,
+        ),
+      );
+      await _settle(tester);
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('50%')), findsOneWidget);
+
+      await tester.tap(inSheet(find.text('Pause')));
+      await _settle(tester);
+      expect(downloader.tokens[m.filename]!.isCancelled, isTrue);
+      expect(container.read(downloadsProvider), isEmpty);
+      expect(downloader.started, [m.filename]);
+    });
+
+    testWidgets('starting from the sheet keeps it open on the progress', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (_, downloader) = await _pump(tester, size: const Size(420, 900));
+      await openSheet(tester, m);
+
+      await tester.tap(inSheet(find.text('Download ${m.approxSize}')));
+      await _settle(tester);
+      expect(find.text('Download?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Download'));
+      await _settle(tester);
+      expect(downloader.started, [m.filename]);
+
+      expect(sheet, findsOneWidget);
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('Pause')), findsOneWidget);
+    });
+
+    testWidgets('a paused download offers Resume, not a fresh download', (
+      tester,
+    ) async {
+      final m = _uniqueSizedModel();
+      final (_, downloader) = await _pump(
+        tester,
+        partials: [_partial(m)],
+        size: const Size(420, 900),
+      );
+      await openSheet(tester, m);
+
+      expect(inSheet(find.text('Download ${m.approxSize}')), findsNothing);
+      expect(inSheet(find.text('Paused · 25%')), findsOneWidget);
+      await tester.tap(inSheet(find.text('Resume 25%')));
+      await _settle(tester);
+      expect(find.text('Download?'), findsNothing);
+      expect(downloader.started, [m.filename]);
+      expect(inSheet(find.text('Pause')), findsOneWidget);
     });
   });
 

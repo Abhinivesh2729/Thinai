@@ -1340,6 +1340,7 @@
   "modelsPause": "Pause",
   "modelsTopPick": "Top pick",
   "modelsModelDetails": "Model details",
+  "modelsUseInChat": "Use in chat",
   "modelsDimensions": "{count} dims",
   "@modelsDimensions": {
     "placeholders": {

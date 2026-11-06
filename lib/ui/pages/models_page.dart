@@ -179,7 +179,9 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     ref.read(modelsRefreshProvider.notifier).state++;
   }
 
-  Future<void> _delete(LocalModel m) async {
+  /// Deletes [m] after the user confirms. Returns whether it was deleted, so a
+  /// sheet that asked can close itself.
+  Future<bool> _delete(LocalModel m) async {
     final confirm = await _confirm(
       title: context.l10n.modelsConfirmDeleteTitle,
       message: context.l10n.modelsConfirmDeleteMessage(
@@ -189,12 +191,33 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       confirmLabel: context.l10n.commonDelete,
       destructive: true,
     );
-    if (!confirm || !mounted) return;
+    if (!confirm || !mounted) return false;
     await ref.read(modelStoreProvider).delete(m);
     if (ref.read(activeModelIdProvider) == m.id) {
       await ref.read(activeModelIdProvider.notifier).set(null);
     }
     ref.read(modelsRefreshProvider.notifier).state++;
+    return true;
+  }
+
+  void _showDetails(
+    CatalogModel m, {
+    required RamFit fit,
+    required int runtimeBytes,
+    required int? budgetBytes,
+  }) {
+    _openModelDetailsSheet(
+      context,
+      model: m,
+      fit: fit,
+      runtimeBytes: runtimeBytes,
+      budgetBytes: budgetBytes,
+      onDownload: () => _download(m),
+      onResume: () => _resume(m),
+      onPause: () => _pauseDownload(m.id),
+      onUse: (local) => _load(local, openChat: true),
+      onDelete: _delete,
+    );
   }
 
   void _toast(String text) {
@@ -399,21 +422,10 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
     required String? activeId,
     required Map<String, DownloadHandle> downloads,
   }) {
-    final installedKeys = <String>{};
-    for (final m in installed) {
-      installedKeys.add(_normalizeModelKey(m.id));
-      installedKeys.add(_normalizeModelKey(m.displayName));
-      installedKeys.add(m.id.toLowerCase());
-      installedKeys.add(m.displayName.toLowerCase());
-    }
+    /// The file on the phone for a catalog entry, when it is installed.
+    LocalModel? localFor(CatalogModel m) => _localFor(m, installed);
 
-    bool isModelInstalled(CatalogModel m) =>
-        installedKeys.contains(_normalizeModelKey(m.id)) ||
-        installedKeys.contains(_normalizeModelKey(m.filename)) ||
-        installedKeys.contains(_normalizeModelKey(m.displayName)) ||
-        installedKeys.contains(m.id.toLowerCase()) ||
-        installedKeys.contains(m.filename.toLowerCase()) ||
-        installedKeys.contains(m.displayName.toLowerCase());
+    bool isModelInstalled(CatalogModel m) => localFor(m) != null;
 
     final yourModels = installed.where(_matchesInstalled).toList();
 
@@ -553,6 +565,13 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
         p.filename: p,
     };
 
+    void openDetails(CatalogModel m) => _showDetails(
+      m,
+      fit: fitFor(m, device),
+      runtimeBytes: runtimeBytesFor(m),
+      budgetBytes: device.modelBudgetBytes,
+    );
+
     Widget catalogCard(
       CatalogModel m, {
       Key? actionKey,
@@ -572,6 +591,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
       onDownload: () => _download(m),
       onResume: () => _resume(m),
       onCancel: () => _pauseDownload(m.id),
+      onOpenDetails: () => openDetails(m),
       actionKey: actionKey,
     );
 
@@ -666,6 +686,7 @@ class _ModelsPageState extends ConsumerState<ModelsPage> {
             onDownload: () => _download(featured),
             onResume: () => _resume(featured),
             onCancel: () => _pauseDownload(featured.id),
+            onOpenDetails: () => openDetails(featured),
             actionKey: CoachMarkTargets.firstCatalogAction,
           ),
           const SizedBox(height: 16),
@@ -2267,6 +2288,9 @@ class _FeaturedHeroCard extends StatelessWidget {
   final VoidCallback onDownload;
   final VoidCallback onResume;
   final VoidCallback onCancel;
+
+  /// Opens the details sheet; the whole card is the tap target.
+  final VoidCallback? onOpenDetails;
   final Key? actionKey;
   final RamFit fit;
   final int runtimeBytes;
@@ -2282,6 +2306,7 @@ class _FeaturedHeroCard extends StatelessWidget {
     required this.onDownload,
     required this.onResume,
     required this.onCancel,
+    this.onOpenDetails,
     this.actionKey,
     this.fit = RamFit.unknown,
     this.runtimeBytes = 0,
@@ -2330,155 +2355,166 @@ class _FeaturedHeroCard extends StatelessWidget {
             ),
           ];
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: cardGradient,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder, width: 1.2),
-        boxShadow: cardShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Celestial wave & sparkles background pattern
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  painter: _FeaturedPatternPainter(isDark: isDark),
-                ),
-              ),
-            ),
-            // Glowing emerald corner wave aura in bottom right
-            Positioned(
-              right: -30,
-              bottom: -30,
-              child: IgnorePointer(
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(
-                          0xFF10B981,
-                        ).withValues(alpha: isDark ? 0.22 : 0.12),
-                        const Color(
-                          0xFF059669,
-                        ).withValues(alpha: isDark ? 0.10 : 0.05),
-                        Colors.transparent,
-                      ],
+        onTap: onOpenDetails,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: cardGradient,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: cardBorder, width: 1.2),
+            boxShadow: cardShadow,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                // Celestial wave & sparkles background pattern
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _FeaturedPatternPainter(isDark: isDark),
                     ),
                   ),
                 ),
-              ),
-            ),
-            // Card Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top Row: brand emblem, maker, model name and the Popular badge
-                  Row(
+                // Glowing emerald corner wave aura in bottom right
+                Positioned(
+                  right: -30,
+                  bottom: -30,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: isDark ? 0.22 : 0.12),
+                            const Color(
+                              0xFF059669,
+                            ).withValues(alpha: isDark ? 0.10 : 0.05),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Card Content
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 46,
-                        height: 46,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF132B20)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF235A40)
-                                : const Color(0xFF86EFAC),
-                            width: 1,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x18000000),
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(7),
-                        child: ModelBrandLogo.catalog(model: model, size: 30),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              model.author.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
+                      // Top Row: brand emblem, maker, model name and the Popular badge
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 46,
+                            height: 46,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF132B20)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(
                                 color: isDark
-                                    ? const Color(0xFF86EFAC)
-                                    : const Color(0xFF15803D),
+                                    ? const Color(0xFF235A40)
+                                    : const Color(0xFF86EFAC),
+                                width: 1,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x18000000),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(7),
+                            child: ModelBrandLogo.catalog(
+                              model: model,
+                              size: 30,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  model.author.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
+                                    color: isDark
+                                        ? const Color(0xFF86EFAC)
+                                        : const Color(0xFF15803D),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  model.displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Bottom Specs & Action Row (Clean, no redundant description clutter)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: _cardChips(
+                                model,
+                                context.l10n,
+                                installed: installed,
+                                fit: fit,
+                                flagTooBig: blocked,
+                                isDarkCard: isDark,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              model.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.2,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF0F172A),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Bottom Specs & Action Row (Clean, no redundant description clutter)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: _cardChips(
-                            model,
-                            context.l10n,
-                            installed: installed,
-                            fit: fit,
-                            flagTooBig: blocked,
-                            isDarkCard: isDark,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          _buildHeroAction(context, isDark: isDark),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      _buildHeroAction(context, isDark: isDark),
+                      if (download != null) ...[
+                        const SizedBox(height: 12),
+                        _DownloadProgressRow(handle: download!),
+                      ] else if (paused != null && !installed) ...[
+                        const SizedBox(height: 12),
+                        _PausedProgressRow(partial: paused!),
+                      ],
                     ],
                   ),
-                  if (download != null) ...[
-                    const SizedBox(height: 12),
-                    _DownloadProgressRow(handle: download!),
-                  ] else if (paused != null && !installed) ...[
-                    const SizedBox(height: 12),
-                    _PausedProgressRow(partial: paused!),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -2618,6 +2654,9 @@ class _CatalogCard extends StatelessWidget {
   final VoidCallback onDownload;
   final VoidCallback onResume;
   final VoidCallback onCancel;
+
+  /// Opens the details sheet; the whole card is the tap target.
+  final VoidCallback? onOpenDetails;
   final Key? actionKey;
   final RamFit fit;
   final int runtimeBytes;
@@ -2634,6 +2673,7 @@ class _CatalogCard extends StatelessWidget {
     required this.onDownload,
     required this.onResume,
     required this.onCancel,
+    this.onOpenDetails,
     this.actionKey,
     this.fit = RamFit.unknown,
     this.runtimeBytes = 0,
@@ -2671,158 +2711,164 @@ class _CatalogCard extends StatelessWidget {
             ),
           ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder, width: isRecommended ? 1.5 : 1),
-        boxShadow: cardShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Atmospheric vendor-specific corner aura glow
-            Positioned(
-              right: -30,
-              bottom: -30,
-              child: IgnorePointer(
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        auraColor.withValues(alpha: isDark ? 0.16 : 0.08),
-                        Colors.transparent,
-                      ],
+        onTap: onOpenDetails,
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: cardBorder,
+              width: isRecommended ? 1.5 : 1,
+            ),
+            boxShadow: cardShadow,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                // Atmospheric vendor-specific corner aura glow
+                Positioned(
+                  right: -30,
+                  bottom: -30,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            auraColor.withValues(alpha: isDark ? 0.16 : 0.08),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            // Card Content
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                // Card Content
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Brand logo emblem
-                      Container(
-                        width: 44,
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1A222E)
-                              : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF2A3648)
-                                : const Color(0xFFE2E8F0),
-                            width: 1,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Brand logo emblem
+                          Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1A222E)
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF2A3648)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(7),
+                            child: ModelBrandLogo.catalog(
+                              model: model,
+                              size: 28,
+                            ),
                           ),
-                        ),
-                        padding: const EdgeInsets.all(7),
-                        child: ModelBrandLogo.catalog(model: model, size: 28),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              model.author.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  model.author.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.1,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  model.displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                    color: scheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // 3-dots details menu button
+                          SizedBox(
+                            height: 28,
+                            width: 28,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.more_horiz_rounded,
+                                size: 18,
                                 color: isDark
                                     ? const Color(0xFF94A3B8)
                                     : const Color(0xFF64748B),
                               ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: context.l10n.modelsModelDetails,
+                              onPressed: onOpenDetails,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              model.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.2,
-                                color: scheme.onSurface,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Specifications & Action Row (Clean, no repetitive description text)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: _cardChips(
+                                model,
+                                context.l10n,
+                                installed: installed,
+                                fit: fit,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // 3-dots details menu button
-                      SizedBox(
-                        height: 28,
-                        width: 28,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.more_horiz_rounded,
-                            size: 18,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
                           ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: context.l10n.modelsModelDetails,
-                          onPressed: () => _openModelDetailsSheet(
-                            context,
-                            model: model,
-                            installed: installed,
-                            fit: fit,
-                            runtimeBytes: runtimeBytes,
-                            budgetBytes: budgetBytes,
-                            onDownload: onDownload,
-                          ),
-                        ),
+                          const SizedBox(width: 8),
+                          _buildAction(context),
+                        ],
                       ),
+                      if (download != null) ...[
+                        const SizedBox(height: 10),
+                        _DownloadProgressRow(handle: download!),
+                      ] else if (paused != null && !installed) ...[
+                        const SizedBox(height: 10),
+                        _PausedProgressRow(partial: paused!),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  // Specifications & Action Row (Clean, no repetitive description text)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: _cardChips(
-                            model,
-                            context.l10n,
-                            installed: installed,
-                            fit: fit,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildAction(context),
-                    ],
-                  ),
-                  if (download != null) ...[
-                    const SizedBox(height: 10),
-                    _DownloadProgressRow(handle: download!),
-                  ] else if (paused != null && !installed) ...[
-                    const SizedBox(height: 10),
-                    _PausedProgressRow(partial: paused!),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -2985,14 +3031,20 @@ class _CatalogCard extends StatelessWidget {
   }
 }
 
+/// How far the details sheet opens at first, as a share of the screen.
+const kDetailsSheetInitialSize = 0.55;
+
 void _openModelDetailsSheet(
   BuildContext context, {
   required CatalogModel model,
-  required bool installed,
   required RamFit fit,
   required int runtimeBytes,
   required int? budgetBytes,
   required VoidCallback onDownload,
+  required VoidCallback onResume,
+  required VoidCallback onPause,
+  required ValueChanged<LocalModel> onUse,
+  required Future<bool> Function(LocalModel) onDelete,
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final capTag = _capabilityTagFor(model, context.l10n);
@@ -3000,145 +3052,309 @@ void _openModelDetailsSheet(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (ctx) => Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF131722) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 38,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF263040)
-                    : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(2),
+    builder: (ctx) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: kDetailsSheetInitialSize,
+      minChildSize: 0.3,
+      maxChildSize: 0.95,
+      snap: true,
+      snapSizes: const [kDetailsSheetInitialSize],
+      // Watches the same state as the card, so a download started, paused,
+      // resumed or finished anywhere shows here too.
+      builder: (ctx, scroll) => Consumer(
+        builder: (ctx, ref, _) {
+          final installedList =
+              ref.watch(modelListProvider).valueOrNull ?? const <LocalModel>[];
+          final local = _localFor(model, installedList);
+          final installed = local != null;
+          final active =
+              installed && ref.watch(activeModelIdProvider) == local.id;
+          final download = installed
+              ? null
+              : ref.watch(downloadsProvider)[model.id];
+          PartialDownload? paused;
+          if (!installed && download == null) {
+            for (final p
+                in ref.watch(partialDownloadsProvider).valueOrNull ??
+                    const <PartialDownload>[]) {
+              if (p.filename == model.filename) paused = p;
+            }
+          }
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF131722) : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1A222E)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF2A3648)
-                        : const Color(0xFFE2E8F0),
-                    width: 1,
+            child: ListView(
+              key: const Key('model-details-sheet'),
+              controller: scroll,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+              children: [
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF263040)
+                          : const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-                padding: const EdgeInsets.all(8),
-                child: ModelBrandLogo.catalog(model: model, size: 30),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 18),
+                Row(
                   children: [
-                    Text(
-                      model.author.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: context.tracking(1.1),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
                         color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                            ? const Color(0xFF1A222E)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF2A3648)
+                              : const Color(0xFFE2E8F0),
+                          width: 1,
+                        ),
                       ),
+                      padding: const EdgeInsets.all(8),
+                      child: ModelBrandLogo.catalog(model: model, size: 30),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      model.displayName,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            model.author.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: context.tracking(1.1),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            model.displayName,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            model.description,
-            style: TextStyle(
-              fontSize: 13.5,
-              height: 1.45,
-              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _DetailSpecTile(
-                title: context.l10n.modelsDetailParameters,
-                value: model.parameters,
-                icon: Icons.bolt_rounded,
-              ),
-              _DetailSpecTile(
-                title: context.l10n.modelsDetailContextWindow,
-                value: context.l10n.modelsTokensValue(model.contextLabel),
-                icon: Icons.receipt_long_outlined,
-              ),
-              _DetailSpecTile(
-                title: context.l10n.modelsDetailDownloadSize,
-                value: model.approxSize,
-                icon: Icons.download_rounded,
-              ),
-              _DetailSpecTile(
-                title: context.l10n.modelsDetailCapability,
-                value: capTag.$2,
-                icon: capTag.$1,
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          if (!installed)
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton.icon(
-                icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                label: Text(context.l10n.modelsDownloadSize(model.approxSize)),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _brandGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                if (installed) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _SpecPill(
+                        label: context.l10n.modelsInstalled,
+                        icon: Icons.check_circle_rounded,
+                        color: _brandGreen,
+                      ),
+                      _SpecPill(
+                        label: _fmtSize(local.sizeBytes),
+                        icon: Icons.storage_rounded,
+                      ),
+                      if (active)
+                        _SpecPill(
+                          label: context.l10n.modelsActiveInChat,
+                          icon: Icons.bolt_rounded,
+                          color: _brandGreen,
+                        ),
+                    ],
                   ),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                ],
+                const SizedBox(height: 14),
+                Text(
+                  model.description,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.45,
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF334155),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  onDownload();
-                },
-              ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailParameters,
+                      value: model.parameters,
+                      icon: Icons.bolt_rounded,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailContextWindow,
+                      value: context.l10n.modelsTokensValue(model.contextLabel),
+                      icon: Icons.receipt_long_outlined,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailDownloadSize,
+                      value: model.approxSize,
+                      icon: Icons.download_rounded,
+                    ),
+                    _DetailSpecTile(
+                      title: context.l10n.modelsDetailCapability,
+                      value: capTag.$2,
+                      icon: capTag.$1,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (!installed && download == null && paused == null)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.arrow_downward_rounded, size: 16),
+                      label: Text(
+                        context.l10n.modelsDownloadSize(model.approxSize),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      // Stays open: the sheet shows the progress once it starts.
+                      onPressed: onDownload,
+                    ),
+                  ),
+                if (download != null) ...[
+                  _DownloadProgressRow(handle: download),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.pause_rounded, size: 18),
+                      label: Text(context.l10n.modelsPause),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: onPause,
+                    ),
+                  ),
+                ],
+                if (paused != null) ...[
+                  _PausedProgressRow(partial: paused),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                      label: Text(_resumeLabel(paused, context.l10n)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: onResume,
+                    ),
+                  ),
+                ],
+                if (installed)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      icon: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 16,
+                      ),
+                      label: Text(context.l10n.modelsUseInChat),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _brandGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        onUse(local);
+                      },
+                    ),
+                  ),
+                if (installed) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: Text(context.l10n.modelsDeleteModel),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(ctx).colorScheme.error,
+                        side: BorderSide(
+                          color: Theme.of(
+                            ctx,
+                          ).colorScheme.error.withValues(alpha: 0.6),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      // Asks first; the sheet closes only once it is gone.
+                      onPressed: () async {
+                        final deleted = await onDelete(local);
+                        if (deleted && ctx.mounted) Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
-        ],
+          );
+        },
       ),
     ),
   );
@@ -3390,6 +3606,28 @@ class _SpecPill extends StatelessWidget {
 }
 
 typedef _Chip = _SpecPill;
+
+/// The installed file for a catalog entry, matched the same loose way the
+/// catalog marks a model as installed (id, file name or display name).
+LocalModel? _localFor(CatalogModel m, List<LocalModel> installed) {
+  final keys = {
+    _normalizeModelKey(m.id),
+    _normalizeModelKey(m.filename),
+    _normalizeModelKey(m.displayName),
+    m.id.toLowerCase(),
+    m.filename.toLowerCase(),
+    m.displayName.toLowerCase(),
+  };
+  for (final l in installed) {
+    if (keys.contains(_normalizeModelKey(l.id)) ||
+        keys.contains(_normalizeModelKey(l.displayName)) ||
+        keys.contains(l.id.toLowerCase()) ||
+        keys.contains(l.displayName.toLowerCase())) {
+      return l;
+    }
+  }
+  return null;
+}
 
 String _normalizeModelKey(String input) {
   var key = input.trim().toLowerCase();
