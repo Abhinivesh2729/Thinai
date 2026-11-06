@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.6.2]
+
+### Added
+- Tap any model in the catalog to open its details in a bottom sheet that opens half-way and drags up or down. Installed models get Use in chat and Delete model, and deleting always asks first (#94, #95).
+
+### Fixed
+- The details sheet shows the model's live download state: progress and Pause while downloading, Resume when paused, instead of a Download button that restarted the download from zero (#95).
+
 ## [2.6.1]
 
 ### Fixed
