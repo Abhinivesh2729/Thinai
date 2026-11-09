@@ -289,11 +289,11 @@ static void fllama_copy_cstr(char * dst, size_t cap, const char * src) {
 static void run_inference(fllama_inference_request request,
                           fllama_inference_callback callback) {
   try {
+    // Backend first: it initialises ggml's clock, which ggml_time_ms() needs
+    // on Windows.
+    fllama_backend_init_once();
     int64_t t0 = ggml_time_ms();
     log_message("[fllama] Inference start", request.dart_logger);
-
-    // One-time backend init.
-    fllama_backend_init_once();
 
     // ── 1. Build common_params ────────────────────────────────────────
 

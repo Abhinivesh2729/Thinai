@@ -521,12 +521,17 @@ void ggml_time_init(void) {
     QueryPerformanceCounter(&t);
     timer_start = t.QuadPart;
 }
+// fllama: self-initialise. timer_freq is only set by ggml_time_init(), and a
+// read before it (fllama timed requests before initialising the backend)
+// divided by zero: an integer-division fault that killed the app on Windows.
 int64_t ggml_time_ms(void) {
+    if (timer_freq == 0) ggml_time_init();
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);
     return ((t.QuadPart-timer_start) * 1000) / timer_freq;
 }
 int64_t ggml_time_us(void) {
+    if (timer_freq == 0) ggml_time_init();
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);
     return ((t.QuadPart-timer_start) * 1000000) / timer_freq;

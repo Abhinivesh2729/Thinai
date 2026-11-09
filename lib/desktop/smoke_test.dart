@@ -79,15 +79,6 @@ Future<int> runSmokeTest(SmokeArgs args) async {
     await write();
   }
 
-  // 1. GPU probe. On a runner with no Vulkan driver this must come back empty,
-  //    not take the process down: that is the delay-load guard in fllama.
-  await step('gpu_probe', () async {
-    final devices = await probeGpuDevices();
-    report['gpu_devices'] = [
-      for (final d in devices) '${d.backend.name}: ${d.name}',
-    ];
-  });
-
   // 2. Load the model and stream a short reply on the CPU.
   await step('generate', () async {
     final buffer = StringBuffer();
@@ -107,6 +98,17 @@ Future<int> runSmokeTest(SmokeArgs args) async {
     report['tokens'] = last?.stats.tokens;
     report['tok_per_s'] = last?.stats.tokensPerSecond;
     report['ttft_ms'] = last?.stats.timeToFirstToken?.inMilliseconds;
+  });
+
+  // 1b. GPU probe, after the first request: probing initialises the backend,
+  //     and running it first hid a crash in requests that came before any
+  //     init (ggml's Windows clock). On a runner with no Vulkan driver this must come back empty,
+  //    not take the process down: that is the delay-load guard in fllama.
+  await step('gpu_probe', () async {
+    final devices = await probeGpuDevices();
+    report['gpu_devices'] = [
+      for (final d in devices) '${d.backend.name}: ${d.name}',
+    ];
   });
 
   // 2b. The Lab's speed benchmark, exactly as the page calls it: settings
