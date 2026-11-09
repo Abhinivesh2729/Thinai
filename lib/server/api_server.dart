@@ -6,6 +6,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
+import '../platform/platform_info.dart';
 import 'routes/ollama_routes.dart';
 import 'routes/openai_routes.dart';
 
@@ -17,7 +18,7 @@ class ApiServerConfig {
   final Set<String> tokens;
 
   const ApiServerConfig({
-    this.port = 11434,
+    this.port = kMobileServerPort,
     this.lanMode = false,
     this.tokens = const {},
   });

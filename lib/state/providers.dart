@@ -24,6 +24,7 @@ import '../models_repo/recommender.dart';
 import '../models_repo/tamil_eval_store.dart';
 import '../models_repo/importer.dart';
 import '../models_repo/model_store.dart';
+import '../platform/platform_info.dart';
 import '../server/api_server.dart';
 import '../server/api_tokens.dart';
 import '../server/foreground_handler.dart';
@@ -1299,7 +1300,7 @@ class ServerController extends StateNotifier<ServerStatus> {
     QuickTunnel? tunnel,
   }) : _tokens = tokens ?? (() async => const <String>{}),
        _tunnel = tunnel ?? QuickTunnel(),
-       super(const ServerStatus(running: false, port: 11434)) {
+       super(ServerStatus(running: false, port: defaultServerPort)) {
     _tunnel.onExit = _tunnelDropped;
   }
 
@@ -1412,7 +1413,7 @@ final serverControllerProvider =
 /// The port to show in the Server page field: whatever was last used.
 final savedServerPortProvider = FutureProvider<int>((ref) async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getInt(_kServerPortKey) ?? 11434;
+  return prefs.getInt(_kServerPortKey) ?? defaultServerPort;
 });
 
 // ─── startup ────────────────────────────────────────────────────────────────
@@ -1481,7 +1482,7 @@ Future<void> _resumeServerIfConfigured(Ref ref, SharedPreferences prefs) async {
       await FlutterForegroundTask.stopService();
     }
     if (prefs.getBool(_kServerRunningKey) ?? false) {
-      final port = prefs.getInt(_kServerPortKey) ?? 11434;
+      final port = prefs.getInt(_kServerPortKey) ?? defaultServerPort;
       // lanShareProvider loads its own preference asynchronously, so read the
       // stored value directly instead of racing it.
       final lan = prefs.getBool(LanShareController.lanShareKey) ?? false;

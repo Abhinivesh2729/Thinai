@@ -33,6 +33,16 @@
 
 #include "ggml-backend.h"
 
+#ifdef FLLAMA_WIN_VULKAN_DELAYLOAD
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  include <windows.h>
+#endif
+
 // ── Logging ──────────────────────────────────────────────────────────────────
 
 static void log_message(const char *msg,
@@ -114,6 +124,16 @@ static void fllama_register_gpu_backends(int32_t kind) {
       if (getenv("GGML_DISABLE_VULKAN") != nullptr) {
         return;
       }
+#    ifdef FLLAMA_WIN_VULKAN_DELAYLOAD
+      // vulkan-1.dll is delay-loaded: calling into it without a loader on
+      // the system raises an SEH exception that C++ cannot catch. Check first.
+      HMODULE vk = LoadLibraryExW(L"vulkan-1.dll", nullptr,
+                                  LOAD_LIBRARY_SEARCH_SYSTEM32);
+      if (vk == nullptr) {
+        log_message("[fllama] No Vulkan loader (vulkan-1.dll); using CPU");
+        return;
+      }
+#    endif
       // nullptr when there is no Vulkan 1.2 loader/driver; register ignores it.
       ggml_backend_register(ggml_backend_vk_reg());
     });

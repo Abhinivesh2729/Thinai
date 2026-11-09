@@ -13,6 +13,12 @@ set(BUILD_SHARED_LIBS OFF)
 
 # Otherwise ex. Android build on macOS fails with `error: unknown target CPU 'cyclone'`
 set(LLAMA_NATIVE OFF CACHE BOOL "llama: disable -march=native flag" FORCE)
+# LLAMA_NATIVE is only a deprecated alias that can switch GGML_NATIVE on, never
+# off. On a non-cross build (Windows, Linux, macOS) GGML_NATIVE defaults to ON,
+# which compiles for the build host's CPU: a CI-built Windows DLL then dies with
+# an illegal instruction on any CPU without, say, AVX-512. With it OFF, x86
+# builds target AVX2/FMA/F16C (Haswell, 2013, and newer).
+set(GGML_NATIVE OFF CACHE BOOL "ggml: do not optimize for the build host" FORCE)
 
 # Disable HTTP/CURL support on all platforms (we handle model downloads in Dart, not C++)
 set(LLAMA_HTTPLIB OFF CACHE BOOL "Disable httplib for downloading" FORCE)
@@ -134,12 +140,22 @@ if(ANDROID)
 endif()
 
 if(WIN32 AND NOT ANDROID)
+  # ggml's thread pool instead of MSVC OpenMP, so fllama.dll does not need
+  # vcomp140.dll, which the VC++ redistributable may not have installed.
+  set(GGML_OPENMP OFF CACHE BOOL "Disable OpenMP on Windows" FORCE)
   # Vulkan only when the SDK is installed; otherwise CPU-only so a plain
   # Windows host can still build (e.g. for `flutter test`).
   find_package(Vulkan QUIET COMPONENTS glslc)
   if(Vulkan_FOUND)
     set(GGML_VULKAN ON CACHE BOOL "ggml: use Vulkan" FORCE)
     message(STATUS "Windows detected, enabling GGML_VULKAN")
+    # Same contract as Android: Vulkan is registered only when a request or
+    # probe asks for it (fllama_register_gpu_backends), and vulkan-1.dll is
+    # delay-loaded (see the fllama target below). A PC without a Vulkan driver
+    # (VMs, the basic display adapter, CI runners) still loads fllama.dll and
+    # runs on the CPU.
+    add_compile_definitions(FLLAMA_LAZY_GPU_REG)
+    set(FLLAMA_WIN_VULKAN_DELAYLOAD ON)
   else()
     set(GGML_VULKAN OFF CACHE BOOL "ggml: use Vulkan" FORCE)
     message(WARNING "Vulkan SDK not found, building fllama CPU-only")
@@ -208,6 +224,15 @@ if (ANDROID)
 endif()
 target_include_directories(fllama PUBLIC .)
 target_link_libraries(fllama PUBLIC llama common mtmd server-context)
+
+if(FLLAMA_WIN_VULKAN_DELAYLOAD)
+  # vulkan-1.dll ships with GPU drivers, not with Windows. Delay-loading it
+  # means a missing loader only matters if Vulkan is actually used, and
+  # fllama checks for it before registering the backend.
+  target_link_options(fllama PRIVATE "/DELAYLOAD:vulkan-1.dll")
+  target_link_libraries(fllama PRIVATE delayimp)
+  target_compile_definitions(fllama PRIVATE FLLAMA_WIN_VULKAN_DELAYLOAD)
+endif()
 
 # Apple: link system frameworks for Metal, Accelerate, etc.
 # These are needed because we statically link ggml-metal into this shared lib.

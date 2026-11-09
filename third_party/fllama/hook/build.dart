@@ -58,6 +58,10 @@ void main(List<String> args) async {
       // LLAMA_NATIVE=ON would emit -march=native, producing binaries that
       // crash on machines with a different CPU than the build host.
       'LLAMA_NATIVE': 'OFF',
+      // LLAMA_NATIVE is a deprecated alias that can only turn GGML_NATIVE on.
+      // Native (non-cross) builds default GGML_NATIVE to ON; see
+      // src/CMakeLists.txt.
+      'GGML_NATIVE': 'OFF',
       // We don't need llama.cpp's HTTP server, tests, or examples.
       'LLAMA_HTTPLIB': 'OFF',
       'LLAMA_CURL': 'OFF',

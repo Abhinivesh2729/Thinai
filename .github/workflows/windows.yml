@@ -1,0 +1,171 @@
+name: Windows desktop
+
+# Builds the Windows desktop app, runs its self-test on the release bundle,
+# and packages ThinaiSetup-<version>.exe as a downloadable artifact.
+on:
+  push:
+    branches: [windows]
+  pull_request:
+    branches: [main, windows]
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.4"
+  VULKAN_VERSION: "1.4.313.2"
+  # Smallest catalog model (LFM2.5 350M, ~360 MB): enough to prove load,
+  # chat template and streaming without slowing the job down.
+  SMOKE_MODEL_URL: https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF/resolve/main/LFM2.5-350M-Q8_0.gguf
+  SMOKE_MODEL_FILE: LFM2.5-350M-Q8_0.gguf
+
+jobs:
+  build:
+    name: Build, self-test, package
+    runs-on: windows-2022
+    timeout-minutes: 75
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Vulkan SDK: headers, loader import lib and glslc for llama.cpp's
+      # Vulkan backend. Users need none of it; their GPU driver ships
+      # vulkan-1.dll, and fllama delay-loads it.
+      - name: Cache Vulkan SDK
+        id: vulkan-cache
+        uses: actions/cache@v6
+        with:
+          path: C:\VulkanSDK
+          key: vulkan-sdk-${{ env.VULKAN_VERSION }}
+
+      - name: Install Vulkan SDK
+        if: steps.vulkan-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $v = $env:VULKAN_VERSION
+          $installer = "$env:RUNNER_TEMP\vulkan-sdk.exe"
+          $urls = @(
+            "https://sdk.lunarg.com/sdk/download/$v/windows/vulkansdk-windows-X64-$v.exe",
+            "https://sdk.lunarg.com/sdk/download/$v/windows/VulkanSDK-$v-Installer.exe"
+          )
+          $ok = $false
+          foreach ($u in $urls) {
+            curl.exe -fsSL -o $installer $u
+            if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+          }
+          if (-not $ok) { throw "Vulkan SDK $v download failed" }
+          & $installer --root "C:\VulkanSDK\$v" --accept-licenses --default-answer --confirm-command install
+          if (-not (Test-Path "C:\VulkanSDK\$v\Bin\glslc.exe")) { throw "glslc missing after install" }
+
+      - name: Point the build at the Vulkan SDK
+        shell: pwsh
+        run: |
+          $sdk = "C:\VulkanSDK\$env:VULKAN_VERSION"
+          Add-Content $env:GITHUB_ENV "VULKAN_SDK=$sdk"
+          Add-Content $env:GITHUB_PATH "$sdk\Bin"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Cache Pub packages
+        uses: actions/cache@v6
+        with:
+          path: ~\AppData\Local\Pub\Cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Read app version
+        id: version
+        shell: pwsh
+        run: |
+          $line = Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)' | Select-Object -First 1
+          $v = $line.Matches[0].Groups[1].Value
+          "app=$v" >> $env:GITHUB_OUTPUT
+          "build=$v-desktop.${{ github.run_number }}" >> $env:GITHUB_OUTPUT
+
+      - name: Build Windows release
+        run: flutter build windows --release -t lib/main_desktop.dart
+
+      - name: Check the release bundle
+        shell: pwsh
+        run: |
+          $bundle = "build\windows\x64\runner\Release"
+          Get-ChildItem $bundle | Format-Table Name, Length
+          foreach ($f in @("thinai.exe", "fllama.dll", "flutter_windows.dll", "msvcp140.dll", "vcruntime140.dll")) {
+            if (-not (Test-Path "$bundle\$f")) { throw "$f missing from the bundle" }
+          }
+          # vulkan-1.dll must be delay-loaded, never a hard import: a hard
+          # import stops fllama.dll loading on any PC without a Vulkan driver.
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $dumpbin = Get-ChildItem "$vs\VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe" | Select-Object -First 1
+          $deps = & $dumpbin.FullName /dependents "$bundle\fllama.dll" | Out-String
+          Write-Output $deps
+          $hard = ($deps -split "Image has the following delay load dependencies")[0]
+          if ($hard -match "vulkan-1.dll") { throw "fllama.dll hard-links vulkan-1.dll" }
+
+      - name: Cache smoke-test model
+        uses: actions/cache@v6
+        with:
+          path: smoke-model
+          key: smoke-model-${{ env.SMOKE_MODEL_FILE }}
+
+      - name: Download smoke-test model
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force smoke-model | Out-Null
+          if (-not (Test-Path "smoke-model\$env:SMOKE_MODEL_FILE")) {
+            curl.exe -fsSL -o "smoke-model\$env:SMOKE_MODEL_FILE" $env:SMOKE_MODEL_URL
+            if ($LASTEXITCODE -ne 0) { throw "model download failed" }
+          }
+
+      - name: Self-test the release bundle
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path "build\windows\x64\runner\Release\thinai.exe"
+          $model = Resolve-Path "smoke-model\$env:SMOKE_MODEL_FILE"
+          $out = "$env:RUNNER_TEMP\smoke.json"
+          $p = Start-Process -FilePath $exe -ArgumentList "--smoke", "--model=$model", "--out=$out" -PassThru
+          if (-not $p.WaitForExit(600000)) { $p.Kill(); throw "smoke test timed out" }
+          if (Test-Path $out) { Get-Content $out } else { Write-Output "no report written" }
+          if ($p.ExitCode -ne 0) { throw "smoke test failed with exit code $($p.ExitCode)" }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Package ThinaiSetup.exe
+        shell: pwsh
+        run: |
+          $bundle = Resolve-Path "build\windows\x64\runner\Release"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+            "/DAppVersion=${{ steps.version.outputs.app }}" `
+            "/DSourceDir=$bundle" `
+            "/DOutputDir=$PWD\build\installer" `
+            windows\installer\thinai.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+          Get-ChildItem build\installer
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThinaiSetup-${{ steps.version.outputs.build }}
+          path: build/installer/*.exe
+          if-no-files-found: error
+          retention-days: 30
