@@ -31,6 +31,7 @@
 | `pages/models*`, `pages/lab*`, `pages/server*`, `pages/settings*` | The other four pages |
 | `l10n/` | Desktop-only strings, English and Tamil, one file per area. Phone strings still come from `context.l10n` |
 | `storage/` | SQLite chat store |
+| `monitor/` | Load monitor: CPU, RAM, power (battery discharge rate when unplugged, else estimated), battery; per-model busy time, tokens, energy and CO2 (India grid 716 g/kWh). Lab > Load and the live strip in chat |
 | `diagnostics.dart` | Log file `<app data>/logs/thinai.log` (startup timings, model loads, engine errors, uncaught exceptions; never chat text) |
 | `smoke_test.dart` | `thinai.exe --smoke --model=x.gguf --out=r.json` self-test used by CI |
 | `dev_snapshots.dart` | `THINAI_SNAPSHOT_DIR=...` renders every page to PNG and quits (visual checks without screen access) |
@@ -53,6 +54,8 @@ You cannot build a Windows app on macOS. The loop is:
 |---|---|
 | Mac | `flutter run -d macos -t lib/main_desktop.dart` for UI work with hot reload (CPU/Metal). `THINAI_SNAPSHOT_DIR=/tmp/s ./build/macos/Build/Products/Debug/Thinai.app/Contents/MacOS/Thinai` renders every page; add `THINAI_SNAPSHOT_PROMPT="..."` to also run a chat with the first installed model |
 | CI | `.github/workflows/windows.yml` on every push to `windows`: Vulkan SDK, `flutter build windows --release -t lib/main_desktop.dart`, bundle checks (DLLs present, `vulkan-1.dll` delay-loaded), the `--smoke` self-test with LFM2.5 350M, then `ThinaiSetup-<version>.exe` (Inno Setup, per-user, no admin) uploaded as an artifact |
+| CI UI run | After the self-test, CI launches the real app with `THINAI_SNAPSHOT_DIR` + `THINAI_SNAPSHOT_LAB_RUN`: it visits every page and Lab tab, presses Run on the speed benchmark and Tamil eval, and uploads the PNGs as the `ui-screenshots-<n>` artifact. A crash fails the job and prints `crash.txt` |
+| Native crashes | The runner writes `logs/crash.txt` (exception code + module/offset/function stack; fllama is built with a PDB) and `logs/native.log` (llama.cpp stderr). The next launch folds both into `thinai.log` and shows a toast |
 | Boot Camp | Install `ThinaiSetup-*.exe` from the Actions run. SmartScreen: More info → Run anyway (unsigned). Problems: Settings → About & help → **Copy diagnostics**, paste it to the developer |
 
 Startup is logged (`startup: runApp`, `first frame`, `restored session`), as are first-token time and tok/s for every chat reply.

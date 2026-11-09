@@ -182,6 +182,26 @@ jobs:
             }
           } else { Write-Output "no logs folder" }
 
+      - name: Symbolize native crash
+        if: failure()
+        shell: pwsh
+        run: |
+          $crash = "$env:APPDATA\ATmega Software Technologies\Thinai\logs\crash.txt"
+          if (-not (Test-Path $crash)) { Write-Output "no crash.txt"; exit 0 }
+          $dll = Resolve-Path "build\windows\x64\runner\Release\fllama.dll"
+          $pdb = Get-ChildItem -Recurse -Filter fllama.pdb .dart_tool -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($pdb) { Copy-Item $pdb.FullName (Split-Path $dll) -Force; Write-Output "pdb: $($pdb.FullName)" } else { Write-Output "no fllama.pdb found" }
+          $sym = "C:\Program Files\LLVM\bin\llvm-symbolizer.exe"
+          if (-not (Test-Path $sym)) { $sym = (Get-Command llvm-symbolizer -ErrorAction SilentlyContinue).Source }
+          Write-Output "symbolizer: $sym"
+          foreach ($line in Get-Content $crash) {
+            if ($line -match 'fllama\.dll\+0x([0-9a-fA-F]+)') {
+              $rva = "0x" + $Matches[1]
+              Write-Output "== $line"
+              & $sym --obj=$dll --relative-address --inlines --demangle $rva
+            }
+          }
+
       - name: Install Inno Setup
         shell: pwsh
         run: |
