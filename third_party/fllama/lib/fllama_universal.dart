@@ -180,6 +180,7 @@ Future<int> fllamaChat(
     modelPath: request.modelPath,
     modelMmprojPath: request.mmprojPath,
     numGpuLayers: request.numGpuLayers,
+    numThreads: request.numThreads,
     gpuBackend: request.gpuBackend,
     penaltyFrequency: request.frequencyPenalty,
     penaltyRepeat: request.presencePenalty,

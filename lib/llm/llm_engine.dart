@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:fllama/fllama.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import '../platform/platform_info.dart';
 import 'gpu_support.dart';
 
 import 'chat_message.dart';
@@ -544,6 +545,7 @@ class LlmEngine {
           : kDefaultContextSize,
       numGpuLayers: onGpu ? job.options.numGpuLayers : 0,
       gpuBackend: onGpu ? job.options.gpuBackend.ffiValue : 0,
+      numThreads: inferenceThreads(),
     );
 
     // A vendor GPU driver that crashes takes the whole process with it, and

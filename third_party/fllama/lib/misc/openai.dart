@@ -25,6 +25,7 @@ enum Role {
 class Message {
   final Role role;
   final String text;
+
   /// Optional name of tool in the message.
   final String? toolResponseName;
   final List<Map<String, dynamic>>? toolCalls;
@@ -91,6 +92,9 @@ class OpenAiRequest {
   /// Changing it for a loaded model reloads the model.
   final int gpuBackend;
   final int contextSize;
+
+  /// CPU threads for prompt reading and generation.
+  final int numThreads;
   final String? jinjaTemplate;
   final Function(String)? logger;
   final ToolChoice? toolChoice;
@@ -98,17 +102,17 @@ class OpenAiRequest {
   String toJsonString() {
     final Map<String, dynamic> json = {
       'messages': messages
-          .map((m) => {
-                'role': m.role.openAiName,
-                // Avoid empty content, intent is when there's a tool call,
-                // but no text, in an assistant response, two messages are not
-                // created.
-                if (m.text.trim().isNotEmpty)
-                 'content': m.text,
-                if (m.toolResponseName != null) 'name': m.toolResponseName,
-                if (m.toolCalls?.isNotEmpty == true)
-                  'tool_calls': m.toolCalls
-              })
+          .map(
+            (m) => {
+              'role': m.role.openAiName,
+              // Avoid empty content, intent is when there's a tool call,
+              // but no text, in an assistant response, two messages are not
+              // created.
+              if (m.text.trim().isNotEmpty) 'content': m.text,
+              if (m.toolResponseName != null) 'name': m.toolResponseName,
+              if (m.toolCalls?.isNotEmpty == true) 'tool_calls': m.toolCalls,
+            },
+          )
           .toList(),
       'tools': tools.map((t) {
         return {
@@ -170,6 +174,7 @@ class OpenAiRequest {
     // 4096, today it has 16384. 1000 tokens ~= 3 pages ~= 750 words ~= 3
     // minutes reading time.
     this.contextSize = 2048,
+    this.numThreads = 2,
     // Optional logger.
     this.logger,
     this.jinjaTemplate,

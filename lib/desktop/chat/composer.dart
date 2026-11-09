@@ -253,12 +253,20 @@ class _DeskComposerState extends ConsumerState<DeskComposer> {
                   },
                 ),
                 const Spacer(),
-                AnimatedOpacity(
-                  duration: DeskMotion.fast,
-                  opacity: _focused && _text.text.isNotEmpty ? 1 : 0,
-                  child: Text(
-                    s.shortcutsHint,
-                    style: TextStyle(fontSize: 11.5, color: palette.textFaint),
+                Flexible(
+                  flex: 3,
+                  child: AnimatedOpacity(
+                    duration: DeskMotion.fast,
+                    opacity: _focused && _text.text.isNotEmpty ? 1 : 0,
+                    child: Text(
+                      s.shortcutsHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: palette.textFaint,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
