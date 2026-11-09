@@ -139,6 +139,13 @@ if(ANDROID)
     endif()
 endif()
 
+if(MSVC)
+  # Release code with a PDB beside it, so native crash reports from test
+  # builds name the function instead of an offset. No effect on speed.
+  add_compile_options(/Zi)
+  add_link_options(/DEBUG /OPT:REF /OPT:ICF)
+endif()
+
 if(WIN32 AND NOT ANDROID)
   # ggml's thread pool instead of MSVC OpenMP, so fllama.dll does not need
   # vcomp140.dll, which the VC++ redistributable may not have installed.

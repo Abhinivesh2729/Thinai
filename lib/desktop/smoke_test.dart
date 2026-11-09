@@ -142,6 +142,26 @@ Future<int> runSmokeTest(SmokeArgs args) async {
     report['benchmark_tok_per_s'] = last?.stats.tokensPerSecond;
   });
 
+  // 2b'. The same benchmark at the 8K window the Lab uses on a PC with free
+  //      RAM (the CI run that crashed in the UI had ctx=8192 max=128).
+  await step('benchmark_8k', () async {
+    LlmToken? last;
+    await for (final token in LlmEngine.instance.generate(
+      'Explain how neural networks learn, in one paragraph.',
+      modelPath: model.path,
+      options: const GenerationOptions(
+        temperature: 0.2,
+        maxTokens: 128,
+        contextSize: 8192,
+      ),
+    )) {
+      if (token.isError) throw StateError(token.full);
+      last = token;
+      if (token.done) break;
+    }
+    report['benchmark_8k_tokens'] = last?.stats.tokens;
+  });
+
   // 2c. The Tamil eval's multiple-choice call: 4K window, temperature 0,
   //     thinking off, a grammar allowing one letter.
   await step('eval_grammar', () async {
