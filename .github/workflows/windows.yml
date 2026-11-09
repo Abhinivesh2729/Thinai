@@ -143,6 +143,21 @@ jobs:
           if (Test-Path $out) { Get-Content $out } else { Write-Output "no report written" }
           if ($p.ExitCode -ne 0) { throw "smoke test failed with exit code $($p.ExitCode)" }
 
+      - name: Show native crash logs
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = "$env:APPDATA\ATmega Software Technologies\Thinai\logs"
+          if (Test-Path $logs) {
+            Get-ChildItem $logs | Format-Table Name, Length
+            foreach ($f in @("crash.txt", "native.log", "thinai.log")) {
+              if (Test-Path "$logs\$f") {
+                Write-Output "===== $f ====="
+                Get-Content "$logs\$f" -Tail 120
+              }
+            }
+          } else { Write-Output "no logs folder" }
+
       - name: Install Inno Setup
         shell: pwsh
         run: |

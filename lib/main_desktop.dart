@@ -17,6 +17,7 @@ import 'desktop/diagnostics.dart';
 import 'desktop/smoke_test.dart';
 import 'desktop/storage/sqlite_chat_store.dart';
 import 'llm/generation_settings.dart';
+import 'llm/llm_engine.dart';
 import 'state/providers.dart';
 
 Future<void> main(List<String> args) async {
@@ -29,6 +30,7 @@ Future<void> main(List<String> args) async {
   }
 
   Diagnostics.captureErrors();
+  LlmEngine.trace = Diagnostics.log;
   unawaited(Diagnostics.init());
 
   // Disk reads start now and finish while the window and first frame are

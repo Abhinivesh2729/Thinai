@@ -313,6 +313,10 @@ class LlmEngine {
   /// Consecutive GPU load failures; a rested backend is served on the CPU.
   final gpuFailures = GpuFailureTracker();
 
+  /// Receives one line per request (model, window, GPU, outcome). The
+  /// desktop build points it at its log file; null on the phone.
+  static void Function(String line)? trace;
+
   /// How long a model counts as still loaded after its last request. fllama
   /// unloads an idle model after 120 s, checked every 30 s; a little under
   /// that, so a model that may already be gone is measured afresh.
@@ -508,6 +512,14 @@ class LlmEngine {
     if (onGpu && gpuFailures.isRested(job.options.gpuBackend)) {
       onGpu = false;
     }
+    final traceStart = DateTime.now();
+    trace?.call(
+      'engine: start ${job.modelPath.split(RegExp(r'[\\/]')).last} '
+      'ctx=${job.options.contextSize} max=${job.options.maxTokens} '
+      'gpu=${onGpu ? job.options.gpuBackend.name : 'none'} '
+      'grammar=${job.options.grammar != null} threads=${inferenceThreads()} '
+      'msgs=${job.messages.length}',
+    );
     final request = OpenAiRequest(
       messages: job.messages
           .map(
@@ -679,6 +691,10 @@ class LlmEngine {
     }
 
     await completer.future;
+    trace?.call(
+      'engine: end after ${DateTime.now().difference(traceStart).inMilliseconds} ms'
+      '${loadFailed ? ' (load failed)' : ''}',
+    );
     _currentRequestId = null;
     _residentRunning = false;
     _residentAt = clock();

@@ -13,8 +13,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:thinai_tamil_evals/thinai_tamil_evals.dart' show kOptionGrammar;
+
+import '../llm/generation_settings.dart';
 import '../llm/gpu_support.dart';
 import '../llm/llm_engine.dart';
+import '../models_repo/model_store.dart';
 import '../platform/platform_info.dart';
 import '../server/api_server.dart';
 import '../state/providers.dart';
@@ -54,7 +58,15 @@ Future<int> runSmokeTest(SmokeArgs args) async {
   final failures = <String>[];
   final total = Stopwatch()..start();
 
+  Future<void> write() => File(
+    args.outPath,
+  ).writeAsString(const JsonEncoder.withIndent('  ').convert(report));
+
   Future<void> step(String name, Future<void> Function() body) async {
+    // Written before and after each step: if native code takes the process
+    // down, the report still says which step it was in.
+    report['running'] = name;
+    await write();
     final sw = Stopwatch()..start();
     try {
       await body().timeout(const Duration(minutes: 3));
@@ -63,6 +75,8 @@ Future<int> runSmokeTest(SmokeArgs args) async {
       failures.add('$name: $e');
       report['${name}_error'] = '$e\n$st';
     }
+    report.remove('running');
+    await write();
   }
 
   // 1. GPU probe. On a runner with no Vulkan driver this must come back empty,
@@ -93,6 +107,69 @@ Future<int> runSmokeTest(SmokeArgs args) async {
     report['tokens'] = last?.stats.tokens;
     report['tok_per_s'] = last?.stats.tokensPerSecond;
     report['ttft_ms'] = last?.stats.timeToFirstToken?.inMilliseconds;
+  });
+
+  // 2b. The Lab's speed benchmark, exactly as the page calls it: settings
+  //     from the store (context fitted to free RAM), 128 tokens, and the
+  //     listener leaving on the done token.
+  final file = File(args.modelPath);
+  final model = LocalModel(
+    id: 'smoke',
+    displayName: 'smoke',
+    path: args.modelPath,
+    sizeBytes: file.existsSync() ? file.lengthSync() : 0,
+    modifiedAt: DateTime.now(),
+  );
+  await GenerationSettingsStore.instance.ensureLoaded();
+  await step('benchmark', () async {
+    final options = await GenerationSettingsStore.instance.optionsFor(
+      model,
+      requestedTemperature: 0.2,
+      maxTokens: 128,
+    );
+    report['benchmark_ctx'] = options.contextSize;
+    LlmToken? last;
+    await for (final token in LlmEngine.instance.generate(
+      'Explain how neural networks learn, in one paragraph.',
+      modelPath: model.path,
+      options: options,
+    )) {
+      if (token.isError) throw StateError(token.full);
+      last = token;
+      if (token.done) break;
+    }
+    report['benchmark_tokens'] = last?.stats.tokens;
+    report['benchmark_tok_per_s'] = last?.stats.tokensPerSecond;
+  });
+
+  // 2c. The Tamil eval's multiple-choice call: 4K window, temperature 0,
+  //     thinking off, a grammar allowing one letter.
+  await step('eval_grammar', () async {
+    final options = await GenerationSettingsStore.instance.optionsFor(
+      model,
+      requestedContext: 4096,
+      requestedTemperature: 0,
+      requestedThinking: false,
+      maxTokens: 4,
+      grammar: kOptionGrammar,
+    );
+    final buffer = StringBuffer();
+    await for (final token in LlmEngine.instance.chat(
+      [
+        const ChatMessage(
+          role: 'user',
+          content:
+              'Which is a colour? A) dog B) red C) run D) ten. '
+              'Answer with one letter.',
+        ),
+      ],
+      modelPath: model.path,
+      options: options,
+    )) {
+      if (token.isError) throw StateError(token.full);
+      buffer.write(token.delta);
+    }
+    report['eval_answer'] = buffer.toString();
   });
 
   // 3. API server on the desktop port, loopback only.

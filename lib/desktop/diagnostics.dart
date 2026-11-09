@@ -49,9 +49,29 @@ abstract final class Diagnostics {
         _sink!.writeln(line);
       }
       _pending.clear();
+      await _collectNativeCrash(logs.path);
     } on Object catch (e) {
       debugPrint('diagnostics: cannot open log: $e');
     }
+  }
+
+  /// The Windows runner writes crash.txt when the process dies in native
+  /// code, and keeps the previous run's stderr (llama.cpp) as
+  /// native.prev.log. Fold both into this log once, so the crash travels
+  /// with "Copy diagnostics".
+  static Future<void> _collectNativeCrash(String dir) async {
+    final sep = Platform.pathSeparator;
+    final crash = File('$dir${sep}crash.txt');
+    if (!await crash.exists()) return;
+    final report = (await crash.readAsString()).trim();
+    log('PREVIOUS RUN CRASHED (native):\n$report');
+    final native = File('$dir${sep}native.prev.log');
+    if (await native.exists()) {
+      final lines = (await native.readAsString()).trim().split('\n');
+      final tail = lines.length > 40 ? lines.sublist(lines.length - 40) : lines;
+      log('Last native log lines before the crash:\n${tail.join('\n')}');
+    }
+    await crash.rename('$dir${sep}crash.prev.txt');
   }
 
   static void log(String message) {
