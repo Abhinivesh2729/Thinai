@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+
 /// Why an attachment was refused.
 ///
 /// The UI turns this into a localized message; the English [message] on
@@ -35,4 +37,26 @@ class AttachmentException extends FormatException {
   /// formatted to one decimal, and the limit.
   final String? sizeMb;
   final int? limitMb;
+}
+
+/// The message for an attachment that was refused, in the user's language.
+/// A [FormatException] that is not an [AttachmentException] keeps its own
+/// text.
+String attachmentErrorMessage(AppLocalizations l10n, FormatException e) {
+  if (e is! AttachmentException) return e.message;
+  return switch (e.problem) {
+    AttachmentProblem.imageUnsupported => l10n.chatAttachImageUnsupported,
+    AttachmentProblem.imageEmpty => l10n.chatAttachImageEmpty,
+    AttachmentProblem.imageTooLarge => l10n.chatAttachImageTooLarge(
+      e.sizeMb ?? '',
+      e.limitMb ?? 0,
+    ),
+    AttachmentProblem.pdfUnsupported => l10n.chatAttachPdfUnsupported,
+    AttachmentProblem.binaryFormatUnsupported =>
+      l10n.chatAttachBinaryUnsupported(e.formatName ?? ''),
+    AttachmentProblem.fileEmpty => l10n.chatAttachFileEmpty,
+    AttachmentProblem.binaryFile => l10n.chatAttachBinaryFile,
+    AttachmentProblem.notUtf8 => l10n.chatAttachNotUtf8,
+    AttachmentProblem.noText => l10n.chatAttachNoText,
+  };
 }

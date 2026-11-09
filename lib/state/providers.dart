@@ -7,6 +7,7 @@ import 'dart:ui' show Locale, PlatformDispatcher;
 import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meta/meta.dart' show protected;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 import 'package:uuid/uuid.dart';
@@ -662,12 +663,14 @@ class ChatSessions {
 /// for no gain. Losing a half-finished reply to a kill is the accepted cost.
 class ChatSessionsController extends StateNotifier<ChatSessions> {
   ChatSessionsController() : super(const ChatSessions()) {
-    _load();
+    load();
   }
 
   /// Conversations kept. Old chats are cheap, but not free, and a phone
-  /// preference file is the wrong place for an unbounded archive.
-  static const _maxConversations = 40;
+  /// preference file is the wrong place for an unbounded archive. Null keeps
+  /// every conversation (the desktop SQLite store).
+  @protected
+  int? get maxConversations => 40;
 
   /// Messages kept per conversation.
   static const _maxTurns = 200;
@@ -677,7 +680,10 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
 
   static const _uuid = Uuid();
 
-  Future<void> _load() async {
+  /// Reads the stored conversations, then publishes them with
+  /// [publishLoaded]. Overridden by stores that keep chats elsewhere.
+  @protected
+  Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     var conversations = <ChatConversation>[];
 
@@ -728,7 +734,15 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
       await prefs.remove(_kChatHistoryKey);
     }
 
-    conversations = _tidy(conversations);
+    final cleaned = publishLoaded(conversations);
+    if (raw != null || cleaned.isNotEmpty) unawaited(persist());
+  }
+
+  /// Applies the caps and placeholder cleanup to what [load] read, makes it
+  /// the state, and returns it.
+  @protected
+  List<ChatConversation> publishLoaded(List<ChatConversation> loaded) {
+    var conversations = _tidy(loaded);
     // A reply cut off by the app being killed leaves an empty placeholder.
     // Drop it, keep the question.
     conversations = [for (final c in conversations) _dropTrailingPlaceholder(c)]
@@ -739,7 +753,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     // old chats stay in history; the blank one is not stored until it has a
     // message.
     state = ChatSessions(conversations: conversations, loaded: true);
-    if (raw != null || conversations.isNotEmpty) unawaited(_save());
+    return conversations;
   }
 
   /// Adds the user's message plus the placeholder the reply streams into,
@@ -756,7 +770,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
         ? ChatConversation(id: _uuid.v4(), turns: turns, updatedAt: now)
         : current.copyWith(turns: turns, updatedAt: now);
     _put(conversation, makeActive: true);
-    unawaited(_save());
+    unawaited(persist());
   }
 
   /// Records what the web search found for the reply now being written, so the
@@ -784,7 +798,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     if (current != null) {
       _put(current.copyWith(updatedAt: DateTime.now()));
     }
-    await _save();
+    await persist();
   }
 
   /// Leaves the current chat open in the list and starts a blank one. The new
@@ -813,7 +827,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
           c,
     ];
     state = state.copyWith(conversations: updated);
-    await _save();
+    await persist();
   }
 
   Future<void> delete(String id) async {
@@ -826,7 +840,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
       activeId: state.activeId == id ? null : state.activeId,
       loaded: true,
     );
-    await _save();
+    await persist();
   }
 
   /// Deletes multiple conversations in a single batch.
@@ -841,7 +855,7 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
       activeId: ids.contains(state.activeId) ? null : state.activeId,
       loaded: true,
     );
-    await _save();
+    await persist();
   }
 
   /// Deletes the conversation on screen, if there is one.
@@ -853,6 +867,12 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
 
   Future<void> deleteAll() async {
     state = const ChatSessions(loaded: true);
+    await clearStorage();
+  }
+
+  /// Removes every stored conversation.
+  @protected
+  Future<void> clearStorage() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kChatSessionsKey);
   }
@@ -872,14 +892,24 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
     );
   }
 
-  Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
+  /// Applies the caps to the live list and returns what should be stored.
+  @protected
+  List<ChatConversation> tidyForSave() {
     final tidied = _tidy(state.conversations);
     // Keep the live list in step with what was written, so the history page
     // never lists a chat that would be gone after a restart.
     if (tidied.length != state.conversations.length) {
       state = state.copyWith(conversations: tidied);
     }
+    return tidied;
+  }
+
+  /// Writes the conversations. Overridden by stores that keep chats
+  /// elsewhere.
+  @protected
+  Future<void> persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tidied = tidyForSave();
     await prefs.setString(
       _kChatSessionsKey,
       jsonEncode({
@@ -897,10 +927,11 @@ class ChatSessionsController extends StateNotifier<ChatSessions> {
   }
 
   /// Applies every cap: newest conversations, newest messages within each.
-  static List<ChatConversation> _tidy(List<ChatConversation> conversations) {
+  List<ChatConversation> _tidy(List<ChatConversation> conversations) {
     final sorted = [...conversations]
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    final kept = sorted.take(_maxConversations);
+    final cap = maxConversations;
+    final kept = cap == null ? sorted : sorted.take(cap);
     return [for (final c in kept) c.copyWith(turns: _trimTurns(c.turns))];
   }
 

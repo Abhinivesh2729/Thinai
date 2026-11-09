@@ -178,7 +178,10 @@ void main(List<String> args) async {
     // can find it at runtime.
     final outLibs = await output.findAndAddCodeAssets(
       input,
-      names: {r'(lib)?fllama\.(dll|so|dylib)': 'fllama_io.dart'},
+      // Anchored: MSBuild leaves `fllama.dll.recipe` beside the build tree on
+      // Windows, and an unanchored pattern registered that instead of
+      // Release/fllama.dll, so the app shipped without its engine.
+      names: {r'^(lib)?fllama\.(dll|so|dylib)$': 'fllama_io.dart'},
       outDir: input.outputDirectory,
       logger: logger,
       regExp: true,

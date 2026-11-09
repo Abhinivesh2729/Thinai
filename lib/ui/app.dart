@@ -42,8 +42,7 @@ class LocalLlmApp extends ConsumerWidget {
 
 /// Builds the app theme for the given brightness. Light and dark share the
 /// same shape and component styling. Only the seeded [ColorScheme] differs,
-/// so every screen adapts automatically.
-@visibleForTesting
+/// so every screen adapts automatically. The desktop theme builds on it.
 ThemeData buildAppTheme(Brightness brightness, {bool tamil = false}) {
   final isDark = brightness == Brightness.dark;
   // Official Thinai logo leaf green and crisp error red
