@@ -91,6 +91,7 @@ class LabLoadTab extends ConsumerWidget {
               label: s.battery,
               value: (battery ?? 0).toDouble(),
               unit: battery == null ? '' : '%',
+              missing: battery == null,
               fraction: (battery ?? 0) / 100,
               detail: battery == null
                   ? s.noBattery
@@ -296,7 +297,10 @@ class _Tile extends StatelessWidget {
     required this.detail,
     this.secondaryFraction = 0,
     this.decimals = 0,
+    this.missing = false,
   });
+
+  /// No reading (e.g. a desktop without a battery): shows a dash.
 
   final double width;
   final IconData icon;
@@ -307,6 +311,7 @@ class _Tile extends StatelessWidget {
   final double secondaryFraction;
   final String detail;
   final int decimals;
+  final bool missing;
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +365,7 @@ class _Tile extends StatelessWidget {
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: v.toStringAsFixed(decimals),
+                            text: missing ? '–' : v.toStringAsFixed(decimals),
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
