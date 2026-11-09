@@ -205,3 +205,14 @@ class ShellStrings {
     close: 'மூடு',
   );
 }
+
+/// Rewords shared copy written for the phone (catalog blurbs, fit labels)
+/// for a computer. Only whole words are swapped, so "smartphone" or model
+/// names are left alone.
+String deskWording(String text) => text
+    .replaceAll(RegExp(r'\bany phone\b'), 'any PC')
+    .replaceAll(RegExp(r'\bthis phone\b'), 'this PC')
+    .replaceAll(RegExp(r'\byour phone\b'), 'your PC')
+    .replaceAll(RegExp(r'\bphones\b'), 'PCs')
+    .replaceAll(RegExp(r'\bphone\b'), 'PC')
+    .replaceAll(RegExp(r'\bமொபைலில்\b'), 'கணினியில்');

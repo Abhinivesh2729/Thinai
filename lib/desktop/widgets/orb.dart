@@ -202,7 +202,7 @@ class _OrbPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const core = DeskColors.green;
     const glow = DeskColors.mint;
-    final deep = dark ? DeskColors.shadowGreen : const Color(0xFF14532D);
+    final deep = dark ? const Color(0xFF0E4A25) : const Color(0xFF166534);
     var i = 0;
     void f(double v) => shader.setFloat(i++, v);
     void c(Color col) {

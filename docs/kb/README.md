@@ -22,6 +22,7 @@ Everything here comes from the code in this repo (v2.5.0, commit `513e0b7`) and 
 | 8 | [08-data-and-storage.md](08-data-and-storage.md) | Everything the app saves, where, and in what shape |
 | 9 | [09-known-issues.md](09-known-issues.md) | Bugs, dead code and inconsistencies found while writing this KB |
 | 10 | [10-desktop-prd.md](10-desktop-prd.md) | **Draft PRD for Thinai Desktop**: scope, what to reuse, what to replace, open questions |
+| 11 | [11-desktop.md](11-desktop.md) | **Thinai Desktop as built**: decisions, code layout, Windows engine notes, build/CI/debug loop |
 
 Screenshots are in [screens/](screens/).
 

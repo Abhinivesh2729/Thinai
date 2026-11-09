@@ -13,6 +13,7 @@ import '../pages/chat_page.dart';
 import '../pages/lab_page.dart';
 import '../pages/models_page.dart';
 import '../pages/server_page.dart';
+import '../pages/settings/desk_start_page.dart';
 import '../pages/settings_page.dart';
 import '../theme/desk_theme.dart';
 import 'desk_nav.dart';
@@ -28,6 +29,19 @@ class DeskShell extends ConsumerStatefulWidget {
 
 class _DeskShellState extends ConsumerState<DeskShell> {
   final _visited = <DeskPage>{DeskPage.chat};
+
+  @override
+  void initState() {
+    super.initState();
+    // Open on the page chosen in Settings. Read after the first frame so a
+    // slow disk never delays the window.
+    DeskStartPageController.readSaved().then((page) {
+      if (!mounted || page == DeskPage.chat) return;
+      if (ref.read(deskPageProvider) == DeskPage.chat) {
+        ref.read(deskPageProvider.notifier).state = page;
+      }
+    });
+  }
 
   Widget _pageFor(DeskPage page) => switch (page) {
     DeskPage.chat => const DeskChatPage(),
@@ -116,17 +130,22 @@ class _PageLayer extends StatelessWidget {
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !active,
-        child: TickerMode(
-          enabled: active,
-          child: AnimatedOpacity(
-            duration: DeskMotion.medium,
+        // The fade itself must keep ticking while the page leaves, so only
+        // the page's own content is put to sleep.
+        child: AnimatedOpacity(
+          duration: DeskMotion.medium,
+          curve: DeskMotion.ease,
+          opacity: active ? 1 : 0,
+          child: AnimatedSlide(
+            duration: DeskMotion.page,
             curve: DeskMotion.ease,
-            opacity: active ? 1 : 0,
-            child: AnimatedSlide(
-              duration: DeskMotion.page,
-              curve: DeskMotion.ease,
-              offset: active ? Offset.zero : const Offset(0, 0.012),
-              child: ExcludeFocus(excluding: !active, child: child),
+            offset: active ? Offset.zero : const Offset(0, 0.012),
+            child: TickerMode(
+              enabled: active,
+              child: ExcludeFocus(
+                excluding: !active,
+                child: Material(type: MaterialType.transparency, child: child),
+              ),
             ),
           ),
         ),

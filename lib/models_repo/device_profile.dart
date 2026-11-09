@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 
 import '../l10n/l10n.dart';
+import 'desktop_memory.dart';
 
 /// Rough hardware class, used to estimate decode speed.
 enum DeviceClass {
@@ -117,6 +118,14 @@ class DeviceProfile {
   /// [unknownProfile] with the core count still filled in.
   static Future<DeviceProfile> read() async {
     final cores = Platform.numberOfProcessors;
+    if (Platform.isWindows || Platform.isMacOS) {
+      final memory = await readDesktopMemory();
+      return DeviceProfile(
+        totalRamBytes: memory?.total,
+        availableRamBytes: memory?.available,
+        cores: cores,
+      );
+    }
     try {
       final file = File('/proc/meminfo');
       if (!await file.exists()) return DeviceProfile(cores: cores);

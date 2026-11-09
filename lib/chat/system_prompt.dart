@@ -8,6 +8,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../platform/platform_info.dart';
 import '../state/providers.dart';
 
 /// What chats are told when nobody has changed it. Short on purpose: the
@@ -26,9 +27,22 @@ const String kDefaultSystemPromptTamil =
     'another language. Answer clearly and concisely, and say so when you are '
     'not sure.';
 
-/// The default for the UI language in use.
-String defaultSystemPromptFor({required bool tamil}) =>
-    tamil ? kDefaultSystemPromptTamil : kDefaultSystemPrompt;
+/// Desktop defaults: the same instruction, on a computer.
+const String kDefaultSystemPromptDesktop =
+    'You are Thinai, a helpful AI assistant that runs privately on the '
+    "user's computer. Answer clearly and concisely, and say so when you are "
+    'not sure.';
+
+const String kDefaultSystemPromptDesktopTamil =
+    'You are Thinai, a helpful AI assistant that runs privately on the '
+    "user's computer. Always reply in Tamil (தமிழ்) unless the user asks for "
+    'another language. Answer clearly and concisely, and say so when you are '
+    'not sure.';
+
+/// The default for the UI language in use, on this kind of device.
+String defaultSystemPromptFor({required bool tamil}) => isDesktop
+    ? (tamil ? kDefaultSystemPromptDesktopTamil : kDefaultSystemPromptDesktop)
+    : (tamil ? kDefaultSystemPromptTamil : kDefaultSystemPrompt);
 
 const _kSystemPromptKey = 'chat_system_prompt_v1';
 

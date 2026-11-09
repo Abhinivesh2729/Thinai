@@ -73,8 +73,8 @@ void main() {
   float light = clamp(dot(normal, normalize(vec3(-0.45, -0.55, 0.7))), 0.0, 1.0);
 
   vec3 col = mix(uDeep, uCore, smoothstep(0.25, 0.85, flow));
-  col = mix(col, uGlow, smoothstep(0.62, 0.95, flow) * (0.55 + 0.45 * e));
-  col *= 0.55 + 0.6 * light;
+  col = mix(col, uGlow, smoothstep(0.55, 0.92, flow) * (0.65 + 0.35 * e));
+  col *= 0.72 + 0.55 * light;
 
   // Fresnel rim and a small specular highlight.
   float rim = pow(1.0 - z, 2.4);

@@ -17,6 +17,8 @@ import '../llm/gpu_support.dart';
 import '../llm/llm_engine.dart';
 import '../platform/platform_info.dart';
 import '../server/api_server.dart';
+import '../state/providers.dart';
+import 'storage/sqlite_chat_store.dart';
 
 /// Parsed `--smoke` arguments, or null when the app should start normally.
 class SmokeArgs {
@@ -114,6 +116,35 @@ Future<int> runSmokeTest(SmokeArgs args) async {
       }
     } finally {
       await server.stop();
+    }
+  });
+
+  // 4. Chat history store: the bundled SQLite loads, writes and finds text.
+  await step('sqlite', () async {
+    final dir = await Directory.systemTemp.createTemp('thinai_smoke');
+    try {
+      final store = await SqliteChatStore.open(
+        path: '${dir.path}${Platform.pathSeparator}chats.sqlite3',
+      );
+      store.upsert(
+        ChatConversation(
+          id: 'smoke',
+          turns: const [
+            ChatTurn(role: 'user', content: 'Where is Erode?'),
+            ChatTurn(role: 'assistant', content: 'Erode is in Tamil Nadu.'),
+          ],
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final hits = store.search('tamil');
+      final loaded = store.loadAll();
+      store.dispose();
+      report['sqlite_hits'] = hits.length;
+      if (hits.isEmpty || loaded.length != 1) {
+        throw StateError('search ${hits.length}, loaded ${loaded.length}');
+      }
+    } finally {
+      await dir.delete(recursive: true);
     }
   });
 
