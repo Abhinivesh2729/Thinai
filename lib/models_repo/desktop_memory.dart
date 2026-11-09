@@ -13,6 +13,10 @@ import 'package:ffi/ffi.dart';
 typedef MemoryReading = ({int total, int available});
 
 Future<MemoryReading?> readDesktopMemory() async {
+  // Widget tests run on the developer's Mac or the Linux CI runner; reading
+  // the host's RAM (or spawning sysctl inside a fake-async test) would make
+  // them depend on the machine.
+  if (Platform.environment.containsKey('FLUTTER_TEST')) return null;
   try {
     if (Platform.isWindows) return _windows();
     if (Platform.isMacOS) return await _macos();
