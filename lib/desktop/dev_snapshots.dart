@@ -13,6 +13,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/providers.dart';
 import 'chat/desk_chat_controller.dart';
+import 'pages/lab/lab_common.dart';
+import 'pages/lab_page.dart';
 import 'shell/desk_nav.dart';
 
 final snapshotBoundaryKey = GlobalKey();
@@ -62,6 +64,45 @@ Future<void> runSnapshots(ProviderContainer container) async {
     container.read(deskPageProvider.notifier).state = page;
     await shot(page.name);
   }
+  container.read(deskPageProvider.notifier).state = DeskPage.lab;
+  for (final tab in LabTab.values) {
+    container.read(labTabProvider.notifier).state = tab;
+    await shot('lab_${tab.name}');
+  }
+  // Optional: press Run on the speed benchmark and the Tamil eval, the way a
+  // person would, and shoot each mid-run. CI uses this to catch crashes in
+  // what the Lab draws while a run is going.
+  if (Platform.environment['THINAI_SNAPSHOT_LAB_RUN'] != null) {
+    final models = await container.read(modelListProvider.future);
+    if (models.isNotEmpty) {
+      await container.read(activeModelIdProvider.notifier).set(models.first);
+      container.read(labTabProvider.notifier).state = LabTab.speed;
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      container.read(labRunRequestProvider.notifier).state = LabJob.speed;
+      await _waitFor(() => container.read(labBusyProvider) != null, 10);
+      await shot('lab_speed_running');
+      await _waitFor(() => container.read(labBusyProvider) == null, 180);
+      await shot('lab_speed_done');
+
+      container.read(labTabProvider.notifier).state = LabTab.tamil;
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      container.read(labRunRequestProvider.notifier).state = LabJob.tamil;
+      await _waitFor(() => container.read(labBusyProvider) != null, 10);
+      await Future<void>.delayed(const Duration(seconds: 25));
+      await shot('lab_tamil_running');
+
+      container.read(labTabProvider.notifier).state = LabTab.load;
+      await shot('lab_load_running');
+    }
+  }
+
   container.read(deskPageProvider.notifier).state = DeskPage.chat;
   exit(0);
+}
+
+Future<void> _waitFor(bool Function() done, int seconds) async {
+  for (var i = 0; i < seconds * 4; i++) {
+    if (done()) return;
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+  }
 }

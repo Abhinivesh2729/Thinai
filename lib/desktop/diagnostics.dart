@@ -25,8 +25,18 @@ abstract final class Diagnostics {
 
   static String? get logPath => _path;
 
+  /// True when the previous run died in native code (see crash.txt).
+  static bool previousCrash = false;
+
+  static Future<void>? _initialized;
+
+  /// Completes once [init] has opened the log and read any crash report.
+  static Future<void> get initialized => _initialized ?? Future.value();
+
   /// Opens the log file. Lines logged before this are kept and flushed.
-  static Future<void> init() async {
+  static Future<void> init() => _initialized ??= _init();
+
+  static Future<void> _init() async {
     try {
       final dir = await getApplicationSupportDirectory();
       final logs = Directory('${dir.path}${Platform.pathSeparator}logs');
@@ -64,6 +74,7 @@ abstract final class Diagnostics {
     final crash = File('$dir${sep}crash.txt');
     if (!await crash.exists()) return;
     final report = (await crash.readAsString()).trim();
+    previousCrash = true;
     log('PREVIOUS RUN CRASHED (native):\n$report');
     final native = File('$dir${sep}native.prev.log');
     if (await native.exists()) {

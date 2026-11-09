@@ -243,28 +243,39 @@ class _DeskComposerState extends ConsumerState<DeskComposer> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                _WebToggle(
-                  on: web,
-                  label: s.webSearch,
-                  onTap: () async {
-                    final next = !web;
-                    await ref.read(webSearchEnabledProvider.notifier).set(next);
-                    showDeskToast(next ? s.webOn : s.webOff);
+                _WebModeChip(
+                  web: web,
+                  always: ref.watch(deskWebAlwaysProvider),
+                  onPick: (mode) async {
+                    await ref
+                        .read(webSearchEnabledProvider.notifier)
+                        .set(mode != _WebMode.off);
+                    await ref
+                        .read(deskWebAlwaysProvider.notifier)
+                        .set(mode == _WebMode.always);
+                    showDeskToast(switch (mode) {
+                      _WebMode.off => s.webOff,
+                      _WebMode.auto => s.webOn,
+                      _WebMode.always => s.webAlwaysOn,
+                    });
                   },
                 ),
-                const Spacer(),
-                Flexible(
-                  flex: 3,
-                  child: AnimatedOpacity(
-                    duration: DeskMotion.fast,
-                    opacity: _focused && _text.text.isNotEmpty ? 1 : 0,
-                    child: Text(
-                      s.shortcutsHint,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: palette.textFaint,
+                // One expanding slot between the left controls and the send
+                // button, so the button always sits at the right edge.
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: AnimatedOpacity(
+                      duration: DeskMotion.fast,
+                      opacity: _focused && _text.text.isNotEmpty ? 1 : 0,
+                      child: Text(
+                        s.shortcutsHint,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: palette.textFaint,
+                        ),
                       ),
                     ),
                   ),
@@ -285,57 +296,119 @@ class _DeskComposerState extends ConsumerState<DeskComposer> {
   }
 }
 
-class _WebToggle extends StatelessWidget {
-  const _WebToggle({
-    required this.on,
-    required this.label,
-    required this.onTap,
+enum _WebMode { off, auto, always }
+
+/// Web search mode: Off, Auto (searches when the question needs fresh
+/// facts) or Always (every message). A menu, so the choice is explicit.
+class _WebModeChip extends StatelessWidget {
+  const _WebModeChip({
+    required this.web,
+    required this.always,
+    required this.onPick,
   });
-  final bool on;
-  final String label;
-  final VoidCallback onTap;
+
+  final bool web;
+  final bool always;
+  final ValueChanged<_WebMode> onPick;
 
   @override
   Widget build(BuildContext context) {
+    final s = ShellStrings.of(context);
     final palette = DeskPalette.of(context);
-    return Hoverable(
-      cursor: SystemMouseCursors.click,
-      builder: (context, hovered) => GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: DeskMotion.fast,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: on
-                ? DeskColors.green.withValues(alpha: 0.13)
-                : hovered
-                ? palette.panel
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: on
-                  ? DeskColors.green.withValues(alpha: 0.4)
-                  : palette.hairline,
+    final mode = !web
+        ? _WebMode.off
+        : (always ? _WebMode.always : _WebMode.auto);
+    final on = mode != _WebMode.off;
+    final label = switch (mode) {
+      _WebMode.off => s.webModeOff,
+      _WebMode.auto => s.webModeAuto,
+      _WebMode.always => s.webModeAlways,
+    };
+    Widget item(_WebMode m, String title, String detail) => MenuItemButton(
+      onPressed: () => onPick(m),
+      leadingIcon: Icon(
+        m == mode
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_off_rounded,
+        size: 18,
+        color: m == mode ? DeskColors.green : palette.textFaint,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title),
+            Text(
+              detail,
+              style: TextStyle(fontSize: 11.5, color: palette.textMuted),
             ),
+          ],
+        ),
+      ),
+    );
+    return MenuAnchor(
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(palette.panelRaised),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DeskSize.radiusM),
+            side: BorderSide(color: palette.hairline),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.public_rounded,
-                size: 15,
-                color: on ? DeskColors.green : palette.textMuted,
+        ),
+      ),
+      menuChildren: [
+        item(_WebMode.auto, s.webModeAuto, s.webModeAutoDetail),
+        item(_WebMode.always, s.webModeAlways, s.webModeAlwaysDetail),
+        item(_WebMode.off, s.webModeOff, s.webModeOffDetail),
+      ],
+      builder: (context, controller, _) => Hoverable(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: () =>
+              controller.isOpen ? controller.close() : controller.open(),
+          child: AnimatedContainer(
+            duration: DeskMotion.fast,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: on
+                  ? DeskColors.green.withValues(alpha: 0.13)
+                  : hovered
+                  ? palette.panel
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: on
+                    ? DeskColors.green.withValues(alpha: 0.4)
+                    : palette.hairline,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  on ? Icons.public_rounded : Icons.public_off_rounded,
+                  size: 15,
                   color: on ? DeskColors.green : palette.textMuted,
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: on ? DeskColors.green : palette.textMuted,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.expand_more_rounded,
+                  size: 15,
+                  color: on ? DeskColors.green : palette.textMuted,
+                ),
+              ],
+            ),
           ),
         ),
       ),

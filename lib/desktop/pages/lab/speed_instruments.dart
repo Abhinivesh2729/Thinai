@@ -18,17 +18,33 @@ import 'lab_common.dart';
 /// Both the reading and the scale ease to each new value, so a noisy
 /// per-token rate reads as a needle settling rather than a number flickering,
 /// and the scale growing mid-run does not make the arc jump backwards.
-class SpeedGauge extends StatelessWidget {
-  const SpeedGauge({
+/// The Lab's one meter. Speed and Tamil score both read on it, so every
+/// measurement in the app looks and moves the same way.
+class LabGauge extends StatelessWidget {
+  const LabGauge({
     super.key,
-    required this.tokensPerSecond,
-    required this.peak,
+    required this.value,
+    required this.unit,
     required this.running,
+    this.peak = 0,
+    this.fixedMax,
+    this.decimals = 1,
+    this.status,
   });
 
-  final double tokensPerSecond;
-  final double peak;
+  final double value;
+  final String unit;
   final bool running;
+
+  /// Amber marker for the best reading so far; 0 hides it.
+  final double peak;
+
+  /// A fixed scale (e.g. 100 for a score). Null scales to [peak].
+  final double? fixedMax;
+  final int decimals;
+
+  /// Replaces the Ready/Measuring pill (e.g. a verdict).
+  final Widget? status;
 
   /// A round number above the peak, so ticks land on readable values.
   static double scaleFor(double peak) {
@@ -43,16 +59,16 @@ class SpeedGauge extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return RepaintBoundary(
       child: TweenAnimationBuilder<double>(
-        tween: Tween(end: scaleFor(peak)),
+        tween: Tween(end: fixedMax ?? scaleFor(peak)),
         duration: DeskMotion.slow,
         curve: DeskMotion.ease,
         builder: (context, scaleMax, _) => TweenAnimationBuilder<double>(
-          tween: Tween(end: tokensPerSecond),
+          tween: Tween(end: value),
           duration: DeskMotion.slow,
           curve: DeskMotion.ease,
-          builder: (context, value, _) => CustomPaint(
+          builder: (context, shown, _) => CustomPaint(
             painter: _GaugePainter(
-              value: value,
+              value: shown,
               peak: peak,
               scaleMax: scaleMax,
               track: palette.hairline,
@@ -65,7 +81,7 @@ class SpeedGauge extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    value.toStringAsFixed(1),
+                    shown.toStringAsFixed(decimals),
                     style: TextStyle(
                       fontSize: 60,
                       fontWeight: FontWeight.w800,
@@ -77,7 +93,7 @@ class SpeedGauge extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    context.l10n.benchmarkTokensPerSecond,
+                    unit,
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
@@ -85,7 +101,7 @@ class SpeedGauge extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _StatusPill(running: running),
+                  status ?? _StatusPill(running: running),
                 ],
               ),
             ),
@@ -94,6 +110,28 @@ class SpeedGauge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Tokens per second on the [LabGauge].
+class SpeedGauge extends StatelessWidget {
+  const SpeedGauge({
+    super.key,
+    required this.tokensPerSecond,
+    required this.peak,
+    required this.running,
+  });
+
+  final double tokensPerSecond;
+  final double peak;
+  final bool running;
+
+  @override
+  Widget build(BuildContext context) => LabGauge(
+    value: tokensPerSecond,
+    unit: context.l10n.benchmarkTokensPerSecond,
+    running: running,
+    peak: peak,
+  );
 }
 
 class _GaugePainter extends CustomPainter {
@@ -112,6 +150,30 @@ class _GaugePainter extends CustomPainter {
   final Color track;
   final Color tickColor;
   final double glow;
+
+  // Tick labels are laid out once and kept. Building and disposing them
+  // inside paint() every frame both wasted time and freed paragraphs the
+  // frame being recorded could still reference.
+  static final _labels = <String, TextPainter>{};
+
+  TextPainter _label(String text) {
+    final key = '$text|${tickColor.toARGB32()}';
+    return _labels.putIfAbsent(key, () {
+      if (_labels.length > 200) _labels.clear();
+      return TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+            fontSize: 10,
+            color: tickColor,
+            fontWeight: FontWeight.w600,
+            fontFeatures: tabularFigures,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+    });
+  }
 
   // 240 degrees with the gap at the bottom: wide enough to read as a dial,
   // open enough to leave room for the status pill under the number.
@@ -189,21 +251,9 @@ class _GaugePainter extends CustomPainter {
       final dir = Offset(math.cos(angle), math.sin(angle));
       canvas.drawLine(center + dir * inner, center + dir * outer, tick);
       if (major) {
-        final label = TextPainter(
-          text: TextSpan(
-            text: (scaleMax * i / minor).round().toString(),
-            style: TextStyle(
-              fontSize: 10,
-              color: tickColor,
-              fontWeight: FontWeight.w600,
-              fontFeatures: tabularFigures,
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        )..layout();
+        final label = _label((scaleMax * i / minor).round().toString());
         final at = center + dir * (outer + 12);
         label.paint(canvas, at - Offset(label.width / 2, label.height / 2));
-        label.dispose();
       }
     }
 

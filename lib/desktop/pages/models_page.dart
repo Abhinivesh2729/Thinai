@@ -410,6 +410,7 @@ class _ModelsHomeState extends ConsumerState<_ModelsHome> {
         _query = '';
         _search.clear();
       }),
+      onHuggingFace: () => _openHub(_search.text.trim()),
     );
     final filters = [
       SegmentedTabs<ModelFilter>(

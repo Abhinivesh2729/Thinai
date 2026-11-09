@@ -27,6 +27,7 @@ class ModelsStrings {
     required this.searchHubFor,
     required this.searchHubBody,
     required this.findMoreHub,
+    required this.searchHubTooltip,
     required this.findMoreHubBody,
     required this.offlineFooter,
     required this.fitTooLarge,
@@ -63,6 +64,9 @@ class ModelsStrings {
   final String dropTitle, dropBody;
   final String Function(String query) searchHubFor;
   final String searchHubBody, findMoreHub, findMoreHubBody;
+
+  /// Tooltip on the Hugging Face button in the search box.
+  final String searchHubTooltip;
   final String offlineFooter;
   final String fitTooLarge;
   final String Function(String needs, String available) fitNeeds;
@@ -96,6 +100,7 @@ class ModelsStrings {
     searchHubFor: (query) => 'Search Hugging Face for "$query"',
     searchHubBody: 'Browse public GGUF models beyond the catalog.',
     findMoreHub: 'Find more on Hugging Face',
+    searchHubTooltip: 'Search all of Hugging Face for GGUF models',
     findMoreHubBody: 'Thousands of public GGUF models, one search away.',
     offlineFooter: 'Models run fully offline on this PC.',
     fitTooLarge: 'Too large for this PC.',
@@ -141,6 +146,7 @@ class ModelsStrings {
     searchHubBody:
         'பட்டியலுக்கு அப்பால் உள்ள பொது GGUF அறிவுருக்களைப் பாருங்கள்.',
     findMoreHub: 'Hugging Face இல் மேலும் தேடு',
+    searchHubTooltip: 'Hugging Face முழுவதும் GGUF அறிவுருக்களைத் தேடு',
     findMoreHubBody: 'ஆயிரக்கணக்கான பொது GGUF அறிவுருக்கள், ஒரே தேடலில்.',
     offlineFooter:
         'அறிவுருக்கள் இந்தக் கணினியில் முழுமையாக ஆஃப்லைனில் இயங்கும்.',

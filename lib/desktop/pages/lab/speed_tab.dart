@@ -213,6 +213,19 @@ class _LabSpeedTabState extends ConsumerState<LabSpeedTab> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<LabJob?>(labRunRequestProvider, (_, next) {
+      if (next != LabJob.speed) return;
+      ref.read(labRunRequestProvider.notifier).state = null;
+      final models = chatModelsOf(
+        ref.read(modelListProvider).valueOrNull ?? const [],
+      );
+      final model = resolveLabModel(
+        models,
+        ref.read(labModelIdProvider),
+        ref.read(activeModelIdProvider),
+      );
+      if (model != null) _run(model);
+    });
     final installed = ref.watch(modelListProvider);
     return installed.when(
       loading: () => const Center(child: CircularProgressIndicator()),

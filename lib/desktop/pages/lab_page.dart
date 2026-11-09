@@ -19,8 +19,15 @@ import 'lab/gpu_tab.dart';
 import 'lab/lab_common.dart';
 import 'lab/speed_tab.dart';
 import 'lab/tamil_tab.dart';
+import '../l10n/load_strings.dart';
+import '../monitor/load_strip.dart';
+import 'lab/load_tab.dart';
 
-enum _LabTab { speed, tamil, gpu }
+enum LabTab { speed, tamil, load, gpu }
+
+/// The open Lab tab. Shared so other pages (and dev snapshots) can open a
+/// specific one.
+final labTabProvider = StateProvider<LabTab>((ref) => LabTab.speed);
 
 class DeskLabPage extends ConsumerStatefulWidget {
   const DeskLabPage({super.key});
@@ -30,24 +37,23 @@ class DeskLabPage extends ConsumerStatefulWidget {
 }
 
 class _DeskLabPageState extends ConsumerState<DeskLabPage> {
-  _LabTab _tab = _LabTab.speed;
-  final _visited = <_LabTab>{_LabTab.speed};
+  final _visited = <LabTab>{LabTab.speed};
 
-  Widget _build(_LabTab tab) => switch (tab) {
-    _LabTab.speed => const LabSpeedTab(),
-    _LabTab.tamil => const LabTamilTab(),
-    _LabTab.gpu => const LabGpuTab(),
+  Widget _build(LabTab tab) => switch (tab) {
+    LabTab.speed => const LabSpeedTab(),
+    LabTab.tamil => const LabTamilTab(),
+    LabTab.load => const LabLoadTab(),
+    LabTab.gpu => const LabGpuTab(),
   };
 
-  void _select(_LabTab tab) => setState(() {
-    _tab = tab;
-    _visited.add(tab);
-  });
+  void _select(LabTab tab) => ref.read(labTabProvider.notifier).state = tab;
 
   @override
   Widget build(BuildContext context) {
     final strings = LabStrings.of(context);
     final busy = ref.watch(labBusyProvider);
+    final tab = ref.watch(labTabProvider);
+    _visited.add(tab);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -61,15 +67,17 @@ class _DeskLabPageState extends ConsumerState<DeskLabPage> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: _TabBar(
-              current: _tab,
+              current: tab,
               labels: {
-                _LabTab.speed: strings.tabSpeed,
-                _LabTab.tamil: strings.tabTamil,
-                _LabTab.gpu: strings.tabGpu,
+                LabTab.speed: strings.tabSpeed,
+                LabTab.tamil: strings.tabTamil,
+                LabTab.load: LoadStrings.of(context).tab,
+                LabTab.gpu: strings.tabGpu,
               },
               running: {
-                if (busy == LabJob.speed) _LabTab.speed,
-                if (busy == LabJob.gpu) _LabTab.gpu,
+                if (busy == LabJob.speed) LabTab.speed,
+                if (busy == LabJob.tamil) LabTab.tamil,
+                if (busy == LabJob.gpu) LabTab.gpu,
               },
               onSelect: _select,
             ),
@@ -79,12 +87,12 @@ class _DeskLabPageState extends ConsumerState<DeskLabPage> {
         Expanded(
           child: Stack(
             children: [
-              for (final tab in _LabTab.values)
-                if (_visited.contains(tab))
+              for (final t in LabTab.values)
+                if (_visited.contains(t))
                   _TabLayer(
-                    key: ValueKey(tab),
-                    active: tab == _tab,
-                    child: _build(tab),
+                    key: ValueKey(t),
+                    active: t == tab,
+                    child: _build(t),
                   ),
             ],
           ),
@@ -133,6 +141,10 @@ class _Header extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 16),
+        const Padding(
+          padding: EdgeInsets.only(top: 4, right: 10),
+          child: LoadStrip(),
+        ),
         AnimatedSwitcher(
           duration: DeskMotion.medium,
           child: profile == null
@@ -185,27 +197,28 @@ class _TabBar extends StatelessWidget {
     required this.onSelect,
   });
 
-  final _LabTab current;
-  final Map<_LabTab, String> labels;
+  final LabTab current;
+  final Map<LabTab, String> labels;
 
   /// Tabs with a measurement in flight, marked with a live dot.
-  final Set<_LabTab> running;
-  final ValueChanged<_LabTab> onSelect;
+  final Set<LabTab> running;
+  final ValueChanged<LabTab> onSelect;
 
   static const _segment = 168.0;
   static const _height = 40.0;
 
-  static IconData _icon(_LabTab tab) => switch (tab) {
-    _LabTab.speed => Icons.speed_rounded,
-    _LabTab.tamil => Icons.translate_rounded,
-    _LabTab.gpu => Icons.memory_rounded,
+  static IconData _icon(LabTab tab) => switch (tab) {
+    LabTab.speed => Icons.speed_rounded,
+    LabTab.tamil => Icons.translate_rounded,
+    LabTab.load => Icons.monitor_heart_outlined,
+    LabTab.gpu => Icons.memory_rounded,
   };
 
   @override
   Widget build(BuildContext context) {
     final palette = DeskPalette.of(context);
     final scheme = Theme.of(context).colorScheme;
-    const tabs = _LabTab.values;
+    const tabs = LabTab.values;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -345,16 +358,19 @@ class _TabLayer extends StatelessWidget {
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !active,
-        child: TickerMode(
-          enabled: active,
-          child: AnimatedOpacity(
+        // The fade must keep ticking while a tab leaves; only the tab's own
+        // content is put to sleep. With TickerMode outside the fade, the
+        // leaving tab froze half-visible over the new one.
+        child: AnimatedOpacity(
+          duration: DeskMotion.medium,
+          curve: DeskMotion.ease,
+          opacity: active ? 1 : 0,
+          child: AnimatedSlide(
             duration: DeskMotion.medium,
             curve: DeskMotion.ease,
-            opacity: active ? 1 : 0,
-            child: AnimatedSlide(
-              duration: DeskMotion.medium,
-              curve: DeskMotion.ease,
-              offset: active ? Offset.zero : const Offset(0, 0.01),
+            offset: active ? Offset.zero : const Offset(0, 0.01),
+            child: TickerMode(
+              enabled: active,
               child: ExcludeFocus(excluding: !active, child: child),
             ),
           ),

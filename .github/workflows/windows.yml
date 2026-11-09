@@ -143,6 +143,30 @@ jobs:
           if (Test-Path $out) { Get-Content $out } else { Write-Output "no report written" }
           if ($p.ExitCode -ne 0) { throw "smoke test failed with exit code $($p.ExitCode)" }
 
+      - name: Drive the UI (pages, Lab runs) and capture screenshots
+        shell: pwsh
+        run: |
+          $data = "$env:APPDATA\ATmega Software Technologies\Thinai"
+          New-Item -ItemType Directory -Force "$data\models" | Out-Null
+          Copy-Item "smoke-model\$env:SMOKE_MODEL_FILE" "$data\models\" -Force
+          $shots = "$env:RUNNER_TEMP\shots"
+          $env:THINAI_SNAPSHOT_DIR = $shots
+          $env:THINAI_SNAPSHOT_LAB_RUN = "1"
+          $exe = Resolve-Path "build\windows\x64\runner\Release\thinai.exe"
+          $p = Start-Process -FilePath $exe -PassThru
+          if (-not $p.WaitForExit(600000)) { $p.Kill(); throw "UI run timed out" }
+          Get-ChildItem $shots -ErrorAction SilentlyContinue | Format-Table Name, Length
+          if ($p.ExitCode -ne 0) { throw "UI run crashed with exit code $($p.ExitCode)" }
+
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots-${{ github.run_number }}
+          path: ${{ runner.temp }}/shots/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Show native crash logs
         if: failure()
         shell: pwsh

@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../chat/document_attachment.dart';
 import '../../chat/image_attachment.dart';
@@ -83,6 +84,28 @@ class DeskChatState {
     lastStats: lastStats ?? this.lastStats,
   );
 }
+
+/// Desktop web search mode on top of the shared on/off switch: when on,
+/// search either when the question looks like it needs fresh facts (auto,
+/// the phone's behaviour) or for every message (always).
+class WebAlwaysController extends StateNotifier<bool> {
+  WebAlwaysController() : super(false) {
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) state = p.getBool(key) ?? false;
+    });
+  }
+
+  static const key = 'desk_web_always';
+
+  Future<void> set(bool value) async {
+    state = value;
+    await (await SharedPreferences.getInstance()).setBool(key, value);
+  }
+}
+
+final deskWebAlwaysProvider = StateNotifierProvider<WebAlwaysController, bool>(
+  (ref) => WebAlwaysController(),
+);
 
 /// Shared orb, so the chat, the rail and the title bar all show one mood.
 final deskOrbProvider = Provider<OrbController>((ref) {
@@ -194,7 +217,7 @@ class DeskChatController extends StateNotifier<DeskChatState> {
         _ref.read(webSearchEnabledProvider) &&
         document == null &&
         image == null &&
-        needsWebSearch(text);
+        (_ref.read(deskWebAlwaysProvider) || needsWebSearch(text));
     final priorTurns = _ref.read(chatSessionsProvider).activeTurns;
 
     history.startExchange(text);

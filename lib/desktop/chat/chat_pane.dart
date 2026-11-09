@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../l10n/desk_l10n.dart';
+import '../monitor/load_strip.dart';
 import '../shell/desk_nav.dart';
 import '../theme/desk_theme.dart';
 import '../widgets/hover.dart';
@@ -181,6 +182,29 @@ class _ChatPaneState extends ConsumerState<ChatPane> {
                             ),
                           ),
                         ),
+                      ),
+                      // Live load while a reply streams; out of the way
+                      // otherwise.
+                      AnimatedSwitcher(
+                        duration: DeskMotion.medium,
+                        transitionBuilder: (child, a) => FadeTransition(
+                          opacity: a,
+                          child: SizeTransition(
+                            sizeFactor: a,
+                            axis: Axis.horizontal,
+                            child: child,
+                          ),
+                        ),
+                        child:
+                            ref.watch(
+                              deskChatProvider.select((c) => c.generating),
+                            )
+                            ? const Padding(
+                                key: ValueKey('load'),
+                                padding: EdgeInsets.only(right: 10),
+                                child: LoadStrip(),
+                              )
+                            : const SizedBox.shrink(key: ValueKey('none')),
                       ),
                       const ModelPicker(),
                     ],

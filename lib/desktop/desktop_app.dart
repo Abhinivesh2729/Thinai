@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../state/providers.dart';
 import 'dev_snapshots.dart';
 import 'diagnostics.dart';
+import 'monitor/load_monitor.dart';
 import 'shell/desk_nav.dart';
 import 'shell/desk_shell.dart';
 import 'theme/desk_theme.dart';
@@ -28,10 +29,23 @@ class _DesktopAppState extends ConsumerState<DesktopApp> {
   @override
   void initState() {
     super.initState();
+    // Started now so chats are counted in Lab > Load even before it opens.
+    ref.read(loadMonitorProvider);
     SchedulerBinding.instance.addPostFrameCallback((_) {
       Diagnostics.log(
         'startup: first frame at ${widget.launched.elapsedMilliseconds} ms',
       );
+      Diagnostics.initialized.then((_) {
+        if (!Diagnostics.previousCrash || !mounted) return;
+        final ta = ref.read(isTamilUiProvider);
+        showDeskToast(
+          ta
+              ? 'கடந்த முறை Thinai எதிர்பாராமல் மூடியது. அமைப்புகள் > உதவி > Copy diagnostics ஐ அனுப்புங்கள்.'
+              : 'Thinai closed unexpectedly last time. Send Settings > About & help > Copy diagnostics so it can be fixed.',
+          tone: DeskTone.warning,
+          lasting: const Duration(seconds: 12),
+        );
+      });
     });
     // Restore the last model and resume the server after the first frame, so
     // the window is on screen before any disk or socket work.

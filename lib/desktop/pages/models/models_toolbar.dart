@@ -18,12 +18,16 @@ class ModelSearchField extends StatelessWidget {
     required this.focusNode,
     required this.onChanged,
     required this.onClear,
+    required this.onHuggingFace,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
+
+  /// Opens Hugging Face search with the current text.
+  final VoidCallback onHuggingFace;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +44,21 @@ class ModelSearchField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: l.modelsSearchHint,
           hintStyle: TextStyle(color: palette.textFaint, fontSize: 13.5),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            size: 18,
-            color: palette.textMuted,
+          // The Hugging Face mark sits right beside the search icon: the
+          // catalog is the start, the whole Hub is one click away.
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 12, right: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search_rounded, size: 18, color: palette.textMuted),
+                const SizedBox(width: 6),
+                _HuggingFaceButton(
+                  tooltip: ModelsStrings.of(context).searchHubTooltip,
+                  onTap: onHuggingFace,
+                ),
+              ],
+            ),
           ),
           prefixIconConstraints: const BoxConstraints(minWidth: 40),
           suffixIcon: ValueListenableBuilder<TextEditingValue>(
@@ -65,6 +80,63 @@ class ModelSearchField extends StatelessWidget {
           ),
           suffixIconConstraints: const BoxConstraints(minWidth: 40),
           contentPadding: EdgeInsets.zero,
+        ),
+      ),
+    );
+  }
+}
+
+class _HuggingFaceButton extends StatelessWidget {
+  const _HuggingFaceButton({required this.tooltip, required this.onTap});
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = DeskPalette.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: Hoverable(
+        cursor: SystemMouseCursors.click,
+        builder: (context, hovered) => GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: DeskMotion.fast,
+            padding: const EdgeInsets.fromLTRB(5, 3, 8, 3),
+            decoration: BoxDecoration(
+              color: hovered
+                  ? const Color(0xFFFFD21E).withValues(alpha: 0.16)
+                  : palette.panelRaised,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hovered
+                    ? const Color(0xFFFFD21E).withValues(alpha: 0.6)
+                    : palette.hairline,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/logos/huggingface.png',
+                  width: 16,
+                  height: 16,
+                  filterQuality: FilterQuality.medium,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  'Hugging Face',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: hovered
+                        ? Theme.of(context).colorScheme.onSurface
+                        : palette.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

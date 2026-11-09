@@ -15,7 +15,7 @@ import '../../theme/desk_theme.dart';
 import '../../widgets/hover.dart';
 
 /// A measurement that owns the engine.
-enum LabJob { speed, gpu }
+enum LabJob { speed, tamil, gpu }
 
 /// Which Lab measurement is running, if any.
 ///
@@ -23,6 +23,10 @@ enum LabJob { speed, gpu }
 /// test could be queued on the one engine together and each would measure
 /// the other's load.
 final labBusyProvider = StateProvider<LabJob?>((ref) => null);
+
+/// Asks a Lab tab to start its run (dev snapshots drive the Lab with it).
+/// The tab resets it to null once it has started.
+final labRunRequestProvider = StateProvider<LabJob?>((ref) => null);
 
 /// The model the Speed and GPU tabs measure. Shared so picking a model once
 /// carries over between them.

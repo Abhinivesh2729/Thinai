@@ -53,6 +53,13 @@ class ShellStrings {
     required this.webSearch,
     required this.webOn,
     required this.webOff,
+    required this.webAlwaysOn,
+    required this.webModeAuto,
+    required this.webModeAutoDetail,
+    required this.webModeAlways,
+    required this.webModeAlwaysDetail,
+    required this.webModeOff,
+    required this.webModeOffDetail,
     required this.dropToAttach,
     required this.copy,
     required this.copied,
@@ -84,6 +91,9 @@ class ShellStrings {
   final String composerHint, composerHintNoModel;
   final String attach, attachDocument, attachImage;
   final String webSearch, webOn, webOff, dropToAttach;
+  final String webAlwaysOn, webModeAuto, webModeAutoDetail;
+  final String webModeAlways, webModeAlwaysDetail;
+  final String webModeOff, webModeOffDetail;
   final String copy, copied, thinking, searching, stopped;
   final String tokPerSec, firstToken;
   final String switchModel, modelSettings, manageModels, noModelsInstalled;
@@ -126,6 +136,13 @@ class ShellStrings {
     webSearch: 'Web search',
     webOn: 'Web search on',
     webOff: 'Web search off',
+    webAlwaysOn: 'Every message will search the web',
+    webModeAuto: 'Web: Auto',
+    webModeAutoDetail: 'Searches when a question needs fresh facts',
+    webModeAlways: 'Web: Always',
+    webModeAlwaysDetail: 'Searches for every message',
+    webModeOff: 'Web: Off',
+    webModeOffDetail: 'Fully offline',
     dropToAttach: 'Drop to attach',
     copy: 'Copy',
     copied: 'Copied',
@@ -183,6 +200,13 @@ class ShellStrings {
     webSearch: 'இணையத் தேடல்',
     webOn: 'இணையத் தேடல் இயக்கத்தில்',
     webOff: 'இணையத் தேடல் நிறுத்தத்தில்',
+    webAlwaysOn: 'ஒவ்வொரு உரையும் இணையத்தில் தேடும்',
+    webModeAuto: 'இணையம்: தானாக',
+    webModeAutoDetail: 'புதிய தகவல் தேவைப்படும்போது தேடும்',
+    webModeAlways: 'இணையம்: எப்போதும்',
+    webModeAlwaysDetail: 'ஒவ்வொரு உரைக்கும் தேடும்',
+    webModeOff: 'இணையம்: நிறுத்து',
+    webModeOffDetail: 'முழுமையாக இணையமின்றி',
     dropToAttach: 'இணைக்க இங்கே விடுங்கள்',
     copy: 'நகலெடு',
     copied: 'நகலெடுக்கப்பட்டது',

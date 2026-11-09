@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:fllama/fllama.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show ValueNotifier, visibleForTesting;
 
 import '../platform/platform_info.dart';
 import 'gpu_support.dart';
@@ -285,6 +285,17 @@ class EmbeddingException implements Exception {
   String toString() => message;
 }
 
+/// One engine request in flight; see [LlmEngine.activity].
+class EngineActivity {
+  EngineActivity(this.modelPath);
+
+  final String modelPath;
+  final DateTime startedAt = DateTime.now();
+
+  /// Tokens generated so far.
+  int tokens = 0;
+}
+
 class LlmEngine {
   LlmEngine._();
   static final LlmEngine instance = LlmEngine._();
@@ -316,6 +327,11 @@ class LlmEngine {
   /// Receives one line per request (model, window, GPU, outcome). The
   /// desktop build points it at its log file; null on the phone.
   static void Function(String line)? trace;
+
+  /// The request running now (null when idle), for the desktop load monitor
+  /// to attribute CPU, memory and energy to a model. Its token count is
+  /// updated in place as tokens arrive; listeners fire only on start and end.
+  static final activity = ValueNotifier<EngineActivity?>(null);
 
   /// How long a model counts as still loaded after its last request. fllama
   /// unloads an idle model after 120 s, checked every 30 s; a little under
@@ -513,6 +529,8 @@ class LlmEngine {
       onGpu = false;
     }
     final traceStart = DateTime.now();
+    final current = EngineActivity(job.modelPath);
+    activity.value = current;
     trace?.call(
       'engine: start ${job.modelPath.split(RegExp(r'[\\/]')).last} '
       'ctx=${job.options.contextSize} max=${job.options.maxTokens} '
@@ -647,6 +665,7 @@ class LlmEngine {
       final first = firstTokenAt;
       final last = lastTokenAt;
       final isFinal = done || hitStop;
+      current.tokens = tokens;
       final stats = LlmStats(
         tokens: tokens,
         elapsed: now.difference(startedAt),
@@ -691,6 +710,7 @@ class LlmEngine {
     }
 
     await completer.future;
+    if (identical(activity.value, current)) activity.value = null;
     trace?.call(
       'engine: end after ${DateTime.now().difference(traceStart).inMilliseconds} ms'
       '${loadFailed ? ' (load failed)' : ''}',
