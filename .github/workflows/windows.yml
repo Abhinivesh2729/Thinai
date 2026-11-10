@@ -5,6 +5,8 @@ name: Windows desktop
 on:
   push:
     branches: [windows]
+    # A desktop-vX.Y.Z tag also publishes a GitHub release with the installer.
+    tags: ['desktop-v*']
   pull_request:
     branches: [main, windows]
   workflow_dispatch:
@@ -29,6 +31,9 @@ jobs:
     name: Build, self-test, package
     runs-on: windows-2022
     timeout-minutes: 75
+    outputs:
+      app: ${{ steps.version.outputs.app }}
+      build: ${{ steps.version.outputs.build }}
 
     steps:
       - name: Checkout repository
@@ -228,3 +233,38 @@ jobs:
           path: build/installer/*.exe
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    name: Publish GitHub release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check the tag matches pubspec
+        run: |
+          tag="${GITHUB_REF_NAME#desktop-v}"
+          if [ "$tag" != "${{ needs.build.outputs.app }}" ]; then
+            echo "tag $GITHUB_REF_NAME does not match pubspec ${{ needs.build.outputs.app }}"; exit 1
+          fi
+
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: ThinaiSetup-${{ needs.build.outputs.build }}
+          path: dist
+
+      # Two copies: a versioned file, and a stable ThinaiSetup.exe so
+      # releases/latest/download/ThinaiSetup.exe always resolves.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ needs.build.outputs.app }}"
+          cp "dist/ThinaiSetup-$v.exe" dist/ThinaiSetup.exe
+          gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" \
+            --title "Thinai for Windows $v" \
+            --notes "Thinai desktop for Windows x64. Download **ThinaiSetup.exe** and run it. The installer is not code-signed yet, so Windows SmartScreen may warn: choose *More info → Run anyway*." \
+            --latest \
+            "dist/ThinaiSetup-$v.exe" dist/ThinaiSetup.exe
