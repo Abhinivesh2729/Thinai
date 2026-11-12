@@ -14,6 +14,7 @@ import '../widgets/made_in_erode.dart';
 import '../widgets/model_settings_sheet.dart';
 import '../widgets/tamil_glossary_dialog.dart';
 import 'about_page.dart';
+import 'agent_skills/agent_skills_page.dart';
 import 'benchmark_page.dart';
 import 'contact_support_page.dart';
 import 'system_prompt_page.dart';
@@ -66,6 +67,18 @@ class SettingsPage extends ConsumerWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const SystemPromptPage(),
+                      ),
+                    );
+                  },
+                ),
+                const _TileDivider(),
+                _SectionNavTile(
+                  icon: Icons.bot_rounded,
+                  title: context.l10n.agentSkillsTitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AgentSkillsPage(),
                       ),
                     );
                   },
