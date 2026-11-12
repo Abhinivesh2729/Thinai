@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 import 'package:uuid/uuid.dart';
 
+import '../agent_skills/skill_manifest.dart';
 import '../agent_skills/skill_store.dart';
 import '../l10n/l10n.dart';
 import '../llm/generation_settings.dart';
@@ -47,7 +48,7 @@ final modelDownloaderProvider = Provider<ModelDownloader>(
 final skillStoreProvider = Provider<SkillStore>((ref) => SkillStore.instance);
 final enabledSkillsProvider = Provider<List<LoadedSkill>>((ref) {
   final store = ref.watch(skillStoreProvider);
-  return store.getEnabledManifests();
+  return store.getSkills().where((s) => store.isSkillEnabled(s.manifest.name)).toList();
 });
 
 /// Hugging Face search. Used only from the Hub search pages, on demand.

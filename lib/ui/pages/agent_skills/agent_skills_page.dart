@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../agent_skills/skill_manifest.dart';
-import '../../../agent_skills/skill_store.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/providers.dart';
 
@@ -82,8 +81,9 @@ class _AgentSkillsPageState extends ConsumerState<AgentSkillsPage> {
                   const SizedBox(height: 16),
                   Text(
                     l10n.agentSkillsLoading,
-                    style: theme.textTheme.bodyMedium,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -106,8 +106,9 @@ class _AgentSkillsPageState extends ConsumerState<AgentSkillsPage> {
                           const SizedBox(height: 8),
                           Text(
                             l10n.agentSkillsEnabledDescription,
-                            style: theme.textTheme.bodySmall,
-                            color: theme.colorScheme.onSurfaceVariant,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -132,8 +133,9 @@ class _AgentSkillsPageState extends ConsumerState<AgentSkillsPage> {
                         const SizedBox(height: 8),
                         Text(
                           l10n.agentSkillsAvailableDescription,
-                          style: theme.textTheme.bodySmall,
-                          color: theme.colorScheme.onSurfaceVariant,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -170,6 +172,7 @@ class _SkillCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l10n = context.l10n;
 
     return Card(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
@@ -190,7 +193,7 @@ class _SkillCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: enabled
                     ? scheme.primaryContainer
-                    : scheme.surfaceVariant,
+                    : scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

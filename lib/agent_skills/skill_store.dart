@@ -7,16 +7,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 import 'skill_manifest.dart';
 
 /// Manages agent skills: loading from disk, tracking enabled state, and
 /// providing skills to the chat engine.
 class SkillStore {
-  const SkillStore._internal();
+  SkillStore._internal();
 
-  static final SkillStore _instance = const SkillStore._internal();
+  static final SkillStore _instance = SkillStore._internal();
 
   static SkillStore get instance => _instance;
 
@@ -165,13 +164,11 @@ class SkillStore {
     final remainingBudget = totalBudget - reservedTokens;
     final enabled = <LoadedSkill>[];
     
-    int currentBudget = 0;
     for (final skill in getSkills()) {
       if (!isSkillEnabled(skill.manifest.name)) continue;
       if (skill.manifest.contextBudget > remainingBudget) continue;
 
       enabled.add(skill);
-      currentBudget += skill.manifest.contextBudget;
     }
 
     return enabled;

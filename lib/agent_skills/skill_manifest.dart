@@ -77,7 +77,7 @@ class SkillManifest {
     title: json['title'] as String,
     description: json['description'] as String,
     documentation: json['documentation'] as String?,
-    tags: (json['tags'] as List?).map((e) => e as String).toList(),
+    tags: (json['tags'] as List?)?.map((e) => e as String).toList() ?? [],
     enabledByDefault: json['enabledByDefault'] as bool? ?? false,
     contextBudget: json['contextBudget'] as int? ?? 2048,
     onDemand: json['onDemand'] as bool? ?? false,

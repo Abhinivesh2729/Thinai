@@ -73,7 +73,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const _TileDivider(),
                 _SectionNavTile(
-                  icon: Icons.bot_rounded,
+                  icon: Icons.extension_rounded,
                   title: context.l10n.agentSkillsTitle,
                   onTap: () {
                     Navigator.of(context).push(

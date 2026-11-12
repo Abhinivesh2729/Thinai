@@ -3,7 +3,9 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-export 'skill_store.dart' show LoadedSkill, SkillStore;
+export 'skill_manifest.dart' show LoadedSkill;
+export 'skill_store.dart' show SkillStore;
+import 'skill_manifest.dart';
 import 'skill_store.dart';
 
 /// Provider for the skill store instance.
