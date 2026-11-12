@@ -139,9 +139,6 @@ flutter:
     - assets/branding/
     - assets/licenses/
     - assets/skills/
-    - assets/skills/*/
-    - assets/skills/*/manifest.json
-    - assets/skills/*/SKILL.md
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
