@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "title": "Web Search",
+  "description": "Guides effective use of web search results for current information",
+  "documentation": "This skill helps the AI effectively utilize web search results. It provides guidelines for when to use search, how to cite sources, and how to synthesize information from multiple sources.",
+  "tags": ["research", "information", "online"],
+  "enabledByDefault": true,
+  "contextBudget": 1024,
+  "onDemand": false
+}

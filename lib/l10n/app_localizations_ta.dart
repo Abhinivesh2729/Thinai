@@ -413,6 +413,27 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsSystemPrompt => 'அமைப்பு செய்தி';
 
   @override
+  String get agentSkillsTitle => 'ஆக்சன் திறன்கள்';
+
+  @override
+  String get agentSkillsLoading => 'திறன்கள் ஏற்றப்படுகின்றன...';
+
+  @override
+  String get agentSkillsEnabled => 'செயலில் உள்ள திறன்கள்';
+
+  @override
+  String get agentSkillsEnabledDescription => 'இந்தத் திறன்கள் உங்கள் உரைகளில் செயலில் உள்ளன';
+
+  @override
+  String get agentSkillsEnabledLabel => 'செயலில்';
+
+  @override
+  String get agentSkillsAvailable => 'கிடைக்கும் திறன்கள்';
+
+  @override
+  String get agentSkillsAvailableDescription => 'உங்கள் உரை அனுபவத்தை மேம்படுத்த திறன்களை நிறுவவும்';
+
+  @override
   String get settingsHardware => 'வன்பொருள்';
 
   @override
