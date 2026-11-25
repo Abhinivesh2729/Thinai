@@ -67,7 +67,7 @@ dependencies:
   # MCP client protocol support (JSON-RPC over Streamable HTTP). Wrapped behind
   # our own types in lib/mcp/; pulls in no new transitive packages, since
   # crypto, http and meta are already pinned in pubspec.lock.
-  mcp_dart: ^2.4.3
+  mcp_dart: ^2.4.4
 
   # @visibleForTesting, so test-only seams are declared rather than implied.
   meta: ^1.16.0
