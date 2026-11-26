@@ -33,8 +33,11 @@ List<ChatMessage> fitToContext(
   int? replyReserve,
 }) {
   if (messages.isEmpty) return messages;
-  final reserve = replyReserve ??
-      (contextSize ~/ 4 > kMinReplyReserve ? contextSize ~/ 4 : kMinReplyReserve);
+  final reserve =
+      replyReserve ??
+      (contextSize ~/ 4 > kMinReplyReserve
+          ? contextSize ~/ 4
+          : kMinReplyReserve);
   final budget = contextSize - reserve;
   if (budget <= 0) return [messages.last];
 
@@ -59,7 +62,10 @@ List<ChatMessage> fitToContext(
   if (cost(result) <= budget) return result;
 
   // 2. Shorten what is left, system message first.
-  for (final index in [0, result.length - 1]) {
+  // The final index is read on each pass: dropping the system message
+  // shifts the final turn down to 0.
+  for (final finalTurn in [false, true]) {
+    final index = finalTurn ? result.length - 1 : 0;
     final over = cost(result) - budget;
     if (over <= 0) break;
     final message = result[index];
