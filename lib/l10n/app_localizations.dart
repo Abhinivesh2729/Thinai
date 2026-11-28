@@ -757,6 +757,48 @@ abstract class AppLocalizations {
   /// **'System Prompt'**
   String get settingsSystemPrompt;
 
+  /// No description provided for @agentSkillsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent Skills'**
+  String get agentSkillsTitle;
+
+  /// No description provided for @agentSkillsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading skills...'**
+  String get agentSkillsLoading;
+
+  /// No description provided for @agentSkillsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled Skills'**
+  String get agentSkillsEnabled;
+
+  /// No description provided for @agentSkillsEnabledDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'These skills are active in your chats'**
+  String get agentSkillsEnabledDescription;
+
+  /// No description provided for @agentSkillsEnabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get agentSkillsEnabledLabel;
+
+  /// No description provided for @agentSkillsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Skills'**
+  String get agentSkillsAvailable;
+
+  /// No description provided for @agentSkillsAvailableDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Install skills to enhance your chat experience'**
+  String get agentSkillsAvailableDescription;
+
   /// No description provided for @settingsHardware.
   ///
   /// In en, this message translates to:

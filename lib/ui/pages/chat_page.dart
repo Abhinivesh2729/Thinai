@@ -41,6 +41,7 @@ List<ChatMessage> _promptFrom(
   DocumentAttachment? document,
   ImageAttachment? image,
   WebSearchResults? search,
+  List<String> skillInstructions = const [],
 }) {
   // Results the last reply was built from. A follow-up — "what is the model
   // name" after an answer about the latest models — is asked of a history
@@ -69,6 +70,13 @@ List<ChatMessage> _promptFrom(
   // lines below merge into the same system message after it, so a template
   // that allows only one still renders.
   add('system', systemPrompt.trim());
+
+  // Add skill instructions after the system prompt, before document and search.
+  // Skills are merged into the same system message to respect templates that
+  // allow only one system message.
+  if (skillInstructions.isNotEmpty) {
+    add('system', skillInstructions.join('\n\n---\n\n'));
+  }
 
   // The document follows, as a system message: it belongs to the conversation
   // rather than to one turn, so every follow-up question can still see it
@@ -452,6 +460,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         .current();
     if (!mounted) return;
 
+    final skillStore = ref.read(skillStoreProvider);
+    final enabledSkills = skillStore.getEnabledSkillsWithContext(
+      totalBudget: options.contextSize,
+      reservedTokens: options.contextSize ~/ 4,
+    );
+    final skillInstructions = enabledSkills.map((s) => s.instructions).toList();
+
     final prompt = _promptFrom(
       priorTurns,
       text,
@@ -459,6 +474,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       document: _document,
       image: _image,
       search: search,
+      skillInstructions: skillInstructions,
     );
 
     final turnDone = Completer<void>();

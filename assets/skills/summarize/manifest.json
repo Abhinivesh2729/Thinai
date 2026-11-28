@@ -1,0 +1,10 @@
+{
+  "name": "summarize",
+  "title": "Summarization",
+  "description": "Assists with creating concise summaries of conversations and content",
+  "documentation": "This skill helps create summaries of various content types. It provides guidelines for different summary lengths and ensures accuracy while preserving key information.",
+  "tags": ["productivity", "reading", "organization"],
+  "enabledByDefault": true,
+  "contextBudget": 1024,
+  "onDemand": false
+}

@@ -679,5 +679,14 @@
   "tamilEvalLeaveStop": "நிறுத்தி வெளியேறு",
   "tamilEvalEmptyTitle": "மதிப்பிட அறிவுரு இல்லை",
   "tamilEvalEmptyBody": "தமிழ்த் திறனைச் சோதிக்க ஓர் அறிவுருவைப் பதிவிறக்கவும்.",
-  "tamilEvalRules": "விதிகள்: {rules}"
+  "tamilEvalRules": "விதிகள்: {rules}",
+  "agentSkillsTitle": "ஆக்சன் திறன்கள்",
+  "agentSkillsLoading": "திறன்கள் ஏற்றப்படுகின்றன...",
+  "agentSkillsEnabled": "செயலில் உள்ள திறன்கள்",
+  "agentSkillsEnabledDescription": "இந்தத் திறன்கள் உங்கள் உரைகளில் செயலில் உள்ளன",
+  "agentSkillsEnabledLabel": "செயலில்",
+  "agentSkillsAvailable": "கிடைக்கும் திறன்கள்",
+  "agentSkillsAvailableDescription": "உங்கள் உரை அனுபவத்தை மேம்படுத்த திறன்களை நிறுவவும்",
+  "agentSkillsInstall": "நிறுவு",
+  "agentSkillsUninstall": "நிறுவல் நீக்கு"
 }

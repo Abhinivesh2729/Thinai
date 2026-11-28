@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thinai_tamil_evals/thinai_tamil_evals.dart';
 import 'package:uuid/uuid.dart';
 
+import '../agent_skills/skill_manifest.dart';
+import '../agent_skills/skill_store.dart';
 import '../l10n/l10n.dart';
 import '../llm/generation_settings.dart';
 import '../llm/gpu_support.dart';
@@ -40,6 +42,14 @@ final modelImporterProvider = Provider<ModelImporter>(
 final modelDownloaderProvider = Provider<ModelDownloader>(
   (ref) => ModelDownloader(),
 );
+
+/// Agent skills store. Manages loading, enabling/disabling, and providing
+/// skills to the chat engine.
+final skillStoreProvider = Provider<SkillStore>((ref) => SkillStore.instance);
+final enabledSkillsProvider = Provider<List<LoadedSkill>>((ref) {
+  final store = ref.watch(skillStoreProvider);
+  return store.getSkills().where((s) => store.isSkillEnabled(s.manifest.name)).toList();
+});
 
 /// Hugging Face search. Used only from the Hub search pages, on demand.
 final hfHubProvider = Provider<HfHub>((ref) => HfHub());

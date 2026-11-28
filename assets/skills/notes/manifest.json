@@ -1,0 +1,10 @@
+{
+  "name": "notes",
+  "title": "Notes",
+  "description": "Helps create and manage personal notes with structured format",
+  "documentation": "This skill helps you create, organize, and retrieve personal notes. It provides templates and guidelines for note-taking that can be easily parsed and searched.",
+  "tags": ["productivity", "organization", "note-taking"],
+  "enabledByDefault": true,
+  "contextBudget": 1024,
+  "onDemand": false
+}

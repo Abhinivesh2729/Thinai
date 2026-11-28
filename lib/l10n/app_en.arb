@@ -1680,5 +1680,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "agentSkillsTitle": "Agent Skills",
+  "agentSkillsLoading": "Loading skills...",
+  "agentSkillsEnabled": "Enabled Skills",
+  "agentSkillsEnabledDescription": "These skills are active in your chats",
+  "agentSkillsEnabledLabel": "Active",
+  "agentSkillsAvailable": "Available Skills",
+  "agentSkillsAvailableDescription": "Install skills to enhance your chat experience",
+  "agentSkillsInstall": "Install",
+  "agentSkillsUninstall": "Uninstall"
 }

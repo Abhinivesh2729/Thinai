@@ -393,6 +393,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSystemPrompt => 'System Prompt';
 
   @override
+  String get agentSkillsTitle => 'Agent Skills';
+
+  @override
+  String get agentSkillsLoading => 'Loading skills...';
+
+  @override
+  String get agentSkillsEnabled => 'Enabled Skills';
+
+  @override
+  String get agentSkillsEnabledDescription => 'These skills are active in your chats';
+
+  @override
+  String get agentSkillsEnabledLabel => 'Active';
+
+  @override
+  String get agentSkillsAvailable => 'Available Skills';
+
+  @override
+  String get agentSkillsAvailableDescription => 'Install skills to enhance your chat experience';
+
+  @override
   String get settingsHardware => 'Hardware';
 
   @override
