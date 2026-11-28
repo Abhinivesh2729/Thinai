@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:local_llm/models_repo/catalog.dart';
 import 'package:local_llm/models_repo/device_profile.dart';
+import 'package:local_llm/models_repo/downloader.dart';
 import 'package:local_llm/models_repo/recommender.dart';
 import 'package:local_llm/models_repo/use_cases.dart';
 import 'package:local_llm/ui/widgets/model_advisor.dart';
@@ -147,5 +151,151 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  collapsedAndDownloadTests();
+}
+
+Widget advisorApp({
+  bool collapsed = false,
+  UseCase? selected,
+  ValueChanged<UseCase?>? onUseCaseChanged,
+  VoidCallback? onToggleCollapse,
+  Set<String> installed = const {},
+  Map<String, DownloadHandle> downloads = const {},
+  void Function(String)? onCancel,
+}) {
+  return MaterialApp(
+    home: Scaffold(
+      body: SingleChildScrollView(
+        child: ModelAdvisor(
+          speed: SpeedKnowledge(device: phone(8)),
+          installedCatalogIds: installed,
+          onDownload: (_) {},
+          downloads: downloads,
+          onCancel: onCancel,
+          selectedUseCase: selected,
+          onUseCaseChanged: onUseCaseChanged,
+          isCollapsed: collapsed,
+          onToggleCollapse: onToggleCollapse,
+        ),
+      ),
+    ),
+  );
+}
+
+DownloadHandle handleWith(Stream<DownloadProgress> progress) => DownloadHandle(
+  url: 'https://example.com/m.gguf',
+  destPath: '/tmp/m.gguf',
+  cancelToken: CancelToken(),
+  progress: progress,
+  label: 'm',
+);
+
+void collapsedAndDownloadTests() {
+  group('collapsed bar', () {
+    testWidgets('shows the prompt and expands on tap', (tester) async {
+      var toggled = 0;
+      await tester.pumpWidget(
+        advisorApp(collapsed: true, onToggleCollapse: () => toggled++),
+      );
+
+      expect(find.text('What do you want to do?'), findsOneWidget);
+      expect(find.byIcon(Icons.close_rounded), findsNothing);
+
+      await tester.tap(find.text('What do you want to do?'));
+      expect(toggled, 1);
+    });
+
+    testWidgets('names the chosen goal and clears it through the callback', (
+      tester,
+    ) async {
+      final changes = <UseCase?>[];
+      await tester.pumpWidget(
+        advisorApp(
+          collapsed: true,
+          selected: UseCase.coding,
+          onUseCaseChanged: changes.add,
+        ),
+      );
+
+      expect(find.text('Goal: Coding'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      expect(changes, [null]);
+    });
+
+    testWidgets('keeps its own goal when collapsed and can clear it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(advisorApp());
+      await tester.tap(find.text('Coding'));
+      await tester.pump();
+
+      // Same widget, now collapsed: its local choice survives the rebuild.
+      await tester.pumpWidget(advisorApp(collapsed: true));
+      expect(find.text('Goal: Coding'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pump();
+      expect(find.text('What do you want to do?'), findsOneWidget);
+      expect(find.text('Goal: Coding'), findsNothing);
+    });
+  });
+
+  testWidgets('a controlled advisor reports the tap and leaves the choice up '
+      'to its owner', (tester) async {
+    final changes = <UseCase?>[];
+    await tester.pumpWidget(advisorApp(onUseCaseChanged: changes.add));
+
+    await tester.tap(find.text('Coding'));
+    await tester.pump();
+
+    expect(changes, [UseCase.coding]);
+    expect(find.text('Top pick'), findsNothing);
+  });
+
+  group('download in progress', () {
+    final wouldPick = recommend(UseCase.coding, phone(8)).best!.model;
+
+    testWidgets('shows a percentage and cancels on tap', (tester) async {
+      final ctrl = StreamController<DownloadProgress>();
+      addTearDown(ctrl.close);
+      final cancelled = <String>[];
+
+      await tester.pumpWidget(
+        advisorApp(
+          selected: UseCase.coding,
+          downloads: {wouldPick.id: handleWith(ctrl.stream)},
+          onCancel: cancelled.add,
+        ),
+      );
+      expect(find.text('Starting…'), findsOneWidget);
+
+      ctrl.add(const DownloadProgress(received: 25, total: 100, done: false));
+      await tester.pump();
+      expect(find.text('25%'), findsOneWidget);
+
+      await tester.tap(find.text('25%'));
+      expect(cancelled, [wouldPick.id]);
+    });
+
+    testWidgets('stays on "Starting…" while the size is unknown', (
+      tester,
+    ) async {
+      final ctrl = StreamController<DownloadProgress>();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(
+        advisorApp(
+          selected: UseCase.coding,
+          downloads: {wouldPick.id: handleWith(ctrl.stream)},
+        ),
+      );
+      ctrl.add(const DownloadProgress(received: 10, total: null, done: false));
+      await tester.pump();
+
+      expect(find.text('Starting…'), findsOneWidget);
+    });
   });
 }
